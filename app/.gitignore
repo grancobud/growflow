@@ -26,3 +26,7 @@ dist-ssr
 # Credenciales locales
 .env
 .wrangler
+
+# Build/config de la demo publica
+.env.demo
+dist-demo
