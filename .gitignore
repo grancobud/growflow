@@ -1,0 +1,9 @@
+# Referencia del esquema original (no es parte de GrowFlow)
+database-ref/
+
+# Supabase local
+supabase/.temp/
+supabase/.branches/
+
+# Artefactos de sesiones
+.playwright-mcp/
