@@ -14,6 +14,8 @@ import { lazyWithRetry } from './lib/lazyWithRetry'
 // se adaptan mas adelante, pero fuera del router.
 const PaginaPlantas = lazyWithRetry(() => import('./pages/PaginaPlantas'), 'PaginaPlantas')
 const PaginaChat = lazyWithRetry(() => import('./pages/PaginaChat'), 'PaginaChat')
+const PaginaGrafo = lazyWithRetry(() => import('./pages/PaginaGrafo'), 'PaginaGrafo')
+const PaginaTablas = lazyWithRetry(() => import('./pages/PaginaTablas'), 'PaginaTablas')
 const Pagina404 = lazyWithRetry(() => import('./pages/Pagina404'), 'Pagina404')
 
 function SpinnerCarga({ texto }: { texto: string }) {
@@ -56,6 +58,12 @@ function App() {
           } />
           <Route path="chat" element={
             <Suspense fallback={null}><PaginaChat /></Suspense>
+          } />
+          <Route path="grafo" element={
+            <Suspense fallback={null}><PaginaGrafo /></Suspense>
+          } />
+          <Route path="tablas" element={
+            <Suspense fallback={null}><PaginaTablas /></Suspense>
           } />
         </Route>
         <Route path="*" element={<Suspense fallback={<SpinnerCarga texto="Cargando..." />}><Pagina404 /></Suspense>} />
