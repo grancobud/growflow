@@ -4,9 +4,10 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { toast } from 'sonner'
-import { Plus, Trash2, RefreshCw, Table2 } from 'lucide-react'
+import { Plus, Trash2, RefreshCw, Table2, Download, Upload, X, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { FASES, TIPOS_EVENTO, TIPOS_GENETICA, SUSTRATOS } from '../lib/cultivo'
+import { exportarFull, importarFull } from '../lib/backup'
 
 type TipoCol = 'text' | 'number' | 'date' | 'bool' | { select: readonly string[] }
 interface Col { campo: string; titulo: string; tipo: TipoCol; ancho?: string }
@@ -71,6 +72,9 @@ export default function PaginaTablas() {
   const [cargando, setCargando] = useState(true)
   const [editando, setEditando] = useState<{ fila: string; campo: string } | null>(null)
   const [valor, setValor] = useState('')
+  const [modalImport, setModalImport] = useState(false)
+  const [textoImport, setTextoImport] = useState('')
+  const [procesando, setProcesando] = useState(false)
 
   const cargar = useCallback(async () => {
     setCargando(true)
@@ -142,6 +146,29 @@ export default function PaginaTablas() {
     }
   }
 
+  const exportar = async () => {
+    try {
+      const json = await exportarFull()
+      await navigator.clipboard.writeText(json)
+      toast.success('Backup completo copiado al portapapeles')
+    } catch (err) {
+      toast.error(`No se pudo exportar: ${(err as Error).message}`)
+    }
+  }
+
+  const importar = async () => {
+    setProcesando(true)
+    try {
+      const r = await importarFull(textoImport)
+      toast.success(`Importado: ${r.geneticas} genéticas, ${r.plantas} plantas, ${r.eventos} eventos, ${r.cosechas} cosechas`)
+      setModalImport(false); setTextoImport(''); cargar()
+    } catch (err) {
+      toast.error(`Error importando: ${(err as Error).message}`)
+    } finally {
+      setProcesando(false)
+    }
+  }
+
   const renderCelda = (fila: any, col: Col) => {
     const enEdicion = editando?.fila === fila.id && editando?.campo === col.campo
     const v = fila[col.campo]
@@ -202,6 +229,16 @@ export default function PaginaTablas() {
             </div>
           </div>
           <div className="flex-1" />
+          <button onClick={exportar}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] hover:border-[#404d20] transition-colors text-[11px] text-[#a6a6b5] hover:text-[#ececf1]"
+            title="Copiar backup completo del cultivo (todas las tablas) al portapapeles">
+            <Download className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Export</span>
+          </button>
+          <button onClick={() => setModalImport(true)}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] hover:border-[#404d20] transition-colors text-[11px] text-[#a6a6b5] hover:text-[#ececf1]"
+            title="Pegar un backup para restaurar/mezclar">
+            <Upload className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Import</span>
+          </button>
           <button onClick={cargar}
             className="p-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] transition-colors text-[#a6a6b5]"
             title="Refrescar">
@@ -275,6 +312,35 @@ export default function PaginaTablas() {
           </table>
         )}
       </div>
+
+      {modalImport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setModalImport(false)} />
+          <div className="relative w-full max-w-lg rounded-xl bg-[#101016] border border-[#2a2a3a] shadow-2xl">
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#1f1f2b]">
+              <h2 className="font-display font-semibold text-[14px] text-[#ececf1]">Importar backup</h2>
+              <button onClick={() => setModalImport(false)} className="p-1 text-[#5c5c6b] hover:text-[#ececf1]" aria-label="Cerrar">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-5 space-y-3">
+              <p className="text-[11.5px] text-[#8f8f9f] leading-relaxed">
+                Pegá un backup exportado desde otra instancia (formato <code className="font-mono text-[10.5px] text-[#c4b5fd] bg-[#15151d] px-1 py-0.5 rounded">growflow-full-v1</code>).
+                Las genéticas y plantas se actualizan por nombre/apodo; los eventos y cosechas se suman sin duplicar.
+              </p>
+              <textarea autoFocus rows={8} value={textoImport}
+                onChange={e => setTextoImport(e.target.value)}
+                placeholder='{"formato":"growflow-full-v1","geneticas":[...],"plantas":[...]}'
+                className="w-full px-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11px] font-mono text-[#ececf1] placeholder-[#46464f] focus:outline-none focus:border-[#a3e635]/60 transition-colors resize-y" />
+              <button onClick={importar} disabled={procesando || !textoImport.trim()}
+                className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[12px] font-medium text-[#d9f99d] disabled:opacity-50">
+                {procesando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                Importar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
