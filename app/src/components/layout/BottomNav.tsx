@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Sprout, MessageSquareText, Droplets } from 'lucide-react'
+import { LayoutDashboard, Sprout, MessageSquareText, Droplets, Menu } from 'lucide-react'
 
-/** Bottom navigation mobile. Grafo y Tablas quedan en el menu hamburguesa. */
+/** Bottom navigation mobile. El boton "Más" abre el cajon con todas las secciones. */
 const ITEMS = [
   { ruta: '/', icono: LayoutDashboard, label: 'Panel', exact: true },
   { ruta: '/sala', icono: Droplets, label: 'Sala', exact: false },
@@ -32,6 +32,14 @@ export default function BottomNav() {
             <span className="text-[10px] font-medium">{item.label}</span>
           </NavLink>
         ))}
+        <button
+          onClick={() => (window as any).__toggleSidebar?.()}
+          className="relative flex flex-col items-center justify-center gap-0.5 flex-1 h-full min-w-[44px] text-[#5c5c6b] hover:text-[#a6a6b5] transition-colors"
+          aria-label="Más secciones"
+        >
+          <Menu className="w-5 h-5" />
+          <span className="text-[10px] font-medium">Más</span>
+        </button>
       </div>
     </nav>
   )

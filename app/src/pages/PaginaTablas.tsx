@@ -9,6 +9,8 @@ import { supabase } from '../lib/supabase'
 import { FASES, TIPOS_EVENTO, TIPOS_GENETICA, SUSTRATOS } from '../lib/cultivo'
 import { exportarFull, importarFull } from '../lib/backup'
 
+const CATEGORIAS_APLIC = ['Fumigacion', 'Insecticida', 'Fungicida', 'Foliar', 'Acaricida', 'Bactericida', 'Otro'] as const
+
 type TipoCol = 'text' | 'number' | 'date' | 'bool' | { select: readonly string[] }
 interface Col { campo: string; titulo: string; tipo: TipoCol; ancho?: string }
 interface DefTabla { id: string; nombre: string; orden: string; cols: Col[] }
@@ -47,6 +49,29 @@ const TABLAS: DefTabla[] = [
     ],
   },
   {
+    id: 'riegos', nombre: 'Riegos', orden: 'fecha',
+    cols: [
+      { campo: 'fecha', titulo: 'Fecha', tipo: 'date' },
+      { campo: 'volumen_ml', titulo: 'Volumen (ml)', tipo: 'number' },
+      { campo: 'ppm', titulo: 'PPM', tipo: 'number' },
+      { campo: 'ph', titulo: 'pH', tipo: 'number' },
+      { campo: 'escurrio', titulo: 'Escurrió', tipo: 'bool' },
+      { campo: 'escurrido_ml', titulo: 'Escurrido (ml)', tipo: 'number' },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[160px]' },
+    ],
+  },
+  {
+    id: 'aplicaciones', nombre: 'Aplicaciones', orden: 'fecha',
+    cols: [
+      { campo: 'fecha', titulo: 'Fecha', tipo: 'date' },
+      { campo: 'categoria', titulo: 'Categoría', tipo: { select: CATEGORIAS_APLIC } },
+      { campo: 'producto', titulo: 'Producto', tipo: 'text' },
+      { campo: 'dosis', titulo: 'Dosis', tipo: 'text' },
+      { campo: 'metodo', titulo: 'Método', tipo: 'text' },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[160px]' },
+    ],
+  },
+  {
     id: 'cosechas', nombre: 'Cosechas', orden: 'fecha',
     cols: [
       { campo: 'fecha', titulo: 'Fecha', tipo: 'date' },
@@ -60,7 +85,7 @@ const TABLAS: DefTabla[] = [
 ]
 
 // Tablas que referencian una planta: mostramos la columna con nombre legible
-const CON_PLANTA = new Set(['eventos', 'cosechas'])
+const CON_PLANTA = new Set(['eventos', 'cosechas', 'riegos', 'aplicaciones'])
 
 const celdaCls = 'px-2.5 py-1.5 text-[12px] text-[#d4d4dd] border-b border-r border-[#1f1f2b] whitespace-nowrap'
 const inputCls = 'w-full bg-[#1c1c27] border border-[#a3e635]/50 rounded px-1.5 py-0.5 text-[12px] text-[#ececf1] focus:outline-none'

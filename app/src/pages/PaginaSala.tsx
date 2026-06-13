@@ -44,6 +44,8 @@ export default function PaginaSala() {
   const [modalImport, setModalImport] = useState(false)
   const [textoImport, setTextoImport] = useState('')
   const [importando, setImportando] = useState(false)
+  // Receta de riego del dia: se aplica a cada planta que toques (igual que mezclas una solucion y regas varias)
+  const [receta, setReceta] = useState({ volumen: '', ppm: '', ph: '' })
 
   const cargar = useCallback(async () => {
     try {
@@ -91,16 +93,37 @@ export default function PaginaSala() {
     return dias <= 0 ? 'hoy' : `${dias}d`
   }
 
+  const recetaResumen = () => {
+    const partes = [
+      receta.volumen && `${receta.volumen}ml`,
+      receta.ppm && `${receta.ppm}ppm`,
+      receta.ph && `pH${receta.ph}`,
+    ].filter(Boolean)
+    return partes.join(' · ') || null
+  }
+
+  // Inserta riego (rico) + evento Riego (timeline/sala/chat) para una lista de plantas
+  const registrarRiegos = async (ids: string[]) => {
+    const num = (v: string) => v.trim() === '' ? null : Number(v)
+    const det = recetaResumen()
+    await supabase.from('riegos').insert(ids.map(id => ({
+      planta_id: id, fecha: hoyStr(),
+      volumen_ml: num(receta.volumen), ppm: num(receta.ppm), ph: num(receta.ph),
+    })))
+    await supabase.from('eventos').insert(ids.map(id => ({ planta_id: id, tipo: 'Riego', fecha: hoyStr(), detalle: det })))
+  }
+
   const clickPlanta = async (p: Planta) => {
     if (modo === 'regar') {
       const regadaHoy = riegos[p.id] === hoyStr()
       try {
         if (regadaHoy) {
           await supabase.from('eventos').delete().eq('planta_id', p.id).eq('tipo', 'Riego').eq('fecha', hoyStr())
+          await supabase.from('riegos').delete().eq('planta_id', p.id).eq('fecha', hoyStr())
           const { data } = await supabase.from('resumen_plantas').select('ultimo_riego').eq('id', p.id).single()
           setRiegos(r => ({ ...r, [p.id]: (data as any)?.ultimo_riego ?? null }))
         } else {
-          await supabase.from('eventos').insert({ planta_id: p.id, tipo: 'Riego', fecha: hoyStr() })
+          await registrarRiegos([p.id])
           setRiegos(r => ({ ...r, [p.id]: hoyStr() }))
         }
       } catch (err) {
@@ -124,11 +147,9 @@ export default function PaginaSala() {
     const pendientes = plantas.filter(p => p.slot?.startsWith(carpa.id + '-') && riegos[p.id] !== hoyStr())
     if (pendientes.length === 0) { toast.info(`${carpa.nombre}: ya está toda regada hoy`); return }
     try {
-      const { error } = await supabase.from('eventos')
-        .insert(pendientes.map(p => ({ planta_id: p.id, tipo: 'Riego', fecha: hoyStr() })))
-      if (error) throw new Error(error.message)
+      await registrarRiegos(pendientes.map(p => p.id))
       setRiegos(r => ({ ...r, ...Object.fromEntries(pendientes.map(p => [p.id, hoyStr()])) }))
-      toast.success(`${carpa.nombre}: ${pendientes.length} plantas regadas`)
+      toast.success(`${carpa.nombre}: ${pendientes.length} plantas regadas${recetaResumen() ? ' (' + recetaResumen() + ')' : ''}`)
     } catch (err) {
       toast.error(`No se pudo regar la carpa: ${(err as Error).message}`)
     }
@@ -334,6 +355,19 @@ export default function PaginaSala() {
           {modo === 'mover' && <span className="text-[#38bdf8]">Modo mover: tocá una planta y después el slot destino</span>}
           {modo === 'genetica' && <span className="text-[#c4b5fd]">Modo genética: elegí una y tocá las plantas para asignarla</span>}
         </div>
+        {/* Receta de riego: se aplica a cada planta que toques */}
+        {modo === 'regar' && (
+          <div className="flex items-center flex-wrap gap-2 px-3 sm:px-6 pb-2.5">
+            <span className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium">Receta de hoy:</span>
+            {([['volumen', 'Volumen ml', '2000'], ['ppm', 'PPM', '800'], ['ph', 'pH', '6.2']] as const).map(([k, ph, eg]) => (
+              <input key={k} type="number" inputMode="decimal" value={receta[k]}
+                onChange={e => setReceta(r => ({ ...r, [k]: e.target.value }))}
+                placeholder={`${ph} (ej ${eg})`}
+                className="w-[110px] px-2 py-1 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#38bdf8]/60" />
+            ))}
+            <span className="text-[10px] text-[#5c5c6b]">se guarda en cada planta que toques · escurrimiento se completa en Tablas → Riegos</span>
+          </div>
+        )}
       </div>
 
       <div className="px-3 sm:px-6 py-5 pb-20">
