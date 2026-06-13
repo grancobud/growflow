@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
-import { Droplets, Move, Dna, RefreshCw } from 'lucide-react'
+import { Droplets, Move, Dna, RefreshCw, Download, Upload, X, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 interface Carpa { id: string; nombre: string; medida: string; cols: number; rows: number; area: string }
@@ -41,6 +41,9 @@ export default function PaginaSala() {
   const [genSel, setGenSel] = useState<string>('')
   const [moviendo, setMoviendo] = useState<string | null>(null)
   const [cargando, setCargando] = useState(true)
+  const [modalImport, setModalImport] = useState(false)
+  const [textoImport, setTextoImport] = useState('')
+  const [importando, setImportando] = useState(false)
 
   const cargar = useCallback(async () => {
     try {
@@ -128,6 +131,122 @@ export default function PaginaSala() {
     }
   }
 
+  // ----- Export / Import -----
+  const exportar = async () => {
+    try {
+      const { data: evs } = await supabase.from('eventos')
+        .select('planta_id,fecha').eq('tipo', 'Riego').order('fecha')
+      const riegosPorPlanta: Record<string, string[]> = {}
+      for (const e of (evs ?? []) as any[]) {
+        if (!e.planta_id) continue
+        ;(riegosPorPlanta[e.planta_id] = riegosPorPlanta[e.planta_id] ?? []).push(e.fecha)
+      }
+      const dump = {
+        formato: 'growflow-sala-v1',
+        exportado: new Date().toISOString(),
+        geneticas: geneticas.map(g => g.nombre),
+        plantas: plantas.map(p => ({
+          apodo: p.apodo,
+          slot: p.slot,
+          genetica: geneticas.find(g => g.id === p.genetica_id)?.nombre ?? null,
+          riegos: riegosPorPlanta[p.id] ?? [],
+        })),
+      }
+      const json = JSON.stringify(dump)
+      await navigator.clipboard.writeText(json)
+      toast.success(`Exportado al portapapeles (${plantas.length} plantas)`)
+    } catch (err) {
+      toast.error(`No se pudo exportar: ${(err as Error).message}`)
+    }
+  }
+
+  const importar = async () => {
+    let d: any
+    try { d = JSON.parse(textoImport) } catch { toast.error('Eso no es un JSON válido'); return }
+    setImportando(true)
+    try {
+      // Normalizar ambos formatos a: [{apodo, slot, genetica, riegos:[YYYY-MM-DD]}]
+      let items: { apodo: string; slot: string | null; genetica: string | null; riegos: string[] }[] = []
+      if (d.plants && typeof d.plants === 'object') {
+        // Formato registro-riego-v1 (localStorage de la app vieja): riegos en timestamps
+        items = Object.entries(d.plants).map(([n, p]: [string, any]) => ({
+          apodo: `#${n}`,
+          slot: p.slot ?? null,
+          genetica: p.gen ?? null,
+          riegos: [...new Set((p.riegos ?? []).map((ts: number) => new Date(ts).toLocaleDateString('en-CA')))] as string[],
+        }))
+      } else if (d.formato === 'growflow-sala-v1' && Array.isArray(d.plantas)) {
+        items = d.plantas.map((p: any) => ({
+          apodo: p.apodo, slot: p.slot ?? null, genetica: p.genetica ?? null,
+          riegos: [...new Set(p.riegos ?? [])] as string[],
+        }))
+      } else {
+        toast.error('Formato no reconocido (esperaba registro-riego-v1 o growflow-sala-v1)')
+        return
+      }
+
+      // Mapas actuales
+      const genPorNombre = new Map(geneticas.map(g => [g.nombre.toLowerCase(), g.id]))
+      const plantaPorApodo = new Map(plantas.map(p => [p.apodo ?? '', p]))
+      const { data: evsExist } = await supabase.from('eventos').select('planta_id,fecha').eq('tipo', 'Riego')
+      const yaRegada = new Set((evsExist ?? []).map((e: any) => `${e.planta_id}|${e.fecha}`))
+
+      let nuevasPlantas = 0, riegosImportados = 0, genAsignadas = 0
+      for (const item of items) {
+        if (!item.apodo) continue
+        // Genetica: buscar o crear
+        let genId: string | null = null
+        if (item.genetica) {
+          genId = genPorNombre.get(item.genetica.toLowerCase()) ?? null
+          if (!genId) {
+            const { data: ng, error } = await supabase.from('geneticas')
+              .insert({ nombre: item.genetica, tipo: 'Desconocido' }).select().single()
+            if (error) throw new Error(error.message)
+            genId = (ng as any).id
+            genPorNombre.set(item.genetica.toLowerCase(), genId!)
+          }
+        }
+        // Planta: actualizar o crear
+        let planta = plantaPorApodo.get(item.apodo)
+        if (planta) {
+          const upd: any = {}
+          if (item.slot) upd.slot = item.slot
+          if (genId) upd.genetica_id = genId
+          if (Object.keys(upd).length) {
+            const { error } = await supabase.from('plantas').update(upd).eq('id', planta.id)
+            if (error) throw new Error(error.message)
+            if (genId) genAsignadas++
+          }
+        } else {
+          const { data: np, error } = await supabase.from('plantas')
+            .insert({ apodo: item.apodo, fase: 'Vegetativo', slot: item.slot, genetica_id: genId, activa: true })
+            .select().single()
+          if (error) throw new Error(error.message)
+          planta = np as any
+          plantaPorApodo.set(item.apodo, planta!)
+          nuevasPlantas++
+        }
+        // Riegos: insertar los que falten (dedupe por planta+fecha)
+        const faltantes = item.riegos.filter(f => /^\d{4}-\d{2}-\d{2}$/.test(f) && !yaRegada.has(`${planta!.id}|${f}`))
+        if (faltantes.length) {
+          const { error } = await supabase.from('eventos')
+            .insert(faltantes.map(f => ({ planta_id: planta!.id, tipo: 'Riego', fecha: f, mensaje_original: 'import' })))
+          if (error) throw new Error(error.message)
+          faltantes.forEach(f => yaRegada.add(`${planta!.id}|${f}`))
+          riegosImportados += faltantes.length
+        }
+      }
+      toast.success(`Importado: ${riegosImportados} riegos, ${genAsignadas} genéticas asignadas, ${nuevasPlantas} plantas nuevas`)
+      setModalImport(false)
+      setTextoImport('')
+      cargar()
+    } catch (err) {
+      toast.error(`Error importando: ${(err as Error).message}`)
+    } finally {
+      setImportando(false)
+    }
+  }
+
   const regadasHoy = plantas.filter(p => riegos[p.id] === hoyStr()).length
 
   const renderPlanta = (p: Planta) => {
@@ -176,6 +295,16 @@ export default function PaginaSala() {
               {geneticas.map(g => <option key={g.id} value={g.id}>{g.nombre}</option>)}
             </select>
           )}
+          <button onClick={exportar}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] hover:border-[#404d20] transition-colors text-[11px] text-[#a6a6b5] hover:text-[#ececf1]"
+            title="Copiar todos los datos de la sala al portapapeles">
+            <Download className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Export</span>
+          </button>
+          <button onClick={() => setModalImport(true)}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] hover:border-[#404d20] transition-colors text-[11px] text-[#a6a6b5] hover:text-[#ececf1]"
+            title="Pegar datos exportados (de la app vieja o de GrowFlow)">
+            <Upload className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Import</span>
+          </button>
           <button onClick={cargar} className="p-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] transition-colors text-[#a6a6b5]" title="Refrescar">
             <RefreshCw className={`w-3.5 h-3.5 ${cargando ? 'animate-spin' : ''}`} />
           </button>
@@ -241,6 +370,40 @@ export default function PaginaSala() {
           </div>
         )}
       </div>
+
+      {/* Modal Import */}
+      {modalImport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setModalImport(false)} />
+          <div className="relative w-full max-w-lg rounded-xl bg-[#101016] border border-[#2a2a3a] shadow-2xl">
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#1f1f2b]">
+              <h2 className="font-display font-semibold text-[14px] text-[#ececf1]">Importar datos</h2>
+              <button onClick={() => setModalImport(false)} className="p-1 text-[#5c5c6b] hover:text-[#ececf1]" aria-label="Cerrar">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-5 space-y-3">
+              <p className="text-[11.5px] text-[#8f8f9f] leading-relaxed">
+                Pegá acá el JSON exportado. Acepta el export de GrowFlow o el localStorage de la app vieja
+                (en esa app, abrí la consola con F12 y ejecutá{' '}
+                <code className="font-mono text-[10.5px] text-[#c4b5fd] bg-[#15151d] px-1 py-0.5 rounded">copy(localStorage.getItem('registro-riego-v1'))</code>
+                {' '}para copiarlo). Los riegos se suman sin duplicar; las genéticas y posiciones se actualizan.
+              </p>
+              <textarea
+                autoFocus rows={8} value={textoImport}
+                onChange={e => setTextoImport(e.target.value)}
+                placeholder='{"plants":{"1":{"slot":"c1-0","riegos":[...]},...}}'
+                className="w-full px-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11px] font-mono text-[#ececf1] placeholder-[#46464f] focus:outline-none focus:border-[#a3e635]/60 transition-colors resize-y"
+              />
+              <button onClick={importar} disabled={importando || !textoImport.trim()}
+                className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[12px] font-medium text-[#d9f99d] disabled:opacity-50">
+                {importando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                Importar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
