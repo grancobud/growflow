@@ -11,6 +11,7 @@ import {
   cultivoService, FASES, TIPOS_GENETICA, SUSTRATOS,
   type ResumenPlanta, type Genetica, type Evento, type FasePlanta, type TipoEvento,
 } from '../lib/cultivo'
+import DetallePlanta from '../components/DetallePlanta'
 
 const COLOR_FASE: Record<FasePlanta, { text: string; bg: string; border: string }> = {
   Germinacion: { text: '#d9f99d', bg: 'rgba(163,230,53,0.10)', border: '#404d20' },
@@ -37,6 +38,7 @@ export default function PaginaPlantas() {
   const [modalGenetica, setModalGenetica] = useState(false)
   const [expandida, setExpandida] = useState<string | null>(null)
   const [eventosPlanta, setEventosPlanta] = useState<Record<string, Evento[]>>({})
+  const [detalle, setDetalle] = useState<ResumenPlanta | null>(null)
 
   const cargar = useCallback(async () => {
     try {
@@ -159,7 +161,9 @@ export default function PaginaPlantas() {
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="font-display font-semibold text-[14px] text-[#ececf1] truncate">{p.nombre}</p>
+                        <button onClick={() => setDetalle(p)}
+                          className="font-display font-semibold text-[14px] text-[#ececf1] truncate hover:text-[#bef264] transition-colors text-left"
+                          title="Ver línea de tiempo">{p.nombre}</button>
                         <p className="text-[11px] text-[#757584] truncate mt-0.5">
                           {p.genetica ?? 'Sin genética'}{p.banco ? ` · ${p.banco}` : ''}{p.tipo ? ` · ${p.tipo}` : ''}
                         </p>
@@ -250,6 +254,9 @@ export default function PaginaPlantas() {
         <ModalPlanta geneticas={geneticas} onCerrar={() => setModalPlanta(false)}
           onCreada={() => { setModalPlanta(false); cargar() }}
           onNuevaGenetica={() => { setModalPlanta(false); setModalGenetica(true) }} />
+      )}
+      {detalle && (
+        <DetallePlanta planta={detalle} onCerrar={() => setDetalle(null)} onCambio={cargar} />
       )}
     </div>
   )

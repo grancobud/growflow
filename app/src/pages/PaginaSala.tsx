@@ -120,6 +120,20 @@ export default function PaginaSala() {
     }
   }
 
+  const regarCarpa = async (carpa: Carpa) => {
+    const pendientes = plantas.filter(p => p.slot?.startsWith(carpa.id + '-') && riegos[p.id] !== hoyStr())
+    if (pendientes.length === 0) { toast.info(`${carpa.nombre}: ya está toda regada hoy`); return }
+    try {
+      const { error } = await supabase.from('eventos')
+        .insert(pendientes.map(p => ({ planta_id: p.id, tipo: 'Riego', fecha: hoyStr() })))
+      if (error) throw new Error(error.message)
+      setRiegos(r => ({ ...r, ...Object.fromEntries(pendientes.map(p => [p.id, hoyStr()])) }))
+      toast.success(`${carpa.nombre}: ${pendientes.length} plantas regadas`)
+    } catch (err) {
+      toast.error(`No se pudo regar la carpa: ${(err as Error).message}`)
+    }
+  }
+
   const clickSlot = async (slot: string, carpa: Carpa) => {
     if (modo !== 'mover' || !moviendo) return
     try {
@@ -331,8 +345,15 @@ export default function PaginaSala() {
             return (
             <div key={carpa.id} style={{ gridArea: carpa.area, maxWidth: carpa.cols * 57 + 20 }}
               className={`w-full lg:w-auto ${orden[carpa.id]} lg:order-none rounded-xl bg-[#101016] border-2 p-2.5 ${carpa.id === 's1' ? 'border-dashed border-[#2a2a3a]' : 'border-[#1f1f2b]'}`}>
-              <h2 className="flex justify-between gap-3 text-[11px] font-semibold text-[#757584] mb-2">
+              <h2 className="flex items-center justify-between gap-3 text-[11px] font-semibold text-[#757584] mb-2">
                 <span>{carpa.nombre} <span className="font-normal text-[#5c5c6b]">{carpa.medida}</span></span>
+                {modo === 'regar' && (
+                  <button onClick={() => regarCarpa(carpa)}
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-[#1d3a5a] bg-[#38bdf8]/10 hover:bg-[#38bdf8]/20 text-[9.5px] text-[#38bdf8] transition-colors"
+                    title={`Regar todas las plantas de ${carpa.nombre}`}>
+                    <Droplets className="w-2.5 h-2.5" /> todas
+                  </button>
+                )}
                 <span className="text-[#34c97a] tabular-nums">
                   {Array.from({ length: carpa.cols * carpa.rows }).filter((_, i) => {
                     const p = porSlot[`${carpa.id}-${i}`]

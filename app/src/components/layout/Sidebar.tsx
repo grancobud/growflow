@@ -3,8 +3,11 @@
 
 import { NavLink, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { LayoutDashboard, Leaf, LogOut, Sprout, MessageSquareText, GitBranch, Table2, Droplets } from 'lucide-react'
+import { LayoutDashboard, Leaf, LogOut, Sprout, MessageSquareText, GitBranch, Table2, Droplets, BarChart3, KeyRound } from 'lucide-react'
+import { toast } from 'sonner'
 import { useAuth } from '../../hooks/useAuth'
+import { tienePin, quitarPin } from '../../lib/pin'
+import PinLock from '../PinLock'
 
 type Item = { nombre: string; ruta: string; icono: any }
 
@@ -13,6 +16,8 @@ export default function Sidebar({ colapsado: colapsadoProp }: { colapsado?: bool
   const location = useLocation()
   const [ancho, setAncho] = useState<number>(0)
   const [ref, setRef] = useState<HTMLElement | null>(null)
+  const [configPin, setConfigPin] = useState(false)
+  const [hayPin, setHayPin] = useState(tienePin())
 
   useEffect(() => {
     if (!ref) return
@@ -31,9 +36,18 @@ export default function Sidebar({ colapsado: colapsadoProp }: { colapsado?: bool
     { nombre: 'Plantas', ruta: '/plantas', icono: Sprout },
     { nombre: 'Sala', ruta: '/sala', icono: Droplets },
     { nombre: 'Chat IA', ruta: '/chat', icono: MessageSquareText },
+    { nombre: 'Estadísticas', ruta: '/stats', icono: BarChart3 },
     { nombre: 'Grafo', ruta: '/grafo', icono: GitBranch },
     { nombre: 'Tablas', ruta: '/tablas', icono: Table2 },
   ]
+
+  const togglePin = () => {
+    if (hayPin) {
+      quitarPin(); setHayPin(false); toast.success('PIN desactivado')
+    } else {
+      setConfigPin(true)
+    }
+  }
 
   const renderItem = (item: Item) => {
     const isActive = location.pathname === item.ruta || (item.ruta !== '/' && location.pathname.startsWith(item.ruta))
@@ -102,6 +116,13 @@ export default function Sidebar({ colapsado: colapsadoProp }: { colapsado?: bool
               <p className="text-[10.5px] mt-0.5 font-medium text-[#a78bfa]">Cultivador</p>
             </div>
             <button
+              onClick={togglePin}
+              className={`p-1.5 rounded-lg transition-colors flex-shrink-0 hover:bg-[#15151d] ${hayPin ? 'text-[#bef264]' : 'text-[#5c5c6b] hover:text-[#a6a6b5]'}`}
+              title={hayPin ? 'PIN activo (tocá para desactivar)' : 'Configurar PIN de desbloqueo'}
+            >
+              <KeyRound className="w-4 h-4" />
+            </button>
+            <button
               onClick={logout}
               className="p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors flex-shrink-0"
               title="Cerrar sesión"
@@ -111,6 +132,11 @@ export default function Sidebar({ colapsado: colapsadoProp }: { colapsado?: bool
           </>
         )}
       </div>
+      {configPin && (
+        <PinLock modo="configurar"
+          onListo={() => { setConfigPin(false); setHayPin(true); toast.success('PIN configurado') }}
+          onCancelar={() => setConfigPin(false)} />
+      )}
     </aside>
   )
 }

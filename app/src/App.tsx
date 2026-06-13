@@ -1,11 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { Suspense } from 'react'
+import { Suspense, useState } from 'react'
 import { Toaster } from 'sonner'
 import { useAuth } from './hooks/useAuth'
 import Layout from './components/layout/Layout'
 import PaginaLogin from './pages/PaginaLogin'
 import PaginaPanel from './pages/PaginaPanel'
 import ErrorBoundary from './components/ErrorBoundary'
+import PinLock from './components/PinLock'
+import { tienePin, estaDesbloqueado } from './lib/pin'
 import { ConfirmProvider } from './hooks/useConfirm'
 import { lazyWithRetry } from './lib/lazyWithRetry'
 
@@ -17,6 +19,7 @@ const PaginaChat = lazyWithRetry(() => import('./pages/PaginaChat'), 'PaginaChat
 const PaginaGrafo = lazyWithRetry(() => import('./pages/PaginaGrafo'), 'PaginaGrafo')
 const PaginaTablas = lazyWithRetry(() => import('./pages/PaginaTablas'), 'PaginaTablas')
 const PaginaSala = lazyWithRetry(() => import('./pages/PaginaSala'), 'PaginaSala')
+const PaginaEstadisticas = lazyWithRetry(() => import('./pages/PaginaEstadisticas'), 'PaginaEstadisticas')
 const Pagina404 = lazyWithRetry(() => import('./pages/Pagina404'), 'Pagina404')
 
 function SpinnerCarga({ texto }: { texto: string }) {
@@ -39,8 +42,14 @@ function RutaRaiz() {
 
 function App() {
   const { login, autenticado, cargando } = useAuth()
+  const [desbloqueado, setDesbloqueado] = useState(estaDesbloqueado())
 
   if (cargando) return <SpinnerCarga texto="Iniciando..." />
+
+  // Si hay sesion + PIN configurado, pedir PIN antes de mostrar la app
+  if (autenticado && tienePin() && !desbloqueado) {
+    return <PinLock modo="verificar" onListo={() => setDesbloqueado(true)} />
+  }
 
   return (
     <ErrorBoundary>
@@ -68,6 +77,9 @@ function App() {
           } />
           <Route path="sala" element={
             <Suspense fallback={null}><PaginaSala /></Suspense>
+          } />
+          <Route path="stats" element={
+            <Suspense fallback={null}><PaginaEstadisticas /></Suspense>
           } />
         </Route>
         <Route path="*" element={<Suspense fallback={<SpinnerCarga texto="Cargando..." />}><Pagina404 /></Suspense>} />

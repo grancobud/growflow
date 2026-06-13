@@ -197,4 +197,42 @@ export const cultivoService = {
     lanzar(error)
     return data as Cosecha
   },
+
+  // --- fotos ---
+  async subirFoto(file: File): Promise<string> {
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+    const nombre = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+    const { error } = await supabase.storage.from('fotos').upload(nombre, file, {
+      cacheControl: '3600', upsert: false, contentType: file.type || 'image/jpeg',
+    })
+    if (error) throw new Error(error.message)
+    const { data } = supabase.storage.from('fotos').getPublicUrl(nombre)
+    return data.publicUrl
+  },
+
+  // --- estadisticas ---
+  async getEstadisticasCosecha(): Promise<EstadisticaGenetica[]> {
+    const { data, error } = await supabase
+      .from('cosechas')
+      .select('peso_seco_g, peso_humedo_g, valoracion, plantas:planta_id (genetica_id, geneticas:genetica_id (nombre))')
+    lanzar(error)
+    const acc: Record<string, EstadisticaGenetica> = {}
+    for (const c of (data ?? []) as any[]) {
+      const nombre = c.plantas?.geneticas?.nombre ?? 'Sin genética'
+      const e = acc[nombre] ?? (acc[nombre] = { genetica: nombre, cosechas: 0, peso_seco_g: 0, peso_humedo_g: 0, valoraciones: [] })
+      e.cosechas++
+      e.peso_seco_g += c.peso_seco_g ?? 0
+      e.peso_humedo_g += c.peso_humedo_g ?? 0
+      if (c.valoracion != null) e.valoraciones.push(c.valoracion)
+    }
+    return Object.values(acc).sort((a, b) => b.peso_seco_g - a.peso_seco_g)
+  },
+}
+
+export interface EstadisticaGenetica {
+  genetica: string
+  cosechas: number
+  peso_seco_g: number
+  peso_humedo_g: number
+  valoraciones: number[]
 }
