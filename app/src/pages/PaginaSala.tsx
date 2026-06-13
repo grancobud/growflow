@@ -323,12 +323,14 @@ export default function PaginaSala() {
       </div>
 
       <div className="px-3 sm:px-6 py-5 pb-20">
-        {/* Sala en L */}
-        <div className="grid gap-4 justify-center items-end"
+        {/* Sala: apilada en mobile, en L en desktop */}
+        <div className="flex flex-col items-center gap-4 lg:grid lg:justify-center lg:items-end"
           style={{ gridTemplateAreas: '"c3 c2 c4" "s1 s1 c1"' }}>
-          {CARPAS.map(carpa => (
-            <div key={carpa.id} style={{ gridArea: carpa.area }}
-              className={`rounded-xl bg-[#101016] border-2 p-2.5 ${carpa.id === 's1' ? 'border-dashed border-[#2a2a3a]' : 'border-[#1f1f2b]'}`}>
+          {CARPAS.map(carpa => {
+            const orden: Record<string, string> = { c1: 'order-1', c2: 'order-2', c3: 'order-3', c4: 'order-4', s1: 'order-5' }
+            return (
+            <div key={carpa.id} style={{ gridArea: carpa.area, maxWidth: carpa.cols * 57 + 20 }}
+              className={`w-full lg:w-auto ${orden[carpa.id]} lg:order-none rounded-xl bg-[#101016] border-2 p-2.5 ${carpa.id === 's1' ? 'border-dashed border-[#2a2a3a]' : 'border-[#1f1f2b]'}`}>
               <h2 className="flex justify-between gap-3 text-[11px] font-semibold text-[#757584] mb-2">
                 <span>{carpa.nombre} <span className="font-normal text-[#5c5c6b]">{carpa.medida}</span></span>
                 <span className="text-[#34c97a] tabular-nums">
@@ -338,13 +340,13 @@ export default function PaginaSala() {
                   }).length}/{Array.from({ length: carpa.cols * carpa.rows }).filter((_, i) => porSlot[`${carpa.id}-${i}`]).length}
                 </span>
               </h2>
-              <div className="grid gap-[5px]" style={{ gridTemplateColumns: `repeat(${carpa.cols}, 52px)` }}>
+              <div className="grid gap-[5px]" style={{ gridTemplateColumns: `repeat(${carpa.cols}, minmax(0, 52px))` }}>
                 {Array.from({ length: carpa.cols * carpa.rows }).map((_, i) => {
                   const slot = `${carpa.id}-${i}`
                   const p = porSlot[slot]
                   return (
                     <div key={slot} onClick={() => !p && clickSlot(slot, carpa)}
-                      className={`relative w-[52px] h-[52px] rounded-[9px] border border-dashed ${
+                      className={`relative aspect-square rounded-[9px] border border-dashed ${
                         modo === 'mover' && moviendo && !p
                           ? 'border-[#38bdf8] bg-[#38bdf8]/10 cursor-pointer'
                           : 'border-[#2a2a3a]'
@@ -355,7 +357,7 @@ export default function PaginaSala() {
                 })}
               </div>
             </div>
-          ))}
+          )})}
         </div>
 
         {/* Bandeja sin ubicar */}

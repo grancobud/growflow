@@ -1,9 +1,10 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Sprout, MessageSquareText } from 'lucide-react'
+import { LayoutDashboard, Sprout, MessageSquareText, Droplets } from 'lucide-react'
 
-/** Bottom navigation mobile — version personal: Panel, Plantas y Chat. */
+/** Bottom navigation mobile. Grafo y Tablas quedan en el menu hamburguesa. */
 const ITEMS = [
   { ruta: '/', icono: LayoutDashboard, label: 'Panel', exact: true },
+  { ruta: '/sala', icono: Droplets, label: 'Sala', exact: false },
   { ruta: '/plantas', icono: Sprout, label: 'Plantas', exact: false },
   { ruta: '/chat', icono: MessageSquareText, label: 'Chat', exact: false },
 ]

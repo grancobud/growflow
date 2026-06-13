@@ -125,9 +125,11 @@ export const cultivoService = {
   async getResumenPlantas(soloActivas = true): Promise<ResumenPlanta[]> {
     let q = supabase.from('resumen_plantas').select('*')
     if (soloActivas) q = q.eq('activa', true)
-    const { data, error } = await q.order('fase').order('nombre')
+    const { data, error } = await q
     lanzar(error)
-    return (data ?? []) as ResumenPlanta[]
+    // Orden natural: #2 antes que #10 (el order de SQL es alfabetico puro)
+    return ((data ?? []) as ResumenPlanta[]).sort((a, b) =>
+      a.nombre.localeCompare(b.nombre, 'es', { numeric: true }))
   },
 
   async getPlanta(id: string): Promise<Planta> {
