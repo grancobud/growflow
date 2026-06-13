@@ -16,6 +16,7 @@ const PaginaPlantas = lazyWithRetry(() => import('./pages/PaginaPlantas'), 'Pagi
 const PaginaChat = lazyWithRetry(() => import('./pages/PaginaChat'), 'PaginaChat')
 const PaginaGrafo = lazyWithRetry(() => import('./pages/PaginaGrafo'), 'PaginaGrafo')
 const PaginaTablas = lazyWithRetry(() => import('./pages/PaginaTablas'), 'PaginaTablas')
+const PaginaSala = lazyWithRetry(() => import('./pages/PaginaSala'), 'PaginaSala')
 const Pagina404 = lazyWithRetry(() => import('./pages/Pagina404'), 'Pagina404')
 
 function SpinnerCarga({ texto }: { texto: string }) {
@@ -64,6 +65,9 @@ function App() {
           } />
           <Route path="tablas" element={
             <Suspense fallback={null}><PaginaTablas /></Suspense>
+          } />
+          <Route path="sala" element={
+            <Suspense fallback={null}><PaginaSala /></Suspense>
           } />
         </Route>
         <Route path="*" element={<Suspense fallback={<SpinnerCarga texto="Cargando..." />}><Pagina404 /></Suspense>} />

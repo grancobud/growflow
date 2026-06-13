@@ -3,7 +3,7 @@
 
 import { NavLink, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { LayoutDashboard, Leaf, LogOut, Sprout, MessageSquareText, GitBranch, Table2 } from 'lucide-react'
+import { LayoutDashboard, Leaf, LogOut, Sprout, MessageSquareText, GitBranch, Table2, Droplets } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 
 type Item = { nombre: string; ruta: string; icono: any }
@@ -29,6 +29,7 @@ export default function Sidebar({ colapsado: colapsadoProp }: { colapsado?: bool
   const items: Item[] = [
     { nombre: 'Panel', ruta: '/', icono: LayoutDashboard },
     { nombre: 'Plantas', ruta: '/plantas', icono: Sprout },
+    { nombre: 'Sala', ruta: '/sala', icono: Droplets },
     { nombre: 'Chat IA', ruta: '/chat', icono: MessageSquareText },
     { nombre: 'Grafo', ruta: '/grafo', icono: GitBranch },
     { nombre: 'Tablas', ruta: '/tablas', icono: Table2 },
