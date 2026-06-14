@@ -15,6 +15,7 @@ import {
 } from '../lib/registro'
 import { cultivoService, type ResumenPlanta } from '../lib/cultivo'
 import { MODO_DEMO } from '../lib/supabase'
+import { leerCredencial, OCR_DISPONIBLE } from '../lib/ocr'
 
 const COLOR_ESTADO: Record<EstadoReprocann, { text: string; bg: string; border: string }> = {
   Vigente:      { text: '#bef264', bg: 'rgba(163,230,53,0.14)', border: '#404d20' },
@@ -364,9 +365,50 @@ function ModalPaciente({ paciente, onCerrar, onGuardado }: {
   const [credencialUrl, setCredencialUrl] = useState<string | null>(paciente?.credencial_url ?? null)
   const [fotoUrl, setFotoUrl] = useState<string | null>(paciente?.foto_url ?? null)
   const [subiendo, setSubiendo] = useState<'pdf' | 'foto' | null>(null)
+  const [leyendo, setLeyendo] = useState(false)
   const [guardando, setGuardando] = useState(false)
 
   const set = (k: keyof FormState, v: any) => setForm(f => ({ ...f, [k]: v }))
+
+  // Autocompletar desde el PDF de la credencial (OCR local). Tambien sube el PDF.
+  const autocompletar = async (file: File) => {
+    if (file.type !== 'application/pdf') { toast.error('Subí el PDF de la credencial REPROCANN'); return }
+    setLeyendo(true)
+    try {
+      const [d] = await Promise.all([
+        leerCredencial(file),
+        registroService.subirCredencial(file).then(setCredencialUrl).catch(() => {}),
+      ])
+      const ESTADOS = ESTADOS_REPROCANN as readonly string[]
+      const MODS = MODALIDADES as readonly string[]
+      setForm(f => ({
+        ...f,
+        nombre_completo: d.nombre_completo || f.nombre_completo,
+        dni: d.dni || f.dni,
+        fecha_nacimiento: /^\d{4}-\d{2}-\d{2}$/.test(d.fecha_nacimiento || '') ? d.fecha_nacimiento! : f.fecha_nacimiento,
+        telefono: d.telefono || f.telefono,
+        email: d.email || f.email,
+        localidad: d.localidad || f.localidad,
+        provincia: d.provincia || f.provincia,
+        domicilio: d.domicilio || f.domicilio,
+        reprocann_nro: d.reprocann_nro || f.reprocann_nro,
+        reprocann_estado: (ESTADOS.includes(d.reprocann_estado || '') ? d.reprocann_estado : f.reprocann_estado) as EstadoReprocann,
+        reprocann_emision: /^\d{4}-\d{2}-\d{2}$/.test(d.reprocann_emision || '') ? d.reprocann_emision! : f.reprocann_emision,
+        reprocann_vencimiento: /^\d{4}-\d{2}-\d{2}$/.test(d.reprocann_vencimiento || '') ? d.reprocann_vencimiento! : f.reprocann_vencimiento,
+        modalidad: MODS.includes(d.modalidad || '') ? d.modalidad! : f.modalidad,
+        plantas_habilitadas: d.plantas_habilitadas != null && d.plantas_habilitadas !== '' ? String(d.plantas_habilitadas) : f.plantas_habilitadas,
+        m2_habilitados: d.m2_habilitados != null && d.m2_habilitados !== '' ? String(d.m2_habilitados) : f.m2_habilitados,
+        patologia: d.patologia || f.patologia,
+        medico_tratante: d.medico_tratante || f.medico_tratante,
+        matricula_medico: d.matricula_medico || f.matricula_medico,
+      }))
+      toast.success('Datos leídos de la credencial. Revisalos y guardá.')
+    } catch (err) {
+      toast.error(`No se pudo leer la credencial: ${(err as Error).message}`)
+    } finally {
+      setLeyendo(false)
+    }
+  }
 
   const subirPdf = async (file: File) => {
     if (file.type !== 'application/pdf') { toast.error('La credencial debe ser un PDF'); return }
@@ -411,6 +453,16 @@ function ModalPaciente({ paciente, onCerrar, onGuardado }: {
   return (
     <Modal titulo={paciente ? 'Editar ficha' : 'Nuevo paciente'} ancho="max-w-2xl" onCerrar={onCerrar}>
       <div className="space-y-3">
+        {OCR_DISPONIBLE && (
+          <label className={`flex items-center justify-center gap-2 px-3 py-3 rounded-lg border border-dashed border-[#a78bfa]/40 bg-[#a78bfa]/5 hover:bg-[#a78bfa]/10 transition-colors cursor-pointer ${leyendo ? 'opacity-60 pointer-events-none' : ''}`}>
+            {leyendo ? <Loader2 className="w-4 h-4 animate-spin text-[#c4b5fd]" /> : <FileText className="w-4 h-4 text-[#c4b5fd]" />}
+            <span className="text-[12px] font-medium text-[#c4b5fd]">
+              {leyendo ? 'Leyendo la credencial con IA local…' : 'Subir credencial PDF y autocompletar'}
+            </span>
+            <input type="file" accept="application/pdf" className="hidden"
+              onChange={e => { const f = e.target.files?.[0]; if (f) autocompletar(f); e.target.value = '' }} />
+          </label>
+        )}
         <div>
           <label className={labelCls}>Nombre completo *</label>
           <input autoFocus className={inputCls} placeholder="Juan Pérez" value={form.nombre_completo}
