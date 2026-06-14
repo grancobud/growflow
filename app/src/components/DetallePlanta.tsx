@@ -3,13 +3,17 @@
 // con miniaturas, subida de fotos y visor a pantalla completa.
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import {
   X, Camera, Loader2, Droplets, Scissors, FlaskConical, StickyNote,
   Sprout, Flower2, Repeat, AlertTriangle, RefreshCw, Image as ImageIcon, Scale, SprayCan,
+  QrCode, ExternalLink, IdCard,
 } from 'lucide-react'
 import { cultivoService, type ResumenPlanta, type Evento, type Cosecha } from '../lib/cultivo'
+import { registroService, type Paciente } from '../lib/registro'
 import { supabase } from '../lib/supabase'
+import QR from './QR'
 
 const ICONO: Record<string, { Ic: any; color: string }> = {
   Riego: { Ic: Droplets, color: '#38bdf8' },
@@ -42,6 +46,10 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
   const [cargando, setCargando] = useState(true)
   const [subiendo, setSubiendo] = useState(false)
   const [visor, setVisor] = useState<string | null>(null)
+  const [mostrarQR, setMostrarQR] = useState(false)
+  const [pacientes, setPacientes] = useState<Paciente[]>([])
+  const [pacienteId, setPacienteId] = useState<string>(planta.paciente_id ?? '')
+  const [fechas, setFechas] = useState({ cosecha: '', envasado: '' })
   const fileRef = useRef<HTMLInputElement>(null)
 
   const cargar = useCallback(async () => {
@@ -76,6 +84,35 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
   }, [planta.id])
 
   useEffect(() => { cargar() }, [cargar])
+  useEffect(() => { registroService.getPacientes().then(setPacientes).catch(() => {}) }, [])
+  useEffect(() => {
+    cultivoService.getPlanta(planta.id)
+      .then(p => setFechas({ cosecha: p.fecha_cosecha ?? '', envasado: p.fecha_envasado ?? '' }))
+      .catch(() => {})
+  }, [planta.id])
+
+  const guardarFecha = async (campo: 'fecha_cosecha' | 'fecha_envasado', valor: string) => {
+    setFechas(f => ({ ...f, [campo === 'fecha_cosecha' ? 'cosecha' : 'envasado']: valor }))
+    try {
+      await cultivoService.actualizarPlanta(planta.id, { [campo]: valor || null })
+      onCambio()
+    } catch (err) {
+      toast.error(`No se pudo guardar: ${(err as Error).message}`)
+    }
+  }
+
+  const asignarPaciente = async (id: string) => {
+    setPacienteId(id)
+    try {
+      await cultivoService.actualizarPlanta(planta.id, { paciente_id: id || null })
+      toast.success(id ? 'Paciente asignado' : 'Asignación quitada')
+      onCambio()
+    } catch (err) {
+      toast.error(`No se pudo asignar: ${(err as Error).message}`)
+    }
+  }
+
+  const urlQR = `${window.location.origin}/p/${planta.codigo ?? ''}`
 
   const subirFoto = async (file: File) => {
     setSubiendo(true)
@@ -133,6 +170,55 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
           <button onClick={onCerrar} className="p-1 text-[#5c5c6b] hover:text-[#ececf1]" aria-label="Cerrar">
             <X className="w-5 h-5" />
           </button>
+        </div>
+
+        {/* Codigo / QR / paciente */}
+        <div className="px-5 py-3 border-b border-[#1f1f2b] flex-shrink-0 space-y-2.5">
+          <div className="flex items-center gap-2 flex-wrap">
+            {planta.codigo && (
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-[#15151d] border border-[#2a2a3a] px-2 py-1 font-mono text-[11.5px] text-[#d9f99d]">
+                {planta.codigo}
+              </span>
+            )}
+            <button onClick={() => setMostrarQR(v => !v)} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:border-[#404d20] text-[11px] text-[#a6a6b5] hover:text-[#ececf1] transition-colors">
+              <QrCode className="w-3.5 h-3.5" /> {mostrarQR ? 'Ocultar QR' : 'Ver QR'}
+            </button>
+            {planta.codigo && (
+              <Link to={`/p/${planta.codigo}`} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:border-[#404d20] text-[11px] text-[#a6a6b5] hover:text-[#ececf1] transition-colors">
+                <ExternalLink className="w-3.5 h-3.5" /> Historia completa
+              </Link>
+            )}
+          </div>
+          {mostrarQR && planta.codigo && (
+            <div className="flex items-center gap-3 py-1">
+              <QR value={urlQR} size={110} />
+              <div className="text-[10.5px] text-[#8f8f9f] leading-relaxed">
+                Escaneá este QR con la cámara del teléfono para abrir la historia clínica de la planta.
+                <div className="font-mono text-[#5c5c6b] mt-1 break-all">{urlQR}</div>
+              </div>
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <IdCard className="w-3.5 h-3.5 text-[#a78bfa] flex-shrink-0" />
+            <span className="text-[10.5px] text-[#5c5c6b] uppercase tracking-[0.12em]">Paciente</span>
+            <select value={pacienteId} onChange={e => asignarPaciente(e.target.value)}
+              className="flex-1 px-2 py-1.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11.5px] text-[#ececf1] focus:outline-none focus:border-[#a3e635]/60 cursor-pointer">
+              <option value="">Sin asignar</option>
+              {pacientes.map(p => <option key={p.id} value={p.id}>{p.nombre_completo}{p.reprocann_nro ? ` (${p.reprocann_nro})` : ''}</option>)}
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-[9.5px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1">Fecha de cosecha</label>
+              <input type="date" value={fechas.cosecha} onChange={e => guardarFecha('fecha_cosecha', e.target.value)}
+                className="w-full px-2 py-1.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11.5px] text-[#ececf1] focus:outline-none focus:border-[#a3e635]/60" />
+            </div>
+            <div>
+              <label className="block text-[9.5px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1">Fecha de envasado</label>
+              <input type="date" value={fechas.envasado} onChange={e => guardarFecha('fecha_envasado', e.target.value)}
+                className="w-full px-2 py-1.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11.5px] text-[#ececf1] focus:outline-none focus:border-[#a3e635]/60" />
+            </div>
+          </div>
         </div>
 
         {/* Timeline */}

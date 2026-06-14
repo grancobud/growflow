@@ -8,9 +8,10 @@ import {
   Dna, Loader2, ChevronDown, ChevronUp, Flower2, Trash2,
 } from 'lucide-react'
 import {
-  cultivoService, FASES, TIPOS_GENETICA, SUSTRATOS,
+  cultivoService, generarCodigoPlanta, FASES, TIPOS_GENETICA, SUSTRATOS,
   type ResumenPlanta, type Genetica, type Evento, type FasePlanta, type TipoEvento,
 } from '../lib/cultivo'
+import { registroService, type Paciente } from '../lib/registro'
 import DetallePlanta from '../components/DetallePlanta'
 
 const COLOR_FASE: Record<FasePlanta, { text: string; bg: string; border: string }> = {
@@ -32,6 +33,7 @@ const btnSutil = 'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bord
 export default function PaginaPlantas() {
   const [plantas, setPlantas] = useState<ResumenPlanta[]>([])
   const [geneticas, setGeneticas] = useState<Genetica[]>([])
+  const [pacientes, setPacientes] = useState<Paciente[]>([])
   const [verInactivas, setVerInactivas] = useState(false)
   const [cargando, setCargando] = useState(true)
   const [modalPlanta, setModalPlanta] = useState(false)
@@ -42,12 +44,14 @@ export default function PaginaPlantas() {
 
   const cargar = useCallback(async () => {
     try {
-      const [resumen, gens] = await Promise.all([
+      const [resumen, gens, pacs] = await Promise.all([
         cultivoService.getResumenPlantas(!verInactivas),
         cultivoService.getGeneticas(),
+        registroService.getPacientes().catch(() => []),
       ])
       setPlantas(resumen)
       setGeneticas(gens)
+      setPacientes(pacs)
     } catch (err) {
       toast.error(`Error cargando plantas: ${(err as Error).message}`)
     } finally {
@@ -167,6 +171,10 @@ export default function PaginaPlantas() {
                         <p className="text-[11px] text-[#757584] truncate mt-0.5">
                           {p.genetica ?? 'Sin genética'}{p.banco ? ` · ${p.banco}` : ''}{p.tipo ? ` · ${p.tipo}` : ''}
                         </p>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          {p.codigo && <span className="font-mono text-[9.5px] text-[#5c5c6b] bg-[#15151d] border border-[#20202c] rounded px-1.5 py-0.5">{p.codigo}</span>}
+                          {p.paciente_nombre && <span className="text-[9.5px] text-[#a78bfa] inline-flex items-center gap-0.5">· {p.paciente_nombre}</span>}
+                        </div>
                       </div>
                       <span className="px-2 py-0.5 rounded-full border text-[10px] font-medium flex-shrink-0"
                         style={{ color: cf.text, background: cf.bg, borderColor: cf.border }}>
@@ -251,7 +259,7 @@ export default function PaginaPlantas() {
         <ModalGenetica onCerrar={() => setModalGenetica(false)} onCreada={() => { setModalGenetica(false); cargar() }} />
       )}
       {modalPlanta && (
-        <ModalPlanta geneticas={geneticas} onCerrar={() => setModalPlanta(false)}
+        <ModalPlanta geneticas={geneticas} pacientes={pacientes} onCerrar={() => setModalPlanta(false)}
           onCreada={() => { setModalPlanta(false); cargar() }}
           onNuevaGenetica={() => { setModalPlanta(false); setModalGenetica(true) }} />
       )}
@@ -375,8 +383,9 @@ function ModalGenetica({ onCerrar, onCreada }: { onCerrar: () => void; onCreada:
   )
 }
 
-function ModalPlanta({ geneticas, onCerrar, onCreada, onNuevaGenetica }: {
+function ModalPlanta({ geneticas, pacientes, onCerrar, onCreada, onNuevaGenetica }: {
   geneticas: Genetica[]
+  pacientes: Paciente[]
   onCerrar: () => void
   onCreada: () => void
   onNuevaGenetica: () => void
@@ -384,17 +393,20 @@ function ModalPlanta({ geneticas, onCerrar, onCreada, onNuevaGenetica }: {
   const [guardando, setGuardando] = useState(false)
   const hoy = new Date().toISOString().slice(0, 10)
   const [form, setForm] = useState({
-    genetica_id: geneticas[0]?.id ?? '', apodo: '', fecha: hoy,
+    genetica_id: geneticas[0]?.id ?? '', paciente_id: '', apodo: '', fecha: hoy,
     fase: 'Germinacion', sustrato: '', maceta: '', ubicacion: '', cantidad: '1',
   })
 
   const guardar = async () => {
     const n = Math.max(1, Math.min(50, parseInt(form.cantidad) || 1))
     setGuardando(true)
+    const nombreGen = geneticas.find(g => g.id === form.genetica_id)?.nombre ?? null
     try {
       for (let i = 0; i < n; i++) {
         await cultivoService.crearPlanta({
+          codigo: generarCodigoPlanta(nombreGen),
           genetica_id: form.genetica_id || null,
+          paciente_id: form.paciente_id || null,
           apodo: form.apodo.trim() ? (n > 1 ? `${form.apodo.trim()} #${i + 1}` : form.apodo.trim()) : null,
           fecha_germinacion: form.fecha || null,
           fase: form.fase as FasePlanta,
@@ -470,6 +482,14 @@ function ModalPlanta({ geneticas, onCerrar, onCreada, onNuevaGenetica }: {
           <label className={labelCls}>Ubicación</label>
           <input className={inputCls} placeholder="Indoor carpa 120x120" value={form.ubicacion}
             onChange={e => setForm(f => ({ ...f, ubicacion: e.target.value }))} />
+        </div>
+        <div>
+          <label className={labelCls}>Paciente asignado</label>
+          <select className={inputCls} value={form.paciente_id} onChange={e => setForm(f => ({ ...f, paciente_id: e.target.value }))}>
+            <option value="">Sin asignar</option>
+            {pacientes.map(p => <option key={p.id} value={p.id}>{p.nombre_completo}{p.reprocann_nro ? ` (${p.reprocann_nro})` : ''}</option>)}
+          </select>
+          <p className="mt-1 text-[10px] text-[#5c5c6b]">Se genera un código QR único por planta para su historia clínica.</p>
         </div>
         <button onClick={guardar} disabled={guardando} className={`${btnPrimario} w-full justify-center`}>
           {guardando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Flower2 className="w-3.5 h-3.5" />}

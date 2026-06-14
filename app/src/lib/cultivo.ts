@@ -34,6 +34,16 @@ export const SUSTRATOS = [
   'Dwc',
 ] as const
 
+export type Genotipo = 'Indica' | 'Sativa' | 'Hibrida' | 'Ruderalis'
+export type Altura = 'Baja' | 'Media' | 'Alta'
+export type Dificultad = 'Facil' | 'Media' | 'Dificil'
+export type Ambiente = 'Indoor' | 'Outdoor' | 'Invernadero' | 'Mixto'
+
+export const GENOTIPOS: Genotipo[] = ['Indica', 'Sativa', 'Hibrida', 'Ruderalis']
+export const ALTURAS: Altura[] = ['Baja', 'Media', 'Alta']
+export const DIFICULTADES: Dificultad[] = ['Facil', 'Media', 'Dificil']
+export const AMBIENTES: Ambiente[] = ['Indoor', 'Outdoor', 'Invernadero', 'Mixto']
+
 export interface Genetica {
   id: string
   nombre: string
@@ -44,14 +54,35 @@ export interface Genetica {
   tiempo_flora_dias: number | null
   notas: string | null
   creado_en: string
+  // ficha ampliada (todos opcionales)
+  genotipo?: Genotipo | null
+  indica_pct?: number | null
+  sativa_pct?: number | null
+  linaje?: string | null
+  tiempo_vege_dias?: number | null
+  altura?: Altura | null
+  rendimiento_g?: string | null
+  dificultad?: Dificultad | null
+  terpenos?: string | null
+  efectos?: string | null
+  usos_medicinales?: string | null
+  ambiente?: Ambiente | null
+  resistencia?: string | null
+  stretch?: string | null
+  foto_url?: string | null
+  color?: string | null
 }
 
 export interface Planta {
   id: string
+  codigo: string | null
   genetica_id: string | null
   madre_id: string | null
+  paciente_id: string | null
   apodo: string | null
   fecha_germinacion: string | null
+  fecha_cosecha: string | null
+  fecha_envasado: string | null
   fase: FasePlanta
   sustrato: string | null
   maceta: string | null
@@ -61,6 +92,17 @@ export interface Planta {
   creado_en: string
   actualizado_en: string
   geneticas?: Pick<Genetica, 'nombre' | 'banco' | 'tipo'> | null
+}
+
+// Genera un codigo de trazabilidad unico y legible para una planta.
+// Formato: <ABBR>-<5 base36>, ej "GG-7F3A9". ABBR sale del nombre de la genetica.
+export function generarCodigoPlanta(nombreGenetica?: string | null): string {
+  const abbr = (nombreGenetica ?? '')
+    .normalize('NFD').replace(/[^a-zA-Z]/g, '')
+    .slice(0, 3).toUpperCase() || 'GF'
+  let sufijo = ''
+  for (let i = 0; i < 5; i++) sufijo += '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.floor(Math.random() * 34)]
+  return `${abbr}-${sufijo}`
 }
 
 export interface Evento {
@@ -76,6 +118,7 @@ export interface Evento {
 
 export interface ResumenPlanta {
   id: string
+  codigo: string | null
   nombre: string
   genetica: string | null
   banco: string | null
@@ -87,8 +130,20 @@ export interface ResumenPlanta {
   maceta: string | null
   ubicacion: string | null
   activa: boolean
+  paciente_id: string | null
+  paciente_nombre: string | null
   ultimo_riego: string | null
   total_eventos: number
+}
+
+// Item unificado de la linea de tiempo (historia clinica) de una planta.
+export interface ItemHistoria {
+  id: string
+  tipo: string
+  fecha: string
+  detalle: string | null
+  foto_url: string | null
+  esCosecha?: boolean
 }
 
 export interface Cosecha {
@@ -115,10 +170,25 @@ export const cultivoService = {
     return (data ?? []) as Genetica[]
   },
 
+  async getGenetica(id: string): Promise<Genetica> {
+    const { data, error } = await supabase.from('geneticas').select('*').eq('id', id).single()
+    lanzar(error)
+    return data as Genetica
+  },
+
   async crearGenetica(g: Partial<Genetica> & { nombre: string }): Promise<Genetica> {
     const { data, error } = await supabase.from('geneticas').insert(g).select().single()
     lanzar(error)
     return data as Genetica
+  },
+
+  async actualizarGenetica(id: string, g: Partial<Genetica>): Promise<void> {
+    const { error } = await supabase.from('geneticas').update(g).eq('id', id)
+    lanzar(error)
+  },
+
+  async subirFotoGenetica(file: File): Promise<string> {
+    return this.subirFoto(file)
   },
 
   // --- plantas ---
@@ -143,9 +213,51 @@ export const cultivoService = {
   },
 
   async crearPlanta(p: Partial<Planta>): Promise<Planta> {
-    const { data, error } = await supabase.from('plantas').insert(p).select().single()
+    const conCodigo = p.codigo ? p : { ...p, codigo: generarCodigoPlanta(null) }
+    const { data, error } = await supabase.from('plantas').insert(conCodigo).select().single()
     lanzar(error)
     return data as Planta
+  },
+
+  async getPlantaPorCodigo(codigo: string): Promise<Planta | null> {
+    const { data, error } = await supabase
+      .from('plantas')
+      .select('*, geneticas:genetica_id (nombre, banco, tipo)')
+      .eq('codigo', codigo)
+      .maybeSingle()
+    lanzar(error)
+    return (data as Planta) ?? null
+  },
+
+  async getPlantasDePaciente(pacienteId: string): Promise<ResumenPlanta[]> {
+    const { data, error } = await supabase.from('resumen_plantas').select('*').eq('paciente_id', pacienteId)
+    lanzar(error)
+    return ((data ?? []) as ResumenPlanta[]).sort((a, b) =>
+      a.nombre.localeCompare(b.nombre, 'es', { numeric: true }))
+  },
+
+  // Linea de tiempo unificada: eventos + aplicaciones + cosechas (mas reciente primero).
+  async getLineaTiempo(plantaId: string): Promise<ItemHistoria[]> {
+    const [evs, cosechas, aplic] = await Promise.all([
+      this.getEventos(plantaId, 300),
+      this.getCosechas(),
+      supabase.from('aplicaciones').select('id,fecha,categoria,producto,dosis,notas').eq('planta_id', plantaId),
+    ])
+    const cos = (cosechas as Cosecha[]).filter(c => c.planta_id === plantaId)
+    const lista: ItemHistoria[] = [
+      ...evs.map(e => ({ id: e.id, tipo: e.tipo, fecha: e.fecha, detalle: e.detalle, foto_url: e.foto_url })),
+      ...(((aplic as any).data ?? []) as any[]).map(a => ({
+        id: a.id, tipo: 'Aplicacion', fecha: a.fecha, foto_url: null,
+        detalle: [a.categoria, a.producto, a.dosis, a.notas].filter(Boolean).join(' · '),
+      })),
+      ...cos.map(c => ({
+        id: c.id, tipo: 'Cosecha', fecha: c.fecha, esCosecha: true, foto_url: null,
+        detalle: [c.peso_seco_g ? `${c.peso_seco_g}g secos` : null, c.peso_humedo_g ? `${c.peso_humedo_g}g húmedos` : null,
+          c.valoracion ? `★ ${c.valoracion}/10` : null, c.notas_sabor, c.notas_curado].filter(Boolean).join(' · ') || 'Cosecha',
+      })),
+    ]
+    lista.sort((a, b) => b.fecha.localeCompare(a.fecha))
+    return lista
   },
 
   async actualizarPlanta(id: string, p: Partial<Planta>): Promise<void> {

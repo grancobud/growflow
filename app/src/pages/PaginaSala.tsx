@@ -17,10 +17,13 @@ const CARPAS: Carpa[] = [
   { id: 'c1', nombre: 'Carpa 1', medida: '0.8 × 0.8 m', cols: 3, rows: 3, area: 'c1' },
 ]
 
+// Paleta amplia para distinguir muchas genéticas (>=24 colores bien diferenciados).
 const COLORES_GEN = [
   '#e6553e', '#f59e0b', '#facc15', '#84cc16', '#22c55e',
   '#14b8a6', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef',
   '#ec4899', '#f87171', '#a3e635', '#67e8f9', '#c4b5fd', '#ffffff',
+  '#fb923c', '#eab308', '#4ade80', '#2dd4bf', '#60a5fa',
+  '#a78bfa', '#f472b6', '#fda4af',
 ]
 
 const ESTADOS = {

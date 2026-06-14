@@ -20,6 +20,10 @@ const PaginaGrafo = lazyWithRetry(() => import('./pages/PaginaGrafo'), 'PaginaGr
 const PaginaTablas = lazyWithRetry(() => import('./pages/PaginaTablas'), 'PaginaTablas')
 const PaginaSala = lazyWithRetry(() => import('./pages/PaginaSala'), 'PaginaSala')
 const PaginaEstadisticas = lazyWithRetry(() => import('./pages/PaginaEstadisticas'), 'PaginaEstadisticas')
+const PaginaPacientes = lazyWithRetry(() => import('./pages/PaginaPacientes'), 'PaginaPacientes')
+const PaginaGeneticas = lazyWithRetry(() => import('./pages/PaginaGeneticas'), 'PaginaGeneticas')
+const PaginaAsistencia = lazyWithRetry(() => import('./pages/PaginaAsistencia'), 'PaginaAsistencia')
+const PaginaHistoriaPlanta = lazyWithRetry(() => import('./pages/PaginaHistoriaPlanta'), 'PaginaHistoriaPlanta')
 const Pagina404 = lazyWithRetry(() => import('./pages/Pagina404'), 'Pagina404')
 
 function SpinnerCarga({ texto }: { texto: string }) {
@@ -80,6 +84,18 @@ function App() {
           } />
           <Route path="stats" element={
             <Suspense fallback={null}><PaginaEstadisticas /></Suspense>
+          } />
+          <Route path="registro" element={
+            <Suspense fallback={null}><PaginaPacientes /></Suspense>
+          } />
+          <Route path="geneticas" element={
+            <Suspense fallback={null}><PaginaGeneticas /></Suspense>
+          } />
+          <Route path="asistencia" element={
+            <Suspense fallback={null}><PaginaAsistencia /></Suspense>
+          } />
+          <Route path="p/:codigo" element={
+            <Suspense fallback={null}><PaginaHistoriaPlanta /></Suspense>
           } />
         </Route>
         <Route path="*" element={<Suspense fallback={<SpinnerCarga texto="Cargando..." />}><Pagina404 /></Suspense>} />
