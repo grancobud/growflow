@@ -6,9 +6,10 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { toast } from 'sonner'
 import {
   X, Camera, Loader2, Droplets, Scissors, FlaskConical, StickyNote,
-  Sprout, Flower2, Repeat, AlertTriangle, RefreshCw, Image as ImageIcon, Scale,
+  Sprout, Flower2, Repeat, AlertTriangle, RefreshCw, Image as ImageIcon, Scale, SprayCan,
 } from 'lucide-react'
 import { cultivoService, type ResumenPlanta, type Evento, type Cosecha } from '../lib/cultivo'
+import { supabase } from '../lib/supabase'
 
 const ICONO: Record<string, { Ic: any; color: string }> = {
   Riego: { Ic: Droplets, color: '#38bdf8' },
@@ -20,6 +21,7 @@ const ICONO: Record<string, { Ic: any; color: string }> = {
   Problema: { Ic: AlertTriangle, color: '#ff6b5a' },
   Foto: { Ic: ImageIcon, color: '#94a3b8' },
   Nota: { Ic: StickyNote, color: '#f59e0b' },
+  Aplicacion: { Ic: SprayCan, color: '#c4b5fd' },
 }
 
 interface Item {
@@ -45,13 +47,18 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
   const cargar = useCallback(async () => {
     setCargando(true)
     try {
-      const [evs, cosechas] = await Promise.all([
+      const [evs, cosechas, aplic] = await Promise.all([
         cultivoService.getEventos(planta.id, 200),
         cultivoService.getCosechas(),
+        supabase.from('aplicaciones').select('id,fecha,categoria,producto,dosis,notas').eq('planta_id', planta.id),
       ])
       const cos = (cosechas as Cosecha[]).filter(c => c.planta_id === planta.id)
       const lista: Item[] = [
         ...(evs as Evento[]).map(e => ({ id: e.id, tipo: e.tipo, fecha: e.fecha, detalle: e.detalle, foto_url: e.foto_url })),
+        ...((aplic.data ?? []) as any[]).map(a => ({
+          id: a.id, tipo: 'Aplicacion', fecha: a.fecha, foto_url: null,
+          detalle: [a.categoria, a.producto, a.dosis, a.notas].filter(Boolean).join(' · '),
+        })),
         ...cos.map(c => ({
           id: c.id, tipo: 'Cosecha', fecha: c.fecha, esCosecha: true, foto_url: null,
           detalle: [c.peso_seco_g ? `${c.peso_seco_g}g secos` : null, c.peso_humedo_g ? `${c.peso_humedo_g}g húmedos` : null,
@@ -88,7 +95,10 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
   const borrar = async (it: Item) => {
     try {
       if (it.esCosecha) {
-        const { error } = await (await import('../lib/supabase')).supabase.from('cosechas').delete().eq('id', it.id)
+        const { error } = await supabase.from('cosechas').delete().eq('id', it.id)
+        if (error) throw new Error(error.message)
+      } else if (it.tipo === 'Aplicacion') {
+        const { error } = await supabase.from('aplicaciones').delete().eq('id', it.id)
         if (error) throw new Error(error.message)
       } else {
         await cultivoService.eliminarEvento(it.id)

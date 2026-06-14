@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
-import { Droplets, Move, Dna, RefreshCw, Download, Upload, X, Loader2 } from 'lucide-react'
+import { Droplets, Move, Dna, RefreshCw, Download, Upload, X, Loader2, SprayCan } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 interface Carpa { id: string; nombre: string; medida: string; cols: number; rows: number; area: string }
@@ -29,7 +29,8 @@ const ESTADOS = {
 
 interface Planta { id: string; apodo: string | null; slot: string | null; genetica_id: string | null; activa: boolean }
 interface Genetica { id: string; nombre: string }
-type Modo = 'regar' | 'mover' | 'genetica'
+type Modo = 'regar' | 'fumigar' | 'mover' | 'genetica'
+const CATEGORIAS_APLIC = ['Fumigacion', 'Insecticida', 'Fungicida', 'Foliar', 'Acaricida', 'Bactericida', 'Otro'] as const
 
 function hoyStr() { return new Date().toLocaleDateString('en-CA') }
 
@@ -45,7 +46,9 @@ export default function PaginaSala() {
   const [textoImport, setTextoImport] = useState('')
   const [importando, setImportando] = useState(false)
   // Receta de riego del dia: se aplica a cada planta que toques (igual que mezclas una solucion y regas varias)
-  const [receta, setReceta] = useState({ volumen: '', ppm: '', ph: '' })
+  const [receta, setReceta] = useState({ volumen: '', ppm: '', ph: '', escurrido: '' })
+  // Receta de aplicacion (modo fumigar)
+  const [recetaA, setRecetaA] = useState({ categoria: 'Fumigacion', producto: '', dosis: '' })
 
   const cargar = useCallback(async () => {
     try {
@@ -93,24 +96,41 @@ export default function PaginaSala() {
     return dias <= 0 ? 'hoy' : `${dias}d`
   }
 
+  const num = (v: string) => v.trim() === '' ? null : Number(v)
+
   const recetaResumen = () => {
     const partes = [
       receta.volumen && `${receta.volumen}ml`,
       receta.ppm && `${receta.ppm}ppm`,
       receta.ph && `pH${receta.ph}`,
+      receta.escurrido && `escurrió ${receta.escurrido}ml`,
     ].filter(Boolean)
     return partes.join(' · ') || null
+  }
+  const recetaAResumen = () => {
+    const partes = [recetaA.categoria, recetaA.producto, recetaA.dosis].filter(Boolean)
+    return partes.join(' · ') || recetaA.categoria
   }
 
   // Inserta riego (rico) + evento Riego (timeline/sala/chat) para una lista de plantas
   const registrarRiegos = async (ids: string[]) => {
-    const num = (v: string) => v.trim() === '' ? null : Number(v)
     const det = recetaResumen()
+    const esc = num(receta.escurrido)
     await supabase.from('riegos').insert(ids.map(id => ({
       planta_id: id, fecha: hoyStr(),
       volumen_ml: num(receta.volumen), ppm: num(receta.ppm), ph: num(receta.ph),
+      escurrio: esc != null && esc > 0, escurrido_ml: esc,
     })))
     await supabase.from('eventos').insert(ids.map(id => ({ planta_id: id, tipo: 'Riego', fecha: hoyStr(), detalle: det })))
+  }
+
+  // Inserta aplicacion (fumigacion/insecticida/etc) para una lista de plantas
+  const registrarAplicaciones = async (ids: string[]) => {
+    const { error } = await supabase.from('aplicaciones').insert(ids.map(id => ({
+      planta_id: id, fecha: hoyStr(),
+      categoria: recetaA.categoria, producto: recetaA.producto || null, dosis: recetaA.dosis || null,
+    })))
+    if (error) throw new Error(error.message)
   }
 
   const clickPlanta = async (p: Planta) => {
@@ -126,6 +146,13 @@ export default function PaginaSala() {
           await registrarRiegos([p.id])
           setRiegos(r => ({ ...r, [p.id]: hoyStr() }))
         }
+      } catch (err) {
+        toast.error(`No se pudo registrar: ${(err as Error).message}`)
+      }
+    } else if (modo === 'fumigar') {
+      try {
+        await registrarAplicaciones([p.id])
+        toast.success(`${recetaAResumen()} → ${p.apodo ?? 'planta'}`)
       } catch (err) {
         toast.error(`No se pudo registrar: ${(err as Error).message}`)
       }
@@ -314,7 +341,7 @@ export default function PaginaSala() {
           <div className="flex-1" />
           {/* Modos */}
           <div className="flex rounded-lg border border-[#2a2a3a] overflow-hidden">
-            {([['regar', Droplets, 'Regar'], ['mover', Move, 'Mover'], ['genetica', Dna, 'Genética']] as const).map(([m, Ic, lbl]) => (
+            {([['regar', Droplets, 'Regar'], ['fumigar', SprayCan, 'Fumigar'], ['mover', Move, 'Mover'], ['genetica', Dna, 'Genética']] as const).map(([m, Ic, lbl]) => (
               <button key={m} onClick={() => { setModo(m); setMoviendo(null) }}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[11.5px] font-medium transition-colors ${
                   modo === m ? 'bg-[#a3e635]/15 text-[#d9f99d]' : 'bg-[#15151d] text-[#757584] hover:text-[#a6a6b5]'
@@ -359,13 +386,30 @@ export default function PaginaSala() {
         {modo === 'regar' && (
           <div className="flex items-center flex-wrap gap-2 px-3 sm:px-6 pb-2.5">
             <span className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium">Receta de hoy:</span>
-            {([['volumen', 'Volumen ml', '2000'], ['ppm', 'PPM', '800'], ['ph', 'pH', '6.2']] as const).map(([k, ph, eg]) => (
+            {([['volumen', 'Volumen ml', '2000'], ['ppm', 'PPM', '800'], ['ph', 'pH', '6.2'], ['escurrido', 'Escurrido ml', '300']] as const).map(([k, ph, eg]) => (
               <input key={k} type="number" inputMode="decimal" value={receta[k]}
                 onChange={e => setReceta(r => ({ ...r, [k]: e.target.value }))}
                 placeholder={`${ph} (ej ${eg})`}
-                className="w-[110px] px-2 py-1 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#38bdf8]/60" />
+                className="w-[120px] px-2 py-1 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#38bdf8]/60" />
             ))}
-            <span className="text-[10px] text-[#5c5c6b]">se guarda en cada planta que toques · escurrimiento se completa en Tablas → Riegos</span>
+            <span className="text-[10px] text-[#5c5c6b]">se guarda en cada planta que toques</span>
+          </div>
+        )}
+        {/* Receta de fumigacion/aplicacion */}
+        {modo === 'fumigar' && (
+          <div className="flex items-center flex-wrap gap-2 px-3 sm:px-6 pb-2.5">
+            <span className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium">Aplicación:</span>
+            <select value={recetaA.categoria} onChange={e => setRecetaA(r => ({ ...r, categoria: e.target.value }))}
+              className="px-2 py-1 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11px] text-[#ececf1] focus:outline-none focus:border-[#c4b5fd]/60">
+              {CATEGORIAS_APLIC.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <input value={recetaA.producto} onChange={e => setRecetaA(r => ({ ...r, producto: e.target.value }))}
+              placeholder="Producto (ej Neem)"
+              className="w-[150px] px-2 py-1 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#c4b5fd]/60" />
+            <input value={recetaA.dosis} onChange={e => setRecetaA(r => ({ ...r, dosis: e.target.value }))}
+              placeholder="Dosis (ej 5ml/L)"
+              className="w-[130px] px-2 py-1 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#c4b5fd]/60" />
+            <span className="text-[10px] text-[#c4b5fd]">tocá las plantas a las que les aplicaste</span>
           </div>
         )}
       </div>
