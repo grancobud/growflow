@@ -17,7 +17,7 @@ interface DefTabla { id: string; nombre: string; orden: string; cols: Col[] }
 
 const TABLAS: DefTabla[] = [
   {
-    id: 'plantas', nombre: 'Plantas', orden: 'creado_en',
+    id: 'plantas', nombre: 'Plantas', orden: 'apodo',
     cols: [
       { campo: 'apodo', titulo: 'Apodo', tipo: 'text' },
       { campo: 'fase', titulo: 'Fase', tipo: { select: FASES } },
@@ -104,10 +104,17 @@ export default function PaginaTablas() {
   const cargar = useCallback(async () => {
     setCargando(true)
     try {
+      const ascendente = tabla.orden === 'nombre' || tabla.orden === 'apodo'
       const { data, error } = await supabase.from(tabla.id).select('*')
-        .order(tabla.orden, { ascending: tabla.orden === 'nombre' })
+        .order(tabla.orden, { ascending: ascendente })
       if (error) throw new Error(error.message)
-      setFilas(data ?? [])
+      let filasOrdenadas = data ?? []
+      // Orden natural (#2 antes que #10) para la tabla Plantas
+      if (tabla.id === 'plantas') {
+        filasOrdenadas = [...filasOrdenadas].sort((a, b) =>
+          String(a.apodo ?? '').localeCompare(String(b.apodo ?? ''), 'es', { numeric: true }))
+      }
+      setFilas(filasOrdenadas)
       if (CON_PLANTA.has(tabla.id)) {
         const { data: pl } = await supabase.from('resumen_plantas').select('id,nombre')
         setPlantas(Object.fromEntries((pl ?? []).map((p: any) => [p.id, p.nombre])))
