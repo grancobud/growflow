@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import {
   Boxes, Plus, X, Search, Loader2, Trash2, Pencil, Eye, Wrench, CheckCircle2,
   FlaskConical, Lightbulb, Thermometer, Droplets, Wind, Sprout, Bug, Gauge, Package,
-  AlertTriangle, CalendarClock,
+  AlertTriangle, CalendarClock, BellRing,
 } from 'lucide-react'
 import {
   stockService, CATEGORIAS_INSUMO, TIPOS_MANTENIMIENTO, UNIDADES,
@@ -94,6 +94,8 @@ export default function PaginaStockInsumos() {
 
   const porReponer = insumos.filter(i => (i.stock_minimo ?? 0) > 0 && i.cantidad <= (i.stock_minimo ?? 0)).length
   const mantPendientes = mantes.filter(m => { const d = diasParaProximo(m); return d !== null && d <= 7 }).length
+  // Alarmas: actividades de mañana (1 día antes), hoy (0) o vencidas (<0)
+  const alarmas = mantesOrdenados.filter(m => { const d = diasParaProximo(m); return d !== null && d <= 1 })
   const conteoCat = (c: CategoriaInsumo) => insumos.filter(i => i.categoria === c).length
 
   return (
@@ -108,6 +110,17 @@ export default function PaginaStockInsumos() {
               {insumos.length} insumos · {porReponer} por reponer · {mantPendientes} mantenimiento{mantPendientes === 1 ? '' : 's'} pendiente{mantPendientes === 1 ? '' : 's'}
             </div>
           </div>
+          {alarmas.length > 0 && (
+            <button onClick={() => setTab('mantenimiento')}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#5a4a20] bg-[#f59e0b]/12 text-[#fbbf24] text-[11px] font-semibold hover:bg-[#f59e0b]/20 transition-colors"
+              title="Ver alarmas de mantenimiento">
+              <span className="relative flex h-3.5 w-3.5 items-center justify-center">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#fbbf24]/40" />
+                <BellRing className="w-3.5 h-3.5 relative" />
+              </span>
+              {alarmas.length} alarma{alarmas.length === 1 ? '' : 's'}
+            </button>
+          )}
           <div className="flex-1" />
           <button onClick={() => { if (tab === 'inventario') { setEditInsumo(null); setModalInsumo(true) } else { setEditMant(null); setModalMant(true) } }} className={btnPrimario}>
             <Plus className="w-3.5 h-3.5" /> <span className="hidden sm:inline">{tab === 'inventario' ? 'Insumo' : 'Mantenimiento'}</span>
@@ -217,6 +230,37 @@ export default function PaginaStockInsumos() {
         </div>
       ) : (
         <div className="px-3 sm:px-6 py-4 pb-24">
+          {alarmas.length > 0 && (
+            <div className="mb-4 rounded-xl border border-[#5a4a20] bg-gradient-to-br from-[#f59e0b]/12 to-[#ff8a7a]/[0.08] overflow-hidden">
+              <div className="flex items-center gap-2 px-4 py-2.5 border-b border-[#5a4a20]/60 bg-[#f59e0b]/[0.08]">
+                <span className="relative flex h-4 w-4 items-center justify-center flex-shrink-0">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#fbbf24]/40" />
+                  <BellRing className="w-4 h-4 text-[#fbbf24] relative" />
+                </span>
+                <h3 className="font-display font-bold text-[13px] text-[#fbbf24]">{alarmas.length} alarma{alarmas.length === 1 ? '' : 's'} de mantenimiento</h3>
+                <span className="hidden sm:inline text-[10.5px] text-[#a6a6b5]">— para hoy, mañana o vencidas</span>
+              </div>
+              <ul className="divide-y divide-[#5a4a20]/30">
+                {alarmas.map(m => {
+                  const d = diasParaProximo(m)!
+                  const vinc = m.insumo_id ? insumos.find(i => i.id === m.insumo_id) : null
+                  const titulo = vinc?.nombre || m.equipo || 'Equipo'
+                  const cuando = d < 0 ? { txt: `Vencido hace ${Math.abs(d)}d`, col: '#ff8a7a' } : d === 0 ? { txt: 'Hoy', col: '#fb923c' } : { txt: 'Mañana', col: '#fbbf24' }
+                  return (
+                    <li key={m.id} className="flex items-center gap-2.5 px-4 py-2">
+                      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: cuando.col }} />
+                      <span className="font-medium text-[12.5px] text-[#ececf1] truncate">{titulo}</span>
+                      <span className="hidden sm:inline text-[10.5px] text-[#a6a6b5] truncate">· {m.tipo}</span>
+                      <span className="ml-auto text-[11px] font-semibold flex-shrink-0" style={{ color: cuando.col }}>{cuando.txt}</span>
+                      <button onClick={() => hechoHoy(m)} className="flex-shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-md border border-[#404d20] bg-[#a3e635]/10 hover:bg-[#a3e635]/20 text-[10.5px] font-medium text-[#d9f99d] transition-colors" title="Marcar como hecho hoy">
+                        <CheckCircle2 className="w-3 h-3" /> Hecho
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          )}
           {mantesOrdenados.length === 0 ? (
             <div className="py-16 text-center">
               <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><Wrench className="w-5 h-5 text-[#5c5c6b]" /></div>
@@ -227,6 +271,7 @@ export default function PaginaStockInsumos() {
             <div className="space-y-2.5">
               {mantesOrdenados.map(m => {
                 const dias = diasParaProximo(m)
+                const esAlarma = dias !== null && dias <= 1
                 const prox = proximoEfectivo(m)
                 const vinculado = m.insumo_id ? insumos.find(i => i.id === m.insumo_id) : null
                 const titulo = vinculado?.nombre || m.equipo || 'Equipo'
@@ -237,9 +282,9 @@ export default function PaginaStockInsumos() {
                   else badge = { label: `En ${dias}d`, text: '#bef264', bg: 'rgba(163,230,53,0.12)', border: '#404d20' }
                 }
                 return (
-                  <div key={m.id} className="rounded-xl bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] transition-colors p-3.5 flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-[#15151d] border border-[#2a2a3a] flex items-center justify-center flex-shrink-0">
-                      <CalendarClock className="w-4 h-4 text-[#a78bfa]" />
+                  <div key={m.id} className={`rounded-xl p-3.5 flex items-start gap-3 transition-colors ${esAlarma ? 'bg-[#15120c] border border-[#5a4a20] ring-1 ring-[#fbbf24]/25' : 'bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20]'}`}>
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 border ${esAlarma ? 'bg-[#f59e0b]/12 border-[#5a4a20]' : 'bg-[#15151d] border-[#2a2a3a]'}`}>
+                      {esAlarma ? <BellRing className="w-4 h-4 text-[#fbbf24]" /> : <CalendarClock className="w-4 h-4 text-[#a78bfa]" />}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">

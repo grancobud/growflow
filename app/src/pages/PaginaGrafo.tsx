@@ -2,7 +2,7 @@
 // Nodos: geneticas (violeta), plantas (lima), eventos (por tipo), cosechas (ambar).
 // Se refresca solo cada 15s: se va viendo crecer a medida que se cargan datos.
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import ForceGraph2D from 'react-force-graph-2d'
 import { RefreshCw, GitBranch } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -34,6 +34,27 @@ export default function PaginaGrafo() {
   const [actualizado, setActualizado] = useState<Date | null>(null)
   const contRef = useRef<HTMLDivElement>(null)
   const [dims, setDims] = useState({ w: 800, h: 600 })
+  const fgRef = useRef<any>(null)
+  const [hoverId, setHoverId] = useState<string | null>(null)
+
+  // Adyacencia: para resaltar vecinos al pasar el mouse
+  const ady = useMemo(() => {
+    const m = new Map<string, Set<string>>()
+    const add = (a: string, b: string) => { if (!m.has(a)) m.set(a, new Set()); m.get(a)!.add(b) }
+    for (const l of datos.links) {
+      const s = typeof (l as any).source === 'object' ? (l as any).source.id : (l as any).source
+      const t = typeof (l as any).target === 'object' ? (l as any).target.id : (l as any).target
+      add(s, t); add(t, s)
+    }
+    return m
+  }, [datos])
+  const nodoActivo = (id: string) => !hoverId || id === hoverId || (ady.get(hoverId)?.has(id) ?? false)
+  const enlaceActivo = (l: any) => {
+    if (!hoverId) return false
+    const s = typeof l.source === 'object' ? l.source.id : l.source
+    const t = typeof l.target === 'object' ? l.target.id : l.target
+    return s === hoverId || t === hoverId
+  }
 
   const cargar = useCallback(async () => {
     try {
@@ -130,27 +151,61 @@ export default function PaginaGrafo() {
           </div>
         ) : (
           <ForceGraph2D
+            ref={fgRef}
             graphData={datos}
             width={dims.w}
             height={dims.h}
             backgroundColor="#0a0a0f"
             nodeVal={(n: any) => n.val}
-            nodeColor={(n: any) => n.color}
             nodeLabel={(n: any) => `${n.label}${n.sub ? ` — ${n.sub}` : ''}`}
-            linkColor={() => '#2a2a3a'}
-            linkWidth={1}
-            nodeCanvasObjectMode={() => 'after'}
+            onNodeHover={(n: any) => setHoverId(n ? n.id : null)}
+            onNodeClick={(n: any) => { fgRef.current?.centerAt(n.x, n.y, 600); fgRef.current?.zoom(3, 600) }}
+            linkColor={(l: any) => hoverId ? (enlaceActivo(l) ? '#a3e635bb' : '#ffffff08') : ((l.source?.color ?? '#6b6b7b') + '22')}
+            linkWidth={(l: any) => (hoverId && enlaceActivo(l) ? 2.5 : 1)}
+            linkDirectionalParticles={(l: any) => (hoverId && enlaceActivo(l) ? 4 : 0)}
+            linkDirectionalParticleWidth={2.2}
+            linkDirectionalParticleColor={() => '#d9f99d'}
+            nodeCanvasObjectMode={() => 'replace'}
             nodeCanvasObject={(node: any, ctx, globalScale) => {
-              if (node.tipo === 'evento' && globalScale < 2) return
-              const size = 11 / globalScale
-              ctx.font = `${node.tipo === 'planta' || node.tipo === 'genetica' ? '600 ' : ''}${size}px Outfit, sans-serif`
-              ctx.textAlign = 'center'
-              ctx.textBaseline = 'top'
-              ctx.fillStyle = node.tipo === 'evento' ? '#757584' : '#d4d4dd'
-              ctx.fillText(node.label, node.x, node.y + Math.sqrt(node.val) * 2 + 2 / globalScale)
+              const activo = nodoActivo(node.id)
+              const r = Math.sqrt(node.val) * 1.7
+              ctx.globalAlpha = activo ? 1 : 0.12
+              // halo / glow
+              if (activo) {
+                const halo = ctx.createRadialGradient(node.x, node.y, r * 0.4, node.x, node.y, r * 3.2)
+                halo.addColorStop(0, node.color + '66')
+                halo.addColorStop(1, node.color + '00')
+                ctx.fillStyle = halo
+                ctx.beginPath(); ctx.arc(node.x, node.y, r * 3.2, 0, 2 * Math.PI); ctx.fill()
+              }
+              // núcleo
+              ctx.beginPath(); ctx.arc(node.x, node.y, r, 0, 2 * Math.PI)
+              ctx.fillStyle = node.color; ctx.fill()
+              // anillo sutil
+              ctx.lineWidth = 0.7 / globalScale
+              ctx.strokeStyle = node.id === hoverId ? '#ffffff' : 'rgba(255,255,255,0.30)'
+              ctx.stroke()
+              // etiqueta
+              const verLabel = activo && (node.tipo !== 'evento' || globalScale >= 2 || node.id === hoverId)
+              if (verLabel) {
+                const size = 11 / globalScale
+                ctx.font = `${node.tipo === 'planta' || node.tipo === 'genetica' ? '600 ' : ''}${size}px Outfit, sans-serif`
+                ctx.textAlign = 'center'; ctx.textBaseline = 'top'
+                ctx.shadowColor = 'rgba(0,0,0,0.85)'; ctx.shadowBlur = 4
+                ctx.fillStyle = node.tipo === 'evento' ? '#9a9aab' : '#e6e6ee'
+                ctx.fillText(node.label, node.x, node.y + r + 2 / globalScale)
+                ctx.shadowBlur = 0
+              }
+              ctx.globalAlpha = 1
             }}
-            cooldownTicks={120}
+            cooldownTicks={150}
+            d3VelocityDecay={0.28}
           />
+        )}
+
+        {datos.nodes.length > 0 && (
+          <div className="pointer-events-none absolute inset-0"
+            style={{ background: 'radial-gradient(ellipse at 50% 42%, transparent 52%, rgba(0,0,0,0.5) 100%)' }} />
         )}
 
         {/* Leyenda */}
