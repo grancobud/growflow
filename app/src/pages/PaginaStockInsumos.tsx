@@ -6,7 +6,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 import {
-  Boxes, Plus, X, Search, Loader2, Trash2, Pencil, Wrench, CheckCircle2,
+  Boxes, Plus, X, Search, Loader2, Trash2, Pencil, Eye, Wrench, CheckCircle2,
   FlaskConical, Lightbulb, Thermometer, Droplets, Wind, Sprout, Bug, Gauge, Package,
   AlertTriangle, CalendarClock,
 } from 'lucide-react'
@@ -47,6 +47,7 @@ export default function PaginaStockInsumos() {
   const [filtroCat, setFiltroCat] = useState<CategoriaInsumo | 'Todos'>('Todos')
   const [modalInsumo, setModalInsumo] = useState(false)
   const [editInsumo, setEditInsumo] = useState<Insumo | null>(null)
+  const [verInsumo, setVerInsumo] = useState<Insumo | null>(null)
   const [modalMant, setModalMant] = useState(false)
   const [editMant, setEditMant] = useState<Mantenimiento | null>(null)
 
@@ -158,14 +159,14 @@ export default function PaginaStockInsumos() {
               <div className="mt-1 text-[11.5px] text-[#5c5c6b]">{insumos.length === 0 ? 'Agregá tu primer equipo, fertilizante o herramienta.' : 'Probá con otra búsqueda o categoría.'}</div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 items-start">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-fr">
               {insumosFiltrados.map(i => {
                 const e = CAT[i.categoria]
                 const min = i.stock_minimo ?? 0
                 const bajo = min > 0 && i.cantidad <= min
                 const pct = min > 0 ? Math.max(6, Math.min(100, Math.round((i.cantidad / (min * 2)) * 100))) : 0
                 return (
-                  <div key={i.id} className="rounded-xl bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] transition-colors p-3.5">
+                  <div key={i.id} className="rounded-xl bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] transition-colors p-3.5 h-full flex flex-col">
                     <div className="flex items-start gap-2.5">
                       <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 border" style={{ background: e.bg, borderColor: e.border }}>
                         <e.icono className="w-4 h-4" style={{ color: e.text }} />
@@ -179,10 +180,6 @@ export default function PaginaStockInsumos() {
                           <span style={{ color: e.text }}>{i.categoria}</span>
                           {(i.marca || i.modelo) && ` · ${[i.marca, i.modelo].filter(Boolean).join(' ')}`}
                         </div>
-                      </div>
-                      <div className="flex gap-1 flex-shrink-0">
-                        <button onClick={() => { setEditInsumo(i); setModalInsumo(true) }} className="p-1.5 text-[#5c5c6b] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => borrarInsumo(i)} className="p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     </div>
 
@@ -206,6 +203,12 @@ export default function PaginaStockInsumos() {
 
                     {i.uso && <p className="mt-2 text-[11px] text-[#a6a6b5] leading-relaxed line-clamp-2">{i.uso}</p>}
                     {i.specs && <p className="mt-1 text-[10.5px] text-[#5c5c6b] leading-relaxed line-clamp-2">{i.specs}</p>}
+
+                    <div className="mt-auto pt-3 flex gap-1.5">
+                      <button onClick={() => setVerInsumo(i)} className={btnSutil}><Eye className="w-3.5 h-3.5" /> Ver ficha</button>
+                      <button onClick={() => { setEditInsumo(i); setModalInsumo(true) }} className={btnSutil}><Pencil className="w-3.5 h-3.5" /> Editar ficha</button>
+                      <button onClick={() => borrarInsumo(i)} className="p-1.5 text-[#46464f] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors ml-auto" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
                   </div>
                 )
               })}
@@ -267,6 +270,7 @@ export default function PaginaStockInsumos() {
 
       {modalInsumo && <ModalInsumo insumo={editInsumo} onCerrar={() => setModalInsumo(false)} onGuardado={() => { setModalInsumo(false); cargar() }} />}
       {modalMant && <ModalMant mant={editMant} insumos={insumos} onCerrar={() => setModalMant(false)} onGuardado={() => { setModalMant(false); cargar() }} />}
+      {verInsumo && <ModalVerInsumo insumo={verInsumo} onCerrar={() => setVerInsumo(null)} />}
     </div>
   )
 }
@@ -410,6 +414,58 @@ function ModalMant({ mant, insumos, onCerrar, onGuardado }: { mant: Mantenimient
         <div className="sticky bottom-0 bg-[#0d0d12] border-t border-[#1f1f2b] px-4 py-3 flex justify-end gap-2">
           <button onClick={onCerrar} className={btnSutil}>Cancelar</button>
           <button onClick={guardar} disabled={guardando} className={btnPrimario}>{guardando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}{mant ? 'Guardar' : 'Registrar'}</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function CampoFicha({ label, valor }: { label: string; valor: React.ReactNode }) {
+  if (valor == null || valor === '') return null
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] mb-0.5">{label}</div>
+      <div className="text-[12.5px] text-[#ececf1] break-words">{valor}</div>
+    </div>
+  )
+}
+
+function ModalVerInsumo({ insumo, onCerrar }: { insumo: Insumo; onCerrar: () => void }) {
+  const i = insumo
+  const e = CAT[i.categoria]
+  const min = i.stock_minimo ?? 0
+  const bajo = min > 0 && i.cantidad <= min
+  return (
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={onCerrar}>
+      <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto" onClick={ev => ev.stopPropagation()}>
+        <div className="sticky top-0 bg-[#0d0d12] border-b border-[#1f1f2b] px-4 py-3 flex items-center justify-between gap-2">
+          <h2 className="font-display font-bold text-[15px] text-[#ececf1] flex items-center gap-2 min-w-0">
+            <span className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 border" style={{ background: e.bg, borderColor: e.border }}>
+              <e.icono className="w-3.5 h-3.5" style={{ color: e.text }} />
+            </span>
+            <span className="truncate">{i.nombre}</span>
+          </h2>
+          <button onClick={onCerrar} className="p-1 text-[#5c5c6b] hover:text-[#ececf1] flex-shrink-0"><X className="w-5 h-5" /></button>
+        </div>
+        <div className="p-4 space-y-4">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="px-2 py-0.5 rounded-full border text-[11px] font-medium" style={{ color: e.text, background: e.bg, borderColor: e.border }}>{i.categoria}</span>
+            {bajo && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-medium bg-[#ff8a7a]/12 border border-[#5a2a26] text-[#ff8a7a]"><AlertTriangle className="w-3 h-3" /> Stock bajo</span>}
+          </div>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+            <CampoFicha label="Cantidad" valor={`${i.cantidad} ${i.unidad || 'u'}`} />
+            <CampoFicha label="Stock mínimo" valor={min > 0 ? `${min} ${i.unidad || 'u'}` : null} />
+            <CampoFicha label="Marca" valor={i.marca} />
+            <CampoFicha label="Modelo" valor={i.modelo} />
+            <CampoFicha label="Potencia" valor={i.potencia_w != null ? `${i.potencia_w} W` : null} />
+            <CampoFicha label="Dosis / uso (fert.)" valor={i.dosis} />
+            <CampoFicha label="Proveedor" valor={i.proveedor} />
+            <CampoFicha label="Precio" valor={i.precio != null ? `$${i.precio}` : null} />
+          </div>
+          <CampoFicha label="Para qué se usa" valor={i.uso} />
+          <CampoFicha label="Specs / detalle" valor={i.specs} />
+          <CampoFicha label="Notas" valor={i.notas} />
+          <button onClick={onCerrar} className={`${btnSutil} w-full justify-center`}>Cerrar</button>
         </div>
       </div>
     </div>
