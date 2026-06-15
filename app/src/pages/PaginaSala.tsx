@@ -84,6 +84,27 @@ export default function PaginaSala() {
     return i >= 0 ? COLORES_GEN[i % COLORES_GEN.length] : null
   }, [geneticas])
 
+  // Numeración correlativa POR genética: dentro de cada genética las plantas se
+  // numeran 1, 2, 3… (ordenadas por su número global/apodo), independientes del
+  // número global. Así cada genética empieza desde el #1.
+  const numeroPorGenetica = useMemo(() => {
+    const apodoNum = (p: Planta) => {
+      const n = parseInt((p.apodo ?? '').replace(/\D/g, ''), 10)
+      return Number.isFinite(n) ? n : Number.MAX_SAFE_INTEGER
+    }
+    const porGen: Record<string, Planta[]> = {}
+    for (const p of plantas) {
+      if (!p.genetica_id) continue
+      ;(porGen[p.genetica_id] ??= []).push(p)
+    }
+    const m: Record<string, number> = {}
+    for (const gid in porGen) {
+      porGen[gid].slice().sort((a, b) => apodoNum(a) - apodoNum(b))
+        .forEach((p, i) => { m[p.id] = i + 1 })
+    }
+    return m
+  }, [plantas])
+
   const estadoRiego = (p: Planta) => {
     const f = riegos[p.id]
     if (!f) return 'nunca'
@@ -317,16 +338,27 @@ export default function PaginaSala() {
   const renderPlanta = (p: Planta) => {
     const est = estadoRiego(p)
     const gc = colorGen(p.genetica_id)
+    const genNombre = geneticas.find(g => g.id === p.genetica_id)?.nombre ?? null
+    const nGen = numeroPorGenetica[p.id]
+    const etiqueta = nGen != null ? String(nGen) : (p.apodo ?? '?').replace('#', '')
     return (
       <button key={p.id} onClick={() => clickPlanta(p)}
-        title={`${p.apodo ?? 'Planta'}${gc ? ' · ' + (geneticas.find(g => g.id === p.genetica_id)?.nombre ?? '') : ''} · riego: ${diasSinRiego(p)}`}
-        className={`absolute inset-[2px] rounded-lg bg-[#1c1c27] flex flex-col items-center justify-center transition-transform active:scale-95 ${
+        title={`${genNombre ? `${genNombre} #${nGen}` : (p.apodo ?? 'Planta')} · riego: ${diasSinRiego(p)}`}
+        className={`absolute inset-[2px] rounded-lg bg-[#1c1c27] flex flex-col items-center justify-center gap-[1px] px-[2px] overflow-hidden transition-transform active:scale-95 ${
           moviendo === p.id ? 'ring-2 ring-[#38bdf8] scale-105 z-10' : ''
         }`}
         style={{ border: `2.5px solid ${ESTADOS[est as keyof typeof ESTADOS]}` }}>
-        <span className="font-display font-bold text-[13px] leading-none text-[#ececf1]">{(p.apodo ?? '?').replace('#', '')}</span>
-        <span className="text-[8px] text-[#757584] mt-0.5 leading-none">{diasSinRiego(p)}</span>
-        {gc && <span className="absolute top-[2px] right-[2px] w-[9px] h-[9px] rounded-full border border-black/30" style={{ background: gc }} />}
+        <span className="font-display font-bold text-[13px] leading-none text-[#ececf1] tabular-nums">{etiqueta}</span>
+        {genNombre ? (
+          <span className="max-w-full truncate rounded px-[3px] py-px text-[7px] font-semibold leading-tight"
+            style={{ background: gc ? `${gc}26` : '#2a2a3a', color: gc ?? '#9a9aab', border: `1px solid ${gc ? `${gc}66` : '#3a3a4a'}` }}
+            title={genNombre}>
+            {genNombre}
+          </span>
+        ) : (
+          <span className="text-[7px] leading-none text-[#5c5c6b]">sin gen.</span>
+        )}
+        <span className="text-[7px] leading-none text-[#757584]">{diasSinRiego(p)}</span>
       </button>
     )
   }
