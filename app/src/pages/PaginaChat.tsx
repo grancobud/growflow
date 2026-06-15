@@ -1,9 +1,20 @@
 // PaginaChat — chat con la IA local (Ollama via webhook n8n) con contexto del cultivo.
 
 import { useState, useRef, useEffect } from 'react'
-import { Send, Loader2, Bot, Trash2 } from 'lucide-react'
+import { Send, Loader2, Bot, Trash2, Mic, Square } from 'lucide-react'
+import { toast } from 'sonner'
 
 const WEBHOOK_URL = import.meta.env.VITE_CHAT_WEBHOOK_URL || ''
+const TRANSCRIBE_URL = import.meta.env.VITE_TRANSCRIBE_WEBHOOK_URL || ''
+
+function blobABase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader()
+    r.onloadend = () => resolve((r.result as string).split(',')[1] || '')
+    r.onerror = reject
+    r.readAsDataURL(blob)
+  })
+}
 
 interface Mensaje { role: 'user' | 'assistant'; content: string }
 
@@ -18,11 +29,69 @@ export default function PaginaChat() {
   const [mensajes, setMensajes] = useState<Mensaje[]>([])
   const [texto, setTexto] = useState('')
   const [pensando, setPensando] = useState(false)
+  const [grabando, setGrabando] = useState(false)
+  const [transcribiendo, setTranscribiendo] = useState(false)
   const finRef = useRef<HTMLDivElement>(null)
+  const recRef = useRef<MediaRecorder | null>(null)
+  const chunksRef = useRef<Blob[]>([])
 
   useEffect(() => {
     finRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [mensajes, pensando])
+
+  const transcribir = async (blob: Blob, mime: string) => {
+    setTranscribiendo(true)
+    try {
+      const audio = await blobABase64(blob)
+      const res = await fetch(TRANSCRIBE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ audio, mime }),
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const data = await res.json()
+      const t = (data.text || '').trim()
+      if (t) setTexto(prev => (prev ? `${prev} ${t}` : t))
+      else toast.info('No se entendió el audio, probá de nuevo')
+    } catch (err) {
+      toast.error(`No se pudo transcribir: ${(err as Error).message}`)
+    } finally {
+      setTranscribiendo(false)
+    }
+  }
+
+  const toggleGrabar = async () => {
+    if (grabando) {
+      recRef.current?.stop()
+      return
+    }
+    if (!navigator.mediaDevices?.getUserMedia) {
+      toast.error('Tu navegador no permite grabar audio')
+      return
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const mime = MediaRecorder.isTypeSupported('audio/webm')
+        ? 'audio/webm'
+        : MediaRecorder.isTypeSupported('audio/mp4')
+          ? 'audio/mp4'
+          : ''
+      const rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined)
+      chunksRef.current = []
+      rec.ondataavailable = e => { if (e.data.size) chunksRef.current.push(e.data) }
+      rec.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop())
+        setGrabando(false)
+        const tipo = mime || 'audio/webm'
+        await transcribir(new Blob(chunksRef.current, { type: tipo }), tipo)
+      }
+      recRef.current = rec
+      rec.start()
+      setGrabando(true)
+    } catch {
+      toast.error('No se pudo acceder al micrófono. Revisá los permisos.')
+    }
+  }
 
   const enviar = async (contenido?: string) => {
     const msg = (contenido ?? texto).trim()
@@ -128,11 +197,19 @@ export default function PaginaChat() {
             value={texto}
             onChange={e => setTexto(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviar() } }}
-            placeholder="Escribí tu pregunta... (Enter para enviar)"
+            placeholder={grabando ? 'Grabando... tocá ■ para terminar' : transcribiendo ? 'Transcribiendo...' : 'Escribí tu mensaje...'}
             rows={1}
-            className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#15151d] border border-[#2a2a3a] text-[13px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors resize-none"
+            disabled={grabando}
+            className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[13px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors resize-none overflow-hidden leading-tight"
           />
-          <button onClick={() => enviar()} disabled={pensando || !texto.trim()}
+          {TRANSCRIBE_URL && (
+            <button onClick={toggleGrabar} disabled={transcribiendo || pensando}
+              className={`p-2.5 rounded-xl border flex-shrink-0 transition-colors disabled:opacity-40 ${grabando ? 'border-[#ff8a7a]/50 bg-[#ff8a7a]/15 text-[#ff8a7a] animate-pulse' : 'border-[#2a2a3a] bg-[#15151d] text-[#a6a6b5] hover:text-[#d9f99d] hover:border-[#404d20]'}`}
+              title={grabando ? 'Detener y transcribir' : 'Grabar voz'} aria-label="Grabar voz">
+              {transcribiendo ? <Loader2 className="w-4 h-4 animate-spin" /> : grabando ? <Square className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+            </button>
+          )}
+          <button onClick={() => enviar()} disabled={pensando || !texto.trim() || grabando}
             className="p-2.5 rounded-xl border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[#d9f99d] disabled:opacity-40 flex-shrink-0"
             aria-label="Enviar">
             <Send className="w-4 h-4" />
