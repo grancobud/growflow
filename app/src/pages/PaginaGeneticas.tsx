@@ -82,13 +82,13 @@ export default function PaginaGeneticas() {
             <div className="mt-1 text-[11.5px] text-[#5c5c6b]">{geneticas.length === 0 ? 'Creá la primera ficha de genética.' : 'Probá con otra búsqueda.'}</div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-fr">
             {filtradas.map(g => {
               const cg = g.genotipo ? COLOR_GENOTIPO[g.genotipo] : null
               return (
-                <div key={g.id} className="rounded-xl bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] transition-colors overflow-hidden">
+                <div key={g.id} className="rounded-xl bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] transition-colors overflow-hidden h-full flex flex-col">
                   {g.foto_url && <div className="h-28 bg-[#15151d] overflow-hidden"><img src={g.foto_url} alt="" className="w-full h-full object-cover" /></div>}
-                  <div className="p-4">
+                  <div className="p-4 flex flex-col flex-1">
                     <div className="flex items-start gap-2">
                       <div className="min-w-0 flex-1">
                         <button onClick={() => { setEditar(g); setModalForm(true) }}
@@ -118,7 +118,7 @@ export default function PaginaGeneticas() {
                       </div>
                     )}
 
-                    <div className="mt-3 flex gap-1.5">
+                    <div className="mt-auto pt-3 flex gap-1.5">
                       <button onClick={() => { setEditar(g); setModalForm(true) }} className={btnSutil}><Pencil className="w-3.5 h-3.5" /> Editar ficha</button>
                       <button onClick={() => borrar(g)} className="p-1.5 text-[#46464f] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors ml-auto" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
