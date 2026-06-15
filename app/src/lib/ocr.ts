@@ -3,10 +3,11 @@
 // 100% local: la lectura la hace tu GPU, nada va a la nube.
 
 import * as pdfjsLib from 'pdfjs-dist'
-// El worker de pdf.js servido por Vite como URL
-import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
+// Worker de pdf.js bundleado nativamente por Vite (?worker). Evita el import
+// dinamico por URL que fallaba en produccion (MIME / service worker).
+import PdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?worker'
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl
+pdfjsLib.GlobalWorkerOptions.workerPort = new PdfWorker()
 
 const OCR_URL = import.meta.env.VITE_OCR_WEBHOOK_URL || ''
 
