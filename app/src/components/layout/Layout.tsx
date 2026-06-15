@@ -94,7 +94,7 @@ export default function Layout() {
   // Mobile: overlay drawer + bottom nav
   if (isMobile) {
     return (
-      <div className="flex min-h-screen bg-primary-100 dark:bg-surface-950">
+      <div className="flex h-[100dvh] overflow-hidden bg-primary-100 dark:bg-surface-950">
         {mobileOpen && (
           <div className="fixed inset-0 z-50 flex">
             <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
@@ -110,7 +110,7 @@ export default function Layout() {
             </div>
           </div>
         )}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden pb-14">
+        <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden pb-14">
           <div className="flex items-center gap-3 px-4 py-3 bg-surface-900 text-white">
             <button
               onClick={() => setMobileOpen(!mobileOpen)}

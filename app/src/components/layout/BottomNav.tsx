@@ -15,7 +15,7 @@ export default function BottomNav() {
       aria-label="Navegacion rapida mobile"
       className="fixed bottom-0 inset-x-0 z-40 bg-[#101016] border-t border-[#1f1f2b] pb-[env(safe-area-inset-bottom)]"
     >
-      <div className="flex items-center justify-around h-14">
+      <div className="flex items-center justify-around h-14 max-w-md mx-auto px-2">
         {ITEMS.map((item) => (
           <NavLink
             key={item.ruta}
