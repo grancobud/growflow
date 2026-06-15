@@ -344,21 +344,20 @@ export default function PaginaSala() {
     return (
       <button key={p.id} onClick={() => clickPlanta(p)}
         title={`${genNombre ? `${genNombre} #${nGen}` : (p.apodo ?? 'Planta')} · riego: ${diasSinRiego(p)}`}
-        className={`absolute inset-[2px] rounded-lg bg-[#1c1c27] flex flex-col items-center justify-center gap-[1px] px-[2px] overflow-hidden transition-transform active:scale-95 ${
+        className={`absolute inset-[2px] rounded-lg bg-[#1c1c27] flex flex-col items-center justify-center gap-[1.5px] px-[2px] py-[2px] overflow-hidden transition-transform active:scale-95 ${
           moviendo === p.id ? 'ring-2 ring-[#38bdf8] scale-105 z-10' : ''
         }`}
         style={{ border: `2.5px solid ${ESTADOS[est as keyof typeof ESTADOS]}` }}>
-        <span className="font-display font-bold text-[13px] leading-none text-[#ececf1] tabular-nums">{etiqueta}</span>
+        <span className="font-display font-bold text-[12px] leading-none text-[#ececf1] tabular-nums">{etiqueta}</span>
         {genNombre ? (
-          <span className="max-w-full truncate rounded px-[3px] py-px text-[7px] font-semibold leading-tight"
-            style={{ background: gc ? `${gc}26` : '#2a2a3a', color: gc ?? '#9a9aab', border: `1px solid ${gc ? `${gc}66` : '#3a3a4a'}` }}
+          <span className="w-full text-center text-[6.5px] font-semibold leading-[1.12] break-words rounded-[3px] px-[1px]"
+            style={{ color: gc ?? '#9a9aab', background: gc ? `${gc}1f` : 'transparent' }}
             title={genNombre}>
             {genNombre}
           </span>
         ) : (
-          <span className="text-[7px] leading-none text-[#5c5c6b]">sin gen.</span>
+          <span className="text-[6.5px] leading-none text-[#5c5c6b]">sin gen.</span>
         )}
-        <span className="text-[7px] leading-none text-[#757584]">{diasSinRiego(p)}</span>
       </button>
     )
   }
