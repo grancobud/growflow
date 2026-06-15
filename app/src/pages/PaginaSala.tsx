@@ -348,15 +348,15 @@ export default function PaginaSala() {
           moviendo === p.id ? 'ring-2 ring-[#38bdf8] scale-105 z-10' : ''
         }`}
         style={{ border: `2.5px solid ${ESTADOS[est as keyof typeof ESTADOS]}` }}>
-        <span className="font-display font-bold text-[12px] leading-none text-[#ececf1] tabular-nums">{etiqueta}</span>
+        <span className="font-display font-bold text-[13px] leading-none text-[#ececf1] tabular-nums">{etiqueta}</span>
         {genNombre ? (
-          <span className="w-full text-center text-[6.5px] font-semibold leading-[1.12] break-words rounded-[3px] px-[1px]"
+          <span className="w-full text-center text-[8px] font-semibold leading-[1.12] break-words rounded-[3px] px-[1px]"
             style={{ color: gc ?? '#9a9aab', background: gc ? `${gc}1f` : 'transparent' }}
             title={genNombre}>
             {genNombre}
           </span>
         ) : (
-          <span className="text-[6.5px] leading-none text-[#5c5c6b]">sin gen.</span>
+          <span className="text-[8px] leading-none text-[#5c5c6b]">sin gen.</span>
         )}
       </button>
     )

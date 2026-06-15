@@ -164,7 +164,7 @@ export default function PaginaPlantas() {
                 <div key={p.id} className="rounded-xl bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] transition-colors overflow-hidden">
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <button onClick={() => setDetalle(p)}
                           className="font-display font-semibold text-[14px] text-[#ececf1] truncate hover:text-[#bef264] transition-colors text-left"
                           title="Ver línea de tiempo">{p.nombre}</button>

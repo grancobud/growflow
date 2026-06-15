@@ -5,7 +5,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { toast } from 'sonner'
 import {
-  Dna, Plus, X, Search, Loader2, Trash2, Pencil, Upload, Sprout, FlaskConical, Clock,
+  Dna, Plus, X, Search, Loader2, Trash2, Pencil, Eye, Upload, Sprout, FlaskConical, Clock,
 } from 'lucide-react'
 import {
   cultivoService, TIPOS_GENETICA, GENOTIPOS, ALTURAS, DIFICULTADES, AMBIENTES,
@@ -31,6 +31,7 @@ export default function PaginaGeneticas() {
   const [busqueda, setBusqueda] = useState('')
   const [modalForm, setModalForm] = useState(false)
   const [editar, setEditar] = useState<Genetica | null>(null)
+  const [verFicha, setVerFicha] = useState<Genetica | null>(null)
 
   const cargar = useCallback(async () => {
     try { setGeneticas(await cultivoService.getGeneticas()) }
@@ -119,6 +120,7 @@ export default function PaginaGeneticas() {
                     )}
 
                     <div className="mt-auto pt-3 flex gap-1.5">
+                      <button onClick={() => setVerFicha(g)} className={btnSutil}><Eye className="w-3.5 h-3.5" /> Ver ficha</button>
                       <button onClick={() => { setEditar(g); setModalForm(true) }} className={btnSutil}><Pencil className="w-3.5 h-3.5" /> Editar ficha</button>
                       <button onClick={() => borrar(g)} className="p-1.5 text-[#46464f] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors ml-auto" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
@@ -131,6 +133,7 @@ export default function PaginaGeneticas() {
       </div>
 
       {modalForm && <ModalGeneticaFicha genetica={editar} onCerrar={() => setModalForm(false)} onGuardado={() => { setModalForm(false); cargar() }} />}
+      {verFicha && <ModalVerFicha genetica={verFicha} onCerrar={() => setVerFicha(null)} />}
     </div>
   )
 }
@@ -272,6 +275,54 @@ function ModalGeneticaFicha({ genetica, onCerrar, onGuardado }: {
           {guardando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : g ? <Sprout className="w-3.5 h-3.5" /> : <Dna className="w-3.5 h-3.5" />}
           {g ? 'Guardar cambios' : 'Crear genética'}
         </button>
+      </div>
+    </Modal>
+  )
+}
+
+function CampoFicha({ label, valor }: { label: string; valor: React.ReactNode }) {
+  if (valor == null || valor === '') return null
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] mb-0.5">{label}</div>
+      <div className="text-[12.5px] text-[#ececf1] break-words">{valor}</div>
+    </div>
+  )
+}
+
+function ModalVerFicha({ genetica, onCerrar }: { genetica: Genetica; onCerrar: () => void }) {
+  const g = genetica
+  const cg = g.genotipo ? COLOR_GENOTIPO[g.genotipo] : null
+  const indicaSativa = (g.indica_pct != null || g.sativa_pct != null)
+    ? `${g.indica_pct ?? '?'}% Indica · ${g.sativa_pct ?? '?'}% Sativa` : null
+  return (
+    <Modal titulo={`Ficha: ${g.nombre}`} onCerrar={onCerrar}>
+      <div className="space-y-4">
+        {g.foto_url && <img src={g.foto_url} alt="" className="w-full max-h-52 rounded-lg object-cover border border-[#2a2a3a]" />}
+        <div className="flex items-center gap-2 flex-wrap text-[11.5px] text-[#757584]">
+          {cg && <span className="px-2 py-0.5 rounded-full border text-[11px] font-medium" style={{ color: cg.text, background: cg.bg, borderColor: cg.border }}>{g.genotipo}</span>}
+          {g.tipo && <span>{g.tipo}</span>}
+          {g.banco && <span>· {g.banco}</span>}
+        </div>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+          <CampoFicha label="Linaje / Cruza" valor={g.linaje} />
+          <CampoFicha label="Indica / Sativa" valor={indicaSativa} />
+          <CampoFicha label="THC" valor={g.thc_estimado != null ? `${g.thc_estimado}%` : null} />
+          <CampoFicha label="CBD" valor={g.cbd_estimado != null ? `${g.cbd_estimado}%` : null} />
+          <CampoFicha label="Vege" valor={g.tiempo_vege_dias != null ? `${g.tiempo_vege_dias} días` : null} />
+          <CampoFicha label="Flora" valor={g.tiempo_flora_dias != null ? `${g.tiempo_flora_dias} días` : null} />
+          <CampoFicha label="Altura" valor={g.altura} />
+          <CampoFicha label="Dificultad" valor={g.dificultad} />
+          <CampoFicha label="Ambiente" valor={g.ambiente} />
+          <CampoFicha label="Rendimiento" valor={g.rendimiento_g} />
+          <CampoFicha label="Stretch (flora)" valor={g.stretch} />
+          <CampoFicha label="Resistencia" valor={g.resistencia} />
+        </div>
+        <CampoFicha label="Terpenos / Aroma" valor={g.terpenos} />
+        <CampoFicha label="Efectos" valor={g.efectos} />
+        <CampoFicha label="Usos medicinales" valor={g.usos_medicinales} />
+        <CampoFicha label="Notas" valor={g.notas} />
+        <button onClick={onCerrar} className={`${btnSutil} w-full justify-center`}>Cerrar</button>
       </div>
     </Modal>
   )
