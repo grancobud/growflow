@@ -51,6 +51,11 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       strategies: 'generateSW',
+      // SW auto-destructivo: desinstala cualquier service worker viejo y limpia
+      // sus caches en cuanto el navegador revalida /sw.js (headers no-cache).
+      // Evita que la demo quede pegada en una version vieja sin tener que entrar
+      // manualmente a /sw-killer. Sacrifica el modo offline (no critico en la demo).
+      selfDestroying: true,
       workbox: {
         skipWaiting: true,
         clientsClaim: true,
