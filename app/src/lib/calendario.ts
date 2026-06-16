@@ -8,17 +8,18 @@ export type TipoCal =
   | 'Riego' | 'Fertilizacion' | 'Poda' | 'Trasplante' | 'Fumigacion'
   | 'Cosecha' | 'Mantenimiento' | 'CambioFase' | 'Recordatorio' | 'Otro'
 
+// Paleta suave/delicada: tonos pastel que se ven bien sobre fondo oscuro.
 export const COLOR_CAL: Record<TipoCal, string> = {
-  Riego: '#60a5fa',
-  Fertilizacion: '#a3e635',
-  Poda: '#a78bfa',
-  Trasplante: '#38bdf8',
-  Fumigacion: '#ff8a7a',
-  Cosecha: '#fbbf24',
-  Mantenimiento: '#f59e0b',
-  CambioFase: '#c4b5fd',
-  Recordatorio: '#2dd4bf',
-  Otro: '#8f8f9f',
+  Riego: '#8fb8e6',          // azul empolvado
+  Fertilizacion: '#a8cf8e',  // verde salvia
+  Poda: '#bcaee0',           // lavanda
+  Trasplante: '#8ed0c6',     // verde agua
+  Fumigacion: '#e6a99b',     // terracota suave
+  Cosecha: '#e3c486',        // dorado trigo
+  Mantenimiento: '#d2bfa0', // arena
+  CambioFase: '#c9b8e8',     // lila
+  Recordatorio: '#8fcabd',   // menta
+  Otro: '#b7b3c2',           // gris lavanda
 }
 
 export const TIPOS_CAL: TipoCal[] = [
@@ -146,6 +147,21 @@ export const calendarioService = {
       }
     }
     return out
+  },
+
+  // Borra un evento del calendario desde su tabla de origen. El id del EventoCal
+  // viene con prefijo (ev:/ri:/ap:/co:/ma:/re:) + uuid; aca se extrae el uuid real.
+  async eliminarEvento(fuente: EventoCal['fuente'], idCal: string): Promise<void> {
+    const partes = idCal.split(':')
+    const id = partes[1]
+    const tabla: Record<string, string> = {
+      evento: 'eventos', riego: 'riegos', aplicacion: 'aplicaciones',
+      cosecha: 'cosechas', mantenimiento: 'mantenimientos', recordatorio: 'recordatorios',
+    }
+    const t = tabla[fuente]
+    if (!t || !id) throw new Error('No se puede borrar este evento')
+    const { error } = await supabase.from(t).delete().eq('id', id)
+    if (error) throw error
   },
 
   async getRecordatorios(): Promise<Recordatorio[]> {

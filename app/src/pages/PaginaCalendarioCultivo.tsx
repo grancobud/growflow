@@ -10,7 +10,7 @@ import interactionPlugin from '@fullcalendar/interaction'
 import esLocale from '@fullcalendar/core/locales/es'
 import type { EventInput, DatesSetArg, EventClickArg } from '@fullcalendar/core'
 import type { DateClickArg } from '@fullcalendar/interaction'
-import { CalendarDays, Plus, X, Loader2, Trash2 } from 'lucide-react'
+import { CalendarDays, Plus, X, Loader2, Trash2, Pencil } from 'lucide-react'
 import {
   calendarioService, COLOR_CAL, TIPOS_CAL, REPETICIONES,
   type EventoCal, type TipoCal, type Recordatorio, type Repeticion,
@@ -24,20 +24,24 @@ const btnSutil = 'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bord
 const hoyISO = () => new Date().toISOString().slice(0, 10)
 
 const CAL_CSS = `
-.gf-cal { --fc-border-color:#1f1f2b; --fc-page-bg-color:#0a0a0f; --fc-neutral-bg-color:#101016; --fc-today-bg-color:rgba(163,230,53,0.06); --fc-event-text-color:#0a0a0f; }
-.gf-cal .fc { color:#d4d4dd; font-family:inherit; }
-.gf-cal .fc .fc-toolbar.fc-header-toolbar { margin-bottom:10px; }
-.gf-cal .fc .fc-toolbar-title { font-size:15px; font-weight:600; color:#ececf1; text-transform:capitalize; }
-.gf-cal .fc .fc-col-header-cell-cushion, .gf-cal .fc .fc-daygrid-day-number { color:#a6a6b5; font-size:11.5px; text-decoration:none; padding:4px; }
-.gf-cal .fc .fc-button { background:#15151d; border:1px solid #2a2a3a; color:#d4d4dd; font-size:12px; text-transform:none; box-shadow:none; padding:4px 9px; }
-.gf-cal .fc .fc-button:hover { background:#1c1c27; border-color:#404d20; }
-.gf-cal .fc .fc-button-primary:not(:disabled).fc-button-active, .gf-cal .fc .fc-button-primary:not(:disabled):active { background:#a3e635; color:#0a0a0f; border-color:#404d20; }
+.gf-cal { --fc-border-color:#191921; --fc-page-bg-color:#0a0a0f; --fc-neutral-bg-color:#0e0e14; --fc-today-bg-color:rgba(167,139,250,0.07); }
+.gf-cal .fc { color:#cfcfda; font-family:inherit; }
+.gf-cal .fc .fc-toolbar.fc-header-toolbar { margin-bottom:12px; }
+.gf-cal .fc .fc-toolbar-title { font-size:15px; font-weight:500; color:#ececf1; text-transform:capitalize; letter-spacing:0.2px; }
+.gf-cal .fc .fc-col-header-cell-cushion { color:#6b6b7a; font-size:10.5px; font-weight:500; text-transform:uppercase; letter-spacing:0.7px; text-decoration:none; padding:6px 4px; }
+.gf-cal .fc .fc-daygrid-day-number { color:#8a8a99; font-size:11.5px; text-decoration:none; padding:5px 7px; }
+.gf-cal .fc .fc-day-today .fc-daygrid-day-number { color:#c9b8e8; font-weight:600; }
+.gf-cal .fc .fc-button { background:transparent; border:1px solid #26262f; color:#a6a6b5; font-size:12px; text-transform:none; box-shadow:none; padding:4px 10px; border-radius:8px; }
+.gf-cal .fc .fc-button:hover { background:#15151d; border-color:#33333f; color:#ececf1; }
+.gf-cal .fc .fc-button-primary:not(:disabled).fc-button-active, .gf-cal .fc .fc-button-primary:not(:disabled):active { background:#1c1c27; color:#d9f99d; border-color:#404d20; }
 .gf-cal .fc .fc-button:focus { box-shadow:none; }
-.gf-cal .fc .fc-daygrid-day.fc-day-today { background:rgba(163,230,53,0.06); }
-.gf-cal .fc-theme-standard td, .gf-cal .fc-theme-standard th { border-color:#1f1f2b; }
-.gf-cal .fc-daygrid-event { border-radius:4px; padding:1px 5px; font-size:11px; font-weight:500; cursor:pointer; }
-.gf-cal .fc .fc-daygrid-day-frame { min-height:64px; }
-.gf-cal .fc .fc-more-link { color:#8f8f9f; font-size:10.5px; }
+.gf-cal .fc .fc-button:disabled { opacity:.4; }
+.gf-cal .fc-theme-standard td, .gf-cal .fc-theme-standard th { border-color:#191921; }
+.gf-cal .fc-daygrid-event { border:none; border-radius:6px; padding:2px 7px; margin:1px 3px; font-size:11px; font-weight:500; letter-spacing:0.1px; cursor:pointer; transition:filter .12s ease; }
+.gf-cal .fc-daygrid-event:hover { filter:brightness(1.35); }
+.gf-cal .fc .fc-daygrid-day-frame { min-height:66px; }
+.gf-cal .fc .fc-more-link { color:#7a7a88; font-size:10.5px; font-weight:500; }
+.gf-cal .fc .fc-daygrid-day.fc-day-today { background:rgba(167,139,250,0.06); }
 `
 
 export default function PaginaCalendarioCultivo() {
@@ -48,6 +52,7 @@ export default function PaginaCalendarioCultivo() {
   const [modal, setModal] = useState(false)
   const [editRec, setEditRec] = useState<Recordatorio | null>(null)
   const [fechaPre, setFechaPre] = useState<string | null>(null)
+  const [detalle, setDetalle] = useState<EventoCal | null>(null)
   const recsRef = useRef<Recordatorio[]>([])
 
   const cargar = useCallback(async (desde: string, hasta: string) => {
@@ -75,7 +80,7 @@ export default function PaginaCalendarioCultivo() {
     .filter(e => !ocultos.has(e.tipo))
     .map(e => ({
       id: e.id, title: e.titulo, start: e.fecha, allDay: true,
-      backgroundColor: e.color, borderColor: e.color,
+      backgroundColor: e.color + '22', borderColor: e.color + '40', textColor: e.color,
       extendedProps: { ev: e },
     })), [eventos, ocultos])
 
@@ -84,13 +89,24 @@ export default function PaginaCalendarioCultivo() {
   })
 
   const onEventClick = (arg: EventClickArg) => {
-    const e = arg.event.extendedProps.ev as EventoCal
-    if (e.editable) {
-      const id = e.id.split(':')[1]
-      const rec = recsRef.current.find(r => r.id === id)
-      if (rec) { setEditRec(rec); setFechaPre(null); setModal(true); return }
-    }
-    toast(e.titulo, { description: [e.detalle, `Tipo: ${e.tipo}`].filter(Boolean).join(' · ') })
+    setDetalle(arg.event.extendedProps.ev as EventoCal)
+  }
+
+  const borrarDetalle = async () => {
+    if (!detalle) return
+    if (!window.confirm(`¿Borrar "${detalle.titulo}" del ${detalle.fecha}?${detalle.fuente === 'recordatorio' ? ' (se borra el recordatorio y todas sus repeticiones)' : ''}`)) return
+    try {
+      await calendarioService.eliminarEvento(detalle.fuente, detalle.id)
+      toast.success('Borrado')
+      setDetalle(null); recargar()
+    } catch (err) { toast.error(`No se pudo borrar: ${(err as Error).message}`) }
+  }
+
+  const editarDetalle = () => {
+    if (!detalle || detalle.fuente !== 'recordatorio') return
+    const id = detalle.id.split(':')[1]
+    const rec = recsRef.current.find(r => r.id === id)
+    if (rec) { setDetalle(null); setEditRec(rec); setFechaPre(null); setModal(true) }
   }
 
   const onDateClick = (arg: DateClickArg) => { setEditRec(null); setFechaPre(arg.dateStr.slice(0, 10)); setModal(true) }
@@ -148,6 +164,31 @@ export default function PaginaCalendarioCultivo() {
       </div>
 
       {modal && <ModalRecordatorio rec={editRec} fechaPre={fechaPre} onCerrar={() => setModal(false)} onGuardado={() => { setModal(false); recargar() }} />}
+
+      {detalle && (
+        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={() => setDetalle(null)}>
+          <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-sm sm:rounded-2xl rounded-t-2xl" onClick={e => e.stopPropagation()}>
+            <div className="px-4 py-3 border-b border-[#1f1f2b] flex items-center gap-2.5">
+              <span className="w-3 h-3 rounded-[4px] flex-shrink-0" style={{ background: detalle.color }} />
+              <div className="min-w-0 flex-1">
+                <div className="font-display font-semibold text-[14px] text-[#ececf1] truncate">{detalle.titulo}</div>
+                <div className="text-[11px] text-[#5c5c6b] capitalize">{detalle.tipo} · {new Date(detalle.fecha + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: '2-digit', month: 'long' })}</div>
+              </div>
+              <button onClick={() => setDetalle(null)} className="p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="px-4 py-3 space-y-1.5">
+              {detalle.detalle && <p className="text-[12.5px] text-[#d4d4dd] leading-relaxed">{detalle.detalle}</p>}
+              <p className="text-[10.5px] text-[#5c5c6b]">Origen: {({ evento: 'Evento de planta', riego: 'Riego / escorrentía', aplicacion: 'Aplicación', cosecha: 'Cosecha', mantenimiento: 'Mantenimiento (Stock)', recordatorio: 'Recordatorio propio' })[detalle.fuente]}</p>
+            </div>
+            <div className="px-4 py-3 border-t border-[#1f1f2b] flex justify-between gap-2">
+              <button onClick={borrarDetalle} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#5a2a26] bg-[#ff8a7a]/10 hover:bg-[#ff8a7a]/20 transition-colors text-[11px] text-[#ff8a7a]"><Trash2 className="w-3.5 h-3.5" /> Borrar</button>
+              {detalle.fuente === 'recordatorio'
+                ? <button onClick={editarDetalle} className={btnPrimario}><Pencil className="w-3.5 h-3.5" /> Editar</button>
+                : <button onClick={() => setDetalle(null)} className={btnSutil}>Cerrar</button>}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
