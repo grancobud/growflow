@@ -71,6 +71,7 @@ export interface Genetica {
   stretch?: string | null
   foto_url?: string | null
   color?: string | null
+  inicio_flora?: string | null   // fecha de paso a 12/12 del cultivo actual (para estimar cosecha de fem)
 }
 
 export interface Planta {
