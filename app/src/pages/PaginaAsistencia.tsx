@@ -99,11 +99,11 @@ export default function PaginaAsistencia() {
             {growers.length === 0 && <button onClick={() => setModalRoster(true)} className={`${btnSutil} mt-3`}><Users className="w-3.5 h-3.5" /> Cargar growers primero</button>}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 items-stretch">
             {jornadas.map(j => {
               const c = contadores[j.id] ?? { presentes: 0, actividades: 0 }
               return (
-                <div key={j.id} className="rounded-xl bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] transition-colors overflow-hidden">
+                <div key={j.id} className="h-full rounded-xl bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] transition-colors overflow-hidden">
                   <div className="p-4">
                     <div className="flex items-start gap-2">
                       <button onClick={() => setJornadaSel(j)} className="min-w-0 flex-1 text-left">
