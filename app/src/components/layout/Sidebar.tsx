@@ -3,7 +3,7 @@
 
 import { NavLink, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { LayoutDashboard, Leaf, LogOut, Sprout, MessageSquareText, GitBranch, Table2, Droplets, BarChart3, KeyRound, IdCard, Dna, ClipboardCheck, Boxes } from 'lucide-react'
+import { LayoutDashboard, Leaf, LogOut, Sprout, MessageSquareText, GitBranch, Table2, Droplets, BarChart3, KeyRound, IdCard, Dna, ClipboardCheck, Boxes, CalendarDays } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '../../hooks/useAuth'
 import { tienePin, quitarPin } from '../../lib/pin'
@@ -36,6 +36,7 @@ export default function Sidebar({ colapsado: colapsadoProp }: { colapsado?: bool
     { nombre: 'Plantas', ruta: '/plantas', icono: Sprout },
     { nombre: 'Genéticas', ruta: '/geneticas', icono: Dna },
     { nombre: 'Sala', ruta: '/sala', icono: Droplets },
+    { nombre: 'Calendario', ruta: '/calendario', icono: CalendarDays },
     { nombre: 'Stock', ruta: '/stock', icono: Boxes },
     { nombre: 'Registro', ruta: '/registro', icono: IdCard },
     { nombre: 'Asistencia', ruta: '/asistencia', icono: ClipboardCheck },
