@@ -173,12 +173,12 @@ export default function PaginaEconometria() {
               </div>
             ) : (
               <>
-                <div className="hidden sm:grid grid-cols-[1fr_auto_auto] gap-3 px-4 py-2 text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] border-b border-[#1f1f2b]/60">
+                <div className="hidden sm:grid grid-cols-[1fr_5rem_7rem] gap-3 px-4 py-2 text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] border-b border-[#1f1f2b]/60">
                   <div>Insumo</div><div className="text-right">Cantidad</div><div className="text-right">Costo</div>
                 </div>
                 <ul className="divide-y divide-[#1f1f2b]/60">
                   {insumosConPrecio.map(i => (
-                    <li key={i.id} className="grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_auto_auto] gap-3 px-4 py-2.5 items-center">
+                    <li key={i.id} className="grid grid-cols-[1fr_7rem] sm:grid-cols-[1fr_5rem_7rem] gap-3 px-4 py-2.5 items-center">
                       <div className="min-w-0">
                         <div className="text-[12.5px] text-[#ececf1] truncate">{i.nombre}</div>
                         <div className="text-[10px] text-[#5c5c6b] truncate">{i.categoria}{i.marca ? ` · ${i.marca}` : ''}</div>
