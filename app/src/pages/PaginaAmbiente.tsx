@@ -6,7 +6,8 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { Thermometer, Droplets, Wind, Gauge, RefreshCw, WifiOff, Activity, Fan, Snowflake, Lightbulb, CloudFog, Power } from 'lucide-react'
 
 const WEBHOOK = (import.meta as any).env?.VITE_GROWCAST_WEBHOOK_URL || 'http://192.168.0.60:5678/webhook/growcast-live'
-const INTERVALO_MS = 15000
+const INTERVALO_MS = 10000
+const INTERVALO_S = Math.round(INTERVALO_MS / 1000)
 
 type Punto = { t: string; v: number }
 type Sensor = { value: number; ts: string } | null
@@ -125,7 +126,7 @@ export default function PaginaAmbiente() {
           <div className="py-16 text-center">
             <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><WifiOff className="w-5 h-5 text-[#ff8a7a]" /></div>
             <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">Sin conexión con Growcast</div>
-            <div className="mt-1 text-[11.5px] text-[#5c5c6b] max-w-sm mx-auto">{error}. Verificá que n8n y la PC estén prendidos. Reintenta solo cada 15s.</div>
+            <div className="mt-1 text-[11.5px] text-[#5c5c6b] max-w-sm mx-auto">{error}. Verificá que n8n y la PC estén prendidos. Reintenta solo cada {INTERVALO_S}s.</div>
           </div>
         ) : (
           <>
@@ -182,7 +183,7 @@ export default function PaginaAmbiente() {
             </div>
 
             <div className="text-[10.5px] text-[#5c5c6b] flex items-center gap-1.5">
-              <RefreshCw className="w-3 h-3" /> Actualiza cada 15s · última lectura {fmtHora(ultima?.toISOString())}
+              <RefreshCw className="w-3 h-3" /> Actualiza cada {INTERVALO_S}s · última lectura {fmtHora(ultima?.toISOString())}
               {data?.sensores?.temperatura?.ts && <span>· dato del sensor {fmtHora(data.sensores.temperatura.ts)}</span>}
             </div>
           </>
