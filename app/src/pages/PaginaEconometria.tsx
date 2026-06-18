@@ -9,7 +9,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 import {
   Calculator, Plus, X, Loader2, Trash2, Pencil, Boxes, Landmark, Activity,
-  PiggyBank, Sprout, CalendarRange, TrendingUp,
+  PiggyBank, Sprout, CalendarRange, TrendingUp, Eye,
 } from 'lucide-react'
 import {
   econometriaService, PERIODICIDADES, CATEGORIAS_COSTO_FIJO, CATEGORIAS_COSTO_VARIABLE,
@@ -18,6 +18,7 @@ import {
 } from '../lib/econometria'
 import { stockService, type Insumo } from '../lib/stock'
 import { cultivoService } from '../lib/cultivo'
+import { ModalInsumo, ModalVerInsumo } from './PaginaStockInsumos'
 
 const inputCls = 'w-full px-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
@@ -36,6 +37,8 @@ export default function PaginaEconometria() {
   const [modal, setModal] = useState(false)
   const [edit, setEdit] = useState<Costo | null>(null)
   const [tipoNuevo, setTipoNuevo] = useState<TipoCosto>('fijo')
+  const [verInsumo, setVerInsumo] = useState<Insumo | null>(null)
+  const [editInsumo, setEditInsumo] = useState<Insumo | null>(null)
 
   const cargar = useCallback(async () => {
     try {
@@ -173,18 +176,28 @@ export default function PaginaEconometria() {
               </div>
             ) : (
               <>
-                <div className="hidden sm:grid grid-cols-[1fr_5rem_7rem] gap-3 px-4 py-2 text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] border-b border-[#1f1f2b]/60">
-                  <div>Insumo</div><div className="text-right">Cantidad</div><div className="text-right">Costo</div>
+                <div className="hidden sm:grid grid-cols-[1fr_5rem_7rem_4.5rem] gap-3 px-4 py-2 text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] border-b border-[#1f1f2b]/60">
+                  <div>Insumo</div><div className="text-right">Cantidad</div><div className="text-right">Costo</div><div />
                 </div>
                 <ul className="divide-y divide-[#1f1f2b]/60">
                   {insumosConPrecio.map(i => (
-                    <li key={i.id} className="grid grid-cols-[1fr_7rem] sm:grid-cols-[1fr_5rem_7rem] gap-3 px-4 py-2.5 items-center">
+                    <li key={i.id} className="grid grid-cols-[1fr_7rem_4.5rem] sm:grid-cols-[1fr_5rem_7rem_4.5rem] gap-3 px-4 py-2.5 items-center group">
                       <div className="min-w-0">
                         <div className="text-[12.5px] text-[#ececf1] truncate">{i.nombre}</div>
                         <div className="text-[10px] text-[#5c5c6b] truncate">{i.categoria}{i.marca ? ` · ${i.marca}` : ''}</div>
                       </div>
                       <div className="hidden sm:block text-right text-[12px] text-[#a6a6b5]">{i.cantidad} {i.unidad || 'u'}</div>
                       <div className="text-right text-[12.5px] font-medium text-[#d9f99d]">{fmt(Number(i.precio))}</div>
+                      <div className="flex items-center justify-end gap-0.5">
+                        <button onClick={() => setVerInsumo(i)} title="Ver ficha"
+                          className="p-1.5 text-[#5c5c6b] hover:text-[#38bdf8] hover:bg-[#15151d] rounded-lg transition-colors">
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => setEditInsumo(i)} title="Editar ficha"
+                          className="p-1.5 text-[#5c5c6b] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -200,6 +213,8 @@ export default function PaginaEconometria() {
       )}
 
       {modal && <ModalCosto costo={edit} tipoInicial={tipoNuevo} onCerrar={() => setModal(false)} onGuardado={() => { setModal(false); cargar() }} />}
+      {verInsumo && <ModalVerInsumo insumo={verInsumo} onCerrar={() => setVerInsumo(null)} />}
+      {editInsumo && <ModalInsumo insumo={editInsumo} onCerrar={() => setEditInsumo(null)} onGuardado={() => { setEditInsumo(null); cargar() }} />}
     </div>
   )
 }

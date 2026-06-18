@@ -320,7 +320,7 @@ export default function PaginaStockInsumos() {
   )
 }
 
-function ModalInsumo({ insumo, onCerrar, onGuardado }: { insumo: Insumo | null; onCerrar: () => void; onGuardado: () => void }) {
+export function ModalInsumo({ insumo, onCerrar, onGuardado }: { insumo: Insumo | null; onCerrar: () => void; onGuardado: () => void }) {
   const [f, setF] = useState<Partial<Insumo>>(insumo ?? { categoria: 'Fertilizante', cantidad: 0, unidad: 'u', stock_minimo: 0 })
   const [guardando, setGuardando] = useState(false)
   const set = (k: keyof Insumo, v: any) => setF(prev => ({ ...prev, [k]: v }))
@@ -475,7 +475,7 @@ function CampoFicha({ label, valor }: { label: string; valor: React.ReactNode })
   )
 }
 
-function ModalVerInsumo({ insumo, onCerrar }: { insumo: Insumo; onCerrar: () => void }) {
+export function ModalVerInsumo({ insumo, onCerrar }: { insumo: Insumo; onCerrar: () => void }) {
   const i = insumo
   const e = CAT[i.categoria]
   const min = i.stock_minimo ?? 0

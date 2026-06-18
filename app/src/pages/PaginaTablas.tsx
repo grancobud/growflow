@@ -7,9 +7,12 @@ import { toast } from 'sonner'
 import { Plus, Trash2, RefreshCw, Table2, Download, Upload, X, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { FASES, TIPOS_EVENTO, TIPOS_GENETICA, SUSTRATOS } from '../lib/cultivo'
+import { CATEGORIAS_INSUMO, TIPOS_MANTENIMIENTO, UNIDADES } from '../lib/stock'
 import { exportarFull, importarFull } from '../lib/backup'
 
 const CATEGORIAS_APLIC = ['Fumigacion', 'Insecticida', 'Fungicida', 'Foliar', 'Acaricida', 'Bactericida', 'Otro'] as const
+const TIPOS_COSTO = ['fijo', 'variable'] as const
+const PERIODICIDADES_COSTO = ['unico', 'mensual', 'bimestral', 'por_ciclo', 'anual'] as const
 
 type TipoCol = 'text' | 'number' | 'date' | 'bool' | { select: readonly string[] }
 interface Col { campo: string; titulo: string; tipo: TipoCol; ancho?: string }
@@ -89,6 +92,49 @@ const TABLAS: DefTabla[] = [
       { campo: 'valoracion', titulo: 'Nota 1-10', tipo: 'number' },
       { campo: 'notas_sabor', titulo: 'Sabor', tipo: 'text' },
       { campo: 'notas_curado', titulo: 'Curado', tipo: 'text' },
+    ],
+  },
+  {
+    id: 'insumos', nombre: 'Insumos', orden: 'nombre',
+    cols: [
+      { campo: 'nombre', titulo: 'Nombre', tipo: 'text', ancho: 'min-w-[180px]' },
+      { campo: 'categoria', titulo: 'Categoría', tipo: { select: CATEGORIAS_INSUMO } },
+      { campo: 'marca', titulo: 'Marca', tipo: 'text' },
+      { campo: 'modelo', titulo: 'Modelo', tipo: 'text' },
+      { campo: 'cantidad', titulo: 'Cantidad', tipo: 'number' },
+      { campo: 'unidad', titulo: 'Unidad', tipo: { select: UNIDADES } },
+      { campo: 'precio', titulo: 'Costo ($)', tipo: 'number' },
+      { campo: 'stock_minimo', titulo: 'Stock mín.', tipo: 'number' },
+      { campo: 'potencia_w', titulo: 'Potencia (W)', tipo: 'number' },
+      { campo: 'proveedor', titulo: 'Proveedor', tipo: 'text' },
+      { campo: 'dosis', titulo: 'Dosis', tipo: 'text' },
+      { campo: 'uso', titulo: 'Uso', tipo: 'text', ancho: 'min-w-[180px]' },
+      { campo: 'specs', titulo: 'Specs', tipo: 'text', ancho: 'min-w-[180px]' },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[160px]' },
+    ],
+  },
+  {
+    id: 'costos', nombre: 'Costos', orden: 'nombre',
+    cols: [
+      { campo: 'nombre', titulo: 'Nombre', tipo: 'text', ancho: 'min-w-[180px]' },
+      { campo: 'tipo', titulo: 'Tipo', tipo: { select: TIPOS_COSTO } },
+      { campo: 'categoria', titulo: 'Categoría', tipo: 'text' },
+      { campo: 'monto', titulo: 'Monto ($)', tipo: 'number' },
+      { campo: 'cantidad', titulo: 'Cantidad', tipo: 'number' },
+      { campo: 'periodicidad', titulo: 'Periodicidad', tipo: { select: PERIODICIDADES_COSTO } },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[160px]' },
+    ],
+  },
+  {
+    id: 'mantenimientos', nombre: 'Mantenimiento', orden: 'fecha_realizado',
+    cols: [
+      { campo: 'equipo', titulo: 'Equipo', tipo: 'text', ancho: 'min-w-[160px]' },
+      { campo: 'tipo', titulo: 'Tipo', tipo: { select: TIPOS_MANTENIMIENTO } },
+      { campo: 'fecha_realizado', titulo: 'Realizado', tipo: 'date' },
+      { campo: 'frecuencia_dias', titulo: 'Cada (días)', tipo: 'number' },
+      { campo: 'proximo', titulo: 'Próximo', tipo: 'date' },
+      { campo: 'responsable', titulo: 'Responsable', tipo: 'text' },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[160px]' },
     ],
   },
 ]
@@ -171,6 +217,8 @@ export default function PaginaTablas() {
     try {
       const base: any = {}
       if (tabla.id === 'geneticas') base.nombre = 'Nueva genética'
+      if (tabla.id === 'insumos') base.nombre = 'Nuevo insumo'
+      if (tabla.id === 'costos') base.nombre = 'Nuevo costo'
       const { data, error } = await supabase.from(tabla.id).insert(base).select().single()
       if (error) throw new Error(error.message)
       setFilas(fs => [data, ...fs])
