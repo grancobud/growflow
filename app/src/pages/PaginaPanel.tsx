@@ -5,10 +5,12 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
   Leaf, Droplets, Flower2, Scale, ArrowRight, Sprout,
-  Activity, FileText, Dna,
+  Activity, FileText, Dna, BellRing, Wrench, CheckCircle2,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { toast } from 'sonner'
 import { cultivoService, type ResumenPlanta, type Evento, type FasePlanta } from '../lib/cultivo'
+import { stockService, proximoEfectivo, diasParaProximo, type Mantenimiento, type Insumo } from '../lib/stock'
 
 const EASE = [0.22, 1, 0.36, 1] as const
 const stagger = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05, delayChildren: 0.04 } } }
@@ -34,27 +36,45 @@ export default function PaginaPanel() {
   const [plantas, setPlantas] = useState<ResumenPlanta[]>([])
   const [eventos, setEventos] = useState<Evento[]>([])
   const [pesoSecoTotal, setPesoSecoTotal] = useState(0)
+  const [mantes, setMantes] = useState<Mantenimiento[]>([])
+  const [insumos, setInsumos] = useState<Insumo[]>([])
   const [cargando, setCargando] = useState(true)
 
-  useEffect(() => {
-    async function cargar() {
-      try {
-        const [resumen, ultimosEventos, cosechas] = await Promise.all([
-          cultivoService.getResumenPlantas(true),
-          cultivoService.getEventos(undefined, 10),
-          cultivoService.getCosechas(),
-        ])
-        setPlantas(resumen)
-        setEventos(ultimosEventos)
-        setPesoSecoTotal(cosechas.reduce((acc, c) => acc + (c.peso_seco_g ?? 0), 0))
-      } catch (err) {
-        console.error('Error cargando panel:', err)
-      } finally {
-        setCargando(false)
-      }
+  async function cargar() {
+    try {
+      const [resumen, ultimosEventos, cosechas, man, ins] = await Promise.all([
+        cultivoService.getResumenPlantas(true),
+        cultivoService.getEventos(undefined, 10),
+        cultivoService.getCosechas(),
+        stockService.getMantenimientos().catch(() => []),
+        stockService.getInsumos().catch(() => []),
+      ])
+      setPlantas(resumen)
+      setEventos(ultimosEventos)
+      setPesoSecoTotal(cosechas.reduce((acc, c) => acc + (c.peso_seco_g ?? 0), 0))
+      setMantes(man)
+      setInsumos(ins)
+    } catch (err) {
+      console.error('Error cargando panel:', err)
+    } finally {
+      setCargando(false)
     }
-    cargar()
-  }, [])
+  }
+  useEffect(() => { cargar() }, [])
+
+  // Alarmas de mantenimiento: vencidas, para hoy o mañana (diasParaProximo <= 1).
+  const alarmas = mantes
+    .map(m => ({ m, dias: diasParaProximo(m) }))
+    .filter(x => x.dias !== null && (x.dias as number) <= 1)
+    .sort((a, b) => (a.dias as number) - (b.dias as number))
+
+  const hechoHoy = async (m: Mantenimiento) => {
+    try {
+      const proximo = m.frecuencia_dias ? new Date(Date.now() + m.frecuencia_dias * 86400000).toISOString().slice(0, 10) : null
+      await stockService.actualizarMantenimiento(m.id, { fecha_realizado: new Date().toISOString().slice(0, 10), proximo })
+      toast.success('Registrado como hecho hoy'); cargar()
+    } catch (err) { toast.error(`Error: ${(err as Error).message}`) }
+  }
 
   const hoy = new Date().toISOString().slice(0, 10)
   const enFlora = plantas.filter(p => p.fase === 'Floracion').length
@@ -91,6 +111,45 @@ export default function PaginaPanel() {
       </div>
 
       <div className="px-3 sm:px-6 py-4 sm:py-5 pb-20 space-y-4 sm:space-y-5">
+        {/* Alarmas de mantenimiento (se ven apenas entrás a la app) */}
+        {alarmas.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: EASE }}
+            className="rounded-xl border border-[#5a4a20] bg-gradient-to-br from-[#f59e0b]/12 to-[#ff8a7a]/[0.08] overflow-hidden">
+            <div className="flex items-center gap-2 px-4 py-2.5 border-b border-[#5a4a20]/60 bg-[#f59e0b]/[0.08]">
+              <span className="relative flex h-4 w-4 items-center justify-center flex-shrink-0">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#fbbf24]/40" />
+                <BellRing className="w-4 h-4 text-[#fbbf24] relative" />
+              </span>
+              <h3 className="font-display font-bold text-[13px] text-[#fbbf24]">
+                {alarmas.length} alarma{alarmas.length === 1 ? '' : 's'} de mantenimiento
+              </h3>
+              <span className="hidden sm:inline text-[10.5px] text-[#a6a6b5]">— para hoy, mañana o vencidas</span>
+              <Link to="/stock" className="ml-auto text-[11px] text-[#fbbf24] hover:text-[#fde68a] font-medium flex items-center gap-1 flex-shrink-0">
+                Ver todo <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+            <ul className="divide-y divide-[#5a4a20]/30">
+              {alarmas.map(({ m, dias }) => {
+                const d = dias as number
+                const vinc = m.insumo_id ? insumos.find(i => i.id === m.insumo_id) : null
+                const titulo = vinc?.nombre || m.equipo || 'Equipo'
+                const cuando = d < 0 ? { txt: `Vencido hace ${Math.abs(d)}d`, col: '#ff8a7a' } : d === 0 ? { txt: 'Hoy', col: '#fb923c' } : { txt: 'Mañana', col: '#fbbf24' }
+                return (
+                  <li key={m.id} className="flex items-center gap-2.5 px-4 py-2">
+                    <Wrench className="w-3.5 h-3.5 text-[#a78bfa] flex-shrink-0" />
+                    <span className="font-medium text-[12.5px] text-[#ececf1] truncate">{titulo}</span>
+                    <span className="hidden sm:inline text-[10.5px] text-[#a6a6b5] truncate">· {m.tipo} · próx {proximoEfectivo(m) ? new Date(proximoEfectivo(m)! + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }) : '—'}</span>
+                    <span className="ml-auto text-[11px] font-semibold flex-shrink-0" style={{ color: cuando.col }}>{cuando.txt}</span>
+                    <button onClick={() => hechoHoy(m)} className="flex-shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-md border border-[#404d20] bg-[#a3e635]/10 hover:bg-[#a3e635]/20 text-[10.5px] font-medium text-[#d9f99d] transition-colors" title="Marcar como hecho hoy">
+                      <CheckCircle2 className="w-3 h-3" /> Hecho
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          </motion.div>
+        )}
+
         {/* KPI cards */}
         {cargando ? (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

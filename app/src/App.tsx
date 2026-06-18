@@ -16,7 +16,6 @@ import { lazyWithRetry } from './lib/lazyWithRetry'
 // se adaptan mas adelante, pero fuera del router.
 const PaginaPlantas = lazyWithRetry(() => import('./pages/PaginaPlantas'), 'PaginaPlantas')
 const PaginaChat = lazyWithRetry(() => import('./pages/PaginaChat'), 'PaginaChat')
-const PaginaGrafo = lazyWithRetry(() => import('./pages/PaginaGrafo'), 'PaginaGrafo')
 const PaginaTablas = lazyWithRetry(() => import('./pages/PaginaTablas'), 'PaginaTablas')
 const PaginaSala = lazyWithRetry(() => import('./pages/PaginaSala'), 'PaginaSala')
 const PaginaEstadisticas = lazyWithRetry(() => import('./pages/PaginaEstadisticas'), 'PaginaEstadisticas')
@@ -76,9 +75,6 @@ function App() {
           } />
           <Route path="chat" element={
             <Suspense fallback={null}><PaginaChat /></Suspense>
-          } />
-          <Route path="grafo" element={
-            <Suspense fallback={null}><PaginaGrafo /></Suspense>
           } />
           <Route path="tablas" element={
             <Suspense fallback={null}><PaginaTablas /></Suspense>
