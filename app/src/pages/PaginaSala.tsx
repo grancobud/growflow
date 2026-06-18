@@ -217,6 +217,31 @@ export default function PaginaSala() {
     }
   }
 
+  const carpaNombre = (slot: string | null) => CARPAS.find(c => slot?.startsWith(c.id + '-'))?.nombre ?? null
+
+  // Drag & drop: arrastra una planta a un slot. Si el slot tiene otra planta,
+  // se intercambian (la que estaba pasa al lugar de origen).
+  const soltarEnSlot = async (slotDestino: string, carpa: Carpa, plantaDestino?: Planta) => {
+    const origenId = moviendo
+    setMoviendo(null)
+    if (!origenId) return
+    const origen = plantas.find(p => p.id === origenId)
+    if (!origen || origen.slot === slotDestino) return
+    try {
+      if (plantaDestino && plantaDestino.id !== origenId) {
+        const slotOrigen = origen.slot
+        await supabase.from('plantas').update({ slot: slotDestino, ubicacion: carpa.nombre }).eq('id', origen.id)
+        await supabase.from('plantas').update({ slot: slotOrigen, ubicacion: carpaNombre(slotOrigen) }).eq('id', plantaDestino.id)
+        setPlantas(ps => ps.map(x => x.id === origen.id ? { ...x, slot: slotDestino } : x.id === plantaDestino.id ? { ...x, slot: slotOrigen } : x))
+      } else {
+        await supabase.from('plantas').update({ slot: slotDestino, ubicacion: carpa.nombre }).eq('id', origen.id)
+        setPlantas(ps => ps.map(x => x.id === origen.id ? { ...x, slot: slotDestino } : x))
+      }
+    } catch (err) {
+      toast.error(`No se pudo mover: ${(err as Error).message}`)
+    }
+  }
+
   // ----- Export / Import -----
   const exportar = async () => {
     try {
@@ -340,12 +365,17 @@ export default function PaginaSala() {
     const gc = colorGen(p.genetica_id)
     const genNombre = geneticas.find(g => g.id === p.genetica_id)?.nombre ?? null
     const nGen = numeroPorGenetica[p.id]
-    const etiqueta = nGen != null ? String(nGen) : (p.apodo ?? '?').replace('#', '')
+    const etiqueta = (p.apodo ?? '?').replace('#', '')
     return (
       <button key={p.id} onClick={() => clickPlanta(p)}
-        title={`${genNombre ? `${genNombre} #${nGen}` : (p.apodo ?? 'Planta')} · riego: ${diasSinRiego(p)}`}
+        draggable={modo === 'mover'}
+        onDragStart={e => { e.dataTransfer.setData('text/plain', p.id); e.dataTransfer.effectAllowed = 'move'; setMoviendo(p.id) }}
+        onDragEnd={() => setMoviendo(null)}
+        title={`${genNombre ? `${genNombre} (${nGen} de la variedad)` : (p.apodo ?? 'Planta')} · riego: ${diasSinRiego(p)}`}
         className={`absolute inset-[2px] rounded-lg bg-[#1c1c27] flex flex-col items-center justify-center gap-[1.5px] px-[2px] py-[2px] overflow-hidden transition-transform active:scale-95 ${
-          moviendo === p.id ? 'ring-2 ring-[#38bdf8] scale-105 z-10' : ''
+          modo === 'mover' ? 'cursor-grab active:cursor-grabbing' : ''
+        } ${
+          moviendo === p.id ? 'ring-2 ring-[#38bdf8] scale-105 z-10 opacity-60' : ''
         }`}
         style={{ border: `2.5px solid ${ESTADOS[est as keyof typeof ESTADOS]}` }}>
         <span className="font-display font-bold text-[13px] leading-none text-[#ececf1] tabular-nums">{etiqueta}</span>
@@ -413,7 +443,7 @@ export default function PaginaSala() {
             </span>
           ))}
           <span className="text-[#5c5c6b]">· puntito de color = genética</span>
-          {modo === 'mover' && <span className="text-[#38bdf8]">Modo mover: tocá una planta y después el slot destino</span>}
+          {modo === 'mover' && <span className="text-[#38bdf8]">Modo mover: arrastrá una planta a otro lugar. Si la soltás sobre otra, se intercambian. (También podés tocar y elegir el slot.)</span>}
           {modo === 'genetica' && <span className="text-[#c4b5fd]">Modo genética: elegí una y tocá las plantas para asignarla</span>}
         </div>
         {/* Receta de riego: se aplica a cada planta que toques */}
@@ -478,9 +508,12 @@ export default function PaginaSala() {
                   const slot = `${carpa.id}-${i}`
                   const p = porSlot[slot]
                   return (
-                    <div key={slot} onClick={() => !p && clickSlot(slot, carpa)}
-                      className={`relative aspect-square rounded-[9px] border border-dashed ${
-                        modo === 'mover' && moviendo && !p
+                    <div key={slot}
+                      onClick={() => !p && clickSlot(slot, carpa)}
+                      onDragOver={e => { if (modo === 'mover' && moviendo && moviendo !== p?.id) e.preventDefault() }}
+                      onDrop={e => { e.preventDefault(); soltarEnSlot(slot, carpa, p) }}
+                      className={`relative aspect-square rounded-[9px] border border-dashed transition-colors ${
+                        modo === 'mover' && moviendo && moviendo !== p?.id
                           ? 'border-[#38bdf8] bg-[#38bdf8]/10 cursor-pointer'
                           : 'border-[#2a2a3a]'
                       }`}>

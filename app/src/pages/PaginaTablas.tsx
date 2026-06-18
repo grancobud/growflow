@@ -103,6 +103,7 @@ export default function PaginaTablas() {
   const [tabla, setTabla] = useState<DefTabla>(TABLAS[0])
   const [filas, setFilas] = useState<any[]>([])
   const [plantas, setPlantas] = useState<Record<string, string>>({})
+  const [geneticasMap, setGeneticasMap] = useState<Record<string, string>>({})
   const [cargando, setCargando] = useState(true)
   const [editando, setEditando] = useState<{ fila: string; campo: string } | null>(null)
   const [valor, setValor] = useState('')
@@ -125,8 +126,12 @@ export default function PaginaTablas() {
       }
       setFilas(filasOrdenadas)
       if (CON_PLANTA.has(tabla.id)) {
-        const { data: pl } = await supabase.from('resumen_plantas').select('id,nombre')
-        setPlantas(Object.fromEntries((pl ?? []).map((p: any) => [p.id, p.nombre])))
+        const { data: pl } = await supabase.from('resumen_plantas').select('id,nombre,genetica')
+        setPlantas(Object.fromEntries((pl ?? []).map((p: any) => [p.id, p.genetica ? `${p.nombre} · ${p.genetica}` : p.nombre])))
+      }
+      if (tabla.id === 'plantas') {
+        const { data: gs } = await supabase.from('geneticas').select('id,nombre')
+        setGeneticasMap(Object.fromEntries((gs ?? []).map((g: any) => [g.id, g.nombre])))
       }
     } catch (err) {
       toast.error(`Error cargando ${tabla.nombre}: ${(err as Error).message}`)
@@ -327,6 +332,9 @@ export default function PaginaTablas() {
                 {CON_PLANTA.has(tabla.id) && (
                   <th className="px-2.5 py-2 text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium border-b border-r border-[#1f1f2b] whitespace-nowrap">Planta</th>
                 )}
+                {tabla.id === 'plantas' && (
+                  <th className="px-2.5 py-2 text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium border-b border-r border-[#1f1f2b] whitespace-nowrap">Variedad</th>
+                )}
                 {tabla.cols.map(c => (
                   <th key={c.campo} className="px-2.5 py-2 text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium border-b border-r border-[#1f1f2b] whitespace-nowrap">{c.titulo}</th>
                 ))}
@@ -338,6 +346,9 @@ export default function PaginaTablas() {
                 <tr key={fila.id} className="group hover:bg-[#13131a]">
                   {CON_PLANTA.has(tabla.id) && (
                     <td className={`${celdaCls} text-[#a6a6b5]`}>{plantas[fila.planta_id] ?? '—'}</td>
+                  )}
+                  {tabla.id === 'plantas' && (
+                    <td className={`${celdaCls} text-[#a6a6b5]`}>{geneticasMap[fila.genetica_id] ?? '—'}</td>
                   )}
                   {tabla.cols.map(c => renderCelda(fila, c))}
                   <td className="px-2 py-1.5 border-b border-[#1f1f2b]">
