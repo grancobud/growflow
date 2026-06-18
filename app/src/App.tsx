@@ -26,6 +26,7 @@ const PaginaStockInsumos = lazyWithRetry(() => import('./pages/PaginaStockInsumo
 const PaginaCalendarioCultivo = lazyWithRetry(() => import('./pages/PaginaCalendarioCultivo'), 'PaginaCalendarioCultivo')
 const PaginaLineaTiempo = lazyWithRetry(() => import('./pages/PaginaLineaTiempo'), 'PaginaLineaTiempo')
 const PaginaEconometria = lazyWithRetry(() => import('./pages/PaginaEconometria'), 'PaginaEconometria')
+const PaginaAmbiente = lazyWithRetry(() => import('./pages/PaginaAmbiente'), 'PaginaAmbiente')
 const PaginaHistoriaPlanta = lazyWithRetry(() => import('./pages/PaginaHistoriaPlanta'), 'PaginaHistoriaPlanta')
 const Pagina404 = lazyWithRetry(() => import('./pages/Pagina404'), 'Pagina404')
 
@@ -105,6 +106,9 @@ function App() {
           } />
           <Route path="econometria" element={
             <Suspense fallback={null}><PaginaEconometria /></Suspense>
+          } />
+          <Route path="ambiente" element={
+            <Suspense fallback={null}><PaginaAmbiente /></Suspense>
           } />
           <Route path="p/:codigo" element={
             <Suspense fallback={null}><PaginaHistoriaPlanta /></Suspense>
