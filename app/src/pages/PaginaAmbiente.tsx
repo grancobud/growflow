@@ -163,8 +163,8 @@ export default function PaginaAmbiente() {
   const [verFicha, setVerFicha] = useState(false)
   const timer = useRef<number | null>(null)
 
-  const cargar = useCallback(async () => {
-    setCargando(true)
+  const cargar = useCallback(async (spinner = false) => {
+    if (spinner) setCargando(true)
     try {
       const r = await fetch(WEBHOOK, { cache: 'no-store' })
       const j: Live = await r.json()
@@ -178,8 +178,8 @@ export default function PaginaAmbiente() {
   }, [])
 
   useEffect(() => {
-    cargar()
-    timer.current = window.setInterval(cargar, INTERVALO_MS)
+    cargar(true)
+    timer.current = window.setInterval(() => cargar(false), INTERVALO_MS)
     return () => { if (timer.current) window.clearInterval(timer.current) }
   }, [cargar])
 
@@ -228,7 +228,7 @@ export default function PaginaAmbiente() {
             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] hover:border-[#404d20] transition-colors text-[11px] text-[#a6a6b5] hover:text-[#ececf1] disabled:opacity-40">
             <ClipboardList className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Ver ficha</span>
           </button>
-          <button onClick={cargar} disabled={cargando} title="Actualizar ahora"
+          <button onClick={() => cargar(true)} disabled={cargando} title="Actualizar ahora"
             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[11px] font-medium text-[#d9f99d] disabled:opacity-60">
             <RefreshCw className={`w-3.5 h-3.5 ${cargando ? 'animate-spin' : ''}`} /> <span className="hidden sm:inline">Sync</span>
           </button>
@@ -241,7 +241,7 @@ export default function PaginaAmbiente() {
             <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><WifiOff className="w-5 h-5 text-[#ff8a7a]" /></div>
             <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">Sin conexión con Growcast</div>
             <div className="mt-1 text-[11.5px] text-[#5c5c6b] max-w-sm mx-auto">{error}. Verificá que n8n y la PC estén prendidos.</div>
-            <button onClick={cargar} className="mt-3 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[12px] font-medium text-[#d9f99d]"><RefreshCw className="w-3.5 h-3.5" /> Reintentar</button>
+            <button onClick={() => cargar(true)} className="mt-3 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[12px] font-medium text-[#d9f99d]"><RefreshCw className="w-3.5 h-3.5" /> Reintentar</button>
           </div>
         ) : (
           <>
