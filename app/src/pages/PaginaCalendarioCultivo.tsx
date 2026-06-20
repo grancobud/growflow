@@ -29,8 +29,12 @@ const CAL_CSS = `
 .gf-cal .fc .fc-toolbar.fc-header-toolbar { margin-bottom:12px; }
 .gf-cal .fc .fc-toolbar-title { font-size:15px; font-weight:500; color:#ececf1; text-transform:capitalize; letter-spacing:0.2px; }
 .gf-cal .fc .fc-col-header-cell-cushion { color:#6b6b7a; font-size:10.5px; font-weight:500; text-transform:uppercase; letter-spacing:0.7px; text-decoration:none; padding:6px 4px; }
-.gf-cal .fc .fc-daygrid-day-number { color:#8a8a99; font-size:11.5px; text-decoration:none; padding:5px 7px; }
+.gf-cal .fc .fc-daygrid-day-number { color:#c4c4d0; font-size:11.5px; text-decoration:none; padding:5px 7px; }
 .gf-cal .fc .fc-day-today .fc-daygrid-day-number { color:#c9b8e8; font-weight:600; }
+/* Dias de otros meses: atenuados y diferenciados para que no se mezclen con el mes actual */
+.gf-cal .fc .fc-day-other { background:#08080c; }
+.gf-cal .fc .fc-day-other .fc-daygrid-day-number { color:#3a3a46; }
+.gf-cal .fc .fc-day-other .fc-daygrid-day-events { opacity:.4; }
 .gf-cal .fc .fc-button { background:transparent; border:1px solid #26262f; color:#a6a6b5; font-size:12px; text-transform:none; box-shadow:none; padding:4px 10px; border-radius:8px; }
 .gf-cal .fc .fc-button:hover { background:#15151d; border-color:#33333f; color:#ececf1; }
 .gf-cal .fc .fc-button-primary:not(:disabled).fc-button-active, .gf-cal .fc .fc-button-primary:not(:disabled):active { background:#1c1c27; color:#d9f99d; border-color:#404d20; }
