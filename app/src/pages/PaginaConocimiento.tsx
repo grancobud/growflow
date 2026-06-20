@@ -21,7 +21,7 @@ export default function PaginaConocimiento() {
     finally { setCargando(false) }
   }, [])
 
-  useEffect(() => { if (KB_DISPONIBLE) recargar() else setCargando(false) }, [recargar])
+  useEffect(() => { if (KB_DISPONIBLE) { recargar() } else { setCargando(false) } }, [recargar])
 
   const subir = async (files: FileList | null) => {
     if (!files?.length) return
