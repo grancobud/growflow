@@ -24,7 +24,11 @@ const btnSutil = 'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bord
 const hoyISO = () => new Date().toISOString().slice(0, 10)
 
 const CAL_CSS = `
-.gf-cal { --fc-border-color:#191921; --fc-page-bg-color:#0a0a0f; --fc-neutral-bg-color:#0e0e14; --fc-today-bg-color:rgba(167,139,250,0.07); }
+.gf-cal { --fc-border-color:#191921; --fc-page-bg-color:#0a0a0f; --fc-neutral-bg-color:#0e0e14; --fc-today-bg-color:rgba(167,139,250,0.07); overflow-x:hidden; }
+/* Forzar 7 columnas que ocupen 100% exacto (mata la columna fantasma / desborde a la derecha) */
+.gf-cal .fc-scrollgrid { table-layout:fixed !important; }
+.gf-cal .fc-scrollgrid, .gf-cal .fc-scrollgrid > table, .gf-cal .fc-col-header, .gf-cal .fc-daygrid-body, .gf-cal .fc-scrollgrid-sync-table { width:100% !important; }
+.gf-cal .fc-daygrid-day-frame { overflow:hidden; }
 .gf-cal .fc { color:#cfcfda; font-family:inherit; }
 .gf-cal .fc .fc-toolbar.fc-header-toolbar { margin-bottom:12px; }
 .gf-cal .fc .fc-toolbar-title { font-size:15px; font-weight:500; color:#ececf1; text-transform:capitalize; letter-spacing:0.2px; }
