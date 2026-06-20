@@ -12,7 +12,7 @@ import {
 } from 'lucide-react'
 
 const WEBHOOK = (import.meta as any).env?.VITE_GROWCAST_WEBHOOK_URL || 'http://192.168.0.60:5678/webhook/growcast-live'
-const INTERVALO_MS = 10000
+const INTERVALO_MS = 60000
 const INTERVALO_S = Math.round(INTERVALO_MS / 1000)
 
 type Punto = { t: string; v: number }
