@@ -32,13 +32,21 @@ interface Live {
 const fmtHora = (iso?: string | null) => iso ? new Date(iso).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) : '—'
 const fmtFecha = (iso?: string | null) => iso ? new Date(iso).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }) : '—'
 
-// ---- Etapas y rangos ideales (de Athena/Pulse, segun el RAG del cultivo) ----
+// ---- Etapas y rangos ideales. VPD según la calculadora VPD (cultivoeficienteled.cl):
+// VPD del aire = SVP(temp) · (1 − HR/100). Rangos: clon 0.4–0.8, vege 0.8–1.2,
+// flora temprana 1.0–1.2, flora tardía 1.2–1.6 kPa. ----
 type Etapa = 'vegetativo' | 'floracion'
 const ETAPA_LABEL: Record<Etapa, string> = { vegetativo: 'Vegetativo', floracion: 'Floración' }
 const RANGOS: Record<Etapa, { temp: [number, number]; hr: [number, number]; vpd: [number, number]; co2: [number, number] }> = {
   vegetativo: { temp: [22, 28], hr: [55, 70], vpd: [0.8, 1.2], co2: [400, 1200] },
-  floracion: { temp: [20, 26], hr: [45, 55], vpd: [1.2, 1.5], co2: [800, 1300] },
+  floracion: { temp: [20, 26], hr: [45, 55], vpd: [1.0, 1.6], co2: [800, 1300] },
 }
+
+// Presión de saturación del vapor (kPa) por temperatura (Magnus) y VPD del aire (método calculadora VPD).
+const svp = (tC: number) => 0.6108 * Math.exp((17.27 * tC) / (tC + 237.3))
+const vpdAire = (tC: number, rh: number) => +(svp(tC) * (1 - rh / 100)).toFixed(2)
+// HR (%) necesaria para alcanzar un VPD objetivo a una temperatura dada.
+const hrParaVpd = (tC: number, vpdObj: number) => Math.max(0, Math.min(100, Math.round((1 - vpdObj / svp(tC)) * 100)))
 
 // Detecta la etapa por el nombre/descripcion de las automatizaciones, sino por progreso del ciclo.
 function detectarEtapa(d: Live | null): Etapa {
@@ -103,7 +111,17 @@ function recomendar(etapa: Etapa, d: Live | null): Reco[] {
   }
   chk('temperatura', 'Temperatura', '°C', R.temp)
   chk('humedad', 'Humedad', '% HR', R.hr)
-  chk('vpd', 'VPD', ' kPa', R.vpd)
+  // VPD calculado de temp+HR (método calculadora VPD), con cómo corregirlo.
+  const tC = s?.temperatura?.value, hr = s?.humedad?.value
+  if (tC != null && hr != null) {
+    const vpd = vpdAire(tC, hr); const [lo, hi] = R.vpd
+    const objHR = hrParaVpd(tC, (lo + hi) / 2)
+    const nota = etapa === 'floracion' ? ' — temprana 1.0–1.2, tardía 1.2–1.6' : ''
+    const base = `VPD ${vpd} kPa (de ${tC}°C y ${hr}% HR)`
+    if (vpd < lo) out.push({ estado: 'bajo', texto: `${base}: bajo para ${lbl} (ideal ${lo}–${hi}${nota}). Subilo bajando la HR a ~${objHR}% o subiendo un poco la temperatura.` })
+    else if (vpd > hi) out.push({ estado: 'alto', texto: `${base}: alto para ${lbl} (ideal ${lo}–${hi}${nota}). Bajalo subiendo la HR a ~${objHR}% o bajando la temperatura.` })
+    else out.push({ estado: 'ok', texto: `${base}: en rango para ${lbl} (${lo}–${hi}${nota}).` })
+  }
   chk('co2', 'CO₂', ' ppm', R.co2)
 
   // Notas atadas a las automatizaciones existentes
@@ -337,7 +355,7 @@ export default function PaginaAmbiente() {
                 })}
               </ul>
               <div className="px-4 py-2.5 border-t border-[#1f1f2b] text-[10px] text-[#5c5c6b]">
-                Rangos de referencia (Athena/Pulse) para {ETAPA_LABEL[etapa]}. Vos ajustás las automatizaciones en Growcast; acá solo se sugiere.
+                Rangos para {ETAPA_LABEL[etapa]}: temp/HR/CO₂ (Athena/Pulse) y VPD calculado de temp+HR (método calculadora VPD). Vos ajustás las automatizaciones en Growcast; acá solo se sugiere.
               </div>
             </div>
 
