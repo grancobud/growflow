@@ -1,4 +1,5 @@
 import { Suspense, useState, useEffect, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 import { Loader2, Menu, X } from 'lucide-react'
 import Sidebar from './Sidebar'
 import BottomNav from './BottomNav'
@@ -28,6 +29,10 @@ export default function Layout() {
   const [drag, setDrag] = useState(false)
   const startX = useRef(0)
   const startW = useRef(WIDTH_DEFAULT)
+  const location = useLocation()
+
+  // Cerrar el cajón mobile al navegar a otra sección
+  useEffect(() => { setMobileOpen(false) }, [location.pathname])
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -98,10 +103,10 @@ export default function Layout() {
         {mobileOpen && (
           <div className="fixed inset-0 z-50 flex">
             <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
-            <div className="relative w-64 h-full bg-surface-900 overflow-y-auto">
+            <div className="relative w-64 h-full bg-surface-900 overflow-y-auto pt-[env(safe-area-inset-top)]">
               <button
                 onClick={() => setMobileOpen(false)}
-                className="absolute top-3 right-3 text-white p-1 z-10"
+                className="absolute top-[calc(env(safe-area-inset-top)+0.75rem)] right-3 text-white p-1 z-10"
                 aria-label="Cerrar menu"
               >
                 <X className="w-5 h-5" />
@@ -110,8 +115,8 @@ export default function Layout() {
             </div>
           </div>
         )}
-        <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden pb-14">
-          <div className="flex items-center gap-3 px-4 py-3 bg-surface-900 text-white">
+        <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden pb-[calc(3.5rem+env(safe-area-inset-bottom))]">
+          <div className="flex items-center gap-3 px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] bg-surface-900 text-white">
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="p-1"

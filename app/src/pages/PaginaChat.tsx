@@ -123,7 +123,7 @@ export default function PaginaChat() {
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Chat del Cultivo</h1>
             <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
-              IA local (Ollama) con los datos de tus plantas
+IA con los datos de tu cultivo y tus manuales
             </div>
           </div>
           <div className="flex-1" />
@@ -156,7 +156,7 @@ export default function PaginaChat() {
                 <Bot className="w-5 h-5 text-[#bef264]" />
               </div>
               <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">Preguntale a tu cultivo</div>
-              <div className="mt-1 text-[11.5px] text-[#5c5c6b]">Lee plantas, eventos y cosechas en tiempo real. Todo local.</div>
+              <div className="mt-1 text-[11.5px] text-[#5c5c6b]">Lee tus plantas, eventos, cosechas y tus manuales de cultivo.</div>
               <div className="mt-5 flex flex-wrap justify-center gap-2">
                 {SUGERENCIAS.map(s => (
                   <button key={s} onClick={() => enviar(s)}
