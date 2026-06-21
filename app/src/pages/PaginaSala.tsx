@@ -30,6 +30,14 @@ const ESTADOS = {
   hoy: '#34c97a', reciente: '#e2b93b', atrasada: '#e05252', nunca: '#5a6a7a',
 }
 
+// Aclara un color hacia el blanco (mantiene el tono) para que se lea sobre fondo negro.
+function mezclarConBlanco(hex: string, factor = 0.5): string {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex.trim())
+  if (!m) return hex
+  const ch = (i: number) => Math.round(parseInt(m[i], 16) + (255 - parseInt(m[i], 16)) * factor)
+  return `rgb(${ch(1)}, ${ch(2)}, ${ch(3)})`
+}
+
 interface Planta { id: string; apodo: string | null; slot: string | null; genetica_id: string | null; activa: boolean }
 interface Genetica { id: string; nombre: string }
 type Modo = 'regar' | 'fumigar' | 'mover' | 'genetica'
@@ -378,15 +386,15 @@ export default function PaginaSala() {
           moviendo === p.id ? 'ring-2 ring-[#38bdf8] scale-105 z-10 opacity-60' : ''
         }`}
         style={{ border: `2.5px solid ${ESTADOS[est as keyof typeof ESTADOS]}` }}>
-        <span className="font-display font-bold text-[13px] leading-none text-[#ececf1] tabular-nums">{etiqueta}</span>
+        <span className="font-display font-bold text-[14px] leading-none text-[#ececf1] tabular-nums">{etiqueta}</span>
         {genNombre ? (
-          <span className="w-full text-center text-[8px] font-semibold leading-[1.12] break-words rounded-[3px] px-[1px]"
-            style={{ color: gc ?? '#9a9aab', background: gc ? `${gc}1f` : 'transparent' }}
+          <span className="w-full text-center text-[9.5px] font-bold leading-[1.12] line-clamp-2 break-words rounded-[3px] px-[2px] py-[0.5px]"
+            style={{ color: gc ? mezclarConBlanco(gc) : '#c8c8d4', background: gc ? `${gc}33` : 'transparent' }}
             title={genNombre}>
             {genNombre}
           </span>
         ) : (
-          <span className="text-[8px] leading-none text-[#5c5c6b]">sin gen.</span>
+          <span className="text-[9px] leading-none text-[#6b6b7a]">sin gen.</span>
         )}
       </button>
     )
