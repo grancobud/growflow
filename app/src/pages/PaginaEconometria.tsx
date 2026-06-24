@@ -32,6 +32,8 @@ export default function PaginaEconometria() {
   const [costos, setCostos] = useState<Costo[]>([])
   const [insumos, setInsumos] = useState<Insumo[]>([])
   const [plantasActivas, setPlantasActivas] = useState(0)
+  const [gramosSeco, setGramosSeco] = useState(0)
+  const [nCosechas, setNCosechas] = useState(0)
   const [cargando, setCargando] = useState(true)
   const [mesesCiclo, setMesesCiclo] = useState(4)
   const [modal, setModal] = useState(false)
@@ -42,12 +44,15 @@ export default function PaginaEconometria() {
 
   const cargar = useCallback(async () => {
     try {
-      const [cs, ins, plantas] = await Promise.all([
+      const [cs, ins, plantas, cosechas] = await Promise.all([
         econometriaService.getCostos(),
         stockService.getInsumos(),
         cultivoService.getResumenPlantas(true),
+        cultivoService.getCosechas(),
       ])
       setCostos(cs); setInsumos(ins); setPlantasActivas(plantas.length)
+      setGramosSeco(cosechas.reduce((s, c) => s + (c.peso_seco_g != null ? Number(c.peso_seco_g) : 0), 0))
+      setNCosechas(cosechas.filter(c => c.peso_seco_g != null && Number(c.peso_seco_g) > 0).length)
     } catch (err) { toast.error(`Error cargando econometría: ${(err as Error).message}`) }
     finally { setCargando(false) }
   }, [])
@@ -73,6 +78,9 @@ export default function PaginaEconometria() {
   )
   const costoPorCiclo = mensualTotal * mesesCiclo
   const costoPorPlanta = plantasActivas > 0 ? costoPorCiclo / plantasActivas : 0
+  // $/gramo: costo del ciclo dividido los gramos secos cosechados. Aproximación
+  // (asume que lo cosechado corresponde a ~un ciclo); útil como referencia.
+  const costoPorGramo = gramosSeco > 0 ? costoPorCiclo / gramosSeco : 0
 
   const borrar = async (c: Costo) => {
     if (!window.confirm(`¿Borrar el costo "${c.nombre}"?`)) return
@@ -91,7 +99,7 @@ export default function PaginaEconometria() {
               <Calculator className="w-4 h-4 text-[#bef264]" /> Econometría
             </h1>
             <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
-              {fmt(mensualTotal)}/mes · {fmt(costoPorCiclo)}/ciclo · inventario {fmt(valorInsumos)}
+              {fmt(mensualTotal)}/mes · {fmt(costoPorCiclo)}/ciclo · inventario {fmt(valorInsumos)}{gramosSeco > 0 ? ` · ${fmt(costoPorGramo)}/g` : ''}
             </div>
           </div>
           <div className="flex-1" />
@@ -129,6 +137,9 @@ export default function PaginaEconometria() {
             <Kpi icono={Landmark} color="#fbbf24" label="Costos fijos /mes" valor={fmt(mensualFijos)} sub={`${fijos.length} ítem${fijos.length === 1 ? '' : 's'}`} />
             <Kpi icono={TrendingUp} color="#ff8a7a" label="Costos variables /mes" valor={fmt(mensualVariables)} sub={`${variables.length} ítem${variables.length === 1 ? '' : 's'}`} />
             <Kpi icono={PiggyBank} color="#2dd4bf" label="Inversión única" valor={fmt(inversionUnica)} sub="costos marcados 'Único'" />
+            <Kpi icono={Sprout} color="#34d399" label="Costo por gramo"
+              valor={gramosSeco > 0 ? fmt(costoPorGramo) + '/g' : '—'}
+              sub={gramosSeco > 0 ? `${gramosSeco.toLocaleString('es-AR')}g secos · ${nCosechas} cosecha${nCosechas === 1 ? '' : 's'}` : 'cargá cosechas con peso seco'} />
           </div>
 
           <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4 flex flex-wrap items-center gap-x-4 gap-y-2">
