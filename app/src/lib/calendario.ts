@@ -168,19 +168,20 @@ export const calendarioService = {
       const variedad = g?.nombre || 'Sin variedad'
       // Germinacion (fecha real de la planta)
       sumar('Germinacion', p.fecha_germinacion ?? null, variedad, false)
-      // Cosecha: usa la fecha cargada si existe; si no, la estima segun el tipo.
-      // - Automatica: predecible desde germinacion (germ + vege + flora).
-      // - Feminizada (fotoperiodica): SOLO si ya flipeo a flora (inicio_flora + flora).
-      //   Si todavia no paso a flora no hay fecha, porque el vege lo define el cultivador.
+      // Cosecha: misma logica que PaginaLineaTiempo (fuente de verdad del ciclo).
+      // - Automatica: germinacion + tiempo_flora_dias (la ficha de auto es semilla->cosecha).
+      // - Feminizada: SOLO si ya flipeo a flora -> inicio_flora + tiempo_flora_dias.
+      //   Sin inicio_flora no hay fecha (en veje el cultivador define cuando flipea).
+      // Usa plantas.fecha_cosecha si esta cargada (tiene prioridad).
       let cosecha: string | null = p.fecha_cosecha ?? null
       let estimada = false
       if (!cosecha && g) {
-        const flora = Number(g.tiempo_flora_dias) || 0
-        if (g.inicio_flora && flora) {
-          cosecha = addDays(g.inicio_flora, flora); estimada = true
-        } else if (g.tipo === 'Automatica' && p.fecha_germinacion && flora) {
-          const vege = Number(g.tiempo_vege_dias) || 0
-          cosecha = addDays(p.fecha_germinacion, vege + flora); estimada = true
+        const auto = g.tipo === 'Automatica'
+        const floraDias = Number(g.tiempo_flora_dias) || (auto ? 75 : 63)
+        if (auto && p.fecha_germinacion) {
+          cosecha = addDays(p.fecha_germinacion, floraDias); estimada = true
+        } else if (g.inicio_flora) {
+          cosecha = addDays(g.inicio_flora, floraDias); estimada = true
         }
       }
       sumar('Cosecha', cosecha, variedad, estimada)
