@@ -6,7 +6,7 @@ import { supabase } from './supabase'
 
 export type TipoCal =
   | 'Riego' | 'Fertilizacion' | 'Poda' | 'Trasplante' | 'Fumigacion'
-  | 'Cosecha' | 'Mantenimiento' | 'CambioFase' | 'Recordatorio' | 'Otro'
+  | 'Germinacion' | 'Cosecha' | 'Mantenimiento' | 'CambioFase' | 'Recordatorio' | 'Otro'
 
 // Paleta suave/delicada: tonos pastel que se ven bien sobre fondo oscuro.
 export const COLOR_CAL: Record<TipoCal, string> = {
@@ -15,6 +15,7 @@ export const COLOR_CAL: Record<TipoCal, string> = {
   Poda: '#bcaee0',           // lavanda
   Trasplante: '#8ed0c6',     // verde agua
   Fumigacion: '#e6a99b',     // terracota suave
+  Germinacion: '#9ad6a0',    // verde brote
   Cosecha: '#e3c486',        // dorado trigo
   Mantenimiento: '#d2bfa0', // arena
   CambioFase: '#c9b8e8',     // lila
@@ -24,7 +25,7 @@ export const COLOR_CAL: Record<TipoCal, string> = {
 
 export const TIPOS_CAL: TipoCal[] = [
   'Riego', 'Fertilizacion', 'Poda', 'Trasplante', 'Fumigacion',
-  'Cosecha', 'Mantenimiento', 'Recordatorio', 'Otro',
+  'Germinacion', 'Cosecha', 'Mantenimiento', 'Recordatorio', 'Otro',
 ]
 
 export type Repeticion = 'ninguna' | 'diaria' | 'cada_n_dias' | 'semanal' | 'mensual'
@@ -58,7 +59,7 @@ export interface EventoCal {
   fecha: string          // YYYY-MM-DD
   tipo: TipoCal
   color: string
-  fuente: 'evento' | 'riego' | 'aplicacion' | 'cosecha' | 'mantenimiento' | 'recordatorio'
+  fuente: 'evento' | 'riego' | 'aplicacion' | 'cosecha' | 'mantenimiento' | 'recordatorio' | 'planta'
   detalle?: string
   editable: boolean      // solo los recordatorios se editan/borran desde el calendario
 }
@@ -91,14 +92,15 @@ function expandir(r: Recordatorio, desde: string, hasta: string): string[] {
 export const calendarioService = {
   // Carga y normaliza TODO lo del rango. Las recurrencias se expanden.
   async cargarEventos(desde: string, hasta: string): Promise<EventoCal[]> {
-    const [eventos, riegos, aplic, cosechas, mantes, recs, plantas] = await Promise.all([
+    const [eventos, riegos, aplic, cosechas, mantes, recs, plantas, geneticas] = await Promise.all([
       supabase.from('eventos').select('id,tipo,fecha,detalle,planta_id').gte('fecha', desde).lte('fecha', hasta),
       supabase.from('riegos').select('id,fecha,ppm,ph,escurrio,planta_id').gte('fecha', desde).lte('fecha', hasta),
       supabase.from('aplicaciones').select('id,fecha,categoria,producto,planta_id').gte('fecha', desde).lte('fecha', hasta),
       supabase.from('cosechas').select('id,fecha,peso_seco_g,planta_id').gte('fecha', desde).lte('fecha', hasta),
       supabase.from('mantenimientos').select('id,equipo,tipo,fecha_realizado,proximo,insumo_id'),
       supabase.from('recordatorios').select('*'),
-      supabase.from('plantas').select('id,apodo,genetica_id'),
+      supabase.from('plantas').select('id,apodo,genetica_id,fecha_germinacion,fecha_cosecha,activa'),
+      supabase.from('geneticas').select('id,nombre,tiempo_vege_dias,tiempo_flora_dias,inicio_flora'),
     ])
     const out: EventoCal[] = []
     const nombrePlanta = (id: string | null) => {
@@ -145,6 +147,47 @@ export const calendarioService = {
       for (const f of fechas) {
         out.push({ id: `re:${r.id}:${f}`, titulo: r.titulo, fecha: f, tipo, color: COLOR_CAL[tipo] || COLOR_CAL.Recordatorio, fuente: 'recordatorio', detalle: r.notas ?? undefined, editable: true })
       }
+    }
+
+    // Germinacion y cosecha (estimada) por variedad. La cosecha se calcula desde
+    // la genetica: inicio_flora + flora, o si no germinacion + vege + flora.
+    const genById = new Map((geneticas.data ?? []).map((g: any) => [g.id, g]))
+    // Agrupa por (tipo, fecha, variedad) para no llenar el calendario con una
+    // entrada por planta: muestra "Germinación · Trululu ×4".
+    const agrup = new Map<string, { tipo: 'Germinacion' | 'Cosecha'; fecha: string; variedad: string; n: number; estimada: boolean }>()
+    const sumar = (tipo: 'Germinacion' | 'Cosecha', fecha: string | null, variedad: string, estimada: boolean) => {
+      if (!fecha || fecha < desde || fecha > hasta) return
+      const k = `${tipo}|${fecha}|${variedad}`
+      const cur = agrup.get(k)
+      if (cur) cur.n++
+      else agrup.set(k, { tipo, fecha, variedad, n: 1, estimada })
+    }
+    for (const p of (plantas.data ?? []) as any[]) {
+      if (p.activa === false) continue
+      const g: any = p.genetica_id ? genById.get(p.genetica_id) : null
+      const variedad = g?.nombre || 'Sin variedad'
+      // Germinacion (fecha real de la planta)
+      sumar('Germinacion', p.fecha_germinacion ?? null, variedad, false)
+      // Cosecha: usa la fecha cargada si existe; si no, la estima desde la genetica
+      let cosecha: string | null = p.fecha_cosecha ?? null
+      let estimada = false
+      if (!cosecha && g) {
+        const flora = Number(g.tiempo_flora_dias) || 0
+        if (g.inicio_flora && flora) { cosecha = addDays(g.inicio_flora, flora); estimada = true }
+        else if (p.fecha_germinacion && flora) {
+          const vege = Number(g.tiempo_vege_dias) || 0
+          cosecha = addDays(p.fecha_germinacion, vege + flora); estimada = true
+        }
+      }
+      sumar('Cosecha', cosecha, variedad, estimada)
+    }
+    for (const [k, v] of agrup) {
+      const base = v.tipo === 'Germinacion' ? 'Germinación' : 'Cosecha'
+      const titulo = `${base} · ${v.variedad}${v.n > 1 ? ` ×${v.n}` : ''}`
+      const detalle = v.tipo === 'Cosecha' && v.estimada
+        ? `Estimada (vege + flora desde germinación o inicio de flora). ${v.n} planta${v.n > 1 ? 's' : ''}.`
+        : `${v.n} planta${v.n > 1 ? 's' : ''}.`
+      out.push({ id: `pl:${k}`, titulo, fecha: v.fecha, tipo: v.tipo, color: COLOR_CAL[v.tipo], fuente: 'planta', detalle, editable: false })
     }
     return out
   },

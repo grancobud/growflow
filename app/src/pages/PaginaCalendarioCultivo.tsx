@@ -186,10 +186,12 @@ export default function PaginaCalendarioCultivo() {
             </div>
             <div className="px-4 py-3 space-y-1.5">
               {detalle.detalle && <p className="text-[12.5px] text-[#d4d4dd] leading-relaxed">{detalle.detalle}</p>}
-              <p className="text-[10.5px] text-[#5c5c6b]">Origen: {({ evento: 'Evento de planta', riego: 'Riego / escorrentía', aplicacion: 'Aplicación', cosecha: 'Cosecha', mantenimiento: 'Mantenimiento (Stock)', recordatorio: 'Recordatorio propio' })[detalle.fuente]}</p>
+              <p className="text-[10.5px] text-[#5c5c6b]">Origen: {({ evento: 'Evento de planta', riego: 'Riego / escorrentía', aplicacion: 'Aplicación', cosecha: 'Cosecha', mantenimiento: 'Mantenimiento (Stock)', recordatorio: 'Recordatorio propio', planta: 'Ficha de planta (germinación / cosecha)' })[detalle.fuente]}</p>
             </div>
             <div className="px-4 py-3 border-t border-[#1f1f2b] flex justify-between gap-2">
-              <button onClick={borrarDetalle} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#5a2a26] bg-[#ff8a7a]/10 hover:bg-[#ff8a7a]/20 transition-colors text-[11px] text-[#ff8a7a]"><Trash2 className="w-3.5 h-3.5" /> Borrar</button>
+              {detalle.fuente === 'planta'
+                ? <span className="text-[10.5px] text-[#5c5c6b] self-center">Se edita desde la ficha de la planta</span>
+                : <button onClick={borrarDetalle} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#5a2a26] bg-[#ff8a7a]/10 hover:bg-[#ff8a7a]/20 transition-colors text-[11px] text-[#ff8a7a]"><Trash2 className="w-3.5 h-3.5" /> Borrar</button>}
               {detalle.fuente === 'recordatorio'
                 ? <button onClick={editarDetalle} className={btnPrimario}><Pencil className="w-3.5 h-3.5" /> Editar</button>
                 : <button onClick={() => setDetalle(null)} className={btnSutil}>Cerrar</button>}
