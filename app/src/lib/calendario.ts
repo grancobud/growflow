@@ -100,7 +100,7 @@ export const calendarioService = {
       supabase.from('mantenimientos').select('id,equipo,tipo,fecha_realizado,proximo,insumo_id'),
       supabase.from('recordatorios').select('*'),
       supabase.from('plantas').select('id,apodo,genetica_id,fecha_germinacion,fecha_cosecha,activa'),
-      supabase.from('geneticas').select('id,nombre,tiempo_vege_dias,tiempo_flora_dias,inicio_flora'),
+      supabase.from('geneticas').select('id,nombre,tipo,tiempo_vege_dias,tiempo_flora_dias,inicio_flora'),
     ])
     const out: EventoCal[] = []
     const nombrePlanta = (id: string | null) => {
@@ -168,13 +168,17 @@ export const calendarioService = {
       const variedad = g?.nombre || 'Sin variedad'
       // Germinacion (fecha real de la planta)
       sumar('Germinacion', p.fecha_germinacion ?? null, variedad, false)
-      // Cosecha: usa la fecha cargada si existe; si no, la estima desde la genetica
+      // Cosecha: usa la fecha cargada si existe; si no, la estima segun el tipo.
+      // - Automatica: predecible desde germinacion (germ + vege + flora).
+      // - Feminizada (fotoperiodica): SOLO si ya flipeo a flora (inicio_flora + flora).
+      //   Si todavia no paso a flora no hay fecha, porque el vege lo define el cultivador.
       let cosecha: string | null = p.fecha_cosecha ?? null
       let estimada = false
       if (!cosecha && g) {
         const flora = Number(g.tiempo_flora_dias) || 0
-        if (g.inicio_flora && flora) { cosecha = addDays(g.inicio_flora, flora); estimada = true }
-        else if (p.fecha_germinacion && flora) {
+        if (g.inicio_flora && flora) {
+          cosecha = addDays(g.inicio_flora, flora); estimada = true
+        } else if (g.tipo === 'Automatica' && p.fecha_germinacion && flora) {
           const vege = Number(g.tiempo_vege_dias) || 0
           cosecha = addDays(p.fecha_germinacion, vege + flora); estimada = true
         }
