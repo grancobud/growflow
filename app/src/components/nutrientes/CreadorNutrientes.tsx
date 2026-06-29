@@ -104,7 +104,11 @@ export default function CreadorNutrientes() {
 
   function setPreset(id: string) {
     const p = PRESETS.find(x => x.id === id)
-    if (p) { setPerfil({ ...p.perfil }); setPresetId(id) }
+    if (p) {
+      setPerfil({ ...p.perfil }); setPresetId(id)
+      // los rangos de referencia son de floración: solo tienen sentido en veg/flora
+      setRangos(id === 'veg' || id === 'flora' ? RANGOS_FLORA_COCO : {})
+    }
   }
   function setPpm(k: ElementKey, v: number) { setPerfil(prev => ({ ...prev, [k]: v })); setPresetId('') }
 

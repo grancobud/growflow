@@ -408,8 +408,8 @@ export const KITS_SALES: KitSales[] = [
     desc: 'El más barato por nutriente (MAP en vez de MKP, sulfato de hierro). Mete algo de N amoniacal.',
     sales: ['cano3_ag', 'kno3', 'map', 'k2so4', 'epsom', 'feso4', 'mnso4', 'znso4', 'cuso4', 'boric', 'namolib'] },
   { id: 'finish', nombre: 'Kit finish (sin N)',
-    desc: 'Finalización PK sin nitrógeno. Ca limpio (gluconato/yeso), bicarbonato de K, micros.',
-    sales: ['mkp', 'k2so4', 'khco3', 'yeso', 'cagluc', 'epsom', 'feeddha', 'mnso4', 'znso4', 'boric'] },
+    desc: 'Finalización PK sin nitrógeno. El azufre sale de sulfato de K + yeso (no de micros, que ensucian). Ca limpio.',
+    sales: ['mkp', 'k2so4', 'khco3', 'yeso', 'cagluc'] },
 ]
 
 export interface ResultadoSal { sal: Sal; gramosPorL: number }
