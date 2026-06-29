@@ -222,6 +222,23 @@ export const SALES_DEFECTO: Sal[] = [
     descripcion: 'Aditivo anti-sedimentante: da cuerpo y evita que las partículas asienten en el fondo. 1–2 g/L (0.1–0.2%).' },
   { id: 'add_sorbato', nombre: 'Sorbato de potasio', formula: 'KC₆H₇O₂', bidon: 'B', aditivo: true, comp: {},
     descripcion: 'Aditivo conservante grado alimenticio, alternativa al benzoato. 0.01–1%.' },
+
+  // --- Productos comerciales Ryanodine Labs (composición de etiqueta → elemental) ---
+  { id: 'ryano_calcis', nombre: 'Ryanodine Calcis (C)', bidon: 'A', liquido: true, densidad: 1.1,
+    comp: { NO3: 0.0248, NH4: 0.0019, Ca: 0.032 },
+    descripcion: 'Comercial Ryanodine: fuente de calcio + nitrógeno nítrico. Es el bidón A del sistema. Se dosifica al final, después de A y B.' },
+  { id: 'ryano_makro', nombre: 'Ryanodine Makro (A)', bidon: 'B', liquido: true, densidad: 1.1,
+    comp: { NH4: 0.0098, P: 0.0115, K: 0.0473, S: 0.0182 },
+    descripcion: 'Comercial Ryanodine (sistema 3 partes): macros sin calcio. N 100% amoniacal, P, K, S.' },
+  { id: 'ryano_mikro', nombre: 'Ryanodine Mikro (B)', bidon: 'C', liquido: true, densidad: 1.1,
+    comp: { Mg: 0.01, S: 0.0135, Fe: 0.00109, Mn: 0.0002, Zn: 0.00005, B: 0.00008, Cu: 0.00003, Mo: 0.000005 },
+    descripcion: 'Comercial Ryanodine: micros quelatados + magnesio. Fe EDDHA, Mn/Zn/Cu EDTA, B, Mo.' },
+  { id: 'ryano_maikro', nombre: 'Ryanodine Maikro (AB)', bidon: 'B', liquido: true, densidad: 1.1,
+    comp: { NH4: 0.0098, P: 0.0115, K: 0.0472, S: 0.0317, Mg: 0.01, Fe: 0.00109, Mn: 0.0002, Zn: 0.00004, Cu: 0.00003, B: 0.00008, Mo: 0.000005 },
+    descripcion: 'Comercial Ryanodine (sistema 2 partes): Makro + Mikro fusionados. Todo menos el calcio. Dosis típica 4 ml/L.' },
+  { id: 'ryano_finis', nombre: 'Ryanodine Finis (finalizador)', bidon: 'B',
+    comp: { P: 0.0659, K: 0.2058, Ca: 0.1082, S: 0.1254 },
+    descripcion: 'Comercial Ryanodine: finalizador 0-15-25 en polvo. Cero N. Uso: 0.91 g/L + 4 ml/L de Mikro, pH 6.0-6.4, últimas 2-3 semanas. Trae Ca y S altos.' },
 ]
 
 export type Perfil = Partial<Record<ElementKey, number>> // ppm objetivo
