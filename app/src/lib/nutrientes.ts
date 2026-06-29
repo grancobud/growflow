@@ -373,10 +373,13 @@ export function kitParaPerfil(p: Perfil): string[] {
     if (has('NO3') || N > 0) kit.add('cano3_ag')          // Ca + N nítrico (parte A de toda marca)
     else { kit.add('cagluc'); if (has('S')) kit.add('yeso') } // finish: Ca limpio sin N
   }
-  // --- Fósforo → MKP (P+K, limpio, cero N) ---
-  if (has('P')) kit.add('mkp')
-  // --- N amoniacal extra (si se pide y no lo cubre el nitrato de Ca) ---
-  if (has('NH4') && !has('P')) kit.add('amsulf')
+  // --- Fósforo (MKP limpio) + N amoniacal (MAP aporta NH4+P; el solver balancea) ---
+  if (has('P')) {
+    kit.add('mkp')
+    if (has('NH4')) kit.add('map')   // MAP cubre el amoniacal sin perder el P
+  } else if (has('NH4')) {
+    kit.add('amsulf')                // NH4 sin P → sulfato de amonio
+  }
   // --- Potasio ---
   if (has('K')) {
     if (N > 0) kit.add('kno3')                 // K + N nítrico
