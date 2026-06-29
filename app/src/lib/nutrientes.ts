@@ -239,6 +239,8 @@ export const SALES_DEFECTO: Sal[] = [
   { id: 'ryano_finis', nombre: 'Ryanodine Finis (finalizador)', bidon: 'B',
     comp: { P: 0.0659, K: 0.2058, Ca: 0.1082, S: 0.1254 },
     descripcion: 'Comercial Ryanodine: finalizador 0-15-25 en polvo. Cero N. Uso: 0.91 g/L + 4 ml/L de Mikro, pH 6.0-6.4, últimas 2-3 semanas. Trae Ca y S altos.' },
+  { id: 'ryano_radics', nombre: 'Ryanodine Radics / Mini-Radics (enraizante)', formula: 'IBA 0.31%', bidon: 'C', aditivo: true, comp: {},
+    descripcion: 'Hormona de enraizado en gel: ácido indol-3-butírico (IBA) 0.31% + excipientes. NO es nutriente. Untar la base del clon 3-5 cm e introducir en el sustrato. Un solo uso, descartar el sobrante. Refrigerar 2-9°C. Rinde +25 clones (7 g).' },
 ]
 
 export type Perfil = Partial<Record<ElementKey, number>> // ppm objetivo
