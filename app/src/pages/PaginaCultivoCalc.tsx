@@ -95,7 +95,7 @@ export default function PaginaCultivoCalc() {
             <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-2">Sistema</p>
             <div className="flex flex-wrap gap-1.5">
               {SISTEMAS.map(s => (
-                <button key={s.id} onClick={() => setSistema(s.id as any)}
+                <button key={s.id} onClick={() => setSistema(s.id as 'COCO' | 'RDWC')}
                   className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-colors ${
                     sistema === s.id
                       ? s.id === 'RDWC'

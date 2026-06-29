@@ -53,6 +53,7 @@ export const TABLAS_CONOCIDAS = [
   'geneticas', 'plantas', 'eventos', 'cosechas',
   'riegos', 'aplicaciones', 'perfiles_usuario', 'pacientes',
   'cultivadores', 'jornadas', 'asistencias', 'actividades',
+  'perfiles_nutrientes',
 ]
 
 export const USUARIO_DEMO = {
