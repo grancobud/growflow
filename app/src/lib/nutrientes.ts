@@ -327,6 +327,29 @@ export const SALES_DEFECTO: Sal[] = [
 
 export type Perfil = Partial<Record<ElementKey, number>> // ppm objetivo
 
+// Detección de productos comerciales (para clonarlos con sales sueltas).
+const PREFIJOS_COMERCIALES = ['ryano_', 'an_sensi_', 'athena_', 'jacks_', 'canna_', 'plagron_']
+export function esComercial(sal: Sal): boolean {
+  return PREFIJOS_COMERCIALES.some(p => sal.id.startsWith(p))
+}
+export function marcaDe(sal: Sal): string {
+  if (sal.id.startsWith('ryano_')) return 'Ryanodine'
+  if (sal.id.startsWith('an_sensi_')) return 'Advanced Nutrients'
+  if (sal.id.startsWith('athena_')) return 'Athena'
+  if (sal.id.startsWith('jacks_')) return 'Jacks'
+  if (sal.id.startsWith('canna_')) return 'Canna'
+  if (sal.id.startsWith('plagron_')) return 'Plagron'
+  return 'Otro'
+}
+/** Genera el perfil ppm objetivo de un producto a una dosis (g/L de producto). */
+export function perfilDesdeProducto(sal: Sal, doseGL: number): Perfil {
+  const out: Perfil = {}
+  for (const [k, v] of Object.entries(sal.comp) as [ElementKey, number][]) {
+    if (v) out[k] = +(v * doseGL * 1000).toFixed(2)
+  }
+  return out
+}
+
 export interface PresetPerfil { id: string; nombre: string; desc: string; perfil: Perfil }
 
 export const PRESETS: PresetPerfil[] = [

@@ -2,14 +2,14 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   FlaskConical, Beaker, Droplets, ChevronDown, Sparkles, AlertTriangle,
   Save, FolderOpen, Trash2, Calculator, FlaskRound, Layers, Scale, Plus, DollarSign,
-  Droplet, GitCompare, Package, ShieldCheck,
+  Droplet, GitCompare, Package, ShieldCheck, Copy,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   SALES_DEFECTO, ELEMENTOS, PRESETS, calcularReceta, ecAprox, nTotal,
   calcularConcentrados, calcularRatios, calcularCosto,
   redondearBalanza, AGENTES_PH, calcularAjustePH, oxidoAElemental, OXIDOS,
-  recomendarEstabilizantes,
+  recomendarEstabilizantes, esComercial, marcaDe, perfilDesdeProducto,
   perfilesNutrientesService, sustanciasService, inventarioService, aplicarInventario,
   compatibilidad, estadoRango, RANGOS_FLORA_COCO,
   type ElementKey, type Perfil, type PerfilGuardado, type Sal, type Bidon,
@@ -27,10 +27,11 @@ interface CalcTabProps {
 }
 type CostoResultado = { porLitro: number; detalle: { sal: Sal; costo: number }[] }
 
-type SubTab = 'calc' | 'sustancias' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar'
+type SubTab = 'calc' | 'clonar' | 'sustancias' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar'
 
 const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
   { id: 'calc', label: 'Calculadora', icon: Calculator },
+  { id: 'clonar', label: 'Clonar marca', icon: Copy },
   { id: 'sustancias', label: 'Sustancias', icon: FlaskRound },
   { id: 'agua', label: 'Agua', icon: Droplets },
   { id: 'concentrados', label: 'Concentrados A/B', icon: Layers },
@@ -158,6 +159,9 @@ export default function CreadorNutrientes() {
       )}
       {sub === 'concentrados' && (
         <ConcentradosTab {...{ concentrados, factor, setFactor, volBidon, setVolBidon, resolucion, setResolucion, dosisCount: res.dosis.length }} />
+      )}
+      {sub === 'clonar' && (
+        <ClonarTab productos={salesTodas.filter(esComercial)} onUsar={(p) => { setPerfil(p); setPresetId(''); setSub('calc') }} />
       )}
       {sub === 'estab' && (
         <EstabilizantesTab dosis={res.dosis} />
@@ -710,6 +714,67 @@ function RatiosTab({ ratios, res, costo }: { ratios: Ratios; res: Resultado; cos
           </div>
         )}
         <p className="text-[10px] text-[#5c5c6b] mt-2">El costo sale de "costo/kg" que cargues en cada sustancia (pestaña Sustancias).</p>
+      </div>
+    </div>
+  )
+}
+
+// ===================== CLONAR MARCA =====================
+function ClonarTab({ productos, onUsar }: { productos: Sal[]; onUsar: (p: Perfil) => void }) {
+  const [id, setId] = useState(productos[0]?.id ?? '')
+  const [dosis, setDosis] = useState(3)
+  const prod = productos.find(p => p.id === id)
+  const doseGL = prod?.liquido ? dosis * (prod.densidad ?? 1.1) : dosis
+  const perfil = prod ? perfilDesdeProducto(prod, doseGL) : {}
+  const marcas = [...new Set(productos.map(marcaDe))]
+
+  return (
+    <div className="space-y-4">
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-3">
+          <Copy className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Clonar un producto comercial</h3>
+        </div>
+        <p className="text-[11px] text-[#757584] mb-3">
+          Elegí un producto y su dosis: la calculadora arma el objetivo en ppm y después, en la pestaña Calculadora,
+          el solver te dice qué sales sueltas usar para <b className="text-[#a6a6b5]">copiarlo</b> (más barato).
+        </p>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <label className="text-[11px] text-[#a6a6b5]">Producto
+            <select value={id} onChange={e => setId(e.target.value)} className={`${inp} mt-1`}>
+              {marcas.map(m => (
+                <optgroup key={m} label={m}>
+                  {productos.filter(p => marcaDe(p) === m).map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+                </optgroup>
+              ))}
+            </select>
+          </label>
+          <label className="text-[11px] text-[#a6a6b5]">Dosis ({prod?.liquido ? 'mL/L' : 'g/L'})
+            <input type="number" min={0} step={0.1} value={dosis} onChange={e => setDosis(+e.target.value)} className={`${inp} mt-1`} />
+          </label>
+        </div>
+        {prod && (
+          <>
+            <div className="mt-3 rounded-lg bg-[#15151d] border border-[#1f1f2b] p-3">
+              <p className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-2">Perfil resultante (ppm a esa dosis)</p>
+              <div className="flex flex-wrap gap-1.5">
+                {ELEMENTOS.filter(e => (perfil[e.key] ?? 0) > 0).map(e => (
+                  <span key={e.key} className="text-[10.5px] font-mono tabular-nums px-2 py-0.5 rounded bg-[#101016] border border-[#1f1f2b] text-[#d4d4dd]">
+                    {e.key} {perfil[e.key]}
+                  </span>
+                ))}
+                {Object.keys(perfil).length === 0 && <span className="text-[11px] text-[#5c5c6b]">Este producto no aporta nutrientes (es un aditivo).</span>}
+              </div>
+            </div>
+            <button onClick={() => onUsar(perfil)} disabled={Object.keys(perfil).length === 0}
+              className="mt-3 flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-medium bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] hover:bg-[#a3e635]/25 disabled:opacity-50">
+              <Copy className="w-3.5 h-3.5" /> Usar como objetivo y clonar
+            </button>
+            <p className="text-[10px] text-[#5c5c6b] mt-2">
+              Para varias partes (A+B, etc.) clonás cada una por separado y sumás las recetas. Tip: en "Sustancias" desactivá los productos comerciales y dejá solo sales sueltas para que el clon use materia prima barata.
+            </p>
+          </>
+        )}
       </div>
     </div>
   )
