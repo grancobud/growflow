@@ -255,6 +255,25 @@ export const SALES_DEFECTO: Sal[] = [
   { id: 'an_sensi_bloom_b', nombre: 'AN Sensi Pro Bloom B (17-0-6)', bidon: 'A',
     comp: { NO3: 0.15, NH4: 0.02, K: 0.0498, Ca: 0.12 },
     descripcion: 'Comercial Advanced Nutrients (Sensi Pro Bloom B, polvo): aporta N + calcio + algo de K (nitrato de calcio/potasio). Va en bidón A. NPK 17-0-6 confirmado; Ca estimado.' },
+
+  // --- Athena (Pro Line en polvo + finishers) ---
+  { id: 'athena_pro_core', nombre: 'Athena Pro Core (14-0-0)', bidon: 'A',
+    comp: { NO3: 0.14, Ca: 0.16, Fe: 0.001, Mn: 0.0005, Zn: 0.00015, Cu: 0.0001, B: 0.0002, Mo: 0.0001 },
+    descripcion: 'Comercial Athena Pro Line: la base de calcio + nitrógeno + micros quelatados (nitrato de Ca, Fe/Mn/Cu/Zn EDTA, ác. bórico, molibdato Na). Va en bidón A. Se usa SIEMPRE (veg y flora) junto a Grow o Bloom. Ca estimado ~16%.' },
+  { id: 'athena_pro_grow', nombre: 'Athena Pro Grow (2-8-20)', bidon: 'B',
+    comp: { NO3: 0.01, NH4: 0.01, P: 0.0349, K: 0.166, Mg: 0.03, S: 0.08, Fe: 0.001 },
+    descripcion: 'Comercial Athena Pro Line: base vegetativa P-K-Mg-S + Fe DTPA. NPK 2-8-20, Mg 3%, S 8%, Fe 0.1% confirmados. Va en bidón B, con Pro Core.' },
+  { id: 'athena_pro_bloom', nombre: 'Athena Pro Bloom (0-12-24)', bidon: 'B',
+    comp: { P: 0.0524, K: 0.1992, Mg: 0.015, S: 0.04, Fe: 0.001 },
+    descripcion: 'Comercial Athena Pro Line: base de floración P-K. NPK 0-12-24 confirmado; Mg/S estimados. Va en bidón B, con Pro Core.' },
+  { id: 'athena_fade', nombre: 'Athena Fade (finalizador Ca)', bidon: 'A',
+    comp: { Ca: 0.04, Cl: 0.07, Fe: 0.0005, Mn: 0.0003, Zn: 0.0001, B: 0.0002 },
+    descripcion: 'Comercial Athena: finalizador SIN nitrógeno que aporta calcio + micros (cloruro de calcio + micros quelatados). Reemplaza al Pro Core en las últimas 3 semanas. OJO: mete cloro (Cl ~7%). Ca/Cl de análisis de growers.' },
+  { id: 'athena_balance', nombre: 'Athena Balance (0-0-2)', bidon: 'C',
+    comp: { K: 0.0166, Si: 0.01 },
+    descripcion: 'Comercial Athena: aporta silicio (silicato de potasio) para estructura/resistencia y ayuda a balancear pH. Va aparte (sube pH). NPK 0-0-2.' },
+  { id: 'athena_cleanse', nombre: 'Athena Cleanse (limpieza)', formula: 'HOCl', bidon: 'C', aditivo: true, comp: {},
+    descripcion: 'Comercial Athena: NO es nutriente. Ácido hipocloroso (HOCl) derivado de sal, limpia raíces/sistema de riego y previene acumulación mineral/biofilm. Es un sanitizante, no aporta nada nutritivo.' },
 ]
 
 export type Perfil = Partial<Record<ElementKey, number>> // ppm objetivo
