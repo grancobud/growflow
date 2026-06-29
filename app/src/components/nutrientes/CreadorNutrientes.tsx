@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   FlaskConical, Beaker, Droplets, ChevronDown, Sparkles, AlertTriangle,
   Save, FolderOpen, Trash2, Calculator, FlaskRound, Layers, Scale, Plus, DollarSign,
+  Droplet, GitCompare, Package,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   SALES_DEFECTO, ELEMENTOS, PRESETS, calcularReceta, ecAprox, nTotal,
   calcularConcentrados, calcularRatios, calcularCosto,
+  redondearBalanza, AGENTES_PH, calcularAjustePH, oxidoAElemental, OXIDOS,
   perfilesNutrientesService, sustanciasService,
   type ElementKey, type Perfil, type PerfilGuardado, type Sal, type Bidon,
   type Resultado, type ResultadoSal, type BidonConcentrado, type Ratios,
@@ -18,16 +20,19 @@ interface CalcTabProps {
   macros: Elem[]; micros: Elem[]; res: Resultado; ec: number; salesTodas: Sal[]; activas: Set<string>; setActivas: SetSet
   guardados: PerfilGuardado[]; nombreNuevo: string; setNombreNuevo: (v: string) => void; guardando: boolean
   guardarPerfil: () => void; cargarPerfil: (g: PerfilGuardado) => void; borrarPerfil: (g: PerfilGuardado) => void
+  resolucion: number
 }
 type CostoResultado = { porLitro: number; detalle: { sal: Sal; costo: number }[] }
 
-type SubTab = 'calc' | 'sustancias' | 'agua' | 'concentrados' | 'ratios'
+type SubTab = 'calc' | 'sustancias' | 'agua' | 'concentrados' | 'ratios' | 'ph' | 'comparar'
 
 const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
   { id: 'calc', label: 'Calculadora', icon: Calculator },
   { id: 'sustancias', label: 'Sustancias', icon: FlaskRound },
   { id: 'agua', label: 'Agua', icon: Droplets },
   { id: 'concentrados', label: 'Concentrados A/B', icon: Layers },
+  { id: 'ph', label: 'Ajuste de pH', icon: Droplet },
+  { id: 'comparar', label: 'Comparar', icon: GitCompare },
   { id: 'ratios', label: 'Ratios y costo', icon: Scale },
 ]
 
@@ -65,6 +70,7 @@ export default function CreadorNutrientes() {
   const [guardando, setGuardando] = useState(false)
   const [factor, setFactor] = useState(100)
   const [volBidon, setVolBidon] = useState(1)
+  const [resolucion, setResolucion] = useState(0) // resolución de balanza (g); 0 = sin redondeo
 
   const salesTodas = useMemo(() => [...SALES_DEFECTO, ...customs], [customs])
   const salesDisp = useMemo(() => salesTodas.filter(s => activas.has(s.id)), [salesTodas, activas])
@@ -131,7 +137,7 @@ export default function CreadorNutrientes() {
 
       {sub === 'calc' && (
         <CalcTab {...{ perfil, presetId, setPreset, setPpm, macros, micros, res, ec, salesTodas, activas, setActivas,
-          guardados, nombreNuevo, setNombreNuevo, guardando, guardarPerfil, cargarPerfil, borrarPerfil }} />
+          guardados, nombreNuevo, setNombreNuevo, guardando, guardarPerfil, cargarPerfil, borrarPerfil, resolucion }} />
       )}
       {sub === 'sustancias' && (
         <SustanciasTab {...{ salesTodas, activas, setActivas, customs, recargarCustoms }} />
@@ -140,7 +146,13 @@ export default function CreadorNutrientes() {
         <AguaTab {...{ agua, setAgua, macros, micros, otros }} />
       )}
       {sub === 'concentrados' && (
-        <ConcentradosTab {...{ concentrados, factor, setFactor, volBidon, setVolBidon, dosisCount: res.dosis.length }} />
+        <ConcentradosTab {...{ concentrados, factor, setFactor, volBidon, setVolBidon, resolucion, setResolucion, dosisCount: res.dosis.length }} />
+      )}
+      {sub === 'ph' && (
+        <PHTab agua={agua} />
+      )}
+      {sub === 'comparar' && (
+        <CompararTab guardados={guardados} />
       )}
       {sub === 'ratios' && (
         <RatiosTab {...{ ratios, res, costo }} />
@@ -152,7 +164,7 @@ export default function CreadorNutrientes() {
 // ===================== CALCULADORA =====================
 function CalcTab(p: CalcTabProps) {
   const { perfil, presetId, setPreset, setPpm, macros, micros, res, ec, salesTodas, activas, setActivas,
-    guardados, nombreNuevo, setNombreNuevo, guardando, guardarPerfil, cargarPerfil, borrarPerfil } = p
+    guardados, nombreNuevo, setNombreNuevo, guardando, guardarPerfil, cargarPerfil, borrarPerfil, resolucion } = p
 
   const porBidon = (['A', 'B', 'C'] as Bidon[]).map(b => ({
     bidon: b, items: res.dosis.filter((d: ResultadoSal) => d.sal.bidon === b),
@@ -257,14 +269,17 @@ function CalcTab(p: CalcTabProps) {
                 <div key={g.bidon}>
                   <p className="text-[10px] uppercase tracking-[0.12em] font-medium mb-1.5" style={{ color: BIDON_INFO[g.bidon].color }}>{BIDON_INFO[g.bidon].label}</p>
                   <div className="space-y-1">
-                    {g.items.map((d: ResultadoSal) => (
+                    {g.items.map((d: ResultadoSal) => {
+                      const gv = resolucion > 0 ? redondearBalanza(d.gramosPorL, resolucion) : d.gramosPorL
+                      return (
                       <div key={d.sal.id} className="flex items-center gap-2 bg-[#15151d] border border-[#1f1f2b] rounded-md px-2.5 py-1.5">
                         <span className="text-[11.5px] text-[#d4d4dd] flex-1 min-w-0 truncate">{d.sal.nombre}</span>
                         <span className="text-[12px] font-mono tabular-nums font-bold text-[#ececf1]">
-                          {d.gramosPorL >= 0.01 ? d.gramosPorL.toFixed(2) : d.gramosPorL.toFixed(4)} <span className="text-[#5c5c6b] font-normal">g/L</span>
+                          {gv >= 0.01 ? gv.toFixed(2) : gv.toFixed(4)} <span className="text-[#5c5c6b] font-normal">g/L</span>
                         </span>
                       </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 </div>
               ))}
@@ -369,12 +384,23 @@ function NuevaSustancia({ onClose, onSaved }: { onClose: () => void; onSaved: ()
   const [densidad, setDensidad] = useState(1)
   const [costoKg, setCostoKg] = useState(0)
   const [comp, setComp] = useState<Record<string, number>>({})
+  const [comercial, setComercial] = useState(false)
   const [saving, setSaving] = useState(false)
+
+  const oxideKeys = new Set(OXIDOS.map(o => o.key))
+  const labelDe = (k: ElementKey) => comercial && oxideKeys.has(k) ? (OXIDOS.find(o => o.key === k)!.label) : k
 
   async function guardar() {
     if (!nombre.trim()) { toast.error('Falta el nombre'); return }
-    const compFrac: Partial<Record<ElementKey, number>> = {}
-    for (const e of ELEMENTOS) { const v = comp[e.key]; if (v) compFrac[e.key] = v / 100 } // W/W% → fracción
+    let compFrac: Partial<Record<ElementKey, number>> = {}
+    if (comercial) {
+      // entrada en óxidos (etiqueta comercial) → elemental
+      const raw: Partial<Record<ElementKey, number>> = {}
+      for (const e of ELEMENTOS) { const v = comp[e.key]; if (v) raw[e.key] = v }
+      compFrac = oxidoAElemental(raw)
+    } else {
+      for (const e of ELEMENTOS) { const v = comp[e.key]; if (v) compFrac[e.key] = v / 100 } // W/W% → fracción
+    }
     if (Object.keys(compFrac).length === 0) { toast.error('Cargá al menos un elemento'); return }
     setSaving(true)
     try {
@@ -386,7 +412,14 @@ function NuevaSustancia({ onClose, onSaved }: { onClose: () => void; onSaved: ()
 
   return (
     <div className="rounded-lg bg-[#15151d] border border-[#404d20] p-3 mb-2 space-y-3">
-      <p className="text-[11px] text-[#d9f99d] font-medium">Nueva sustancia — composición en %W/W</p>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <p className="text-[11px] text-[#d9f99d] font-medium">Nueva sustancia — composición en {comercial ? 'óxidos (etiqueta)' : '%W/W'}</p>
+        <label className="flex items-center gap-1.5 text-[11px] text-[#c4b5fd]">
+          <input type="checkbox" checked={comercial} onChange={e => setComercial(e.target.checked)} className="accent-[#a78bfa]" />
+          <Package className="w-3.5 h-3.5" /> Cargar desde etiqueta comercial (óxidos)
+        </label>
+      </div>
+      {comercial && <p className="text-[10px] text-[#757584]">Cargá los números tal cual la etiqueta (N, P₂O₅, K₂O, CaO, MgO, SO₃). Se convierten a elemental solos. Ej: tu Ryanodine Maikro/Calcis.</p>}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <label className="block col-span-2"><span className="text-[10px] text-[#8f8f9f]">Nombre</span>
           <input value={nombre} onChange={e => setNombre(e.target.value)} className={inp.replace('font-mono tabular-nums', '')} /></label>
@@ -408,7 +441,7 @@ function NuevaSustancia({ onClose, onSaved }: { onClose: () => void; onSaved: ()
       </div>
       <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
         {ELEMENTOS.map(e => (
-          <label key={e.key} className="block"><span className="text-[9.5px] text-[#8f8f9f]">{e.key} %</span>
+          <label key={e.key} className="block"><span className="text-[9.5px] text-[#8f8f9f]">{labelDe(e.key)} %</span>
             <input type="number" min={0} step={0.1} value={comp[e.key] ?? ''} placeholder="0"
               onChange={ev => setComp(prev => ({ ...prev, [e.key]: +ev.target.value }))}
               className="w-full bg-[#101016] border border-[#1f1f2b] rounded px-1.5 py-1 text-[11px] text-[#ececf1] font-mono tabular-nums focus:border-[#404d20] outline-none" /></label>
@@ -456,7 +489,7 @@ function AguaTab({ agua, setAgua, macros, micros, otros }: { agua: Perfil; setAg
 }
 
 // ===================== CONCENTRADOS =====================
-function ConcentradosTab({ concentrados, factor, setFactor, volBidon, setVolBidon, dosisCount }: { concentrados: BidonConcentrado[]; factor: number; setFactor: (n: number) => void; volBidon: number; setVolBidon: (n: number) => void; dosisCount: number }) {
+function ConcentradosTab({ concentrados, factor, setFactor, volBidon, setVolBidon, resolucion, setResolucion, dosisCount }: { concentrados: BidonConcentrado[]; factor: number; setFactor: (n: number) => void; volBidon: number; setVolBidon: (n: number) => void; resolucion: number; setResolucion: (n: number) => void; dosisCount: number }) {
   return (
     <div className="space-y-4">
       <div className={card}>
@@ -477,6 +510,17 @@ function ConcentradosTab({ concentrados, factor, setFactor, volBidon, setVolBido
               <span className="text-[#5c5c6b]">L</span>
             </div>
           </label>
+          <label className="text-[11px] text-[#a6a6b5]">Precisión de balanza
+            <div className="flex items-center gap-1 mt-1">
+              <select value={resolucion} onChange={e => setResolucion(+e.target.value)} className={`${inp} w-28`}>
+                <option value={0}>Exacta</option>
+                <option value={0.001}>0.001 g</option>
+                <option value={0.01}>0.01 g</option>
+                <option value={0.1}>0.1 g</option>
+                <option value={1}>1 g</option>
+              </select>
+            </div>
+          </label>
           <div className="text-[11px] text-[#757584] self-end">
             1 bidón de {volBidon} L a {factor}x rinde <b className="text-[#bef264]">{(volBidon * factor).toFixed(0)} L</b> finales.
           </div>
@@ -491,14 +535,17 @@ function ConcentradosTab({ concentrados, factor, setFactor, volBidon, setVolBido
             {BIDON_INFO[g.bidon].label} · {g.volumenL} L
           </p>
           <div className="space-y-1">
-            {g.items.map(it => (
+            {g.items.map(it => {
+              const gv = resolucion > 0 ? redondearBalanza(it.gramos, resolucion) : it.gramos
+              return (
               <div key={it.sal.id} className="flex items-center gap-2 bg-[#15151d] border border-[#1f1f2b] rounded-md px-2.5 py-1.5">
                 <span className="text-[11.5px] text-[#d4d4dd] flex-1 min-w-0 truncate">{it.sal.nombre}</span>
                 <span className="text-[12px] font-mono tabular-nums font-bold text-[#ececf1]">
-                  {it.mlSiLiquido != null ? `${it.mlSiLiquido} mL` : `${it.gramos} g`}
+                  {it.mlSiLiquido != null ? `${it.mlSiLiquido} mL` : `${gv} g`}
                 </span>
               </div>
-            ))}
+              )
+            })}
           </div>
           {g.advertencia && (
             <div className="flex items-start gap-2 mt-2 rounded-lg bg-[#ff8a7a]/08 border border-[#ff8a7a]/25 px-3 py-2">
@@ -562,6 +609,133 @@ function RatiosTab({ ratios, res, costo }: { ratios: Ratios; res: Resultado; cos
         )}
         <p className="text-[10px] text-[#5c5c6b] mt-2">El costo sale de "costo/kg" que cargues en cada sustancia (pestaña Sustancias).</p>
       </div>
+    </div>
+  )
+}
+
+// ===================== AJUSTE DE pH =====================
+function PHTab({ agua }: { agua: Perfil }) {
+  const [alcActual, setAlcActual] = useState(100)
+  const [alcObjetivo, setAlcObjetivo] = useState(40)
+  const [volumen, setVolumen] = useState(100)
+  const [agenteId, setAgenteId] = useState('h3po4')
+  const subir = alcObjetivo > alcActual
+  const agentes = AGENTES_PH.filter(a => (subir ? a.tipo === 'base' : a.tipo === 'acido'))
+  const agente = AGENTES_PH.find(a => a.id === agenteId) ?? agentes[0]
+  const valido = agente && agente.tipo === (subir ? 'base' : 'acido')
+  const ag = valido ? agente : agentes[0]
+  const r = ag ? calcularAjustePH(alcActual, alcObjetivo, volumen, ag) : null
+
+  return (
+    <div className="space-y-4">
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-3">
+          <Droplet className="w-4 h-4 text-blue-400" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Ajuste de pH por alcalinidad</h3>
+        </div>
+        <p className="text-[11px] text-[#757584] mb-3">
+          El pH de tu solución lo gobierna la <b className="text-[#a6a6b5]">alcalinidad</b> (bicarbonatos) del agua, no el pH directo.
+          Medí la alcalinidad (en ppm de CaCO₃, con kit de acuario o análisis) y esto te dice cuánto ácido/base agregar.
+          {agua.Na ? '' : ''}
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <label className="text-[11px] text-[#a6a6b5]">Alcalinidad actual (ppm CaCO₃)
+            <input type="number" min={0} value={alcActual} onChange={e => setAlcActual(+e.target.value)} className={`${inp} mt-1`} /></label>
+          <label className="text-[11px] text-[#a6a6b5]">Alcalinidad objetivo
+            <input type="number" min={0} value={alcObjetivo} onChange={e => setAlcObjetivo(+e.target.value)} className={`${inp} mt-1`} /></label>
+          <label className="text-[11px] text-[#a6a6b5]">Volumen (L)
+            <input type="number" min={0.1} step={1} value={volumen} onChange={e => setVolumen(+e.target.value)} className={`${inp} mt-1`} /></label>
+          <label className="text-[11px] text-[#a6a6b5]">{subir ? 'Base' : 'Ácido'}
+            <select value={ag?.id} onChange={e => setAgenteId(e.target.value)} className={`${inp} mt-1`}>
+              {agentes.map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}
+            </select></label>
+        </div>
+        {r && ag && (
+          <div className="mt-4 rounded-xl p-4 border border-[#404d20] bg-[#a3e635]/08">
+            <p className="text-[10px] uppercase tracking-[0.12em] text-[#bef264] mb-1">{subir ? 'Subir' : 'Bajar'} pH · agregar</p>
+            <p className="font-display font-bold tabular-nums leading-none text-[#d9f99d]" style={{ fontSize: 30 }}>
+              {r.cantidad} <span className="text-[14px] opacity-70">{r.unidad}</span>
+            </p>
+            <p className="text-[11px] text-[#a6a6b5] mt-2">de <b>{ag.nombre}</b> para {volumen} L</p>
+            {ag.nota && <p className="text-[10.5px] text-[#757584] mt-1">{ag.nota}</p>}
+          </div>
+        )}
+        <div className="flex items-start gap-2 mt-3 rounded-lg bg-[#15151d] border border-[#1f1f2b] px-3 py-2">
+          <AlertTriangle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[#a3e635]" strokeWidth={1.8} />
+          <p className="text-[10.5px] text-[#757584]">
+            Agregá de a poco y medí: es un estimado (la alcalinidad real varía). Objetivo típico coco: dejar ~30–40 ppm de alcalinidad residual → pH ~5.8–6.2.
+            Con agua RO la alcalinidad ya es ~0: casi no necesitás ácido.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ===================== COMPARAR =====================
+function CompararTab({ guardados }: { guardados: PerfilGuardado[] }) {
+  const [a, setA] = useState('')
+  const [b, setB] = useState('')
+  const pa = guardados.find(g => g.id === a)
+  const pb = guardados.find(g => g.id === b)
+  const ecOf = (p?: PerfilGuardado) => p ? ecAprox(p.perfil as Record<ElementKey, number>) : 0
+
+  if (guardados.length < 2) {
+    return <div className={card}><p className="text-[12px] text-[#5c5c6b] py-6 text-center">Guardá al menos 2 perfiles (pestaña Calculadora) para compararlos.</p></div>
+  }
+  return (
+    <div className="space-y-4">
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-3">
+          <GitCompare className="w-4 h-4 text-[#a78bfa]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Comparar dos perfiles</h3>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <select value={a} onChange={e => setA(e.target.value)} className={inp}>
+            <option value="">— Perfil A —</option>
+            {guardados.map(g => <option key={g.id} value={g.id}>{g.nombre}</option>)}
+          </select>
+          <select value={b} onChange={e => setB(e.target.value)} className={inp}>
+            <option value="">— Perfil B —</option>
+            {guardados.map(g => <option key={g.id} value={g.id}>{g.nombre}</option>)}
+          </select>
+        </div>
+      </div>
+
+      {pa && pb && (
+        <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden">
+          <table className="w-full text-[11px]">
+            <thead><tr className="border-b border-[#1f1f2b]">
+              <th className="px-3 py-2 text-left text-[10px] uppercase tracking-[0.1em] text-[#5c5c6b] font-medium">Elemento</th>
+              <th className="px-3 py-2 text-left text-[10px] uppercase tracking-[0.1em] text-[#a78bfa] font-medium truncate">{pa.nombre}</th>
+              <th className="px-3 py-2 text-left text-[10px] uppercase tracking-[0.1em] text-[#a3e635] font-medium truncate">{pb.nombre}</th>
+              <th className="px-3 py-2 text-left text-[10px] uppercase tracking-[0.1em] text-[#5c5c6b] font-medium">Δ</th>
+            </tr></thead>
+            <tbody>
+              <tr className="border-b border-[#1f1f2b] bg-[#15151d]">
+                <td className="px-3 py-1.5 font-medium text-[#d4d4dd]">EC aprox</td>
+                <td className="px-3 py-1.5 font-mono tabular-nums text-[#c4b5fd]">{ecOf(pa)}</td>
+                <td className="px-3 py-1.5 font-mono tabular-nums text-[#d9f99d]">{ecOf(pb)}</td>
+                <td className="px-3 py-1.5 font-mono tabular-nums text-[#757584]">{(ecOf(pb) - ecOf(pa)).toFixed(2)}</td>
+              </tr>
+              {ELEMENTOS.filter(e => (pa.perfil[e.key] ?? 0) > 0 || (pb.perfil[e.key] ?? 0) > 0).map(e => {
+                const va = pa.perfil[e.key] ?? 0, vb = pb.perfil[e.key] ?? 0
+                const d = vb - va
+                return (
+                  <tr key={e.key} className="border-b border-[#1f1f2b] last:border-0">
+                    <td className="px-3 py-1.5 font-medium text-[#d4d4dd]">{e.label}</td>
+                    <td className="px-3 py-1.5 font-mono tabular-nums text-[#a6a6b5]">{va || '—'}</td>
+                    <td className="px-3 py-1.5 font-mono tabular-nums text-[#a6a6b5]">{vb || '—'}</td>
+                    <td className="px-3 py-1.5 font-mono tabular-nums" style={{ color: d > 0 ? '#d9f99d' : d < 0 ? '#60a5fa' : '#757584' }}>
+                      {d > 0 ? '+' : ''}{d || '—'}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }

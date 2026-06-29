@@ -303,6 +303,65 @@ export function calcularCosto(dosis: ResultadoSal[]): { porLitro: number; detall
 }
 
 // ---------------------------------------------------------------------------
+// Conversión óxido → elemental (para cargar etiquetas comerciales / agrícolas).
+// ---------------------------------------------------------------------------
+export const OXIDOS: { key: ElementKey; label: string; factor: number }[] = [
+  { key: 'P', label: 'P₂O₅', factor: 0.4364 },
+  { key: 'K', label: 'K₂O', factor: 0.8301 },
+  { key: 'Ca', label: 'CaO', factor: 0.7147 },
+  { key: 'Mg', label: 'MgO', factor: 0.6030 },
+  { key: 'S', label: 'SO₃', factor: 0.4005 },
+  { key: 'Na', label: 'Na₂O', factor: 0.7419 },
+]
+/** Convierte una etiqueta en óxidos (% P₂O₅, K₂O, etc.) a fracción elemental. */
+export function oxidoAElemental(label: Partial<Record<ElementKey, number>>): Partial<Record<ElementKey, number>> {
+  const out: Partial<Record<ElementKey, number>> = {}
+  for (const [k, v] of Object.entries(label) as [ElementKey, number][]) {
+    if (!v) continue
+    const ox = OXIDOS.find(o => o.key === k)
+    out[k] = (ox ? v * ox.factor : v) / 100 // % → fracción
+  }
+  return out
+}
+
+// ---------------------------------------------------------------------------
+// Precisión de balanza: redondear gramos a la resolución de la balanza.
+// ---------------------------------------------------------------------------
+export function redondearBalanza(valor: number, resolucion: number): number {
+  if (!resolucion || resolucion <= 0) return valor
+  return +(Math.round(valor / resolucion) * resolucion).toFixed(4)
+}
+
+// ---------------------------------------------------------------------------
+// Ajuste de pH por neutralización de alcalinidad (bicarbonatos).
+// ---------------------------------------------------------------------------
+export interface AgentePH {
+  id: string; nombre: string; tipo: 'acido' | 'base'
+  unidad: 'mL' | 'g'; meqPorUnidad: number; nota?: string
+}
+export const AGENTES_PH: AgentePH[] = [
+  { id: 'h3po4', nombre: 'Ácido fosfórico 85%', tipo: 'acido', unidad: 'mL', meqPorUnidad: 12.4, nota: 'Baja pH y aporta P.' },
+  { id: 'hno3', nombre: 'Ácido nítrico 60%', tipo: 'acido', unidad: 'mL', meqPorUnidad: 13.7, nota: 'Baja pH y aporta N nítrico.' },
+  { id: 'h2so4', nombre: 'Ácido sulfúrico 35%', tipo: 'acido', unidad: 'mL', meqPorUnidad: 7.0, nota: 'Baja pH y aporta S. Cuidado al manipular.' },
+  { id: 'citrico', nombre: 'Ácido cítrico (polvo)', tipo: 'acido', unidad: 'g', meqPorUnidad: 15.6, nota: 'Orgánico, suave, no aporta nutrientes minerales.' },
+  { id: 'koh', nombre: 'Hidróxido de potasio (polvo)', tipo: 'base', unidad: 'g', meqPorUnidad: 17.8, nota: 'Sube pH y aporta K.' },
+  { id: 'k2co3', nombre: 'Carbonato de potasio (polvo)', tipo: 'base', unidad: 'g', meqPorUnidad: 14.5, nota: 'Sube pH, buffer.' },
+  { id: 'khco3b', nombre: 'Bicarbonato de potasio (polvo)', tipo: 'base', unidad: 'g', meqPorUnidad: 10.0, nota: 'Sube pH suave.' },
+]
+
+/**
+ * Calcula cuánto agente agregar para llevar la alcalinidad del agua de
+ * `alcActual` (ppm CaCO₃) a `alcObjetivo`, en `volumenL` litros.
+ * 1 meq de alcalinidad = 50 mg de CaCO₃.
+ */
+export function calcularAjustePH(alcActual: number, alcObjetivo: number, volumenL: number, agente: AgentePH): { cantidad: number; unidad: string } {
+  const deltaMeqPorL = (alcActual - alcObjetivo) / 50 // meq/L a neutralizar (acido) o a sumar (base)
+  const meqTotal = Math.abs(deltaMeqPorL) * volumenL
+  const cantidad = +(meqTotal / agente.meqPorUnidad).toFixed(2)
+  return { cantidad, unidad: agente.unidad }
+}
+
+// ---------------------------------------------------------------------------
 // Persistencia: perfiles guardados + sustancias personalizadas (Supabase/demo).
 // ---------------------------------------------------------------------------
 
