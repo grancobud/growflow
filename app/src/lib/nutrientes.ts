@@ -47,8 +47,67 @@ export interface Sal {
   liquido?: boolean       // concentrado líquido (composición %W/V)
   densidad?: number       // g/mL (si líquido)
   costoKg?: number        // costo por kg (o por L si líquido), ARS
+  stock?: number          // cantidad que tenés en el galpón
+  stockUnidad?: string    // kg, g, L
   nota?: string
+  descripcion?: string    // qué es / para qué sirve (educativo)
   custom?: boolean
+}
+
+/** Descripción educativa por sal (qué es y para qué sirve). */
+export const DESCRIPCIONES: Record<string, string> = {
+  cano3_ag: 'Sal estrella del calcio. Aporta casi todo el Ca de la fórmula y de paso el nitrógeno nítrico. Es la base del bidón A de cualquier sistema (Athena, Ryanodine Calcis, etc.).',
+  cano3_puro: 'Versión sin amonio. Más Ca y solo N nítrico. Útil si querés cero amonio.',
+  cacl2: 'Aporta calcio SIN nitrógeno, pero mete cloruro. Es lo que usa el Athena Fade. Para finish si querés Ca sin sumar N.',
+  yeso: 'Calcio + azufre baratos, pero poco soluble: solo sirve en seco o en sustrato, nunca en concentrado líquido.',
+  caco3: 'Cal. Casi no se disuelve: se usa para subir pH/buffer del sustrato, no como nutriente en solución.',
+  cagluc: 'Calcio LIMPIO de verdad: sin nitrógeno ni cloro. El guante (gluconato) no suelta el Ca. Ideal para reforzar Ca en finish/foliar.',
+  caedta: 'Calcio quelatado. Aguanta pH alto. Caro y diluido en Ca: corrector foliar, no fuente base.',
+  calact: 'Otro calcio limpio soluble, fácil de conseguir en alimentos/farmacia.',
+  kno3: 'La fuente de potasio + nitrato más usada. Sube K y N juntos. Va en el bidón B.',
+  mgno3: 'Magnesio sin azufre. Útil si ya tenés mucho sulfato y querés Mg igual.',
+  nh4no3: 'Nitrógeno puro (mitad nítrico, mitad amoniacal). Muy soluble. Manejar con cuidado: mucho amonio quema.',
+  amsulf: 'Nitrógeno amoniacal + azufre. El amonio baja el pH del sustrato (útil en coco).',
+  urea: 'Nitrógeno barato y concentrado. En hidro se usa poco; el N amídico se asimila como amonio.',
+  kcl: 'Potasio barato pero mete mucho cloro. Evitar en hidro salvo necesidad puntual.',
+  khco3: 'Sube K y hace de buffer (sube pH) sin meter azufre ni nitrógeno. Clave en finalizadores como el Finis.',
+  k2co3: 'Sube pH fuerte y aporta K. Más agresivo que el bicarbonato.',
+  koh: 'Base pura para subir pH. Aporta algo de K. Manipular con cuidado.',
+  mkp: 'El corazón de la floración/finish: fósforo + potasio, CERO nitrógeno. Lo que hay dentro de los PK boosters.',
+  map: 'Fósforo + nitrógeno amoniacal. Alternativa al MKP cuando querés algo de N.',
+  dap: 'Más nitrógeno amoniacal que el MAP. Ojo con el pH.',
+  h3po4: 'Ácido fosfórico líquido: baja el pH y de paso aporta fósforo. Doble función.',
+  k2so4: 'Potasio + azufre sin nitrógeno. Para subir K en flora sin tocar el N.',
+  epsom: 'Sal de magnesio clásica (sulfato de Mg). Aporta Mg + S. Imprescindible, sobre todo en coco.',
+  mgo: 'Magnesio muy concentrado pero poco soluble. Más para corregir sustrato.',
+  feso4: 'Hierro barato pero se oxida y precipita fácil: solo con pH bajo y recién mezclado.',
+  feedta: 'Hierro quelatado estándar. Bien hasta pH ~6.5. El más común.',
+  fedtpa: 'Hierro quelatado para aguas un poco más duras (hasta pH ~7).',
+  feeddha: 'El hierro rojo. Aguanta pH alto (hasta ~9). El mejor pero el más caro.',
+  mnso4: 'Manganeso + azufre. Micro esencial.',
+  mnedta: 'Manganeso quelatado, más estable.',
+  znso4: 'Zinc + azufre. Micro esencial.',
+  znedta: 'Zinc quelatado, más estable.',
+  cuso4: 'Cobre + azufre. Micro, va en dosis muy chicas.',
+  cuedta: 'Cobre quelatado, más estable.',
+  boric: 'Boro (ácido bórico). Micro esencial; el margen entre poco y tóxico es chico.',
+  solubor: 'Boro más soluble que el ácido bórico, ideal para foliar.',
+  borax: 'Boro barato, mete algo de sodio.',
+  namolib: 'Molibdeno. Se usa en cantidades mínimas.',
+  amolib: 'Molibdeno sin sodio.',
+  ksilic: 'Silicio + potasio: engrosa paredes celulares y da resistencia. Sube pH: va en bidón aparte.',
+  masterblend: 'Sal compuesta "todo en uno" (NPK + micros quelatados). Con nitrato de calcio + Epsom armás un nutriente completo de 3 partes.',
+}
+
+/** Compatibilidad de mezcla en concentrado (qué NO puede compartir bidón). */
+export function compatibilidad(sal: Sal): string {
+  const ca = (sal.comp.Ca ?? 0) > 0
+  const sp = (sal.comp.S ?? 0) > 0 || (sal.comp.P ?? 0) > 0
+  if (ca && sp) return '⚠️ Tiene Ca y S/P juntos: usar en seco, no en concentrado líquido.'
+  if (ca) return 'Va en bidón A (calcio) SOLO. No la mezcles concentrada con sulfatos ni fosfatos (precipita).'
+  if (sp) return 'Va en bidón B. No la mezcles concentrada con sales de calcio (precipita).'
+  if (sal.bidon === 'C') return 'Micro: mejor en bidón C aparte, con pH ligeramente ácido.'
+  return 'Compatible con casi todo (no tiene Ca ni sulfato/fosfato fuerte).'
 }
 
 // Base de sales por defecto (composición elemental W/W, fracción).
@@ -162,6 +221,24 @@ export const PRESETS: PresetPerfil[] = [
   { id: 'finish', nombre: 'Finalización (clon Finis)', desc: '0-15-25, sin N', perfil: { P: 60, K: 187, Ca: 98, S: 114 } },
   { id: 'finishlimpio', nombre: 'Finish Ca limpio', desc: 'PK + Ca quelatado bajo', perfil: { P: 60, K: 187, Ca: 30, S: 90 } },
 ]
+
+// Rangos objetivo min/max por elemento (estilo NuteMix). Verde si caés dentro.
+export type RangoPerfil = Partial<Record<ElementKey, { min: number; max: number }>>
+
+export const RANGOS_FLORA_COCO: RangoPerfil = {
+  NO3: { min: 100, max: 160 }, NH4: { min: 5, max: 25 }, P: { min: 40, max: 70 },
+  K: { min: 170, max: 240 }, Ca: { min: 140, max: 200 }, Mg: { min: 45, max: 70 },
+  S: { min: 50, max: 120 }, Fe: { min: 1.5, max: 3 }, Mn: { min: 0.3, max: 0.8 },
+  Zn: { min: 0.1, max: 0.3 }, B: { min: 0.2, max: 0.5 }, Cu: { min: 0.03, max: 0.1 }, Mo: { min: 0.02, max: 0.08 },
+}
+
+/** Estado de un elemento contra su rango: 'bajo' | 'ok' | 'alto' | 'sin'. */
+export function estadoRango(valor: number, rango?: { min: number; max: number }): 'bajo' | 'ok' | 'alto' | 'sin' {
+  if (!rango) return 'sin'
+  if (valor < rango.min) return 'bajo'
+  if (valor > rango.max) return 'alto'
+  return 'ok'
+}
 
 export interface ResultadoSal { sal: Sal; gramosPorL: number }
 export interface Resultado {
@@ -372,6 +449,7 @@ export interface PerfilGuardado {
   perfil: Perfil
   agua: Perfil
   sales: string[]
+  rangos?: RangoPerfil
   creado_en: string
 }
 
@@ -382,7 +460,7 @@ export const perfilesNutrientesService = {
     if (error) throw error
     return (data ?? []) as unknown as PerfilGuardado[]
   },
-  async crear(p: { nombre: string; perfil: Perfil; agua: Perfil; sales: string[] }): Promise<PerfilGuardado> {
+  async crear(p: { nombre: string; perfil: Perfil; agua: Perfil; sales: string[]; rangos?: RangoPerfil }): Promise<PerfilGuardado> {
     const { data: u } = await supabase.auth.getUser()
     const payload = { ...p, user_id: u?.user?.id ?? null }
     const { data, error } = await supabase.from('perfiles_nutrientes').insert(payload).select().single()
@@ -406,6 +484,43 @@ export interface SustanciaCustom {
   densidad: number | null
   costo_kg: number | null
   creado_en: string
+}
+
+// Inventario: override de costo/kg y stock para CUALQUIER sustancia (default o custom),
+// + nota personal. Permite "editar la ficha" sin tocar la base.
+export interface InventarioItem {
+  sal_id: string; costo_kg: number | null; stock: number | null; unidad: string | null; nota: string | null
+}
+export const inventarioService = {
+  async list(): Promise<Record<string, InventarioItem>> {
+    const { data, error } = await supabase.from('inventario_nutrientes').select('*')
+    if (error) throw error
+    const out: Record<string, InventarioItem> = {}
+    for (const r of (data ?? []) as unknown as InventarioItem[]) out[r.sal_id] = r
+    return out
+  },
+  async guardar(it: InventarioItem): Promise<void> {
+    const { data: u } = await supabase.auth.getUser()
+    const payload = { ...it, user_id: u?.user?.id ?? null }
+    const { error } = await supabase.from('inventario_nutrientes').upsert(payload, { onConflict: 'sal_id' })
+    if (error) throw error
+  },
+}
+
+/** Aplica overrides de inventario (costo/stock/nota) sobre una lista de sales. */
+export function aplicarInventario(sales: Sal[], inv: Record<string, InventarioItem>): Sal[] {
+  return sales.map(s => {
+    const ov = inv[s.id]
+    const descripcion = s.descripcion ?? DESCRIPCIONES[s.id]
+    if (!ov) return { ...s, descripcion }
+    return {
+      ...s, descripcion,
+      costoKg: ov.costo_kg ?? s.costoKg,
+      stock: ov.stock ?? s.stock,
+      stockUnidad: ov.unidad ?? s.stockUnidad,
+      nota: ov.nota ?? s.nota,
+    }
+  })
 }
 
 export const sustanciasService = {

@@ -9,9 +9,11 @@ import {
   SALES_DEFECTO, ELEMENTOS, PRESETS, calcularReceta, ecAprox, nTotal,
   calcularConcentrados, calcularRatios, calcularCosto,
   redondearBalanza, AGENTES_PH, calcularAjustePH, oxidoAElemental, OXIDOS,
-  perfilesNutrientesService, sustanciasService,
+  perfilesNutrientesService, sustanciasService, inventarioService, aplicarInventario,
+  compatibilidad, estadoRango, RANGOS_FLORA_COCO,
   type ElementKey, type Perfil, type PerfilGuardado, type Sal, type Bidon,
   type Resultado, type ResultadoSal, type BidonConcentrado, type Ratios,
+  type InventarioItem, type RangoPerfil,
 } from '../../lib/nutrientes'
 
 type SetSet = React.Dispatch<React.SetStateAction<Set<string>>>
@@ -20,7 +22,7 @@ interface CalcTabProps {
   macros: Elem[]; micros: Elem[]; res: Resultado; ec: number; salesTodas: Sal[]; activas: Set<string>; setActivas: SetSet
   guardados: PerfilGuardado[]; nombreNuevo: string; setNombreNuevo: (v: string) => void; guardando: boolean
   guardarPerfil: () => void; cargarPerfil: (g: PerfilGuardado) => void; borrarPerfil: (g: PerfilGuardado) => void
-  resolucion: number
+  resolucion: number; rangos: RangoPerfil; setRangos: React.Dispatch<React.SetStateAction<RangoPerfil>>
 }
 type CostoResultado = { porLitro: number; detalle: { sal: Sal; costo: number }[] }
 
@@ -65,6 +67,8 @@ export default function CreadorNutrientes() {
     'feeddha', 'mnso4', 'znso4', 'cuso4', 'boric', 'namolib',
   ]))
   const [customs, setCustoms] = useState<Sal[]>([])
+  const [inventario, setInventario] = useState<Record<string, InventarioItem>>({})
+  const [rangos, setRangos] = useState<RangoPerfil>(RANGOS_FLORA_COCO)
   const [guardados, setGuardados] = useState<PerfilGuardado[]>([])
   const [nombreNuevo, setNombreNuevo] = useState('')
   const [guardando, setGuardando] = useState(false)
@@ -72,7 +76,7 @@ export default function CreadorNutrientes() {
   const [volBidon, setVolBidon] = useState(1)
   const [resolucion, setResolucion] = useState(0) // resolución de balanza (g); 0 = sin redondeo
 
-  const salesTodas = useMemo(() => [...SALES_DEFECTO, ...customs], [customs])
+  const salesTodas = useMemo(() => aplicarInventario([...SALES_DEFECTO, ...customs], inventario), [customs, inventario])
   const salesDisp = useMemo(() => salesTodas.filter(s => activas.has(s.id)), [salesTodas, activas])
   const res = useMemo(() => calcularReceta(perfil, salesDisp, agua), [perfil, salesDisp, agua])
   const ec = useMemo(() => ecAprox(res.ppmLogrado), [res])
@@ -90,7 +94,10 @@ export default function CreadorNutrientes() {
   async function recargarCustoms() {
     try { setCustoms(await sustanciasService.list()) } catch { /* offline */ }
   }
-  useEffect(() => { recargarGuardados(); recargarCustoms() }, [])
+  async function recargarInventario() {
+    try { setInventario(await inventarioService.list()) } catch { /* offline */ }
+  }
+  useEffect(() => { recargarGuardados(); recargarCustoms(); recargarInventario() }, [])
 
   function setPreset(id: string) {
     const p = PRESETS.find(x => x.id === id)
@@ -103,7 +110,7 @@ export default function CreadorNutrientes() {
     if (!nombre) { toast.error('Poné un nombre para el perfil'); return }
     setGuardando(true)
     try {
-      await perfilesNutrientesService.crear({ nombre, perfil, agua, sales: [...activas] })
+      await perfilesNutrientesService.crear({ nombre, perfil, agua, sales: [...activas], rangos })
       setNombreNuevo(''); await recargarGuardados(); toast.success(`Perfil "${nombre}" guardado`)
     } catch (e) { toast.error('No se pudo guardar: ' + (e instanceof Error ? e.message : String(e))) }
     finally { setGuardando(false) }
@@ -111,6 +118,7 @@ export default function CreadorNutrientes() {
   function cargarPerfil(g: PerfilGuardado) {
     setPerfil({ ...g.perfil }); setAgua({ ...(g.agua ?? {}) })
     if (g.sales?.length) setActivas(new Set(g.sales))
+    if (g.rangos && Object.keys(g.rangos).length) setRangos({ ...g.rangos })
     setPresetId(''); toast.success(`Cargado: ${g.nombre}`)
   }
   async function borrarPerfil(g: PerfilGuardado) {
@@ -137,10 +145,11 @@ export default function CreadorNutrientes() {
 
       {sub === 'calc' && (
         <CalcTab {...{ perfil, presetId, setPreset, setPpm, macros, micros, res, ec, salesTodas, activas, setActivas,
-          guardados, nombreNuevo, setNombreNuevo, guardando, guardarPerfil, cargarPerfil, borrarPerfil, resolucion }} />
+          guardados, nombreNuevo, setNombreNuevo, guardando, guardarPerfil, cargarPerfil, borrarPerfil, resolucion,
+          rangos, setRangos }} />
       )}
       {sub === 'sustancias' && (
-        <SustanciasTab {...{ salesTodas, activas, setActivas, customs, recargarCustoms }} />
+        <SustanciasTab {...{ salesTodas, activas, setActivas, recargarCustoms, inventario, recargarInventario }} />
       )}
       {sub === 'agua' && (
         <AguaTab {...{ agua, setAgua, macros, micros, otros }} />
@@ -164,7 +173,11 @@ export default function CreadorNutrientes() {
 // ===================== CALCULADORA =====================
 function CalcTab(p: CalcTabProps) {
   const { perfil, presetId, setPreset, setPpm, macros, micros, res, ec, salesTodas, activas, setActivas,
-    guardados, nombreNuevo, setNombreNuevo, guardando, guardarPerfil, cargarPerfil, borrarPerfil, resolucion } = p
+    guardados, nombreNuevo, setNombreNuevo, guardando, guardarPerfil, cargarPerfil, borrarPerfil, resolucion,
+    rangos, setRangos } = p
+  const [editarRangos, setEditarRangos] = useState(false)
+  const setRango = (k: ElementKey, campo: 'min' | 'max', v: number) =>
+    setRangos(prev => ({ ...prev, [k]: { min: prev[k]?.min ?? 0, max: prev[k]?.max ?? 0, [campo]: v } }))
 
   const porBidon = (['A', 'B', 'C'] as Bidon[]).map(b => ({
     bidon: b, items: res.dosis.filter((d: ResultadoSal) => d.sal.bidon === b),
@@ -288,30 +301,46 @@ function CalcTab(p: CalcTabProps) {
         </div>
       </div>
 
-      {/* ppm logrado vs objetivo */}
+      {/* ppm logrado vs objetivo + rango */}
       <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden">
         <div className="px-4 py-3 border-b border-[#1f1f2b] flex items-center gap-2">
           <Sparkles className="w-3.5 h-3.5 text-[#bef264]" strokeWidth={1.8} />
-          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Logrado vs objetivo</h3>
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Logrado vs objetivo y rango</h3>
+          <button onClick={() => setEditarRangos(v => !v)} className="ml-auto text-[10px] px-2 py-0.5 rounded border border-[#1f1f2b] text-[#8f8f9f] hover:text-[#d9f99d] hover:border-[#404d20] transition-colors">
+            {editarRangos ? 'Listo' : 'Editar rangos'}
+          </button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-[11px]">
             <thead><tr className="border-b border-[#1f1f2b]">
-              {['Elemento', 'Objetivo', 'Logrado', 'Δ'].map(h => (
+              {['Elemento', 'Objetivo', 'Logrado', 'Rango min–max', 'Estado'].map(h => (
                 <th key={h} className="px-3 py-2 text-left text-[10px] uppercase tracking-[0.1em] text-[#5c5c6b] font-medium">{h}</th>
               ))}
             </tr></thead>
             <tbody>
-              {ELEMENTOS.filter(e => (perfil[e.key] ?? 0) > 0 || (res.ppmLogrado[e.key] ?? 0) > 0).map(e => {
+              {ELEMENTOS.filter(e => (perfil[e.key] ?? 0) > 0 || (res.ppmLogrado[e.key] ?? 0) > 0 || rangos[e.key]).map(e => {
                 const obj = perfil[e.key] ?? 0, log = res.ppmLogrado[e.key] ?? 0
-                const { c, bg } = colorDelta(log, obj)
-                const delta = obj > 0 ? `${log > obj ? '+' : ''}${(log - obj).toFixed(0)}` : '—'
+                const rg = rangos[e.key]
+                const est = estadoRango(log, rg)
+                const col = est === 'ok' ? '#d9f99d' : est === 'bajo' ? '#60a5fa' : est === 'alto' ? '#ff8a7a' : colorDelta(log, obj).c
+                const bg = est === 'ok' ? 'rgba(63,176,116,0.10)' : est === 'bajo' ? 'rgba(96,165,250,0.08)' : est === 'alto' ? 'rgba(255,138,122,0.08)' : 'transparent'
                 return (
                   <tr key={e.key} className="border-b border-[#1f1f2b] last:border-0" style={{ background: bg }}>
                     <td className="px-3 py-1.5 font-medium text-[#d4d4dd]">{e.label}</td>
                     <td className="px-3 py-1.5 text-[#a6a6b5] font-mono tabular-nums">{obj || '—'}</td>
-                    <td className="px-3 py-1.5 font-mono tabular-nums font-bold" style={{ color: c }}>{log}</td>
-                    <td className="px-3 py-1.5 font-mono tabular-nums" style={{ color: c }}>{delta}</td>
+                    <td className="px-3 py-1.5 font-mono tabular-nums font-bold" style={{ color: col }}>{log}</td>
+                    <td className="px-3 py-1.5 font-mono tabular-nums text-[#a6a6b5]">
+                      {editarRangos ? (
+                        <span className="flex items-center gap-1">
+                          <input type="number" value={rg?.min ?? 0} onChange={ev => setRango(e.key, 'min', +ev.target.value)} className="w-14 bg-[#101016] border border-[#1f1f2b] rounded px-1 py-0.5 text-[10.5px] font-mono" />
+                          <span className="text-[#5c5c6b]">–</span>
+                          <input type="number" value={rg?.max ?? 0} onChange={ev => setRango(e.key, 'max', +ev.target.value)} className="w-14 bg-[#101016] border border-[#1f1f2b] rounded px-1 py-0.5 text-[10.5px] font-mono" />
+                        </span>
+                      ) : rg ? `${rg.min}–${rg.max}` : '—'}
+                    </td>
+                    <td className="px-3 py-1.5 text-[10px] font-medium" style={{ color: col }}>
+                      {est === 'ok' ? 'EN RANGO' : est === 'bajo' ? 'bajo' : est === 'alto' ? 'alto' : '—'}
+                    </td>
                   </tr>
                 )
               })}
@@ -335,8 +364,9 @@ function SugerenciaSalesActivas({ salesTodas, activas, setActivas }: { salesToda
 }
 
 // ===================== SUSTANCIAS =====================
-function SustanciasTab({ salesTodas, activas, setActivas, recargarCustoms }: { salesTodas: Sal[]; activas: Set<string>; setActivas: SetSet; recargarCustoms: () => void }) {
+function SustanciasTab({ salesTodas, activas, setActivas, recargarCustoms, recargarInventario }: { salesTodas: Sal[]; activas: Set<string>; setActivas: SetSet; recargarCustoms: () => void; recargarInventario: () => void }) {
   const [form, setForm] = useState(false)
+  const [abierta, setAbierta] = useState<string | null>(null)
   return (
     <div className="space-y-4">
       <div className={card}>
@@ -349,28 +379,94 @@ function SustanciasTab({ salesTodas, activas, setActivas, recargarCustoms }: { s
           </button>
         </div>
         {form && <NuevaSustancia onClose={() => setForm(false)} onSaved={recargarCustoms} />}
-        <div className="grid sm:grid-cols-2 gap-1.5 mt-3">
+        <div className="space-y-1.5 mt-3">
           {salesTodas.map((s: Sal) => {
             const on = activas.has(s.id)
+            const open = abierta === s.id
             return (
-              <div key={s.id} className={`flex items-start gap-2 rounded-md px-2.5 py-1.5 border transition-colors ${on ? 'bg-[#a3e635]/08 border-[#404d20]' : 'bg-[#15151d] border-[#1f1f2b]'}`}>
-                <button onClick={() => setActivas((prev: Set<string>) => { const n = new Set(prev); if (on) n.delete(s.id); else n.add(s.id); return n })}
-                  className={`mt-0.5 w-3.5 h-3.5 rounded flex-shrink-0 border ${on ? 'bg-[#a3e635] border-[#a3e635]' : 'border-[#3a3a4a]'}`} />
-                <div className="min-w-0 flex-1">
-                  <span className={`block text-[11.5px] font-medium ${on ? 'text-[#d9f99d]' : 'text-[#a6a6b5]'}`}>
-                    {s.nombre} {s.formula && <span className="text-[#5c5c6b] font-normal">{s.formula}</span>}
-                    {s.custom && <span className="ml-1 text-[9px] px-1 rounded bg-[#a78bfa]/20 text-[#c4b5fd]">propia</span>}
-                  </span>
-                  {s.nota && <span className="block text-[10px] text-[#5c5c6b] mt-0.5">{s.nota}</span>}
+              <div key={s.id} className={`rounded-md border transition-colors ${on ? 'bg-[#a3e635]/08 border-[#404d20]' : 'bg-[#15151d] border-[#1f1f2b]'}`}>
+                <div className="flex items-start gap-2 px-2.5 py-1.5">
+                  <button onClick={() => setActivas((prev: Set<string>) => { const n = new Set(prev); if (on) n.delete(s.id); else n.add(s.id); return n })}
+                    className={`mt-0.5 w-3.5 h-3.5 rounded flex-shrink-0 border ${on ? 'bg-[#a3e635] border-[#a3e635]' : 'border-[#3a3a4a]'}`} />
+                  <button onClick={() => setAbierta(open ? null : s.id)} className="min-w-0 flex-1 text-left">
+                    <span className={`block text-[11.5px] font-medium ${on ? 'text-[#d9f99d]' : 'text-[#a6a6b5]'}`}>
+                      {s.nombre} {s.formula && <span className="text-[#5c5c6b] font-normal">{s.formula}</span>}
+                      {s.custom && <span className="ml-1 text-[9px] px-1 rounded bg-[#a78bfa]/20 text-[#c4b5fd]">propia</span>}
+                      {s.stock != null && s.stock > 0 && <span className="ml-1 text-[9px] px-1 rounded bg-[#60a5fa]/20 text-[#93c5fd]">stock {s.stock}{s.stockUnidad ?? ''}</span>}
+                      {s.costoKg != null && s.costoKg > 0 && <span className="ml-1 text-[9px] px-1 rounded bg-[#bef264]/15 text-[#bef264]">${s.costoKg}/kg</span>}
+                    </span>
+                    <span className="block text-[10px] text-[#5c5c6b] mt-0.5 line-clamp-2">{s.descripcion ?? s.nota ?? 'Sin descripción.'}</span>
+                  </button>
+                  <ChevronDown className={`w-4 h-4 mt-0.5 text-[#5c5c6b] flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
                 </div>
-                {s.custom && (
-                  <button onClick={async () => { try { await sustanciasService.eliminar(s.id); await recargarCustoms(); toast.success('Sustancia eliminada') } catch (e) { toast.error(String(e)) } }}
-                    className="p-1 rounded text-[#5c5c6b] hover:text-[#ff8a7a]"><Trash2 className="w-3.5 h-3.5" /></button>
-                )}
+                {open && <FichaSal sal={s} onSaved={recargarInventario} onDelete={recargarCustoms} />}
               </div>
             )
           })}
         </div>
+      </div>
+    </div>
+  )
+}
+
+function FichaSal({ sal, onSaved, onDelete }: { sal: Sal; onSaved: () => void; onDelete: () => void }) {
+  const [costo, setCosto] = useState(sal.costoKg ?? 0)
+  const [stock, setStock] = useState(sal.stock ?? 0)
+  const [unidad, setUnidad] = useState(sal.stockUnidad ?? 'kg')
+  const [nota, setNota] = useState(sal.nota ?? '')
+  const [saving, setSaving] = useState(false)
+
+  const comp = Object.entries(sal.comp).filter(([, v]) => v && v > 0)
+    .map(([k, v]) => `${k} ${(v * 100).toFixed(v < 0.01 ? 2 : 1)}%`).join(' · ')
+
+  async function guardarFicha() {
+    setSaving(true)
+    try {
+      await inventarioService.guardar({ sal_id: sal.id, costo_kg: costo || null, stock: stock || null, unidad: unidad || null, nota: nota || null })
+      toast.success('Ficha guardada'); onSaved()
+    } catch (e) { toast.error('No se pudo: ' + (e instanceof Error ? e.message : String(e))) }
+    finally { setSaving(false) }
+  }
+
+  return (
+    <div className="border-t border-[#1f1f2b] px-3 py-3 space-y-3">
+      <div>
+        <p className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1">Qué es / para qué sirve</p>
+        <p className="text-[11px] text-[#c4c4d0]">{sal.descripcion ?? 'Sin descripción.'}</p>
+      </div>
+      <div>
+        <p className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1">Compatibilidad de mezcla</p>
+        <p className="text-[11px] text-[#c4c4d0]">{compatibilidad(sal)}</p>
+      </div>
+      <div>
+        <p className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1">Composición</p>
+        <p className="text-[11px] text-[#a6a6b5] font-mono">{comp || '—'} <span className="text-[#5c5c6b]">· bidón {sal.bidon}{sal.liquido ? ' · líquido' : ''}</span></p>
+      </div>
+      <div>
+        <p className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1.5">Mi inventario (editable)</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <label className="text-[10px] text-[#8f8f9f]">Costo/kg (ARS)
+            <input type="number" min={0} value={costo} onChange={e => setCosto(+e.target.value)} className={`${inp} mt-0.5`} /></label>
+          <label className="text-[10px] text-[#8f8f9f]">Stock que tengo
+            <input type="number" min={0} step={0.1} value={stock} onChange={e => setStock(+e.target.value)} className={`${inp} mt-0.5`} /></label>
+          <label className="text-[10px] text-[#8f8f9f]">Unidad
+            <select value={unidad} onChange={e => setUnidad(e.target.value)} className={`${inp} mt-0.5`}>
+              {['kg', 'g', 'L', 'mL', 'u'].map(u => <option key={u} value={u}>{u}</option>)}
+            </select></label>
+          <label className="text-[10px] text-[#8f8f9f] col-span-2 sm:col-span-1">Nota personal
+            <input value={nota} onChange={e => setNota(e.target.value)} className={`${inp.replace('font-mono tabular-nums', '')} mt-0.5`} /></label>
+        </div>
+      </div>
+      <div className="flex gap-2 justify-end">
+        {sal.custom && (
+          <button onClick={async () => { try { await sustanciasService.eliminar(sal.id); await onDelete(); toast.success('Sustancia eliminada') } catch (e) { toast.error(String(e)) } }}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[12px] text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#ff8a7a]/10">
+            <Trash2 className="w-3.5 h-3.5" /> Eliminar
+          </button>
+        )}
+        <button onClick={guardarFicha} disabled={saving} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] hover:bg-[#a3e635]/25 disabled:opacity-50">
+          <Save className="w-3.5 h-3.5" /> Guardar ficha
+        </button>
       </div>
     </div>
   )
