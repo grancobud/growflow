@@ -655,23 +655,24 @@ export function calcularAjustePH(alcActual: number, alcObjetivo: number, volumen
 // Investigado en foros, patentes y scienceinhydroponics (autor de HydroBuddy).
 // ---------------------------------------------------------------------------
 export interface AditivoEstab {
-  id: string; nombre: string; funcion: string; dosis: string; gPorL: number | null; porque: string; opcional?: boolean
+  id: string; nombre: string; funcion: string; dosis: string; gPorL: number | null; porque: string
+  nivel: 'esencial' | 'opcional' | 'evitar'
 }
 export const ADITIVOS_ESTAB: AditivoEstab[] = [
-  { id: 'citrico', nombre: 'Ácido cítrico', funcion: 'Buffer + quelante + antioxidante', dosis: '1–2 g/L', gPorL: 1.5,
-    porque: 'Baja el pH del concentrado a ~5 (zona estable), quela suave y mantiene el hierro reducido. Triple función.' },
-  { id: 'benzoato', nombre: 'Benzoato de sodio', funcion: 'Conservante / biocida', dosis: '150–250 mg/L (máx 400)', gPorL: 0.2,
-    porque: 'Evita que hongos/bacterias se coman los quelatos y formen barro. Es lo que usan casi todas las marcas y no lo declaran.' },
-  { id: 'ascorbico', nombre: 'Ácido ascórbico (vit. C)', funcion: 'Antioxidante', dosis: '0.1–0.3 g/L', gPorL: 0.2,
-    porque: 'Mantiene el Fe²⁺ reducido para que no se oxide y precipite marrón.', opcional: true },
-  { id: 'xantica', nombre: 'Goma xántica', funcion: 'Anti-sedimentante / suspensión', dosis: '1–2 g/L (0.1–0.2%)', gPorL: 1.5,
-    porque: 'Da cuerpo y evita que las partículas asienten en el fondo del bidón.', opcional: true },
-  { id: 'eddha_add', nombre: 'Quelato de hierro EDDHA', funcion: 'Quelante de hierro', dosis: 'según Fe objetivo', gPorL: null,
-    porque: 'Mantiene el hierro soluble incluso a pH alto. Va en el bidón A con el calcio.' },
-  { id: 'gluconato_add', nombre: 'Gluconato de calcio', funcion: 'Quelante de calcio', dosis: 'según Ca objetivo', gPorL: null,
-    porque: 'Calcio limpio quelatado. El EDTA NO sirve para Ca (prefiere el hierro).' },
-  { id: 'sorbato', nombre: 'Sorbato de potasio', funcion: 'Conservante (alternativa)', dosis: '0.01–1%', gPorL: 1,
-    porque: 'Conservante grado alimenticio, alternativa al benzoato.', opcional: true },
+  { id: 'citrico', nombre: 'Ácido cítrico', funcion: 'Buffer + quelante + antioxidante', dosis: '1–2 g/L', gPorL: 1.5, nivel: 'esencial',
+    porque: 'EL más importante. Baja el pH del concentrado a ~5 (zona estable), quela suave y mantiene el hierro reducido. Triple función en una sola cosa.' },
+  { id: 'benzoato', nombre: 'Benzoato de sodio', funcion: 'Conservante / biocida', dosis: '150–250 mg/L', gPorL: 0.2, nivel: 'esencial',
+    porque: 'El conservante. Sin esto, en semanas se llena de hongos/barro que se comen los quelatos. Es lo que usan las marcas y no lo declaran.' },
+  { id: 'ascorbico', nombre: 'Ácido ascórbico (vit. C)', funcion: 'Antioxidante', dosis: '0.1–0.3 g/L', gPorL: 0.2, nivel: 'opcional',
+    porque: 'SOLO si el hierro se te pone marrón/turbio. Refuerza al cítrico para que el Fe no se oxide. Con cítrico, casi nunca hace falta.' },
+  { id: 'xantica', nombre: 'Goma xántica', funcion: 'Anti-sedimentante / suspensión', dosis: '1–2 g/L (0.1–0.2%)', gPorL: 1.5, nivel: 'evitar',
+    porque: 'NO la uses en un concentrado de sales CLARO: te lo deja gelatinoso al pedo. Solo sirve para suspensiones espesas con partículas.' },
+  { id: 'eddha_add', nombre: 'Quelato de hierro EDDHA', funcion: 'Quelante de hierro', dosis: 'según Fe objetivo', gPorL: null, nivel: 'esencial',
+    porque: 'Mantiene el hierro soluble incluso a pH alto. Ya viene en tus micros; va en el bidón A con el calcio.' },
+  { id: 'gluconato_add', nombre: 'Gluconato de calcio', funcion: 'Quelante de calcio', dosis: 'según Ca objetivo', gPorL: null, nivel: 'opcional',
+    porque: 'Calcio limpio quelatado. El EDTA NO sirve para Ca (prefiere el hierro y lo suelta).' },
+  { id: 'sorbato', nombre: 'Sorbato de potasio', funcion: 'Conservante (alternativa)', dosis: '0.01–1%', gPorL: 1, nivel: 'opcional',
+    porque: 'Alternativa al benzoato si no lo conseguís. Grado alimenticio.' },
 ]
 
 export interface RecomendacionEstab {

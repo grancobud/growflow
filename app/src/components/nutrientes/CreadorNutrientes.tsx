@@ -864,19 +864,30 @@ function EstabilizantesTab({ dosis }: { dosis: ResultadoSal[] }) {
           </label>
         </div>
         <div className="space-y-1.5">
-          {rec.aditivos.map(({ info, cantidad }) => (
-            <div key={info.id} className="rounded-md bg-[#15151d] border border-[#1f1f2b] px-3 py-2">
-              <div className="flex items-center gap-2">
-                <span className="text-[12px] font-medium text-[#d9f99d]">{info.nombre}</span>
-                {info.opcional && <span className="text-[9px] px-1 rounded bg-[#a78bfa]/20 text-[#c4b5fd]">opcional</span>}
-                <span className="ml-auto text-[12px] font-mono tabular-nums font-bold text-[#ececf1]">
-                  {cantidad != null ? `${cantidad} g` : info.dosis}
-                </span>
+          {[...rec.aditivos].sort((a, b) => {
+            const ord = { esencial: 0, opcional: 1, evitar: 2 }
+            return ord[a.info.nivel] - ord[b.info.nivel]
+          }).map(({ info, cantidad }) => {
+            const badge = info.nivel === 'esencial'
+              ? { t: 'esencial', c: '#d9f99d', bg: 'rgba(163,230,53,0.15)' }
+              : info.nivel === 'evitar'
+                ? { t: 'evitar', c: '#ff8a7a', bg: 'rgba(255,138,122,0.12)' }
+                : { t: 'opcional', c: '#c4b5fd', bg: 'rgba(167,139,250,0.18)' }
+            const nombreColor = info.nivel === 'esencial' ? '#d9f99d' : info.nivel === 'evitar' ? '#ff8a7a' : '#a6a6b5'
+            return (
+              <div key={info.id} className="rounded-md bg-[#15151d] border border-[#1f1f2b] px-3 py-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[12px] font-medium" style={{ color: nombreColor }}>{info.nombre}</span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded font-medium" style={{ color: badge.c, background: badge.bg }}>{badge.t}</span>
+                  <span className="ml-auto text-[12px] font-mono tabular-nums font-bold" style={{ color: info.nivel === 'evitar' ? '#ff8a7a' : '#ececf1' }}>
+                    {info.nivel === 'evitar' ? '— no usar —' : (cantidad != null ? `${cantidad} g` : info.dosis)}
+                  </span>
+                </div>
+                <div className="text-[10px] text-[#757584] mt-0.5">{info.funcion} · dosis {info.dosis}</div>
+                <div className="text-[10.5px] text-[#a6a6b5] mt-1">{info.porque}</div>
               </div>
-              <div className="text-[10px] text-[#757584] mt-0.5">{info.funcion} · dosis {info.dosis}</div>
-              <div className="text-[10.5px] text-[#a6a6b5] mt-1">{info.porque}</div>
-            </div>
-          ))}
+            )
+          })}
         </div>
         <p className="text-[10px] text-[#5c5c6b] mt-3">
           Cantidades calculadas para {volumen} L de concentrado. EDDHA y gluconato se dosifican según el Fe/Ca objetivo (ya los tenés en Sustancias).
