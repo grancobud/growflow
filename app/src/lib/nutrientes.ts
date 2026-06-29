@@ -249,6 +249,12 @@ export const SALES_DEFECTO: Sal[] = [
   { id: 'an_sensi_grow_b', nombre: 'AN Sensi Pro Grow B (15-0-0)', bidon: 'A',
     comp: { NO3: 0.14, NH4: 0.01, Ca: 0.18 },
     descripcion: 'Comercial Advanced Nutrients (Sensi Pro Grow B, polvo): es el CALCIO del sistema (nitrato de calcio-amónico doble sal). Va en bidón A. Misma dosis que la Parte A.' },
+  { id: 'an_sensi_bloom_a', nombre: 'AN Sensi Pro Bloom A (~3-16-30)', bidon: 'B',
+    comp: { NH4: 0.02, NO3: 0.01, P: 0.0698, K: 0.249, Mg: 0.012, S: 0.018, Fe: 0.001, Mn: 0.0005, Zn: 0.00015, Cu: 0.0001, B: 0.0002, Mo: 0.0001 },
+    descripcion: 'Comercial Advanced Nutrients (Sensi Pro Bloom A, polvo): base P-K de floración + micros quelatados (3 formas de Fe) + urea. NPK y micros APROXIMADOS (ficha discontinuada, no publicada).' },
+  { id: 'an_sensi_bloom_b', nombre: 'AN Sensi Pro Bloom B (17-0-6)', bidon: 'A',
+    comp: { NO3: 0.15, NH4: 0.02, K: 0.0498, Ca: 0.12 },
+    descripcion: 'Comercial Advanced Nutrients (Sensi Pro Bloom B, polvo): aporta N + calcio + algo de K (nitrato de calcio/potasio). Va en bidón A. NPK 17-0-6 confirmado; Ca estimado.' },
 ]
 
 export type Perfil = Partial<Record<ElementKey, number>> // ppm objetivo
