@@ -364,10 +364,26 @@ export function categoriaSal(sal: Sal): { orden: number; label: string } {
  * por nutriente (como hace cualquier marca pro) y SOLO los micros que se piden.
  * Evita que el solver arrastre elementos no deseados. Devuelve los ids de sal.
  */
-export function kitParaPerfil(p: Perfil): string[] {
+export interface OpcionesKit {
+  feChelate?: string        // id del quelato de hierro a usar (default feeddha)
+  microsQuelatados?: boolean // true = Mn/Zn/Cu EDTA (como las marcas premium); false = sulfatos (barato)
+}
+/** Opciones de sales según cómo formula cada marca (tipo de hierro y micros). */
+export function opcionesDeMarca(salId: string): OpcionesKit {
+  if (salId.startsWith('athena_')) return { feChelate: 'fedtpa', microsQuelatados: true }   // Athena usa Fe-DTPA + micros EDTA
+  if (salId.startsWith('an_sensi_')) return { feChelate: 'feeddha', microsQuelatados: true } // AN: 3 hierros + micros EDTA
+  if (salId.startsWith('ryano_')) return { feChelate: 'feeddha', microsQuelatados: true }    // Ryanodine: Fe-EDDHA + micros EDTA
+  return {} // Jacks/Canna/Plagron: sulfatos + EDDHA (defaults económicos)
+}
+
+export function kitParaPerfil(p: Perfil, opts: OpcionesKit = {}): string[] {
   const has = (k: ElementKey) => (p[k] ?? 0) > 0
   const N = nTotal(p)
   const kit = new Set<string>()
+  const fe = opts.feChelate ?? 'feeddha'
+  const mn = opts.microsQuelatados ? 'mnedta' : 'mnso4'
+  const zn = opts.microsQuelatados ? 'znedta' : 'znso4'
+  const cu = opts.microsQuelatados ? 'cuedta' : 'cuso4'
   // --- Calcio (bidón A) ---
   if (has('Ca')) {
     if (has('NO3') || N > 0) kit.add('cano3_ag')          // Ca + N nítrico (parte A de toda marca)
@@ -392,11 +408,11 @@ export function kitParaPerfil(p: Perfil): string[] {
   if (has('Mg')) kit.add('epsom')
   // --- Azufre, si todavía no hay ninguna fuente ---
   if (has('S') && !kit.has('k2so4') && !kit.has('epsom') && !kit.has('yeso')) kit.add('k2so4')
-  // --- Micros: SOLO el que se pide (nada de arrastre) ---
-  if (has('Fe')) kit.add('feeddha')
-  if (has('Mn')) kit.add('mnso4')
-  if (has('Zn')) kit.add('znso4')
-  if (has('Cu')) kit.add('cuso4')
+  // --- Micros: SOLO el que se pide, con el quelato/forma de la marca ---
+  if (has('Fe')) kit.add(fe)
+  if (has('Mn')) kit.add(mn)
+  if (has('Zn')) kit.add(zn)
+  if (has('Cu')) kit.add(cu)
   if (has('B')) kit.add('boric')
   if (has('Mo')) kit.add('namolib')
   return [...kit]

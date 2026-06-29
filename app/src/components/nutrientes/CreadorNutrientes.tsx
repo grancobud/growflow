@@ -9,7 +9,7 @@ import {
   SALES_DEFECTO, ELEMENTOS, PRESETS, calcularReceta, ecAprox, nTotal,
   calcularConcentrados, calcularRatios, calcularCosto,
   redondearBalanza, AGENTES_PH, calcularAjustePH, oxidoAElemental, OXIDOS,
-  recomendarEstabilizantes, esComercial, marcaDe, perfilDesdeProducto, categoriaSal, KITS_SALES, kitParaPerfil,
+  recomendarEstabilizantes, esComercial, marcaDe, perfilDesdeProducto, categoriaSal, KITS_SALES, kitParaPerfil, opcionesDeMarca,
   perfilesNutrientesService, sustanciasService, inventarioService, aplicarInventario,
   compatibilidad, estadoRango, RANGOS_FLORA_COCO,
   type ElementKey, type Perfil, type PerfilGuardado, type Sal, type Bidon,
@@ -167,10 +167,10 @@ export default function CreadorNutrientes() {
         <ConcentradosTab {...{ concentrados, factor, setFactor, volBidon, setVolBidon, resolucion, setResolucion, dosisCount: res.dosis.length }} />
       )}
       {sub === 'clonar' && (
-        <ClonarTab productos={salesTodas.filter(esComercial)} onUsar={(p) => {
+        <ClonarTab productos={salesTodas.filter(esComercial)} onUsar={(p, salId) => {
           setPerfil(p); setPresetId('')
-          // selector inteligente: sales limpias exactas para clonar ese producto
-          setActivas(new Set(kitParaPerfil(p)))
+          // sales limpias con el quelato/forma de micros de ESA marca (clon fiel)
+          setActivas(new Set(kitParaPerfil(p, opcionesDeMarca(salId))))
           setRangos({})
           setSub('calc')
         }} />
@@ -773,7 +773,7 @@ function RatiosTab({ ratios, res, costo }: { ratios: Ratios; res: Resultado; cos
 }
 
 // ===================== CLONAR MARCA =====================
-function ClonarTab({ productos, onUsar }: { productos: Sal[]; onUsar: (p: Perfil) => void }) {
+function ClonarTab({ productos, onUsar }: { productos: Sal[]; onUsar: (p: Perfil, salId: string) => void }) {
   const [id, setId] = useState(productos[0]?.id ?? '')
   const [dosis, setDosis] = useState(3)
   const prod = productos.find(p => p.id === id)
@@ -819,7 +819,7 @@ function ClonarTab({ productos, onUsar }: { productos: Sal[]; onUsar: (p: Perfil
                 {Object.keys(perfil).length === 0 && <span className="text-[11px] text-[#5c5c6b]">Este producto no aporta nutrientes (es un aditivo).</span>}
               </div>
             </div>
-            <button onClick={() => onUsar(perfil)} disabled={Object.keys(perfil).length === 0}
+            <button onClick={() => onUsar(perfil, prod.id)} disabled={Object.keys(perfil).length === 0}
               className="mt-3 flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-medium bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] hover:bg-[#a3e635]/25 disabled:opacity-50">
               <Copy className="w-3.5 h-3.5" /> Usar como objetivo y clonar
             </button>
