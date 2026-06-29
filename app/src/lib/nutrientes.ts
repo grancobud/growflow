@@ -274,6 +274,20 @@ export const SALES_DEFECTO: Sal[] = [
     descripcion: 'Comercial Athena: aporta silicio (silicato de potasio) para estructura/resistencia y ayuda a balancear pH. Va aparte (sube pH). NPK 0-0-2.' },
   { id: 'athena_cleanse', nombre: 'Athena Cleanse (limpieza)', formula: 'HOCl', bidon: 'C', aditivo: true, comp: {},
     descripcion: 'Comercial Athena: NO es nutriente. Ácido hipocloroso (HOCl) derivado de sal, limpia raíces/sistema de riego y previene acumulación mineral/biofilm. Es un sanitizante, no aporta nada nutritivo.' },
+
+  // --- Jacks 321 (JR Peters) — sistema de 3 sales ---
+  { id: 'jacks_a', nombre: 'Jacks 5-12-26 (Parte A)', bidon: 'B',
+    comp: { NO3: 0.05, P: 0.0524, K: 0.2158, Mg: 0.03, S: 0.013, Fe: 0.0015, Mn: 0.0005, Zn: 0.0005, Cu: 0.0005, B: 0.0002, Mo: 0.00001 },
+    descripcion: 'Comercial Jacks 321 (JR Peters): la sal compuesta base (P-K-Mg + micros). Se combina con nitrato de calcio (parte 2) y Epsom (parte 3). Ratio clásico 3.6g A : 2.4g CaNO3 : 1.2g Epsom por galón.' },
+  // (Las partes 2 y 3 de Jacks ya están: 'cano3_ag' nitrato de calcio + 'epsom')
+
+  // --- Canna Coco A+B (líquido) — valores aproximados de etiqueta ---
+  { id: 'canna_coco_a', nombre: 'Canna Coco A (aprox)', bidon: 'A', liquido: true, densidad: 1.1,
+    comp: { NO3: 0.015, NH4: 0.003, Ca: 0.015, K: 0.01 },
+    descripcion: 'Comercial Canna Coco A (líquido): aporta calcio + nitrógeno (parte A). Valores APROXIMADOS (Canna no publica análisis detallado). Se usa en partes iguales con B.' },
+  { id: 'canna_coco_b', nombre: 'Canna Coco B (aprox)', bidon: 'B', liquido: true, densidad: 1.1,
+    comp: { P: 0.008, K: 0.02, Mg: 0.005, S: 0.007, Fe: 0.0002, Mn: 0.0001, Zn: 0.00005, B: 0.0001 },
+    descripcion: 'Comercial Canna Coco B (líquido): P-K-Mg-S + micros (parte B). Valores APROXIMADOS. Va con Canna Coco A en partes iguales.' },
 ]
 
 export type Perfil = Partial<Record<ElementKey, number>> // ppm objetivo
