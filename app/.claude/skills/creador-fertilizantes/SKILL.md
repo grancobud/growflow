@@ -49,6 +49,9 @@ Precios actuales y proveedores: ver memoria `reference_precios_sales_fertirriego
 - `KITS_SALES`: kits manuales (limpio/económico/finish). El finish NO debe incluir sulfatos de micros ni Epsom (arrastran Mn/Zn/Mg); el S sale de K₂SO₄+yeso.
 - Rangos `RANGOS_FLORA_COCO` son referencia de FLORA → solo se muestran en veg/flora (en finish se limpian para no confundir).
 
+## Clon fiel por marca (opcionesDeMarca)
+`kitParaPerfil(perfil, opts)` acepta `{feChelate, microsQuelatados}`. `opcionesDeMarca(salId)` por prefijo: Athena→Fe-DTPA+micros EDTA; AN/Ryanodine→Fe-EDDHA+micros EDTA; Jacks/Canna/Plagron→sulfatos+EDDHA. La Clonar pasa el id del producto → usa el hierro/micros exactos de esa marca. Las 6 sales base son iguales en todas (cano3+mkp+kno3+k2so4+epsom+micros); la diferencia real es el quelato de hierro y si micros son EDTA vs sulfato. NH4+P → MAP cubre el amoniacal. Si→ksilic. Cl/Na no se sourcean (intencional, clon más limpio).
+
 ## Cómo formula cada marca (para clonar fiel)
 - **Athena Pro Line**: Core (14-0-0, nitrato de Ca + micros EDTA, bidón A, SIEMPRE) + Grow (2-8-20) o Bloom (0-12-24) (MKP+K₂SO₄+Epsom+Fe-DTPA, bidón B). Fade = finish de Ca (CaCl₂+micros, sin N, mete Cl). Balance=silicato K. Cleanse=HOCl (sanitizante).
 - **Advanced Nutrients Sensi Pro** (polvo, discontinuado): A=base PK+micros (3 Fe quelatos)+urea; B=el CALCIO (nitrato Ca-amónico). Grow 9-10-28/15-0-0, Bloom ~3-16-30/17-0-6. Micros estimados.
