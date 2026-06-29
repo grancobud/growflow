@@ -389,12 +389,13 @@ export function kitParaPerfil(p: Perfil, opts: OpcionesKit = {}): string[] {
     if (has('NO3') || N > 0) kit.add('cano3_ag')          // Ca + N nítrico (parte A de toda marca)
     else { kit.add('cagluc'); if (has('S')) kit.add('yeso') } // finish: Ca limpio sin N
   }
-  // --- Fósforo (MKP limpio) + N amoniacal (MAP aporta NH4+P; el solver balancea) ---
-  if (has('P')) {
-    kit.add('mkp')
-    if (has('NH4')) kit.add('map')   // MAP cubre el amoniacal sin perder el P
-  } else if (has('NH4')) {
-    kit.add('amsulf')                // NH4 sin P → sulfato de amonio
+  // --- Fósforo (MKP limpio, cero N) ---
+  if (has('P')) kit.add('mkp')
+  // --- N amoniacal: sulfato de amonio (NH4+S) si hay S; MAP si hay P sin S ---
+  if (has('NH4')) {
+    if (has('S')) kit.add('amsulf')       // NH4 + S sin tocar el P (lo más limpio)
+    else if (has('P')) kit.add('map')     // NH4 + P cuando no hay azufre
+    else kit.add('amsulf')                // NH4 solo
   }
   // --- Potasio ---
   if (has('K')) {
@@ -505,7 +506,7 @@ function nnls(A: number[][], b: number[], iters = 1000): number[] {
       x[j] = x[j] * (num / (denom + eps))
     }
   }
-  return x.map(v => (v < 1e-4 ? 0 : v))
+  return x.map(v => (v < 1e-6 ? 0 : v)) // umbral bajo para no perder micros traza (Mo)
 }
 
 /** Calcula gramos/L de cada sal para acercarse al perfil objetivo. */
