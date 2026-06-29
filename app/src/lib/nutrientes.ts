@@ -266,9 +266,9 @@ export const SALES_DEFECTO: Sal[] = [
   { id: 'athena_pro_bloom', nombre: 'Athena Pro Bloom (0-12-24)', bidon: 'B',
     comp: { P: 0.0524, K: 0.1992, Mg: 0.015, S: 0.04, Fe: 0.001 },
     descripcion: 'Comercial Athena Pro Line: base de floración P-K. NPK 0-12-24 confirmado; Mg/S estimados. Va en bidón B, con Pro Core.' },
-  { id: 'athena_fade', nombre: 'Athena Fade (finalizador Ca)', bidon: 'A',
-    comp: { Ca: 0.04, Cl: 0.07, Fe: 0.0005, Mn: 0.0003, Zn: 0.0001, B: 0.0002 },
-    descripcion: 'Comercial Athena: finalizador SIN nitrógeno que aporta calcio + micros (cloruro de calcio + micros quelatados). Reemplaza al Pro Core en las últimas 3 semanas. OJO: mete cloro (Cl ~7%). Ca/Cl de análisis de growers.' },
+  { id: 'athena_fade', nombre: 'Athena Fade (finalizador Ca + micros)', bidon: 'A',
+    comp: { Ca: 0.04, Cl: 0.07, Fe: 0.0008, Mn: 0.0004, Zn: 0.0002, Cu: 0.0001, B: 0.0003, Mo: 0.00005 },
+    descripcion: 'Comercial Athena: finalizador SIN nitrógeno que aporta calcio + micros quelatados completos (cloruro de calcio + Fe/Mn/Zn/Cu-EDTA + B + Mo). Reemplaza al Pro Core en las últimas 3 semanas, junto a un PK (Pro Bloom). OJO: mete cloro (Cl ~7%). Para un finish completo: Fade + base PK + Mg.' },
   { id: 'athena_balance', nombre: 'Athena Balance (0-0-2)', bidon: 'C',
     comp: { K: 0.0166, Si: 0.01 },
     descripcion: 'Comercial Athena: aporta silicio (silicato de potasio) para estructura/resistencia y ayuda a balancear pH. Va aparte (sube pH). NPK 0-0-2.' },
@@ -412,8 +412,10 @@ export const PRESETS: PresetPerfil[] = [
   { id: 'plantula', nombre: 'Plántula/clon', desc: 'EC ~0.6', perfil: { NO3: 70, NH4: 5, P: 30, K: 90, Ca: 80, Mg: 30, S: 40, Fe: 1.5, Mn: 0.3, Zn: 0.15, B: 0.3, Cu: 0.05, Mo: 0.05 } },
   { id: 'veg', nombre: 'Vegetativo (coco)', desc: 'EC ~1.4', perfil: { NO3: 140, NH4: 15, P: 50, K: 180, Ca: 150, Mg: 50, S: 70, Fe: 2, Mn: 0.5, Zn: 0.2, B: 0.4, Cu: 0.08, Mo: 0.05 } },
   { id: 'flora', nombre: 'Floración (coco)', desc: 'EC ~2.0', perfil: { NO3: 125, NH4: 15, P: 55, K: 200, Ca: 170, Mg: 55, S: 80, Fe: 2, Mn: 0.5, Zn: 0.2, B: 0.4, Cu: 0.08, Mo: 0.05 } },
-  { id: 'finish', nombre: 'Finalización (clon Finis)', desc: '0-15-25, sin N', perfil: { P: 60, K: 187, Ca: 98, S: 114 } },
-  { id: 'finishlimpio', nombre: 'Finish Ca limpio', desc: 'PK + Ca quelatado bajo', perfil: { P: 60, K: 187, Ca: 30, S: 90 } },
+  { id: 'finish', nombre: 'Finalización completa (sin N)', desc: 'PK + Ca + Mg + micros, cero N. Como Finis + Fade + micros juntos.',
+    perfil: { P: 60, K: 187, Ca: 110, Mg: 45, S: 90, Fe: 1.5, Mn: 0.4, Zn: 0.15, B: 0.3, Cu: 0.05, Mo: 0.04 } },
+  { id: 'fade', nombre: 'Fade Athena (Ca + micros)', desc: 'El aporte del Fade: calcio + micros sin N (se suma a un PK). Reemplaza al Pro Core en finish.',
+    perfil: { Ca: 120, Mg: 40, Fe: 1.5, Mn: 0.4, Zn: 0.15, B: 0.3, Cu: 0.05, Mo: 0.04 } },
 ]
 
 // Rangos objetivo min/max por elemento (estilo NuteMix). Verde si caés dentro.
