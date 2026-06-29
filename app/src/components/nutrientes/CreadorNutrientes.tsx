@@ -376,13 +376,25 @@ function SugerenciaSalesActivas({ salesTodas, activas, setActivas }: { salesToda
 function SustanciasTab({ salesTodas, activas, setActivas, recargarCustoms, recargarInventario }: { salesTodas: Sal[]; activas: Set<string>; setActivas: SetSet; recargarCustoms: () => void; recargarInventario: () => void }) {
   const [form, setForm] = useState(false)
   const [abierta, setAbierta] = useState<string | null>(null)
+  const [soloConPrecio, setSoloConPrecio] = useState(true)
+  // Visibles: con el filtro ON, oculta las sales sin precio (que Gastón no usa),
+  // pero mantiene siempre los productos comerciales (para clonar).
+  const visibles = soloConPrecio
+    ? salesTodas.filter(s => (s.costoKg != null && s.costoKg > 0) || esComercial(s))
+    : salesTodas
   return (
     <div className="space-y-4">
       <div className={card}>
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
           <FlaskRound className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Sustancias disponibles</h3>
-          <span className="ml-auto text-[10px] text-[#5c5c6b]">{activas.size}/{salesTodas.length} activas</span>
+          <span className="ml-auto text-[10px] text-[#5c5c6b]">{visibles.length} visibles</span>
+          <button onClick={() => setSoloConPrecio(v => !v)}
+            className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] border transition-colors ${
+              soloConPrecio ? 'bg-[#a3e635]/15 border-[#404d20] text-[#d9f99d]' : 'bg-[#15151d] border-[#1f1f2b] text-[#8f8f9f] hover:text-[#d4d4dd]'
+            }`} title="Oculta las sales sin precio cargado">
+            {soloConPrecio ? '✓ Solo con precio' : 'Mostrar todas'}
+          </button>
           <button onClick={() => setForm(f => !f)} className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] hover:bg-[#a3e635]/25 transition-colors">
             <Plus className="w-3.5 h-3.5" /> Nueva
           </button>
@@ -391,7 +403,7 @@ function SustanciasTab({ salesTodas, activas, setActivas, recargarCustoms, recar
         {(() => {
           // agrupar por categoría, ordenadas
           const grupos = new Map<number, { label: string; items: Sal[] }>()
-          for (const s of salesTodas) {
+          for (const s of visibles) {
             const cat = categoriaSal(s)
             if (!grupos.has(cat.orden)) grupos.set(cat.orden, { label: cat.label, items: [] })
             grupos.get(cat.orden)!.items.push(s)
