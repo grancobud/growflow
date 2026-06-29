@@ -383,6 +383,8 @@ export function kitParaPerfil(p: Perfil): string[] {
     if (has('S')) kit.add('k2so4')             // K + S
     if (!has('S') && N === 0) kit.add('khco3') // K sin S ni N (finish)
   }
+  // --- Silicio (silicato de potasio; va en bidón aparte, sube pH) ---
+  if (has('Si')) kit.add('ksilic')
   // --- Magnesio ---
   if (has('Mg')) kit.add('epsom')
   // --- Azufre, si todavía no hay ninguna fuente ---
