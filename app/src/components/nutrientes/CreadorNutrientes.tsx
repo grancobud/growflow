@@ -1,47 +1,96 @@
 import { useEffect, useMemo, useState } from 'react'
-import { FlaskConical, Beaker, Droplets, ChevronDown, Sparkles, AlertTriangle, Save, FolderOpen, Trash2 } from 'lucide-react'
+import {
+  FlaskConical, Beaker, Droplets, ChevronDown, Sparkles, AlertTriangle,
+  Save, FolderOpen, Trash2, Calculator, FlaskRound, Layers, Scale, Plus, DollarSign,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import {
-  SALES, ELEMENTOS, PRESETS, calcularReceta, ecAprox, perfilesNutrientesService,
-  type ElementKey, type Perfil, type PerfilGuardado,
+  SALES_DEFECTO, ELEMENTOS, PRESETS, calcularReceta, ecAprox, nTotal,
+  calcularConcentrados, calcularRatios, calcularCosto,
+  perfilesNutrientesService, sustanciasService,
+  type ElementKey, type Perfil, type PerfilGuardado, type Sal, type Bidon,
+  type Resultado, type ResultadoSal, type BidonConcentrado, type Ratios,
 } from '../../lib/nutrientes'
 
-function colorDelta(logrado: number, obj: number) {
-  if (obj <= 0) return { c: '#757584', bg: 'transparent' }
-  const r = logrado / obj
-  if (r < 0.85) return { c: '#60a5fa', bg: 'rgba(96,165,250,0.08)' }   // corto
-  if (r > 1.15) return { c: '#ff8a7a', bg: 'rgba(255,138,122,0.08)' }  // pasado
-  return { c: '#d9f99d', bg: 'rgba(63,176,116,0.10)' }                  // ok
+type SetSet = React.Dispatch<React.SetStateAction<Set<string>>>
+interface CalcTabProps {
+  perfil: Perfil; presetId: string; setPreset: (id: string) => void; setPpm: (k: ElementKey, v: number) => void
+  macros: Elem[]; micros: Elem[]; res: Resultado; ec: number; salesTodas: Sal[]; activas: Set<string>; setActivas: SetSet
+  guardados: PerfilGuardado[]; nombreNuevo: string; setNombreNuevo: (v: string) => void; guardando: boolean
+  guardarPerfil: () => void; cargarPerfil: (g: PerfilGuardado) => void; borrarPerfil: (g: PerfilGuardado) => void
 }
+type CostoResultado = { porLitro: number; detalle: { sal: Sal; costo: number }[] }
 
-const BIDON_INFO: Record<'A' | 'B' | 'C', { label: string; color: string }> = {
+type SubTab = 'calc' | 'sustancias' | 'agua' | 'concentrados' | 'ratios'
+
+const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
+  { id: 'calc', label: 'Calculadora', icon: Calculator },
+  { id: 'sustancias', label: 'Sustancias', icon: FlaskRound },
+  { id: 'agua', label: 'Agua', icon: Droplets },
+  { id: 'concentrados', label: 'Concentrados A/B', icon: Layers },
+  { id: 'ratios', label: 'Ratios y costo', icon: Scale },
+]
+
+const BIDON_INFO: Record<Bidon, { label: string; color: string }> = {
   A: { label: 'Bidón A · Calcio', color: '#a78bfa' },
   B: { label: 'Bidón B · Base/Sulfatos', color: '#a3e635' },
   C: { label: 'Bidón C · Micros', color: '#60a5fa' },
 }
 
-export default function CreadorNutrientes() {
-  const [perfil, setPerfil] = useState<Perfil>(PRESETS[1].perfil)
-  const [presetId, setPresetId] = useState(PRESETS[1].id)
-  const [agua, setAgua] = useState<Perfil>({})
-  const [aguaOpen, setAguaOpen] = useState(false)
-  const [salesOpen, setSalesOpen] = useState(false)
-  const [activas, setActivas] = useState<Set<string>>(
-    new Set(['cano3', 'mkp', 'k2so4', 'epsom', 'cagluc', 'yeso', 'khco3', 'feeddha', 'mnso4', 'znso4', 'boric'])
-  )
+function colorDelta(logrado: number, obj: number) {
+  if (obj <= 0) return { c: '#757584', bg: 'transparent' }
+  const r = logrado / obj
+  if (r < 0.85) return { c: '#60a5fa', bg: 'rgba(96,165,250,0.08)' }
+  if (r > 1.15) return { c: '#ff8a7a', bg: 'rgba(255,138,122,0.08)' }
+  return { c: '#d9f99d', bg: 'rgba(63,176,116,0.10)' }
+}
 
+const card = 'rounded-xl bg-[#101016] border border-[#1f1f2b] p-4'
+const inp = 'w-full bg-[#15151d] border border-[#1f1f2b] rounded-md px-2 py-1 text-[12px] text-[#ececf1] font-mono tabular-nums focus:border-[#404d20] outline-none'
+
+export default function CreadorNutrientes() {
+  const [sub, setSub] = useState<SubTab>('calc')
+
+  // estado compartido
+  const [perfil, setPerfil] = useState<Perfil>(PRESETS[2].perfil)
+  const [presetId, setPresetId] = useState(PRESETS[2].id)
+  const [agua, setAgua] = useState<Perfil>({})
+  const [activas, setActivas] = useState<Set<string>>(new Set([
+    'cano3_ag', 'kno3', 'mkp', 'k2so4', 'epsom', 'cagluc', 'yeso', 'khco3',
+    'feeddha', 'mnso4', 'znso4', 'cuso4', 'boric', 'namolib',
+  ]))
+  const [customs, setCustoms] = useState<Sal[]>([])
   const [guardados, setGuardados] = useState<PerfilGuardado[]>([])
   const [nombreNuevo, setNombreNuevo] = useState('')
   const [guardando, setGuardando] = useState(false)
+  const [factor, setFactor] = useState(100)
+  const [volBidon, setVolBidon] = useState(1)
 
-  const salesDisp = useMemo(() => SALES.filter(s => activas.has(s.id)), [activas])
+  const salesTodas = useMemo(() => [...SALES_DEFECTO, ...customs], [customs])
+  const salesDisp = useMemo(() => salesTodas.filter(s => activas.has(s.id)), [salesTodas, activas])
   const res = useMemo(() => calcularReceta(perfil, salesDisp, agua), [perfil, salesDisp, agua])
   const ec = useMemo(() => ecAprox(res.ppmLogrado), [res])
+  const concentrados = useMemo(() => calcularConcentrados(res.dosis, factor, volBidon), [res, factor, volBidon])
+  const ratios = useMemo(() => calcularRatios(res.ppmLogrado), [res])
+  const costo = useMemo(() => calcularCosto(res.dosis), [res])
+
+  const macros = ELEMENTOS.filter(e => e.grupo === 'macro')
+  const micros = ELEMENTOS.filter(e => e.grupo === 'micro')
+  const otros = ELEMENTOS.filter(e => e.grupo === 'otro')
 
   async function recargarGuardados() {
     try { setGuardados(await perfilesNutrientesService.list()) } catch { /* offline */ }
   }
-  useEffect(() => { recargarGuardados() }, [])
+  async function recargarCustoms() {
+    try { setCustoms(await sustanciasService.list()) } catch { /* offline */ }
+  }
+  useEffect(() => { recargarGuardados(); recargarCustoms() }, [])
+
+  function setPreset(id: string) {
+    const p = PRESETS.find(x => x.id === id)
+    if (p) { setPerfil({ ...p.perfil }); setPresetId(id) }
+  }
+  function setPpm(k: ElementKey, v: number) { setPerfil(prev => ({ ...prev, [k]: v })); setPresetId('') }
 
   async function guardarPerfil() {
     const nombre = nombreNuevo.trim()
@@ -49,71 +98,85 @@ export default function CreadorNutrientes() {
     setGuardando(true)
     try {
       await perfilesNutrientesService.crear({ nombre, perfil, agua, sales: [...activas] })
-      setNombreNuevo('')
-      await recargarGuardados()
-      toast.success(`Perfil "${nombre}" guardado`)
-    } catch (e) {
-      toast.error('No se pudo guardar: ' + (e instanceof Error ? e.message : String(e)))
-    } finally { setGuardando(false) }
+      setNombreNuevo(''); await recargarGuardados(); toast.success(`Perfil "${nombre}" guardado`)
+    } catch (e) { toast.error('No se pudo guardar: ' + (e instanceof Error ? e.message : String(e))) }
+    finally { setGuardando(false) }
   }
-
   function cargarPerfil(g: PerfilGuardado) {
-    setPerfil({ ...g.perfil })
-    setAgua({ ...(g.agua ?? {}) })
+    setPerfil({ ...g.perfil }); setAgua({ ...(g.agua ?? {}) })
     if (g.sales?.length) setActivas(new Set(g.sales))
-    setPresetId('')
-    toast.success(`Cargado: ${g.nombre}`)
+    setPresetId(''); toast.success(`Cargado: ${g.nombre}`)
   }
-
   async function borrarPerfil(g: PerfilGuardado) {
-    try {
-      await perfilesNutrientesService.eliminar(g.id)
-      await recargarGuardados()
-      toast.success('Perfil eliminado')
-    } catch (e) {
-      toast.error('No se pudo eliminar: ' + (e instanceof Error ? e.message : String(e)))
-    }
+    try { await perfilesNutrientesService.eliminar(g.id); await recargarGuardados(); toast.success('Perfil eliminado') }
+    catch (e) { toast.error('No se pudo eliminar: ' + (e instanceof Error ? e.message : String(e))) }
   }
-
-  const macros = ELEMENTOS.filter(e => e.grupo === 'macro')
-  const micros = ELEMENTOS.filter(e => e.grupo === 'micro')
-
-  function setPreset(id: string) {
-    const p = PRESETS.find(x => x.id === id)
-    if (p) { setPerfil({ ...p.perfil }); setPresetId(id) }
-  }
-  function setPpm(k: ElementKey, v: number) {
-    setPerfil(prev => ({ ...prev, [k]: v })); setPresetId('')
-  }
-
-  const porBidon = (['A', 'B', 'C'] as const).map(b => ({
-    bidon: b, items: res.dosis.filter(d => d.sal.bidon === b),
-  })).filter(g => g.items.length > 0)
-
-  const hayPrecipitacion = res.dosis.some(d => d.sal.bidon === 'A' && (d.sal.comp.Ca ?? 0) > 0)
-    && res.dosis.some(d => (d.sal.comp.P ?? 0) > 0 || (d.sal.comp.S ?? 0) > 0)
 
   return (
-    <div className="space-y-4 sm:space-y-5">
+    <div className="space-y-4">
+      {/* Sub-tabs */}
+      <div className="flex gap-1 flex-wrap border-b border-[#1f1f2b] -mt-1">
+        {SUBTABS.map(t => {
+          const Icon = t.icon, on = sub === t.id
+          return (
+            <button key={t.id} onClick={() => setSub(t.id)}
+              className={`flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium border-b-2 transition-colors ${
+                on ? 'border-[#a3e635] text-[#d9f99d]' : 'border-transparent text-[#8f8f9f] hover:text-[#d4d4dd]'
+              }`}>
+              <Icon className="w-3.5 h-3.5" strokeWidth={1.8} /> {t.label}
+            </button>
+          )
+        })}
+      </div>
+
+      {sub === 'calc' && (
+        <CalcTab {...{ perfil, presetId, setPreset, setPpm, macros, micros, res, ec, salesTodas, activas, setActivas,
+          guardados, nombreNuevo, setNombreNuevo, guardando, guardarPerfil, cargarPerfil, borrarPerfil }} />
+      )}
+      {sub === 'sustancias' && (
+        <SustanciasTab {...{ salesTodas, activas, setActivas, customs, recargarCustoms }} />
+      )}
+      {sub === 'agua' && (
+        <AguaTab {...{ agua, setAgua, macros, micros, otros }} />
+      )}
+      {sub === 'concentrados' && (
+        <ConcentradosTab {...{ concentrados, factor, setFactor, volBidon, setVolBidon, dosisCount: res.dosis.length }} />
+      )}
+      {sub === 'ratios' && (
+        <RatiosTab {...{ ratios, res, costo }} />
+      )}
+    </div>
+  )
+}
+
+// ===================== CALCULADORA =====================
+function CalcTab(p: CalcTabProps) {
+  const { perfil, presetId, setPreset, setPpm, macros, micros, res, ec, salesTodas, activas, setActivas,
+    guardados, nombreNuevo, setNombreNuevo, guardando, guardarPerfil, cargarPerfil, borrarPerfil } = p
+
+  const porBidon = (['A', 'B', 'C'] as Bidon[]).map(b => ({
+    bidon: b, items: res.dosis.filter((d: ResultadoSal) => d.sal.bidon === b),
+  })).filter(g => g.items.length > 0)
+  const nLog = nTotal(res.ppmLogrado)
+
+  return (
+    <div className="space-y-4">
       {/* Presets */}
-      <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4">
+      <div className={card}>
         <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-2">Perfil objetivo</p>
         <div className="flex flex-wrap gap-1.5">
-          {PRESETS.map(p => (
-            <button key={p.id} onClick={() => setPreset(p.id)}
+          {PRESETS.map(pr => (
+            <button key={pr.id} onClick={() => setPreset(pr.id)} title={pr.desc}
               className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors ${
-                presetId === p.id
-                  ? 'bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d]'
+                presetId === pr.id ? 'bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d]'
                   : 'bg-[#15151d] border border-[#1f1f2b] text-[#8f8f9f] hover:border-[#2a2a3a] hover:text-[#d4d4dd]'
-              }`} title={p.desc}>
-              {p.nombre}
-            </button>
+              }`}>{pr.nombre}</button>
           ))}
         </div>
       </div>
 
-      {/* Guardar / cargar perfiles */}
-      <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4">
+      {/* Guardar/cargar */}
+      <div className={card}>
         <div className="flex items-center gap-2 mb-3">
           <Save className="w-4 h-4 text-[#a78bfa]" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Mis perfiles guardados</h3>
@@ -131,15 +194,13 @@ export default function CreadorNutrientes() {
         </div>
         {guardados.length > 0 && (
           <div className="mt-3 space-y-1">
-            {guardados.map(g => (
+            {guardados.map((g: PerfilGuardado) => (
               <div key={g.id} className="flex items-center gap-2 bg-[#15151d] border border-[#1f1f2b] rounded-md px-2.5 py-1.5">
                 <span className="text-[11.5px] text-[#d4d4dd] flex-1 min-w-0 truncate">{g.nombre}</span>
-                <button onClick={() => cargarPerfil(g)} title="Cargar"
-                  className="flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] text-[#8f8f9f] hover:text-[#d9f99d] hover:bg-[#a3e635]/10 transition-colors">
+                <button onClick={() => cargarPerfil(g)} className="flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] text-[#8f8f9f] hover:text-[#d9f99d] hover:bg-[#a3e635]/10 transition-colors">
                   <FolderOpen className="w-3.5 h-3.5" strokeWidth={1.8} /> Cargar
                 </button>
-                <button onClick={() => borrarPerfil(g)} title="Eliminar"
-                  className="p-1 rounded text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#ff8a7a]/10 transition-colors">
+                <button onClick={() => borrarPerfil(g)} className="p-1 rounded text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#ff8a7a]/10 transition-colors">
                   <Trash2 className="w-3.5 h-3.5" strokeWidth={1.8} />
                 </button>
               </div>
@@ -149,62 +210,54 @@ export default function CreadorNutrientes() {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-4">
-        {/* Objetivo editable */}
-        <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4">
+        {/* Objetivo */}
+        <div className={card}>
           <div className="flex items-center gap-2 mb-3">
             <Beaker className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
             <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Objetivo (ppm)</h3>
-            <span className="ml-auto text-[10px] text-[#5c5c6b]">editá los valores</span>
+            <span className="ml-auto text-[10px] text-[#5c5c6b]">N total: {nLog.toFixed(0)}</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {macros.map(e => (
+            {macros.map((e: Elem) => (
               <label key={e.key} className="block">
-                <span className="text-[10px] text-[#8f8f9f]">{e.key} · {e.label}</span>
+                <span className="text-[10px] text-[#8f8f9f]">{e.label}</span>
                 <input type="number" min={0} step={1} value={perfil[e.key] ?? 0}
-                  onChange={ev => setPpm(e.key, +ev.target.value)}
-                  className="w-full mt-0.5 bg-[#15151d] border border-[#1f1f2b] rounded-md px-2 py-1 text-[12px] text-[#ececf1] font-mono tabular-nums focus:border-[#404d20] outline-none" />
+                  onChange={ev => setPpm(e.key, +ev.target.value)} className={inp} />
               </label>
             ))}
           </div>
-          <details className="mt-3 group">
+          <details className="mt-3 group" open>
             <summary className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] cursor-pointer flex items-center gap-1">
               <ChevronDown className="w-3 h-3 group-open:rotate-180 transition-transform" /> Micros (ppm)
             </summary>
             <div className="grid grid-cols-3 gap-2 mt-2">
-              {micros.map(e => (
+              {micros.map((e: Elem) => (
                 <label key={e.key} className="block">
                   <span className="text-[10px] text-[#8f8f9f]">{e.key}</span>
                   <input type="number" min={0} step={0.1} value={perfil[e.key] ?? 0}
-                    onChange={ev => setPpm(e.key, +ev.target.value)}
-                    className="w-full mt-0.5 bg-[#15151d] border border-[#1f1f2b] rounded-md px-2 py-1 text-[12px] text-[#ececf1] font-mono tabular-nums focus:border-[#404d20] outline-none" />
+                    onChange={ev => setPpm(e.key, +ev.target.value)} className={inp} />
                 </label>
               ))}
             </div>
           </details>
         </div>
 
-        {/* Resultado: dosis */}
-        <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4">
+        {/* Receta */}
+        <div className={card}>
           <div className="flex items-center gap-2 mb-3">
             <FlaskConical className="w-4 h-4 text-[#a78bfa]" strokeWidth={1.8} />
-            <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Receta · gramos por litro</h3>
-            <span className="ml-auto text-[11px] font-mono tabular-nums px-2 py-0.5 rounded border border-[#404d20] bg-[#a3e635]/10 text-[#d9f99d]">
-              EC ≈ {ec}
-            </span>
+            <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Receta · g/L</h3>
+            <span className="ml-auto text-[11px] font-mono tabular-nums px-2 py-0.5 rounded border border-[#404d20] bg-[#a3e635]/10 text-[#d9f99d]">EC ≈ {ec}</span>
           </div>
           {porBidon.length === 0 ? (
-            <p className="text-[12px] text-[#5c5c6b] py-6 text-center">
-              No hay sales que cubran este objetivo. Activá más sales abajo.
-            </p>
+            <p className="text-[12px] text-[#5c5c6b] py-6 text-center">Sin sales que cubran el objetivo. Activá más en "Sustancias".</p>
           ) : (
             <div className="space-y-3">
               {porBidon.map(g => (
                 <div key={g.bidon}>
-                  <p className="text-[10px] uppercase tracking-[0.12em] font-medium mb-1.5" style={{ color: BIDON_INFO[g.bidon].color }}>
-                    {BIDON_INFO[g.bidon].label}
-                  </p>
+                  <p className="text-[10px] uppercase tracking-[0.12em] font-medium mb-1.5" style={{ color: BIDON_INFO[g.bidon].color }}>{BIDON_INFO[g.bidon].label}</p>
                   <div className="space-y-1">
-                    {g.items.map(d => (
+                    {g.items.map((d: ResultadoSal) => (
                       <div key={d.sal.id} className="flex items-center gap-2 bg-[#15151d] border border-[#1f1f2b] rounded-md px-2.5 py-1.5">
                         <span className="text-[11.5px] text-[#d4d4dd] flex-1 min-w-0 truncate">{d.sal.nombre}</span>
                         <span className="text-[12px] font-mono tabular-nums font-bold text-[#ececf1]">
@@ -215,14 +268,6 @@ export default function CreadorNutrientes() {
                   </div>
                 </div>
               ))}
-            </div>
-          )}
-          {hayPrecipitacion && (
-            <div className="flex items-start gap-2 mt-3 rounded-lg bg-[#ff8a7a]/08 border border-[#ff8a7a]/25 px-3 py-2">
-              <AlertTriangle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[#ff8a7a]" strokeWidth={1.8} />
-              <p className="text-[10.5px] text-[#d4a89f]">
-                Tenés calcio + fosfato/sulfato. En concentrado precipitan: mantené el bidón A (calcio) separado del B.
-              </p>
             </div>
           )}
         </div>
@@ -236,22 +281,19 @@ export default function CreadorNutrientes() {
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-[11px]">
-            <thead>
-              <tr className="border-b border-[#1f1f2b]">
-                {['Elem', 'Objetivo', 'Logrado', 'Δ'].map(h => (
-                  <th key={h} className="px-3 py-2 text-left text-[10px] uppercase tracking-[0.1em] text-[#5c5c6b] font-medium">{h}</th>
-                ))}
-              </tr>
-            </thead>
+            <thead><tr className="border-b border-[#1f1f2b]">
+              {['Elemento', 'Objetivo', 'Logrado', 'Δ'].map(h => (
+                <th key={h} className="px-3 py-2 text-left text-[10px] uppercase tracking-[0.1em] text-[#5c5c6b] font-medium">{h}</th>
+              ))}
+            </tr></thead>
             <tbody>
               {ELEMENTOS.filter(e => (perfil[e.key] ?? 0) > 0 || (res.ppmLogrado[e.key] ?? 0) > 0).map(e => {
-                const obj = perfil[e.key] ?? 0
-                const log = res.ppmLogrado[e.key] ?? 0
+                const obj = perfil[e.key] ?? 0, log = res.ppmLogrado[e.key] ?? 0
                 const { c, bg } = colorDelta(log, obj)
                 const delta = obj > 0 ? `${log > obj ? '+' : ''}${(log - obj).toFixed(0)}` : '—'
                 return (
                   <tr key={e.key} className="border-b border-[#1f1f2b] last:border-0" style={{ background: bg }}>
-                    <td className="px-3 py-1.5 font-medium text-[#d4d4dd]">{e.key} <span className="text-[#5c5c6b]">{e.label}</span></td>
+                    <td className="px-3 py-1.5 font-medium text-[#d4d4dd]">{e.label}</td>
                     <td className="px-3 py-1.5 text-[#a6a6b5] font-mono tabular-nums">{obj || '—'}</td>
                     <td className="px-3 py-1.5 font-mono tabular-nums font-bold" style={{ color: c }}>{log}</td>
                     <td className="px-3 py-1.5 font-mono tabular-nums" style={{ color: c }}>{delta}</td>
@@ -262,66 +304,264 @@ export default function CreadorNutrientes() {
           </table>
         </div>
       </div>
+      <SugerenciaSalesActivas salesTodas={salesTodas} activas={activas} setActivas={setActivas} />
+    </div>
+  )
+}
 
-      {/* Agua de partida */}
-      <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4">
-        <button onClick={() => setAguaOpen(o => !o)} className="w-full flex items-center gap-2">
-          <Droplets className="w-4 h-4 text-blue-400" strokeWidth={1.8} />
-          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Agua de partida (ppm)</h3>
-          <span className="ml-auto text-[10px] text-[#5c5c6b]">RO = 0 · remineralizador aporta algo</span>
-          <ChevronDown className={`w-4 h-4 text-[#5c5c6b] transition-transform ${aguaOpen ? 'rotate-180' : ''}`} />
-        </button>
-        {aguaOpen && (
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mt-3">
-            {macros.map(e => (
-              <label key={e.key} className="block">
-                <span className="text-[10px] text-[#8f8f9f]">{e.key}</span>
-                <input type="number" min={0} step={1} value={agua[e.key] ?? 0}
-                  onChange={ev => setAgua(prev => ({ ...prev, [e.key]: +ev.target.value }))}
-                  className="w-full mt-0.5 bg-[#15151d] border border-[#1f1f2b] rounded-md px-2 py-1 text-[12px] text-[#ececf1] font-mono tabular-nums focus:border-[#404d20] outline-none" />
-              </label>
+function SugerenciaSalesActivas({ salesTodas, activas, setActivas }: { salesTodas: Sal[]; activas: Set<string>; setActivas: SetSet }) {
+  return (
+    <p className="text-[10px] text-[#5c5c6b] px-1">
+      {activas.size} sustancias activas de {salesTodas.length}. Gestionalas en la pestaña "Sustancias".
+      Solver NNLS · EC estimada (escala 500). Verificá pH 5.8–6.2 en coco. Inspirado en HydroBuddy (D. Fernández).
+      {activas.size === 0 && <button onClick={() => setActivas(new Set(salesTodas.map((s: Sal) => s.id)))} className="ml-1 text-[#a3e635] underline">activar todas</button>}
+    </p>
+  )
+}
+
+// ===================== SUSTANCIAS =====================
+function SustanciasTab({ salesTodas, activas, setActivas, recargarCustoms }: { salesTodas: Sal[]; activas: Set<string>; setActivas: SetSet; recargarCustoms: () => void }) {
+  const [form, setForm] = useState(false)
+  return (
+    <div className="space-y-4">
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-3">
+          <FlaskRound className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Sustancias disponibles</h3>
+          <span className="ml-auto text-[10px] text-[#5c5c6b]">{activas.size}/{salesTodas.length} activas</span>
+          <button onClick={() => setForm(f => !f)} className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] hover:bg-[#a3e635]/25 transition-colors">
+            <Plus className="w-3.5 h-3.5" /> Nueva
+          </button>
+        </div>
+        {form && <NuevaSustancia onClose={() => setForm(false)} onSaved={recargarCustoms} />}
+        <div className="grid sm:grid-cols-2 gap-1.5 mt-3">
+          {salesTodas.map((s: Sal) => {
+            const on = activas.has(s.id)
+            return (
+              <div key={s.id} className={`flex items-start gap-2 rounded-md px-2.5 py-1.5 border transition-colors ${on ? 'bg-[#a3e635]/08 border-[#404d20]' : 'bg-[#15151d] border-[#1f1f2b]'}`}>
+                <button onClick={() => setActivas((prev: Set<string>) => { const n = new Set(prev); if (on) n.delete(s.id); else n.add(s.id); return n })}
+                  className={`mt-0.5 w-3.5 h-3.5 rounded flex-shrink-0 border ${on ? 'bg-[#a3e635] border-[#a3e635]' : 'border-[#3a3a4a]'}`} />
+                <div className="min-w-0 flex-1">
+                  <span className={`block text-[11.5px] font-medium ${on ? 'text-[#d9f99d]' : 'text-[#a6a6b5]'}`}>
+                    {s.nombre} {s.formula && <span className="text-[#5c5c6b] font-normal">{s.formula}</span>}
+                    {s.custom && <span className="ml-1 text-[9px] px-1 rounded bg-[#a78bfa]/20 text-[#c4b5fd]">propia</span>}
+                  </span>
+                  {s.nota && <span className="block text-[10px] text-[#5c5c6b] mt-0.5">{s.nota}</span>}
+                </div>
+                {s.custom && (
+                  <button onClick={async () => { try { await sustanciasService.eliminar(s.id); await recargarCustoms(); toast.success('Sustancia eliminada') } catch (e) { toast.error(String(e)) } }}
+                    className="p-1 rounded text-[#5c5c6b] hover:text-[#ff8a7a]"><Trash2 className="w-3.5 h-3.5" /></button>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function NuevaSustancia({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
+  const [nombre, setNombre] = useState('')
+  const [formula, setFormula] = useState('')
+  const [bidon, setBidon] = useState<Bidon>('B')
+  const [liquido, setLiquido] = useState(false)
+  const [densidad, setDensidad] = useState(1)
+  const [costoKg, setCostoKg] = useState(0)
+  const [comp, setComp] = useState<Record<string, number>>({})
+  const [saving, setSaving] = useState(false)
+
+  async function guardar() {
+    if (!nombre.trim()) { toast.error('Falta el nombre'); return }
+    const compFrac: Partial<Record<ElementKey, number>> = {}
+    for (const e of ELEMENTOS) { const v = comp[e.key]; if (v) compFrac[e.key] = v / 100 } // W/W% → fracción
+    if (Object.keys(compFrac).length === 0) { toast.error('Cargá al menos un elemento'); return }
+    setSaving(true)
+    try {
+      await sustanciasService.crear({ nombre: nombre.trim(), formula: formula.trim() || undefined, comp: compFrac, bidon, liquido, densidad: liquido ? densidad : null, costo_kg: costoKg || null })
+      toast.success('Sustancia agregada'); onSaved(); onClose()
+    } catch (e) { toast.error('No se pudo: ' + (e instanceof Error ? e.message : String(e))) }
+    finally { setSaving(false) }
+  }
+
+  return (
+    <div className="rounded-lg bg-[#15151d] border border-[#404d20] p-3 mb-2 space-y-3">
+      <p className="text-[11px] text-[#d9f99d] font-medium">Nueva sustancia — composición en %W/W</p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <label className="block col-span-2"><span className="text-[10px] text-[#8f8f9f]">Nombre</span>
+          <input value={nombre} onChange={e => setNombre(e.target.value)} className={inp.replace('font-mono tabular-nums', '')} /></label>
+        <label className="block"><span className="text-[10px] text-[#8f8f9f]">Fórmula</span>
+          <input value={formula} onChange={e => setFormula(e.target.value)} className={inp.replace('font-mono tabular-nums', '')} /></label>
+        <label className="block"><span className="text-[10px] text-[#8f8f9f]">Bidón</span>
+          <select value={bidon} onChange={e => setBidon(e.target.value as Bidon)} className={inp}>
+            <option value="A">A · Calcio</option><option value="B">B · Base</option><option value="C">C · Micros</option>
+          </select></label>
+      </div>
+      <div className="flex items-center gap-3 flex-wrap">
+        <label className="flex items-center gap-1.5 text-[11px] text-[#a6a6b5]">
+          <input type="checkbox" checked={liquido} onChange={e => setLiquido(e.target.checked)} className="accent-[#a3e635]" /> Líquido
+        </label>
+        {liquido && <label className="flex items-center gap-1 text-[11px] text-[#a6a6b5]">Densidad
+          <input type="number" step={0.01} value={densidad} onChange={e => setDensidad(+e.target.value)} className={`${inp} w-20`} /> g/mL</label>}
+        <label className="flex items-center gap-1 text-[11px] text-[#a6a6b5]">Costo/kg
+          <input type="number" step={1} value={costoKg} onChange={e => setCostoKg(+e.target.value)} className={`${inp} w-24`} /> ARS</label>
+      </div>
+      <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
+        {ELEMENTOS.map(e => (
+          <label key={e.key} className="block"><span className="text-[9.5px] text-[#8f8f9f]">{e.key} %</span>
+            <input type="number" min={0} step={0.1} value={comp[e.key] ?? ''} placeholder="0"
+              onChange={ev => setComp(prev => ({ ...prev, [e.key]: +ev.target.value }))}
+              className="w-full bg-[#101016] border border-[#1f1f2b] rounded px-1.5 py-1 text-[11px] text-[#ececf1] font-mono tabular-nums focus:border-[#404d20] outline-none" /></label>
+        ))}
+      </div>
+      <div className="flex gap-2 justify-end">
+        <button onClick={onClose} className="px-3 py-1.5 rounded-md text-[12px] text-[#8f8f9f] hover:text-[#d4d4dd]">Cancelar</button>
+        <button onClick={guardar} disabled={saving} className="px-3 py-1.5 rounded-md text-[12px] font-medium bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] hover:bg-[#a3e635]/25 disabled:opacity-50">Agregar</button>
+      </div>
+    </div>
+  )
+}
+
+// ===================== AGUA =====================
+type Elem = (typeof ELEMENTOS)[number]
+function GrupoAgua({ titulo, items, agua, set }: { titulo: string; items: Elem[]; agua: Perfil; set: (k: ElementKey, v: number) => void }) {
+  return (
+    <div>
+      <p className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium mb-2">{titulo}</p>
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+        {items.map(e => (
+          <label key={e.key} className="block"><span className="text-[10px] text-[#8f8f9f]">{e.key}</span>
+            <input type="number" min={0} step={0.1} value={agua[e.key] ?? 0} onChange={ev => set(e.key, +ev.target.value)} className={inp} /></label>
+        ))}
+      </div>
+    </div>
+  )
+}
+function AguaTab({ agua, setAgua, macros, micros, otros }: { agua: Perfil; setAgua: React.Dispatch<React.SetStateAction<Perfil>>; macros: Elem[]; micros: Elem[]; otros: Elem[] }) {
+  const set = (k: ElementKey, v: number) => setAgua(prev => ({ ...prev, [k]: v }))
+  return (
+    <div className={`${card} space-y-4`}>
+      <div className="flex items-center gap-2">
+        <Droplets className="w-4 h-4 text-blue-400" strokeWidth={1.8} />
+        <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Análisis del agua de partida (ppm)</h3>
+        <span className="ml-auto text-[10px] text-[#5c5c6b]">RO = 0 · se descuenta del objetivo</span>
+      </div>
+      <p className="text-[11px] text-[#757584]">Cargá lo que ya trae tu agua (remineralizador, canilla, pozo). El cálculo lo resta para no pasarte.</p>
+      <GrupoAgua titulo="Macros" items={macros} agua={agua} set={set} />
+      <GrupoAgua titulo="Micros" items={micros} agua={agua} set={set} />
+      <GrupoAgua titulo="Otros" items={otros} agua={agua} set={set} />
+      <button onClick={() => setAgua({})} className="text-[11px] text-[#8f8f9f] hover:text-[#ff8a7a]">Resetear a RO (todo 0)</button>
+    </div>
+  )
+}
+
+// ===================== CONCENTRADOS =====================
+function ConcentradosTab({ concentrados, factor, setFactor, volBidon, setVolBidon, dosisCount }: { concentrados: BidonConcentrado[]; factor: number; setFactor: (n: number) => void; volBidon: number; setVolBidon: (n: number) => void; dosisCount: number }) {
+  return (
+    <div className="space-y-4">
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-3">
+          <Layers className="w-4 h-4 text-[#a78bfa]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Soluciones madre (concentrados)</h3>
+        </div>
+        <div className="flex flex-wrap gap-4">
+          <label className="text-[11px] text-[#a6a6b5]">Factor de concentración
+            <div className="flex items-center gap-1 mt-1">
+              <input type="number" min={1} step={1} value={factor} onChange={e => setFactor(Math.max(1, +e.target.value))} className={`${inp} w-24`} />
+              <span className="text-[#5c5c6b]">x</span>
+            </div>
+          </label>
+          <label className="text-[11px] text-[#a6a6b5]">Volumen de cada bidón
+            <div className="flex items-center gap-1 mt-1">
+              <input type="number" min={0.1} step={0.5} value={volBidon} onChange={e => setVolBidon(Math.max(0.1, +e.target.value))} className={`${inp} w-24`} />
+              <span className="text-[#5c5c6b]">L</span>
+            </div>
+          </label>
+          <div className="text-[11px] text-[#757584] self-end">
+            1 bidón de {volBidon} L a {factor}x rinde <b className="text-[#bef264]">{(volBidon * factor).toFixed(0)} L</b> finales.
+          </div>
+        </div>
+      </div>
+
+      {dosisCount === 0 ? (
+        <p className="text-[12px] text-[#5c5c6b] py-6 text-center">Calculá una receta primero (pestaña Calculadora).</p>
+      ) : concentrados.map((g: BidonConcentrado) => (
+        <div key={g.bidon} className={card}>
+          <p className="text-[11px] uppercase tracking-[0.12em] font-medium mb-2" style={{ color: BIDON_INFO[g.bidon].color }}>
+            {BIDON_INFO[g.bidon].label} · {g.volumenL} L
+          </p>
+          <div className="space-y-1">
+            {g.items.map(it => (
+              <div key={it.sal.id} className="flex items-center gap-2 bg-[#15151d] border border-[#1f1f2b] rounded-md px-2.5 py-1.5">
+                <span className="text-[11.5px] text-[#d4d4dd] flex-1 min-w-0 truncate">{it.sal.nombre}</span>
+                <span className="text-[12px] font-mono tabular-nums font-bold text-[#ececf1]">
+                  {it.mlSiLiquido != null ? `${it.mlSiLiquido} mL` : `${it.gramos} g`}
+                </span>
+              </div>
+            ))}
+          </div>
+          {g.advertencia && (
+            <div className="flex items-start gap-2 mt-2 rounded-lg bg-[#ff8a7a]/08 border border-[#ff8a7a]/25 px-3 py-2">
+              <AlertTriangle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[#ff8a7a]" strokeWidth={1.8} />
+              <p className="text-[10.5px] text-[#d4a89f]">{g.advertencia}</p>
+            </div>
+          )}
+        </div>
+      ))}
+      <p className="text-[10px] text-[#5c5c6b] px-1">
+        Regla de oro: al tanque final echá primero el bidón A (calcio), agitá, después el B. Nunca juntes A y B concentrados.
+      </p>
+    </div>
+  )
+}
+
+// ===================== RATIOS Y COSTO =====================
+function RatiosTab({ ratios, res, costo }: { ratios: Ratios; res: Resultado; costo: CostoResultado }) {
+  const N = nTotal(res.ppmLogrado)
+  const P = res.ppmLogrado.P ?? 0, K = res.ppmLogrado.K ?? 0
+  const npk = P > 0 ? `${(N / P).toFixed(1)} : 1 : ${(K / P).toFixed(1)}` : '—'
+  return (
+    <div className="grid lg:grid-cols-2 gap-4">
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-3">
+          <Scale className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Ratios nutricionales</h3>
+        </div>
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2">
+            <span className="text-[11.5px] text-[#a6a6b5]">N : P : K</span>
+            <span className="text-[12px] font-mono tabular-nums font-bold text-[#d9f99d]">{npk}</span>
+          </div>
+          {Object.entries(ratios).filter(([k]) => k !== 'N:P:K').map(([k, v]) => (
+            <div key={k} className="flex items-center justify-between bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2">
+              <span className="text-[11.5px] text-[#a6a6b5]">{k}</span>
+              <span className="text-[12px] font-mono tabular-nums font-bold text-[#ececf1]">{(v as number) || '—'}</span>
+            </div>
+          ))}
+        </div>
+        <p className="text-[10px] text-[#5c5c6b] mt-2">Referencia coco flora: K:Ca ~1.2, Ca:Mg ~3, NO3:NH4 ~8-10.</p>
+      </div>
+
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-3">
+          <DollarSign className="w-4 h-4 text-[#bef264]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Costo del lote</h3>
+          <span className="ml-auto text-[12px] font-mono tabular-nums font-bold text-[#d9f99d]">${costo.porLitro}/L</span>
+        </div>
+        {costo.detalle.length === 0 ? (
+          <p className="text-[11px] text-[#5c5c6b]">Cargá costo/kg en cada sustancia para ver el costo.</p>
+        ) : (
+          <div className="space-y-1">
+            {costo.detalle.map(d => (
+              <div key={d.sal.id} className="flex items-center gap-2 bg-[#15151d] border border-[#1f1f2b] rounded-md px-2.5 py-1.5">
+                <span className="text-[11.5px] text-[#d4d4dd] flex-1 min-w-0 truncate">{d.sal.nombre}</span>
+                <span className="text-[12px] font-mono tabular-nums text-[#a6a6b5]">${d.costo}/L</span>
+              </div>
             ))}
           </div>
         )}
+        <p className="text-[10px] text-[#5c5c6b] mt-2">El costo sale de "costo/kg" que cargues en cada sustancia (pestaña Sustancias).</p>
       </div>
-
-      {/* Sales disponibles */}
-      <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4">
-        <button onClick={() => setSalesOpen(o => !o)} className="w-full flex items-center gap-2">
-          <FlaskConical className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
-          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Sales disponibles</h3>
-          <span className="ml-auto text-[10px] text-[#5c5c6b]">{activas.size} activas</span>
-          <ChevronDown className={`w-4 h-4 text-[#5c5c6b] transition-transform ${salesOpen ? 'rotate-180' : ''}`} />
-        </button>
-        {salesOpen && (
-          <div className="grid sm:grid-cols-2 gap-1.5 mt-3">
-            {SALES.map(s => {
-              const on = activas.has(s.id)
-              return (
-                <button key={s.id} onClick={() => setActivas(prev => {
-                  const n = new Set(prev); if (on) n.delete(s.id); else n.add(s.id); return n
-                })}
-                  className={`text-left flex items-start gap-2 rounded-md px-2.5 py-1.5 border transition-colors ${
-                    on ? 'bg-[#a3e635]/08 border-[#404d20]' : 'bg-[#15151d] border-[#1f1f2b] hover:border-[#2a2a3a]'
-                  }`}>
-                  <span className={`mt-0.5 w-3.5 h-3.5 rounded flex-shrink-0 border ${on ? 'bg-[#a3e635] border-[#a3e635]' : 'border-[#3a3a4a]'}`} />
-                  <span className="min-w-0">
-                    <span className={`block text-[11.5px] font-medium ${on ? 'text-[#d9f99d]' : 'text-[#a6a6b5]'}`}>
-                      {s.nombre} {s.formula && <span className="text-[#5c5c6b] font-normal">{s.formula}</span>}
-                    </span>
-                    {s.nota && <span className="block text-[10px] text-[#5c5c6b] mt-0.5">{s.nota}</span>}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-        )}
-      </div>
-
-      <p className="text-[10px] text-[#5c5c6b] px-1">
-        Solver NNLS (mínimos cuadrados no-negativos). EC estimada por suma de ppm (escala 500). Verificá pH 5.8–6.2 en coco.
-        Inspirado en HydroBuddy (Daniel Fernández).
-      </p>
     </div>
   )
 }
