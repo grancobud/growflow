@@ -397,6 +397,7 @@ function SustanciasTab({ salesTodas, activas, setActivas, recargarCustoms, recar
                     <span className={`block text-[11.5px] font-medium ${on ? 'text-[#d9f99d]' : 'text-[#a6a6b5]'}`}>
                       {s.nombre} {s.formula && <span className="text-[#5c5c6b] font-normal">{s.formula}</span>}
                       {s.custom && <span className="ml-1 text-[9px] px-1 rounded bg-[#a78bfa]/20 text-[#c4b5fd]">propia</span>}
+                      {s.aditivo && <span className="ml-1 text-[9px] px-1 rounded bg-[#bef264]/15 text-[#bef264]">aditivo</span>}
                       {s.stock != null && s.stock > 0 && <span className="ml-1 text-[9px] px-1 rounded bg-[#60a5fa]/20 text-[#93c5fd]">stock {s.stock}{s.stockUnidad ?? ''}</span>}
                       {s.costoKg != null && s.costoKg > 0 && <span className="ml-1 text-[9px] px-1 rounded bg-[#bef264]/15 text-[#bef264]">${s.costoKg}/kg</span>}
                     </span>

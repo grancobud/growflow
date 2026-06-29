@@ -51,6 +51,7 @@ export interface Sal {
   stockUnidad?: string    // kg, g, L
   nota?: string
   descripcion?: string    // qué es / para qué sirve (educativo)
+  aditivo?: boolean       // estabilizante/conservante: no aporta nutrientes
   custom?: boolean
 }
 
@@ -101,6 +102,7 @@ export const DESCRIPCIONES: Record<string, string> = {
 
 /** Compatibilidad de mezcla en concentrado (qué NO puede compartir bidón). */
 export function compatibilidad(sal: Sal): string {
+  if (sal.aditivo) return 'Aditivo estabilizante: no aporta nutrientes. Se agrega al concentrado para que no decante/precipite (ver pestaña Estabilizantes para la dosis).'
   const ca = (sal.comp.Ca ?? 0) > 0
   const sp = (sal.comp.S ?? 0) > 0 || (sal.comp.P ?? 0) > 0
   if (ca && sp) return '⚠️ Tiene Ca y S/P juntos: usar en seco, no en concentrado líquido.'
@@ -208,6 +210,18 @@ export const SALES_DEFECTO: Sal[] = [
   { id: 'masterblend', nombre: 'Masterblend 4-18-38', bidon: 'B',
     comp: { NO3: 0.038, NH4: 0.002, P: 0.0785, K: 0.315, Mg: 0.015, S: 0.03, Fe: 0.004, Mn: 0.002, Zn: 0.0005, Cu: 0.0005, B: 0.002, Mo: 0.0001 },
     nota: 'Base completa con micros quelatados adentro.' },
+
+  // --- Aditivos / estabilizantes (no aportan nutrientes; el solver los ignora) ---
+  { id: 'add_citrico', nombre: 'Ácido cítrico', formula: 'C₆H₈O₇', bidon: 'B', aditivo: true, comp: {},
+    descripcion: 'Aditivo: baja el pH del concentrado a ~5, quela suave y mantiene el hierro reducido. Dosis 1–2 g/L. Triple función (buffer + quelante + antioxidante).' },
+  { id: 'add_benzoato', nombre: 'Benzoato de sodio', formula: 'NaC₇H₅O₂', bidon: 'B', aditivo: true, comp: {},
+    descripcion: 'Aditivo conservante: evita que hongos/bacterias formen barro comiéndose los quelatos. 150–250 mg/L (máx 400). Lo usan casi todas las marcas sin declararlo.' },
+  { id: 'add_ascorbico', nombre: 'Ácido ascórbico (vit. C)', formula: 'C₆H₈O₆', bidon: 'B', aditivo: true, comp: {},
+    descripcion: 'Aditivo antioxidante: mantiene el Fe²⁺ reducido para que no precipite marrón. 0.1–0.3 g/L.' },
+  { id: 'add_xantica', nombre: 'Goma xántica', formula: '(C₃₅H₄₉O₂₉)ₙ', bidon: 'B', aditivo: true, comp: {},
+    descripcion: 'Aditivo anti-sedimentante: da cuerpo y evita que las partículas asienten en el fondo. 1–2 g/L (0.1–0.2%).' },
+  { id: 'add_sorbato', nombre: 'Sorbato de potasio', formula: 'KC₆H₇O₂', bidon: 'B', aditivo: true, comp: {},
+    descripcion: 'Aditivo conservante grado alimenticio, alternativa al benzoato. 0.01–1%.' },
 ]
 
 export type Perfil = Partial<Record<ElementKey, number>> // ppm objetivo
