@@ -9,7 +9,7 @@ import {
   SALES_DEFECTO, ELEMENTOS, PRESETS, calcularReceta, ecAprox, nTotal,
   calcularConcentrados, calcularRatios, calcularCosto,
   redondearBalanza, AGENTES_PH, calcularAjustePH, oxidoAElemental, OXIDOS,
-  recomendarEstabilizantes, esComercial, marcaDe, perfilDesdeProducto, categoriaSal,
+  recomendarEstabilizantes, esComercial, marcaDe, perfilDesdeProducto, categoriaSal, KITS_SALES,
   perfilesNutrientesService, sustanciasService, inventarioService, aplicarInventario,
   compatibilidad, estadoRango, RANGOS_FLORA_COCO,
   type ElementKey, type Perfil, type PerfilGuardado, type Sal, type Bidon,
@@ -161,7 +161,14 @@ export default function CreadorNutrientes() {
         <ConcentradosTab {...{ concentrados, factor, setFactor, volBidon, setVolBidon, resolucion, setResolucion, dosisCount: res.dosis.length }} />
       )}
       {sub === 'clonar' && (
-        <ClonarTab productos={salesTodas.filter(esComercial)} onUsar={(p) => { setPerfil(p); setPresetId(''); setSub('calc') }} />
+        <ClonarTab productos={salesTodas.filter(esComercial)} onUsar={(p) => {
+          setPerfil(p); setPresetId('')
+          // aplicar kit limpio (o finish si el producto no tiene N) para clon prolijo
+          const sinN = nTotal(p) === 0
+          const kit = KITS_SALES.find(k => k.id === (sinN ? 'finish' : 'limpio'))
+          if (kit) setActivas(new Set(kit.sales))
+          setSub('calc')
+        }} />
       )}
       {sub === 'estab' && (
         <EstabilizantesTab dosis={res.dosis} />
@@ -195,17 +202,30 @@ function CalcTab(p: CalcTabProps) {
 
   return (
     <div className="space-y-4">
-      {/* Presets */}
-      <div className={card}>
-        <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-2">Perfil objetivo</p>
-        <div className="flex flex-wrap gap-1.5">
-          {PRESETS.map(pr => (
-            <button key={pr.id} onClick={() => setPreset(pr.id)} title={pr.desc}
-              className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors ${
-                presetId === pr.id ? 'bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d]'
-                  : 'bg-[#15151d] border border-[#1f1f2b] text-[#8f8f9f] hover:border-[#2a2a3a] hover:text-[#d4d4dd]'
-              }`}>{pr.nombre}</button>
-          ))}
+      {/* Presets + Kits de sales */}
+      <div className={`${card} space-y-3`}>
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-2">1 · Perfil objetivo (qué quiero lograr)</p>
+          <div className="flex flex-wrap gap-1.5">
+            {PRESETS.map(pr => (
+              <button key={pr.id} onClick={() => setPreset(pr.id)} title={pr.desc}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors ${
+                  presetId === pr.id ? 'bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d]'
+                    : 'bg-[#15151d] border border-[#1f1f2b] text-[#8f8f9f] hover:border-[#2a2a3a] hover:text-[#d4d4dd]'
+                }`}>{pr.nombre}</button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-2">2 · Kit de sales (con qué lo hago) <span className="text-[#3a3a4a] normal-case tracking-normal">— evita que el solver reparta en muchas sales</span></p>
+          <div className="flex flex-wrap gap-1.5">
+            {KITS_SALES.map(kit => (
+              <button key={kit.id} onClick={() => setActivas(new Set(kit.sales))} title={kit.desc}
+                className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-[#15151d] border border-[#1f1f2b] text-[#a6a6b5] hover:border-[#463a66] hover:text-[#c4b5fd] transition-colors">
+                {kit.nombre}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

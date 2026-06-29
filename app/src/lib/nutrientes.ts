@@ -396,6 +396,22 @@ export function estadoRango(valor: number, rango?: { min: number; max: number })
   return 'ok'
 }
 
+// Kits de sales curados: conjuntos mínimos y limpios (1 sal por nutriente,
+// separación A/B/C correcta, sin cloro ni redundancia). Resuelven el problema
+// de que el solver reparta en muchas sales equivalentes.
+export interface KitSales { id: string; nombre: string; desc: string; sales: string[] }
+export const KITS_SALES: KitSales[] = [
+  { id: 'limpio', nombre: 'Kit limpio (recomendado)',
+    desc: 'Calidad pro: 1 sal por nutriente, sin cloro, sin redundancia. A=nitrato Ca · B=nitrato K+MKP+sulfato K+Epsom · C=micros.',
+    sales: ['cano3_ag', 'kno3', 'mkp', 'k2so4', 'epsom', 'feeddha', 'mnso4', 'znso4', 'cuso4', 'boric', 'namolib'] },
+  { id: 'economico', nombre: 'Kit económico',
+    desc: 'El más barato por nutriente (MAP en vez de MKP, sulfato de hierro). Mete algo de N amoniacal.',
+    sales: ['cano3_ag', 'kno3', 'map', 'k2so4', 'epsom', 'feso4', 'mnso4', 'znso4', 'cuso4', 'boric', 'namolib'] },
+  { id: 'finish', nombre: 'Kit finish (sin N)',
+    desc: 'Finalización PK sin nitrógeno. Ca limpio (gluconato/yeso), bicarbonato de K, micros.',
+    sales: ['mkp', 'k2so4', 'khco3', 'yeso', 'cagluc', 'epsom', 'feeddha', 'mnso4', 'znso4', 'boric'] },
+]
+
 export interface ResultadoSal { sal: Sal; gramosPorL: number }
 export interface Resultado {
   dosis: ResultadoSal[]
