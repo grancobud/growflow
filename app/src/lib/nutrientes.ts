@@ -241,6 +241,14 @@ export const SALES_DEFECTO: Sal[] = [
     descripcion: 'Comercial Ryanodine: finalizador 0-15-25 en polvo. Cero N. Uso: 0.91 g/L + 4 ml/L de Mikro, pH 6.0-6.4, últimas 2-3 semanas. Trae Ca y S altos.' },
   { id: 'ryano_radics', nombre: 'Ryanodine Radics / Mini-Radics (enraizante)', formula: 'IBA 0.31%', bidon: 'C', aditivo: true, comp: {},
     descripcion: 'Hormona de enraizado en gel: ácido indol-3-butírico (IBA) 0.31% + excipientes. NO es nutriente. Untar la base del clon 3-5 cm e introducir en el sustrato. Un solo uso, descartar el sobrante. Refrigerar 2-9°C. Rinde +25 clones (7 g).' },
+
+  // --- Advanced Nutrients Sensi Professional Grow (polvo, discontinuado) ---
+  { id: 'an_sensi_grow_a', nombre: 'AN Sensi Pro Grow A (9-10-28)', bidon: 'B',
+    comp: { NO3: 0.05, NH4: 0.04, P: 0.0436, K: 0.2324, Mg: 0.015, S: 0.02, Fe: 0.001, Mn: 0.0005, Zn: 0.00015, Cu: 0.0001, B: 0.0002, Mo: 0.0001 },
+    descripcion: 'Comercial Advanced Nutrients (Sensi Pro Grow, polvo): base macros + micros quelatados (3 formas de Fe: DTPA/EDDHA/EDTA). Dosis ~0.46 g/L por EC 1.0, en partes iguales con B. Micros aproximados (ficha discontinuada).' },
+  { id: 'an_sensi_grow_b', nombre: 'AN Sensi Pro Grow B (15-0-0)', bidon: 'A',
+    comp: { NO3: 0.14, NH4: 0.01, Ca: 0.18 },
+    descripcion: 'Comercial Advanced Nutrients (Sensi Pro Grow B, polvo): es el CALCIO del sistema (nitrato de calcio-amónico doble sal). Va en bidón A. Misma dosis que la Parte A.' },
 ]
 
 export type Perfil = Partial<Record<ElementKey, number>> // ppm objetivo
