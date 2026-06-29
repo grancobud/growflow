@@ -439,6 +439,53 @@ export function calcularAjustePH(alcActual: number, alcObjetivo: number, volumen
 }
 
 // ---------------------------------------------------------------------------
+// Estabilizantes / aditivos para que el concentrado no decante ni precipite.
+// Investigado en foros, patentes y scienceinhydroponics (autor de HydroBuddy).
+// ---------------------------------------------------------------------------
+export interface AditivoEstab {
+  id: string; nombre: string; funcion: string; dosis: string; gPorL: number | null; porque: string; opcional?: boolean
+}
+export const ADITIVOS_ESTAB: AditivoEstab[] = [
+  { id: 'citrico', nombre: 'Ácido cítrico', funcion: 'Buffer + quelante + antioxidante', dosis: '1–2 g/L', gPorL: 1.5,
+    porque: 'Baja el pH del concentrado a ~5 (zona estable), quela suave y mantiene el hierro reducido. Triple función.' },
+  { id: 'benzoato', nombre: 'Benzoato de sodio', funcion: 'Conservante / biocida', dosis: '150–250 mg/L (máx 400)', gPorL: 0.2,
+    porque: 'Evita que hongos/bacterias se coman los quelatos y formen barro. Es lo que usan casi todas las marcas y no lo declaran.' },
+  { id: 'ascorbico', nombre: 'Ácido ascórbico (vit. C)', funcion: 'Antioxidante', dosis: '0.1–0.3 g/L', gPorL: 0.2,
+    porque: 'Mantiene el Fe²⁺ reducido para que no se oxide y precipite marrón.', opcional: true },
+  { id: 'xantica', nombre: 'Goma xántica', funcion: 'Anti-sedimentante / suspensión', dosis: '1–2 g/L (0.1–0.2%)', gPorL: 1.5,
+    porque: 'Da cuerpo y evita que las partículas asienten en el fondo del bidón.', opcional: true },
+  { id: 'eddha_add', nombre: 'Quelato de hierro EDDHA', funcion: 'Quelante de hierro', dosis: 'según Fe objetivo', gPorL: null,
+    porque: 'Mantiene el hierro soluble incluso a pH alto. Va en el bidón A con el calcio.' },
+  { id: 'gluconato_add', nombre: 'Gluconato de calcio', funcion: 'Quelante de calcio', dosis: 'según Ca objetivo', gPorL: null,
+    porque: 'Calcio limpio quelatado. El EDTA NO sirve para Ca (prefiere el hierro).' },
+  { id: 'sorbato', nombre: 'Sorbato de potasio', funcion: 'Conservante (alternativa)', dosis: '0.01–1%', gPorL: 1,
+    porque: 'Conservante grado alimenticio, alternativa al benzoato.', opcional: true },
+]
+
+export interface RecomendacionEstab {
+  aditivos: { info: AditivoEstab; cantidad: number | null }[]
+  reglas: string[]
+}
+
+/** Recomienda estabilizantes + cantidades para un volumen de concentrado dado. */
+export function recomendarEstabilizantes(dosis: ResultadoSal[], volumenL: number): RecomendacionEstab {
+  const tieneFe = dosis.some(d => (d.sal.comp.Fe ?? 0) > 0)
+  const tieneCa = dosis.some(d => (d.sal.comp.Ca ?? 0) > 0)
+  const tieneSP = dosis.some(d => (d.sal.comp.S ?? 0) > 0 || (d.sal.comp.P ?? 0) > 0)
+  const reglas: string[] = []
+  if (tieneCa && tieneSP) reglas.push('Separá en bidón A (calcio) y bidón B (sulfatos/fosfatos): concentrados juntos precipitan seguro.')
+  if (tieneFe) reglas.push('El hierro va en el bidón A junto al calcio, quelatado (EDDHA), con pH ~5 + antioxidante.')
+  reglas.push('Bajá el pH del concentrado a ~4.5–5.5 con ácido cítrico o fosfórico: a pH alto los metales precipitan.')
+  reglas.push('No te pases de la solubilidad de cada sal (sub-saturación): si se pone turbio, diluí.')
+  reglas.push('Disolvé el conservante en el agua PRIMERO, y recién después agregás las sales.')
+  reglas.push('Usá un poco de EXCESO de quelante libre: ese excedente es el que evita el barro en el almacenamiento.')
+  const aditivos = ADITIVOS_ESTAB.map(info => ({
+    info, cantidad: info.gPorL != null ? +(info.gPorL * volumenL).toFixed(2) : null,
+  }))
+  return { aditivos, reglas }
+}
+
+// ---------------------------------------------------------------------------
 // Persistencia: perfiles guardados + sustancias personalizadas (Supabase/demo).
 // ---------------------------------------------------------------------------
 

@@ -2,13 +2,14 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   FlaskConical, Beaker, Droplets, ChevronDown, Sparkles, AlertTriangle,
   Save, FolderOpen, Trash2, Calculator, FlaskRound, Layers, Scale, Plus, DollarSign,
-  Droplet, GitCompare, Package,
+  Droplet, GitCompare, Package, ShieldCheck,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   SALES_DEFECTO, ELEMENTOS, PRESETS, calcularReceta, ecAprox, nTotal,
   calcularConcentrados, calcularRatios, calcularCosto,
   redondearBalanza, AGENTES_PH, calcularAjustePH, oxidoAElemental, OXIDOS,
+  recomendarEstabilizantes,
   perfilesNutrientesService, sustanciasService, inventarioService, aplicarInventario,
   compatibilidad, estadoRango, RANGOS_FLORA_COCO,
   type ElementKey, type Perfil, type PerfilGuardado, type Sal, type Bidon,
@@ -26,13 +27,14 @@ interface CalcTabProps {
 }
 type CostoResultado = { porLitro: number; detalle: { sal: Sal; costo: number }[] }
 
-type SubTab = 'calc' | 'sustancias' | 'agua' | 'concentrados' | 'ratios' | 'ph' | 'comparar'
+type SubTab = 'calc' | 'sustancias' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar'
 
 const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
   { id: 'calc', label: 'Calculadora', icon: Calculator },
   { id: 'sustancias', label: 'Sustancias', icon: FlaskRound },
   { id: 'agua', label: 'Agua', icon: Droplets },
   { id: 'concentrados', label: 'Concentrados A/B', icon: Layers },
+  { id: 'estab', label: 'Estabilizantes', icon: ShieldCheck },
   { id: 'ph', label: 'Ajuste de pH', icon: Droplet },
   { id: 'comparar', label: 'Comparar', icon: GitCompare },
   { id: 'ratios', label: 'Ratios y costo', icon: Scale },
@@ -156,6 +158,9 @@ export default function CreadorNutrientes() {
       )}
       {sub === 'concentrados' && (
         <ConcentradosTab {...{ concentrados, factor, setFactor, volBidon, setVolBidon, resolucion, setResolucion, dosisCount: res.dosis.length }} />
+      )}
+      {sub === 'estab' && (
+        <EstabilizantesTab dosis={res.dosis} />
       )}
       {sub === 'ph' && (
         <PHTab agua={agua} />
@@ -704,6 +709,60 @@ function RatiosTab({ ratios, res, costo }: { ratios: Ratios; res: Resultado; cos
           </div>
         )}
         <p className="text-[10px] text-[#5c5c6b] mt-2">El costo sale de "costo/kg" que cargues en cada sustancia (pestaña Sustancias).</p>
+      </div>
+    </div>
+  )
+}
+
+// ===================== ESTABILIZANTES =====================
+function EstabilizantesTab({ dosis }: { dosis: ResultadoSal[] }) {
+  const [volumen, setVolumen] = useState(5)
+  const rec = recomendarEstabilizantes(dosis, volumen)
+  return (
+    <div className="space-y-4">
+      {/* Reglas dinámicas */}
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-3">
+          <ShieldCheck className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Reglas para que no decante (según tu receta)</h3>
+        </div>
+        <ul className="space-y-1.5">
+          {rec.reglas.map((r, i) => (
+            <li key={i} className="flex items-start gap-2 text-[11.5px] text-[#c4c4d0]">
+              <span className="mt-1 w-1.5 h-1.5 rounded-full bg-[#a3e635] flex-shrink-0" />{r}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Calculadora de aditivos */}
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-3">
+          <FlaskConical className="w-4 h-4 text-[#a78bfa]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Aditivos estabilizantes · cuánto poner</h3>
+          <label className="ml-auto flex items-center gap-1 text-[11px] text-[#a6a6b5]">Volumen del bidón
+            <input type="number" min={0.1} step={0.5} value={volumen} onChange={e => setVolumen(Math.max(0.1, +e.target.value))} className={`${inp} w-20`} /> L
+          </label>
+        </div>
+        <div className="space-y-1.5">
+          {rec.aditivos.map(({ info, cantidad }) => (
+            <div key={info.id} className="rounded-md bg-[#15151d] border border-[#1f1f2b] px-3 py-2">
+              <div className="flex items-center gap-2">
+                <span className="text-[12px] font-medium text-[#d9f99d]">{info.nombre}</span>
+                {info.opcional && <span className="text-[9px] px-1 rounded bg-[#a78bfa]/20 text-[#c4b5fd]">opcional</span>}
+                <span className="ml-auto text-[12px] font-mono tabular-nums font-bold text-[#ececf1]">
+                  {cantidad != null ? `${cantidad} g` : info.dosis}
+                </span>
+              </div>
+              <div className="text-[10px] text-[#757584] mt-0.5">{info.funcion} · dosis {info.dosis}</div>
+              <div className="text-[10.5px] text-[#a6a6b5] mt-1">{info.porque}</div>
+            </div>
+          ))}
+        </div>
+        <p className="text-[10px] text-[#5c5c6b] mt-3">
+          Cantidades calculadas para {volumen} L de concentrado. EDDHA y gluconato se dosifican según el Fe/Ca objetivo (ya los tenés en Sustancias).
+          Datos: foros + patentes + scienceinhydroponics (autor de HydroBuddy).
+        </p>
       </div>
     </div>
   )
