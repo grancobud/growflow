@@ -9,7 +9,7 @@ import {
   SALES_DEFECTO, ELEMENTOS, PRESETS, calcularReceta, ecAprox, nTotal,
   calcularConcentrados, calcularRatios, calcularCosto,
   redondearBalanza, AGENTES_PH, calcularAjustePH, oxidoAElemental, OXIDOS,
-  recomendarEstabilizantes, esComercial, marcaDe, perfilDesdeProducto, categoriaSal, KITS_SALES,
+  recomendarEstabilizantes, esComercial, marcaDe, perfilDesdeProducto, categoriaSal, KITS_SALES, kitParaPerfil,
   perfilesNutrientesService, sustanciasService, inventarioService, aplicarInventario,
   compatibilidad, estadoRango, RANGOS_FLORA_COCO,
   type ElementKey, type Perfil, type PerfilGuardado, type Sal, type Bidon,
@@ -108,6 +108,8 @@ export default function CreadorNutrientes() {
       setPerfil({ ...p.perfil }); setPresetId(id)
       // los rangos de referencia son de floración: solo tienen sentido en veg/flora
       setRangos(id === 'veg' || id === 'flora' ? RANGOS_FLORA_COCO : {})
+      // auto-elige las sales limpias correctas para ese objetivo (1 por nutriente)
+      setActivas(new Set(kitParaPerfil(p.perfil)))
     }
   }
   function setPpm(k: ElementKey, v: number) { setPerfil(prev => ({ ...prev, [k]: v })); setPresetId('') }
@@ -167,10 +169,9 @@ export default function CreadorNutrientes() {
       {sub === 'clonar' && (
         <ClonarTab productos={salesTodas.filter(esComercial)} onUsar={(p) => {
           setPerfil(p); setPresetId('')
-          // aplicar kit limpio (o finish si el producto no tiene N) para clon prolijo
-          const sinN = nTotal(p) === 0
-          const kit = KITS_SALES.find(k => k.id === (sinN ? 'finish' : 'limpio'))
-          if (kit) setActivas(new Set(kit.sales))
+          // selector inteligente: sales limpias exactas para clonar ese producto
+          setActivas(new Set(kitParaPerfil(p)))
+          setRangos({})
           setSub('calc')
         }} />
       )}

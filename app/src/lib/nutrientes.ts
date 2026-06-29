@@ -359,6 +359,44 @@ export function categoriaSal(sal: Sal): { orden: number; label: string } {
   return { orden: 80, label: 'Otros' }
 }
 
+/**
+ * Selector inteligente de sales: dado un perfil objetivo, elige UNA fuente limpia
+ * por nutriente (como hace cualquier marca pro) y SOLO los micros que se piden.
+ * Evita que el solver arrastre elementos no deseados. Devuelve los ids de sal.
+ */
+export function kitParaPerfil(p: Perfil): string[] {
+  const has = (k: ElementKey) => (p[k] ?? 0) > 0
+  const N = nTotal(p)
+  const kit = new Set<string>()
+  // --- Calcio (bidón A) ---
+  if (has('Ca')) {
+    if (has('NO3') || N > 0) kit.add('cano3_ag')          // Ca + N nítrico (parte A de toda marca)
+    else { kit.add('cagluc'); if (has('S')) kit.add('yeso') } // finish: Ca limpio sin N
+  }
+  // --- Fósforo → MKP (P+K, limpio, cero N) ---
+  if (has('P')) kit.add('mkp')
+  // --- N amoniacal extra (si se pide y no lo cubre el nitrato de Ca) ---
+  if (has('NH4') && !has('P')) kit.add('amsulf')
+  // --- Potasio ---
+  if (has('K')) {
+    if (N > 0) kit.add('kno3')                 // K + N nítrico
+    if (has('S')) kit.add('k2so4')             // K + S
+    if (!has('S') && N === 0) kit.add('khco3') // K sin S ni N (finish)
+  }
+  // --- Magnesio ---
+  if (has('Mg')) kit.add('epsom')
+  // --- Azufre, si todavía no hay ninguna fuente ---
+  if (has('S') && !kit.has('k2so4') && !kit.has('epsom') && !kit.has('yeso')) kit.add('k2so4')
+  // --- Micros: SOLO el que se pide (nada de arrastre) ---
+  if (has('Fe')) kit.add('feeddha')
+  if (has('Mn')) kit.add('mnso4')
+  if (has('Zn')) kit.add('znso4')
+  if (has('Cu')) kit.add('cuso4')
+  if (has('B')) kit.add('boric')
+  if (has('Mo')) kit.add('namolib')
+  return [...kit]
+}
+
 /** Genera el perfil ppm objetivo de un producto a una dosis (g/L de producto). */
 export function perfilDesdeProducto(sal: Sal, doseGL: number): Perfil {
   const out: Perfil = {}
