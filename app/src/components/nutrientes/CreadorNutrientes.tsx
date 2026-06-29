@@ -9,7 +9,7 @@ import {
   SALES_DEFECTO, ELEMENTOS, PRESETS, calcularReceta, ecAprox, nTotal,
   calcularConcentrados, calcularRatios, calcularCosto,
   redondearBalanza, AGENTES_PH, calcularAjustePH, oxidoAElemental, OXIDOS,
-  recomendarEstabilizantes, esComercial, marcaDe, perfilDesdeProducto,
+  recomendarEstabilizantes, esComercial, marcaDe, perfilDesdeProducto, categoriaSal,
   perfilesNutrientesService, sustanciasService, inventarioService, aplicarInventario,
   compatibilidad, estadoRango, RANGOS_FLORA_COCO,
   type ElementKey, type Perfil, type PerfilGuardado, type Sal, type Bidon,
@@ -388,12 +388,25 @@ function SustanciasTab({ salesTodas, activas, setActivas, recargarCustoms, recar
           </button>
         </div>
         {form && <NuevaSustancia onClose={() => setForm(false)} onSaved={recargarCustoms} />}
-        <div className="space-y-1.5 mt-3">
-          {salesTodas.map((s: Sal) => {
-            const on = activas.has(s.id)
-            const open = abierta === s.id
-            return (
-              <div key={s.id} className={`rounded-md border transition-colors ${on ? 'bg-[#a3e635]/08 border-[#404d20]' : 'bg-[#15151d] border-[#1f1f2b]'}`}>
+        {(() => {
+          // agrupar por categoría, ordenadas
+          const grupos = new Map<number, { label: string; items: Sal[] }>()
+          for (const s of salesTodas) {
+            const cat = categoriaSal(s)
+            if (!grupos.has(cat.orden)) grupos.set(cat.orden, { label: cat.label, items: [] })
+            grupos.get(cat.orden)!.items.push(s)
+          }
+          const ordenadas = [...grupos.entries()].sort((a, b) => a[0] - b[0])
+          for (const [, g] of ordenadas) g.items.sort((a, b) => a.nombre.localeCompare(b.nombre))
+          return ordenadas.map(([orden, g]) => (
+            <div key={orden} className="mt-3">
+              <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-semibold mb-1.5 px-0.5">{g.label} <span className="text-[#3a3a4a]">· {g.items.length}</span></p>
+              <div className="space-y-1.5">
+                {g.items.map((s: Sal) => {
+                  const on = activas.has(s.id)
+                  const open = abierta === s.id
+                  return (
+                    <div key={s.id} className={`rounded-md border transition-colors ${on ? 'bg-[#a3e635]/08 border-[#404d20]' : 'bg-[#15151d] border-[#1f1f2b]'}`}>
                 <div className="flex items-start gap-2 px-2.5 py-1.5">
                   <button onClick={() => setActivas((prev: Set<string>) => { const n = new Set(prev); if (on) n.delete(s.id); else n.add(s.id); return n })}
                     className={`mt-0.5 w-3.5 h-3.5 rounded flex-shrink-0 border ${on ? 'bg-[#a3e635] border-[#a3e635]' : 'border-[#3a3a4a]'}`} />
@@ -409,11 +422,14 @@ function SustanciasTab({ salesTodas, activas, setActivas, recargarCustoms, recar
                   </button>
                   <ChevronDown className={`w-4 h-4 mt-0.5 text-[#5c5c6b] flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
                 </div>
-                {open && <FichaSal sal={s} onSaved={recargarInventario} onDelete={recargarCustoms} />}
+                      {open && <FichaSal sal={s} onSaved={recargarInventario} onDelete={recargarCustoms} />}
+                    </div>
+                  )
+                })}
               </div>
-            )
-          })}
-        </div>
+            </div>
+          ))
+        })()}
       </div>
     </div>
   )

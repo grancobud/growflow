@@ -341,6 +341,24 @@ export function marcaDe(sal: Sal): string {
   if (sal.id.startsWith('plagron_')) return 'Plagron'
   return 'Otro'
 }
+/** Categoría de una sal para agrupar la lista (orden + etiqueta). */
+export function categoriaSal(sal: Sal): { orden: number; label: string } {
+  if (esComercial(sal)) {
+    const marca = marcaDe(sal)
+    const idx = ['Ryanodine', 'Advanced Nutrients', 'Athena', 'Jacks', 'Canna', 'Plagron'].indexOf(marca)
+    return { orden: 100 + (idx < 0 ? 9 : idx), label: 'Comercial · ' + marca }
+  }
+  if (sal.aditivo) return { orden: 90, label: 'Aditivos y estabilizantes' }
+  const c = sal.comp
+  if ((c.Ca ?? 0) > 0) return { orden: 10, label: 'Calcio' }
+  if (sal.bidon === 'C') return { orden: 60, label: 'Micronutrientes' }
+  if ((c.P ?? 0) > 0) return { orden: 30, label: 'Fósforo' }
+  if ((c.Mg ?? 0) > 0) return { orden: 50, label: 'Magnesio y azufre' }
+  if ((c.K ?? 0) > 0) return { orden: 40, label: 'Potasio' }
+  if ((c.NO3 ?? 0) > 0 || (c.NH4 ?? 0) > 0) return { orden: 20, label: 'Nitrógeno' }
+  return { orden: 80, label: 'Otros' }
+}
+
 /** Genera el perfil ppm objetivo de un producto a una dosis (g/L de producto). */
 export function perfilDesdeProducto(sal: Sal, doseGL: number): Perfil {
   const out: Perfil = {}
