@@ -197,6 +197,7 @@ function CalcTab(p: CalcTabProps) {
     guardados, nombreNuevo, setNombreNuevo, guardando, guardarPerfil, cargarPerfil, borrarPerfil, resolucion,
     rangos, setRangos } = p
   const [editarRangos, setEditarRangos] = useState(false)
+  const [litros, setLitros] = useState(1)
   const setRango = (k: ElementKey, campo: 'min' | 'max', v: number) =>
     setRangos(prev => ({ ...prev, [k]: { min: prev[k]?.min ?? 0, max: prev[k]?.max ?? 0, [campo]: v } }))
 
@@ -303,9 +304,14 @@ function CalcTab(p: CalcTabProps) {
 
         {/* Receta */}
         <div className={card}>
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
             <FlaskConical className="w-4 h-4 text-[#a78bfa]" strokeWidth={1.8} />
-            <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Receta · g/L</h3>
+            <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Receta {litros === 1 ? '· g/L' : `· para ${litros} L`}</h3>
+            <label className="flex items-center gap-1 text-[10.5px] text-[#a6a6b5]">
+              <span className="text-[#5c5c6b]">prepará</span>
+              <input type="number" min={0.1} step={1} value={litros} onChange={e => setLitros(Math.max(0.1, +e.target.value))}
+                className="w-16 bg-[#15151d] border border-[#1f1f2b] rounded px-1.5 py-0.5 text-[12px] text-[#ececf1] font-mono tabular-nums focus:border-[#404d20] outline-none" /> L
+            </label>
             <span className="ml-auto text-[11px] font-mono tabular-nums px-2 py-0.5 rounded border border-[#404d20] bg-[#a3e635]/10 text-[#d9f99d]">EC ≈ {ec}</span>
           </div>
           {porBidon.length === 0 ? (
@@ -317,12 +323,13 @@ function CalcTab(p: CalcTabProps) {
                   <p className="text-[10px] uppercase tracking-[0.12em] font-medium mb-1.5" style={{ color: BIDON_INFO[g.bidon].color }}>{BIDON_INFO[g.bidon].label}</p>
                   <div className="space-y-1">
                     {g.items.map((d: ResultadoSal) => {
-                      const gv = resolucion > 0 ? redondearBalanza(d.gramosPorL, resolucion) : d.gramosPorL
+                      const gv0 = resolucion > 0 ? redondearBalanza(d.gramosPorL, resolucion) : d.gramosPorL
+                      const gv = gv0 * litros
                       return (
                       <div key={d.sal.id} className="flex items-center gap-2 bg-[#15151d] border border-[#1f1f2b] rounded-md px-2.5 py-1.5">
                         <span className="text-[11.5px] text-[#d4d4dd] flex-1 min-w-0 truncate">{d.sal.nombre}</span>
                         <span className="text-[12px] font-mono tabular-nums font-bold text-[#ececf1]">
-                          {gv >= 0.01 ? gv.toFixed(2) : gv.toFixed(4)} <span className="text-[#5c5c6b] font-normal">g/L</span>
+                          {gv >= 0.01 ? gv.toFixed(2) : gv.toFixed(4)} <span className="text-[#5c5c6b] font-normal">{litros === 1 ? 'g/L' : 'g'}</span>
                         </span>
                       </div>
                       )
