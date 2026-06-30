@@ -57,6 +57,13 @@ Precios actuales y proveedores: ver memoria `reference_precios_sales_fertirriego
 - Input de litros en la receta (gramosPorL × litros = total a pesar).
 - LÍMITE de química conocido: NO3 alto con Ca/K/NH4 limitados no se alcanza 100% (no existe nitrato puro salvo ácido nítrico); el solver da el óptimo (~80-92%). Es correcto, no bug.
 
+## Bidones mínimos + UI (afinado con uso real)
+- necesitaSepararAB(dosis): true solo si conviven Ca y (S o P). bidonDeSal(sal, separar): si !separar→todo 'A' (1 botella); si separar→ SP a 'B', Ca+neutras a 'A'. Usado en la Receta (CalcTab porBidon) Y en calcularConcentrados. Balance/Fade/Calcis = 1 botella ("Botella única · todo junto"); nutriente completo Ca+sulfatos = 2.
+- Concentrados A/B: botellas dibujadas (SVG BotellaSVG) por bidón con gramos + "agua hasta X L".
+- Input de litros en Receta (gramos totales = g/L × litros).
+- Rangos al clonar: se mantienen (RANGOS_FLORA_COCO) PERO el estado EN RANGO/bajo/alto solo se evalúa en elementos con objetivo>0 (no marca "bajo" falso en partes como Calcis que no tienen P/K/Mg).
+- Finis: la etiqueta dice "fosfato de calcio" pero NO reconcilia (S 12.54% no sale de K2SO4 sin pasarse de K; fosfato de Ca dispararía el P). El clon usa YESO (Ca+S) que sí cuadra con la composición garantizada. Correcto: la planta absorbe iones, no la sal. Yeso va en seco al tanque (poco soluble), no en concentrado.
+
 ## Clon fiel por marca (opcionesDeMarca)
 `kitParaPerfil(perfil, opts)` acepta `{feChelate, microsQuelatados}`. `opcionesDeMarca(salId)` por prefijo: Athena→Fe-DTPA+micros EDTA; AN/Ryanodine→Fe-EDDHA+micros EDTA; Jacks/Canna/Plagron→sulfatos+EDDHA. La Clonar pasa el id del producto → usa el hierro/micros exactos de esa marca. Las 6 sales base son iguales en todas (cano3+mkp+kno3+k2so4+epsom+micros); la diferencia real es el quelato de hierro y si micros son EDTA vs sulfato. NH4+P → MAP cubre el amoniacal. Si→ksilic. Cl/Na no se sourcean (intencional, clon más limpio).
 
