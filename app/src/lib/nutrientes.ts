@@ -266,13 +266,13 @@ export const SALES_DEFECTO: Sal[] = [
   { id: 'athena_pro_bloom', nombre: 'Athena Pro Bloom (0-12-24)', bidon: 'B',
     comp: { P: 0.0524, K: 0.1992, Mg: 0.015, S: 0.04, Fe: 0.001 },
     descripcion: 'Comercial Athena Pro Line: base de floración P-K. NPK 0-12-24 confirmado; Mg/S estimados. Va en bidón B, con Pro Core.' },
-  { id: 'athena_fade', nombre: 'Athena Fade (finalizador Ca + micros)', bidon: 'A',
+  { id: 'athena_fade', nombre: 'Athena Fade (finalizador Ca + micros)', bidon: 'A', liquido: true, densidad: 1.1,
     comp: { Ca: 0.04, Cl: 0.07, Fe: 0.0008, Mn: 0.0004, Zn: 0.0002, Cu: 0.0001, B: 0.0003, Mo: 0.00005 },
     descripcion: 'Comercial Athena: finalizador SIN nitrógeno que aporta calcio + micros quelatados completos (cloruro de calcio + Fe/Mn/Zn/Cu-EDTA + B + Mo). Reemplaza al Pro Core en las últimas 3 semanas, junto a un PK (Pro Bloom). OJO: mete cloro (Cl ~7%). Para un finish completo: Fade + base PK + Mg.' },
-  { id: 'athena_balance', nombre: 'Athena Balance (0-0-2)', bidon: 'C',
+  { id: 'athena_balance', nombre: 'Athena Balance (0-0-2)', bidon: 'C', liquido: true, densidad: 1.2,
     comp: { K: 0.0166, Si: 0.01 },
     descripcion: 'Comercial Athena: aporta silicio (silicato de potasio) para estructura/resistencia y ayuda a balancear pH. Va aparte (sube pH). NPK 0-0-2.' },
-  { id: 'athena_cleanse', nombre: 'Athena Cleanse (limpieza)', formula: 'HOCl', bidon: 'C', aditivo: true, comp: {},
+  { id: 'athena_cleanse', nombre: 'Athena Cleanse (limpieza)', formula: 'HOCl', bidon: 'C', aditivo: true, liquido: true, densidad: 1.0, comp: {},
     descripcion: 'Comercial Athena: NO es nutriente. Ácido hipocloroso (HOCl) derivado de sal, limpia raíces/sistema de riego y previene acumulación mineral/biofilm. Es un sanitizante, no aporta nada nutritivo.' },
 
   // --- Jacks 321 (JR Peters) — sistema de 3 sales ---
@@ -480,7 +480,7 @@ export const DOSIS_REC: Record<string, number> = {
   // Advanced Nutrients Sensi Pro (polvo, g/L) — ~0.46 g/L por EC 1.0
   an_sensi_grow_a: 1, an_sensi_grow_b: 1, an_sensi_bloom_a: 1, an_sensi_bloom_b: 1,
   // Athena Pro (polvo, g/L) — dosis baja, ~Ca 150 en uso
-  athena_pro_core: 0.9, athena_pro_grow: 0.9, athena_pro_bloom: 0.9, athena_fade: 1, athena_balance: 0.5,
+  athena_pro_core: 0.9, athena_pro_grow: 0.9, athena_pro_bloom: 0.9, athena_fade: 3, athena_balance: 1,
   // Jacks (g/L)
   jacks_a: 0.65,
   // Canna (líquido, mL/L)
