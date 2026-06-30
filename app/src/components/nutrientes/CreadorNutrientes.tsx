@@ -362,10 +362,11 @@ function CalcTab(p: CalcTabProps) {
               ))}
             </tr></thead>
             <tbody>
-              {ELEMENTOS.filter(e => (perfil[e.key] ?? 0) > 0 || (res.ppmLogrado[e.key] ?? 0) > 0 || rangos[e.key]).map(e => {
+              {ELEMENTOS.filter(e => (perfil[e.key] ?? 0) > 0 || (res.ppmLogrado[e.key] ?? 0) > 0).map(e => {
                 const obj = perfil[e.key] ?? 0, log = res.ppmLogrado[e.key] ?? 0
                 const rg = rangos[e.key]
-                const est = estadoRango(log, rg)
+                // el estado del rango solo aplica a elementos que el perfil SÍ pide (objetivo > 0)
+                const est = obj > 0 ? estadoRango(log, rg) : 'sin'
                 const col = est === 'ok' ? '#d9f99d' : est === 'bajo' ? '#60a5fa' : est === 'alto' ? '#ff8a7a' : colorDelta(log, obj).c
                 const bg = est === 'ok' ? 'rgba(63,176,116,0.10)' : est === 'bajo' ? 'rgba(96,165,250,0.08)' : est === 'alto' ? 'rgba(255,138,122,0.08)' : 'transparent'
                 return (
@@ -380,7 +381,7 @@ function CalcTab(p: CalcTabProps) {
                           <span className="text-[#5c5c6b]">–</span>
                           <input type="number" value={rg?.max ?? 0} onChange={ev => setRango(e.key, 'max', +ev.target.value)} className="w-14 bg-[#101016] border border-[#1f1f2b] rounded px-1 py-0.5 text-[10.5px] font-mono" />
                         </span>
-                      ) : rg ? `${rg.min}–${rg.max}` : '—'}
+                      ) : (obj > 0 && rg) ? `${rg.min}–${rg.max}` : '—'}
                     </td>
                     <td className="px-3 py-1.5 text-[10px] font-medium" style={{ color: col }}>
                       {est === 'ok' ? 'EN RANGO' : est === 'bajo' ? 'bajo' : est === 'alto' ? 'alto' : '—'}
