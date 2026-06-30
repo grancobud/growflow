@@ -457,6 +457,7 @@ export const RANGOS_FLORA_COCO: RangoPerfil = {
 export function rangosDesdePerfil(perfil: Perfil, tol = 0.15): RangoPerfil {
   const out: RangoPerfil = {}
   for (const e of ELEMENTOS) {
+    if (e.key === 'Cl' || e.key === 'Na') continue // no deseados: no se evalúan como objetivo
     const v = perfil[e.key] ?? 0
     if (v > 0) out[e.key] = { min: +(v * (1 - tol)).toFixed(2), max: +(v * (1 + tol)).toFixed(2) }
   }
