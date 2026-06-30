@@ -461,6 +461,25 @@ export function estadoRango(valor: number, rango?: { min: number; max: number })
 // Kits de sales curados: conjuntos mínimos y limpios (1 sal por nutriente,
 // separación A/B/C correcta, sin cloro ni redundancia). Resuelven el problema
 // de que el solver reparta en muchas sales equivalentes.
+// Dosis recomendada de uso de cada producto comercial (g/L sólidos, mL/L líquidos),
+// para que al clonar el perfil quede a la concentración REAL de uso de esa marca.
+export const DOSIS_REC: Record<string, number> = {
+  // Ryanodine (líquidos, mL/L)
+  ryano_calcis: 4, ryano_makro: 4, ryano_mikro: 4, ryano_maikro: 4, ryano_finis: 0.91,
+  // Advanced Nutrients Sensi Pro (polvo, g/L) — ~0.46 g/L por EC 1.0
+  an_sensi_grow_a: 1, an_sensi_grow_b: 1, an_sensi_bloom_a: 1, an_sensi_bloom_b: 1,
+  // Athena Pro (polvo, g/L) — dosis baja, ~Ca 150 en uso
+  athena_pro_core: 0.9, athena_pro_grow: 0.9, athena_pro_bloom: 0.9, athena_fade: 1, athena_balance: 0.5,
+  // Jacks (g/L)
+  jacks_a: 0.65,
+  // Canna (líquido, mL/L)
+  canna_coco_a: 4, canna_coco_b: 4,
+  // Plagron (líquido, mL/L)
+  plagron_terra_grow: 5, plagron_terra_bloom: 5, plagron_coco_a: 4, plagron_coco_b: 4,
+  plagron_hydro_a: 4, plagron_hydro_b: 4, plagron_alga_grow: 5, plagron_alga_bloom: 5,
+  plagron_green_sensation: 1.5,
+}
+
 export interface KitSales { id: string; nombre: string; desc: string; sales: string[] }
 export const KITS_SALES: KitSales[] = [
   { id: 'limpio', nombre: 'Kit limpio (recomendado)',

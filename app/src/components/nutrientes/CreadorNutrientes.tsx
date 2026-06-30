@@ -9,7 +9,7 @@ import {
   SALES_DEFECTO, ELEMENTOS, PRESETS, calcularReceta, ecAprox, nTotal,
   calcularConcentrados, calcularRatios, calcularCosto,
   redondearBalanza, AGENTES_PH, calcularAjustePH, oxidoAElemental, OXIDOS,
-  recomendarEstabilizantes, esComercial, marcaDe, perfilDesdeProducto, categoriaSal, KITS_SALES, kitParaPerfil, opcionesDeMarca,
+  recomendarEstabilizantes, esComercial, marcaDe, perfilDesdeProducto, categoriaSal, KITS_SALES, kitParaPerfil, opcionesDeMarca, DOSIS_REC,
   perfilesNutrientesService, sustanciasService, inventarioService, aplicarInventario,
   compatibilidad, estadoRango, RANGOS_FLORA_COCO,
   type ElementKey, type Perfil, type PerfilGuardado, type Sal, type Bidon,
@@ -775,7 +775,11 @@ function RatiosTab({ ratios, res, costo }: { ratios: Ratios; res: Resultado; cos
 // ===================== CLONAR MARCA =====================
 function ClonarTab({ productos, onUsar }: { productos: Sal[]; onUsar: (p: Perfil, salId: string) => void }) {
   const [id, setId] = useState(productos[0]?.id ?? '')
-  const [dosis, setDosis] = useState(3)
+  const [dosis, setDosis] = useState(DOSIS_REC[productos[0]?.id ?? ''] ?? 3)
+  function elegirProducto(nuevoId: string) {
+    setId(nuevoId)
+    setDosis(DOSIS_REC[nuevoId] ?? 3) // autocompleta la dosis recomendada de esa marca
+  }
   const prod = productos.find(p => p.id === id)
   const doseGL = prod?.liquido ? dosis * (prod.densidad ?? 1.1) : dosis
   const perfil = prod ? perfilDesdeProducto(prod, doseGL) : {}
@@ -794,7 +798,7 @@ function ClonarTab({ productos, onUsar }: { productos: Sal[]; onUsar: (p: Perfil
         </p>
         <div className="grid sm:grid-cols-2 gap-3">
           <label className="text-[11px] text-[#a6a6b5]">Producto
-            <select value={id} onChange={e => setId(e.target.value)} className={`${inp} mt-1`}>
+            <select value={id} onChange={e => elegirProducto(e.target.value)} className={`${inp} mt-1`}>
               {marcas.map(m => (
                 <optgroup key={m} label={m}>
                   {productos.filter(p => marcaDe(p) === m).map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
@@ -803,6 +807,7 @@ function ClonarTab({ productos, onUsar }: { productos: Sal[]; onUsar: (p: Perfil
             </select>
           </label>
           <label className="text-[11px] text-[#a6a6b5]">Dosis ({prod?.liquido ? 'mL/L' : 'g/L'})
+            {DOSIS_REC[id] != null && <span className="text-[#5c5c6b] ml-1">· recomendada de la marca: {DOSIS_REC[id]}{prod?.liquido ? ' mL/L' : ' g/L'} (podés cambiarla)</span>}
             <input type="number" min={0} step={0.1} value={dosis} onChange={e => setDosis(+e.target.value)} className={`${inp} mt-1`} />
           </label>
         </div>
