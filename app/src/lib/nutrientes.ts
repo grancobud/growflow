@@ -596,30 +596,31 @@ export interface BidonConcentrado {
  * @param factor cuántas veces concentrado (ej. 100 = stock 100x)
  * @param volumenBidonL litros de cada bidón concentrado
  */
+// --- Asignación de bidones MÍNIMA: solo se separa cuando hay conflicto Ca↔sulfato/fosfato ---
+const _tieneSP = (s: Sal) => (s.comp.S ?? 0) > 0 || (s.comp.P ?? 0) > 0
+const _tieneCa = (s: Sal) => (s.comp.Ca ?? 0) > 0
+/** ¿Hay que separar en 2 botellas? Solo si conviven calcio y sulfato/fosfato. */
+export function necesitaSepararAB(dosis: ResultadoSal[]): boolean {
+  return dosis.some(d => _tieneCa(d.sal)) && dosis.some(d => _tieneSP(d.sal))
+}
+/** Bidón que le toca a una sal: A (calcio+neutras) o B (sulfatos/fosfatos). Si no hay conflicto, todo en A (una botella). */
+export function bidonDeSal(sal: Sal, separar: boolean): Bidon {
+  if (!separar) return 'A'
+  return _tieneSP(sal) ? 'B' : 'A'
+}
+
 export function calcularConcentrados(dosis: ResultadoSal[], factor: number, volumenBidonL: number): BidonConcentrado[] {
-  const grupos: Record<Bidon, BidonConcentrado> = {
-    A: { bidon: 'A', volumenL: volumenBidonL, items: [], advertencia: null },
-    B: { bidon: 'B', volumenL: volumenBidonL, items: [], advertencia: null },
-    C: { bidon: 'C', volumenL: volumenBidonL, items: [], advertencia: null },
-  }
+  const separar = necesitaSepararAB(dosis)
+  const grupos: Partial<Record<Bidon, BidonConcentrado>> = {}
   for (const d of dosis) {
-    // g totales en el bidón = g/L final * factor * (volumen final que rinde el bidón)
-    // un bidón de volumenBidonL a factor X rinde volumenBidonL*factor litros finales.
+    const b = bidonDeSal(d.sal, separar)
+    if (!grupos[b]) grupos[b] = { bidon: b, volumenL: volumenBidonL, items: [], advertencia: null }
     const gramos = d.gramosPorL * factor * volumenBidonL
     const item: { sal: Sal; gramos: number; mlSiLiquido?: number } = { sal: d.sal, gramos: +gramos.toFixed(1) }
     if (d.sal.liquido && d.sal.densidad) item.mlSiLiquido = +(gramos / d.sal.densidad).toFixed(1)
-    grupos[d.sal.bidon].items.push(item)
+    grupos[b]!.items.push(item)
   }
-  // advertencia Ca + sulfato/fosfato en el mismo bidón
-  for (const g of Object.values(grupos)) {
-    const hayCa = g.items.some(i => (i.sal.comp.Ca ?? 0) > 0)
-    const hayS = g.items.some(i => (i.sal.comp.S ?? 0) > 0)
-    const hayP = g.items.some(i => (i.sal.comp.P ?? 0) > 0)
-    if (hayCa && (hayS || hayP)) {
-      g.advertencia = 'Calcio + sulfato/fosfato en el mismo bidón → precipita. Separá el calcio.'
-    }
-  }
-  return Object.values(grupos).filter(g => g.items.length > 0)
+  return (Object.values(grupos) as BidonConcentrado[]).sort((a, b) => a.bidon.localeCompare(b.bidon))
 }
 
 /** Costo de un lote: precio por litro final de solución. */

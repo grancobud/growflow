@@ -10,6 +10,7 @@ import {
   calcularConcentrados, calcularRatios, calcularCosto,
   redondearBalanza, AGENTES_PH, calcularAjustePH, oxidoAElemental, OXIDOS,
   recomendarEstabilizantes, esComercial, marcaDe, perfilDesdeProducto, categoriaSal, KITS_SALES, kitParaPerfil, opcionesDeMarca, DOSIS_REC,
+  necesitaSepararAB, bidonDeSal,
   perfilesNutrientesService, sustanciasService, inventarioService, aplicarInventario,
   compatibilidad, estadoRango, RANGOS_FLORA_COCO,
   type ElementKey, type Perfil, type PerfilGuardado, type Sal, type Bidon,
@@ -171,7 +172,7 @@ export default function CreadorNutrientes() {
           setPerfil(p); setPresetId('')
           // sales limpias con el quelato/forma de micros de ESA marca (clon fiel)
           setActivas(new Set(kitParaPerfil(p, opcionesDeMarca(salId))))
-          setRangos({})
+          setRangos(RANGOS_FLORA_COCO) // mantener los rangos de referencia visibles
           setSub('calc')
         }} />
       )}
@@ -201,9 +202,11 @@ function CalcTab(p: CalcTabProps) {
   const setRango = (k: ElementKey, campo: 'min' | 'max', v: number) =>
     setRangos(prev => ({ ...prev, [k]: { min: prev[k]?.min ?? 0, max: prev[k]?.max ?? 0, [campo]: v } }))
 
+  const separarBidones = necesitaSepararAB(res.dosis)
   const porBidon = (['A', 'B', 'C'] as Bidon[]).map(b => ({
-    bidon: b, items: res.dosis.filter((d: ResultadoSal) => d.sal.bidon === b),
+    bidon: b, items: res.dosis.filter((d: ResultadoSal) => bidonDeSal(d.sal, separarBidones) === b),
   })).filter(g => g.items.length > 0)
+  const unaSolaBotella = porBidon.length === 1
   const nLog = nTotal(res.ppmLogrado)
 
   return (
@@ -320,7 +323,7 @@ function CalcTab(p: CalcTabProps) {
             <div className="space-y-3">
               {porBidon.map(g => (
                 <div key={g.bidon}>
-                  <p className="text-[10px] uppercase tracking-[0.12em] font-medium mb-1.5" style={{ color: BIDON_INFO[g.bidon].color }}>{BIDON_INFO[g.bidon].label}</p>
+                  <p className="text-[10px] uppercase tracking-[0.12em] font-medium mb-1.5" style={{ color: BIDON_INFO[g.bidon].color }}>{unaSolaBotella ? 'Botella única · todo junto' : BIDON_INFO[g.bidon].label}</p>
                   <div className="space-y-1">
                     {g.items.map((d: ResultadoSal) => {
                       const gv0 = resolucion > 0 ? redondearBalanza(d.gramosPorL, resolucion) : d.gramosPorL
@@ -700,7 +703,7 @@ function ConcentradosTab({ concentrados, factor, setFactor, volBidon, setVolBido
         {concentrados.map((g: BidonConcentrado) => (
         <div key={g.bidon} className={card}>
           <p className="text-[11px] uppercase tracking-[0.12em] font-medium mb-2" style={{ color: BIDON_INFO[g.bidon].color }}>
-            {BIDON_INFO[g.bidon].label}
+            {concentrados.length === 1 ? 'Botella única · todo junto' : BIDON_INFO[g.bidon].label}
           </p>
           <div className="flex gap-3">
             <BotellaSVG color={BIDON_INFO[g.bidon].color} letra={g.bidon} volumenL={g.volumenL} />
