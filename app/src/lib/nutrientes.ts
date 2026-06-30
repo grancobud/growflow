@@ -609,7 +609,9 @@ export interface BidonConcentrado {
  * @param volumenBidonL litros de cada bidón concentrado
  */
 // --- Asignación de bidones MÍNIMA: solo se separa cuando hay conflicto Ca↔sulfato/fosfato ---
-const _tieneSP = (s: Sal) => (s.comp.S ?? 0) > 0 || (s.comp.P ?? 0) > 0
+// Solo cuentan los sulfatos/fosfatos MACRO (bidón B): los micros (bidón C) van en trazas
+// y su azufre no alcanza para precipitar el calcio, así que no fuerzan separación.
+const _tieneSP = (s: Sal) => ((s.comp.S ?? 0) > 0 || (s.comp.P ?? 0) > 0) && s.bidon !== 'C'
 const _tieneCa = (s: Sal) => (s.comp.Ca ?? 0) > 0
 /** ¿Hay que separar en 2 botellas? Solo si conviven calcio y sulfato/fosfato. */
 export function necesitaSepararAB(dosis: ResultadoSal[]): boolean {
