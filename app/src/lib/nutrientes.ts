@@ -391,11 +391,12 @@ export function kitParaPerfil(p: Perfil, opts: OpcionesKit = {}): string[] {
   }
   // --- Fósforo (MKP limpio, cero N) ---
   if (has('P')) kit.add('mkp')
-  // --- N amoniacal: sulfato de amonio (NH4+S) si hay S; MAP si hay P sin S ---
+  // --- N amoniacal: elegir la fuente más limpia según qué más pide el perfil ---
   if (has('NH4')) {
-    if (has('S')) kit.add('amsulf')       // NH4 + S sin tocar el P (lo más limpio)
-    else if (has('P')) kit.add('map')     // NH4 + P cuando no hay azufre
-    else kit.add('amsulf')                // NH4 solo
+    if (has('NO3')) kit.add('nh4no3')      // NH4 + NO3 sin S ni P (ideal: cubre el amoniacal sin tocar nada)
+    else if (has('S')) kit.add('amsulf')   // NH4 + S (cuando no hay nítrico pero sí azufre)
+    else if (has('P')) kit.add('map')      // NH4 + P (sin nítrico ni azufre)
+    else kit.add('amsulf')                 // NH4 solo
   }
   // --- Potasio ---
   if (has('K')) {
