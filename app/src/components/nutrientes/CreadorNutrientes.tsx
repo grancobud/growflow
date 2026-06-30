@@ -25,6 +25,7 @@ interface CalcTabProps {
   guardados: PerfilGuardado[]; nombreNuevo: string; setNombreNuevo: (v: string) => void; guardando: boolean
   guardarPerfil: () => void; cargarPerfil: (g: PerfilGuardado) => void; borrarPerfil: (g: PerfilGuardado) => void
   resolucion: number; rangos: RangoPerfil; setRangos: React.Dispatch<React.SetStateAction<RangoPerfil>>
+  modoPrep: 'polvo' | 'liquido'; setModoPrep: (m: 'polvo' | 'liquido') => void
 }
 type CostoResultado = { porLitro: number; detalle: { sal: Sal; costo: number }[] }
 
@@ -79,6 +80,7 @@ export default function CreadorNutrientes() {
   const [factor, setFactor] = useState(100)
   const [volBidon, setVolBidon] = useState(1)
   const [resolucion, setResolucion] = useState(0) // resolución de balanza (g); 0 = sin redondeo
+  const [modoPrep, setModoPrep] = useState<'polvo' | 'liquido'>('polvo')
 
   const salesTodas = useMemo(() => aplicarInventario([...SALES_DEFECTO, ...customs], inventario), [customs, inventario])
   const salesDisp = useMemo(() => salesTodas.filter(s => activas.has(s.id)), [salesTodas, activas])
@@ -156,7 +158,7 @@ export default function CreadorNutrientes() {
       {sub === 'calc' && (
         <CalcTab {...{ perfil, presetId, setPreset, setPpm, macros, micros, res, ec, salesTodas, activas, setActivas,
           guardados, nombreNuevo, setNombreNuevo, guardando, guardarPerfil, cargarPerfil, borrarPerfil, resolucion,
-          rangos, setRangos }} />
+          rangos, setRangos, modoPrep, setModoPrep }} />
       )}
       {sub === 'sustancias' && (
         <SustanciasTab {...{ salesTodas, activas, setActivas, recargarCustoms, inventario, recargarInventario }} />
@@ -173,6 +175,9 @@ export default function CreadorNutrientes() {
           // sales limpias con el quelato/forma de micros de ESA marca (clon fiel)
           setActivas(new Set(kitParaPerfil(p, opcionesDeMarca(salId))))
           setRangos(rangosDesdePerfil(p)) // banda ±15% del producto: el clon "calza" si le pega
+          // forma de preparación = la del producto original (líquido o polvo)
+          const prod = salesTodas.find(s => s.id === salId)
+          setModoPrep(prod?.liquido ? 'liquido' : 'polvo')
           setSub('calc')
         }} />
       )}
@@ -196,10 +201,9 @@ export default function CreadorNutrientes() {
 function CalcTab(p: CalcTabProps) {
   const { perfil, presetId, setPreset, setPpm, macros, micros, res, ec, salesTodas, activas, setActivas,
     guardados, nombreNuevo, setNombreNuevo, guardando, guardarPerfil, cargarPerfil, borrarPerfil, resolucion,
-    rangos, setRangos } = p
+    rangos, setRangos, modoPrep, setModoPrep } = p
   const [editarRangos, setEditarRangos] = useState(false)
   const [litros, setLitros] = useState(1)
-  const [modoPrep, setModoPrep] = useState<'polvo' | 'liquido'>('polvo')
   const setRango = (k: ElementKey, campo: 'min' | 'max', v: number) =>
     setRangos(prev => ({ ...prev, [k]: { min: prev[k]?.min ?? 0, max: prev[k]?.max ?? 0, [campo]: v } }))
 
