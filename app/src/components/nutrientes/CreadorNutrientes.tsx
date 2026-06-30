@@ -673,7 +673,7 @@ function AguaTab({ agua, setAgua, macros, micros, otros }: { agua: Perfil; setAg
 }
 
 // ===================== CONCENTRADOS =====================
-function ConcentradosTab({ concentrados, factor, setFactor, volBidon, setVolBidon, resolucion, setResolucion, dosisCount, guardados, salesTodas }: { concentrados: BidonConcentrado[]; factor: number; setFactor: (n: number) => void; volBidon: number; setVolBidon: (n: number) => void; resolucion: number; setResolucion: (n: number) => void; dosisCount: number; guardados: PerfilGuardado[]; salesTodas: Sal[]; modoPrep: 'polvo' | 'liquido' }) {
+function ConcentradosTab({ factor, setFactor, volBidon, setVolBidon, resolucion, setResolucion, guardados, salesTodas }: { factor: number; setFactor: (n: number) => void; volBidon: number; setVolBidon: (n: number) => void; resolucion: number; setResolucion: (n: number) => void; guardados: PerfilGuardado[]; salesTodas: Sal[] }) {
   // botella madre de cada perfil/clon guardado
   const botellasGuardadas = guardados.map(g => {
     const salesDisp = salesTodas.filter(s => (g.sales ?? []).includes(s.id))
@@ -718,18 +718,10 @@ function ConcentradosTab({ concentrados, factor, setFactor, volBidon, setVolBido
         </div>
       </div>
 
-      {/* Receta actual */}
-      {dosisCount === 0 ? (
-        <p className="text-[12px] text-[#5c5c6b] py-6 text-center">Calculá o cloná una receta primero.</p>
-      ) : (
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-semibold mb-2 px-0.5">Receta actual</p>
-          <BotellasGrid concentrados={concentrados} resolucion={resolucion} />
-        </div>
-      )}
-
       {/* Galería: una botella madre por cada clon/perfil guardado */}
-      {botellasGuardadas.length > 0 && (
+      {botellasGuardadas.length === 0 ? (
+        <p className="text-[12px] text-[#5c5c6b] py-6 text-center">Todavía no tenés clones guardados. Cloná un producto y guardalo con un nombre en la pestaña Calculadora.</p>
+      ) : (
         <div className="pt-2">
           <p className="text-[10px] uppercase tracking-[0.14em] text-[#a78bfa] font-semibold mb-2 px-0.5">Mis soluciones madre guardadas · {botellasGuardadas.length}</p>
           <div className="space-y-3">
