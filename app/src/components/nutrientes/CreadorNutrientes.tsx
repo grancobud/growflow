@@ -199,10 +199,12 @@ function CalcTab(p: CalcTabProps) {
     rangos, setRangos } = p
   const [editarRangos, setEditarRangos] = useState(false)
   const [litros, setLitros] = useState(1)
+  const [modoPrep, setModoPrep] = useState<'polvo' | 'liquido'>('polvo')
   const setRango = (k: ElementKey, campo: 'min' | 'max', v: number) =>
     setRangos(prev => ({ ...prev, [k]: { min: prev[k]?.min ?? 0, max: prev[k]?.max ?? 0, [campo]: v } }))
 
-  const separarBidones = necesitaSepararAB(res.dosis)
+  // en polvo seco todo va junto; solo se separa en concentrado líquido con conflicto Ca↔sulfato
+  const separarBidones = modoPrep === 'liquido' && necesitaSepararAB(res.dosis)
   const porBidon = (['A', 'B', 'C'] as Bidon[]).map(b => ({
     bidon: b, items: res.dosis.filter((d: ResultadoSal) => bidonDeSal(d.sal, separarBidones) === b),
   })).filter(g => g.items.length > 0)
@@ -315,6 +317,14 @@ function CalcTab(p: CalcTabProps) {
               <input type="number" min={0.1} step={1} value={litros} onChange={e => setLitros(Math.max(0.1, +e.target.value))}
                 className="w-16 bg-[#15151d] border border-[#1f1f2b] rounded px-1.5 py-0.5 text-[12px] text-[#ececf1] font-mono tabular-nums focus:border-[#404d20] outline-none" /> L
             </label>
+            <div className="flex rounded-md overflow-hidden border border-[#1f1f2b]">
+              {(['polvo', 'liquido'] as const).map(m => (
+                <button key={m} onClick={() => setModoPrep(m)}
+                  className={`px-2 py-0.5 text-[10.5px] font-medium transition-colors ${modoPrep === m ? 'bg-[#a3e635]/15 text-[#d9f99d]' : 'bg-[#15151d] text-[#8f8f9f] hover:text-[#d4d4dd]'}`}>
+                  {m === 'polvo' ? 'Polvo' : 'Líquido A/B'}
+                </button>
+              ))}
+            </div>
             <span className="ml-auto text-[11px] font-mono tabular-nums px-2 py-0.5 rounded border border-[#404d20] bg-[#a3e635]/10 text-[#d9f99d]">EC ≈ {ec}</span>
           </div>
           {porBidon.length === 0 ? (
@@ -323,7 +333,7 @@ function CalcTab(p: CalcTabProps) {
             <div className="space-y-3">
               {porBidon.map(g => (
                 <div key={g.bidon}>
-                  <p className="text-[10px] uppercase tracking-[0.12em] font-medium mb-1.5" style={{ color: BIDON_INFO[g.bidon].color }}>{unaSolaBotella ? 'Botella única · todo junto' : BIDON_INFO[g.bidon].label}</p>
+                  <p className="text-[10px] uppercase tracking-[0.12em] font-medium mb-1.5" style={{ color: BIDON_INFO[g.bidon].color }}>{modoPrep === 'polvo' ? 'Mezcla en polvo · todo junto' : unaSolaBotella ? 'Botella única · todo junto' : BIDON_INFO[g.bidon].label}</p>
                   <div className="space-y-1">
                     {g.items.map((d: ResultadoSal) => {
                       const gv0 = resolucion > 0 ? redondearBalanza(d.gramosPorL, resolucion) : d.gramosPorL
