@@ -451,6 +451,16 @@ export const RANGOS_FLORA_COCO: RangoPerfil = {
   Zn: { min: 0.1, max: 0.3 }, B: { min: 0.2, max: 0.5 }, Cu: { min: 0.03, max: 0.1 }, Mo: { min: 0.02, max: 0.08 },
 }
 
+/** Genera rangos min/max como una banda ±tol alrededor de cada valor del perfil (default ±15%). */
+export function rangosDesdePerfil(perfil: Perfil, tol = 0.15): RangoPerfil {
+  const out: RangoPerfil = {}
+  for (const e of ELEMENTOS) {
+    const v = perfil[e.key] ?? 0
+    if (v > 0) out[e.key] = { min: +(v * (1 - tol)).toFixed(2), max: +(v * (1 + tol)).toFixed(2) }
+  }
+  return out
+}
+
 /** Estado de un elemento contra su rango: 'bajo' | 'ok' | 'alto' | 'sin'. */
 export function estadoRango(valor: number, rango?: { min: number; max: number }): 'bajo' | 'ok' | 'alto' | 'sin' {
   if (!rango) return 'sin'

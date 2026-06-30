@@ -12,7 +12,7 @@ import {
   recomendarEstabilizantes, esComercial, marcaDe, perfilDesdeProducto, categoriaSal, KITS_SALES, kitParaPerfil, opcionesDeMarca, DOSIS_REC,
   necesitaSepararAB, bidonDeSal,
   perfilesNutrientesService, sustanciasService, inventarioService, aplicarInventario,
-  compatibilidad, estadoRango, RANGOS_FLORA_COCO,
+  compatibilidad, estadoRango, RANGOS_FLORA_COCO, rangosDesdePerfil,
   type ElementKey, type Perfil, type PerfilGuardado, type Sal, type Bidon,
   type Resultado, type ResultadoSal, type BidonConcentrado, type Ratios,
   type InventarioItem, type RangoPerfil,
@@ -107,8 +107,8 @@ export default function CreadorNutrientes() {
     const p = PRESETS.find(x => x.id === id)
     if (p) {
       setPerfil({ ...p.perfil }); setPresetId(id)
-      // los rangos de referencia son de floración: solo tienen sentido en veg/flora
-      setRangos(id === 'veg' || id === 'flora' ? RANGOS_FLORA_COCO : {})
+      // veg/flora: rangos hortícolas reales. Resto (finish/fade): banda ±15% del propio objetivo.
+      setRangos(id === 'veg' || id === 'flora' ? RANGOS_FLORA_COCO : rangosDesdePerfil(p.perfil))
       // auto-elige las sales limpias correctas para ese objetivo (1 por nutriente)
       setActivas(new Set(kitParaPerfil(p.perfil)))
     }
@@ -172,7 +172,7 @@ export default function CreadorNutrientes() {
           setPerfil(p); setPresetId('')
           // sales limpias con el quelato/forma de micros de ESA marca (clon fiel)
           setActivas(new Set(kitParaPerfil(p, opcionesDeMarca(salId))))
-          setRangos(RANGOS_FLORA_COCO) // mantener los rangos de referencia visibles
+          setRangos(rangosDesdePerfil(p)) // banda ±15% del producto: el clon "calza" si le pega
           setSub('calc')
         }} />
       )}
