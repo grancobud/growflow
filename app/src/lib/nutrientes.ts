@@ -624,8 +624,11 @@ export function bidonDeSal(sal: Sal, separar: boolean): Bidon {
   return _tieneSP(sal) ? 'B' : 'A'
 }
 
+// Sales poco solubles: no se pueden hacer concentrado líquido → la receta es POLVO (1 envase).
+const SALES_POCO_SOLUBLES = new Set(['yeso', 'caco3', 'mgo'])
 export function calcularConcentrados(dosis: ResultadoSal[], factor: number, volumenBidonL: number): BidonConcentrado[] {
-  const separar = necesitaSepararAB(dosis)
+  const esPolvo = dosis.some(d => SALES_POCO_SOLUBLES.has(d.sal.id))
+  const separar = !esPolvo && necesitaSepararAB(dosis) // polvo = todo junto; líquido = separa Ca/sulfato
   const grupos: Partial<Record<Bidon, BidonConcentrado>> = {}
   for (const d of dosis) {
     const b = bidonDeSal(d.sal, separar)
