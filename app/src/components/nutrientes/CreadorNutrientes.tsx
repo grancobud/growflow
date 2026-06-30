@@ -695,23 +695,29 @@ function ConcentradosTab({ concentrados, factor, setFactor, volBidon, setVolBido
 
       {dosisCount === 0 ? (
         <p className="text-[12px] text-[#5c5c6b] py-6 text-center">Calculá una receta primero (pestaña Calculadora).</p>
-      ) : concentrados.map((g: BidonConcentrado) => (
+      ) : (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {concentrados.map((g: BidonConcentrado) => (
         <div key={g.bidon} className={card}>
           <p className="text-[11px] uppercase tracking-[0.12em] font-medium mb-2" style={{ color: BIDON_INFO[g.bidon].color }}>
-            {BIDON_INFO[g.bidon].label} · {g.volumenL} L
+            {BIDON_INFO[g.bidon].label}
           </p>
-          <div className="space-y-1">
-            {g.items.map(it => {
-              const gv = resolucion > 0 ? redondearBalanza(it.gramos, resolucion) : it.gramos
-              return (
-              <div key={it.sal.id} className="flex items-center gap-2 bg-[#15151d] border border-[#1f1f2b] rounded-md px-2.5 py-1.5">
-                <span className="text-[11.5px] text-[#d4d4dd] flex-1 min-w-0 truncate">{it.sal.nombre}</span>
-                <span className="text-[12px] font-mono tabular-nums font-bold text-[#ececf1]">
-                  {it.mlSiLiquido != null ? `${it.mlSiLiquido} mL` : `${gv} g`}
-                </span>
-              </div>
-              )
-            })}
+          <div className="flex gap-3">
+            <BotellaSVG color={BIDON_INFO[g.bidon].color} letra={g.bidon} volumenL={g.volumenL} />
+            <div className="flex-1 min-w-0 space-y-1">
+              {g.items.map(it => {
+                const gv = resolucion > 0 ? redondearBalanza(it.gramos, resolucion) : it.gramos
+                return (
+                <div key={it.sal.id} className="flex items-center gap-2 bg-[#15151d] border border-[#1f1f2b] rounded-md px-2.5 py-1.5">
+                  <span className="text-[11px] text-[#d4d4dd] flex-1 min-w-0 truncate">{it.sal.nombre}</span>
+                  <span className="text-[12px] font-mono tabular-nums font-bold text-[#ececf1]">
+                    {it.mlSiLiquido != null ? `${it.mlSiLiquido} mL` : `${gv} g`}
+                  </span>
+                </div>
+                )
+              })}
+              <p className="text-[10px] text-[#5c5c6b] pt-1">+ agua hasta {g.volumenL} L</p>
+            </div>
           </div>
           {g.advertencia && (
             <div className="flex items-start gap-2 mt-2 rounded-lg bg-[#ff8a7a]/08 border border-[#ff8a7a]/25 px-3 py-2">
@@ -720,10 +726,28 @@ function ConcentradosTab({ concentrados, factor, setFactor, volBidon, setVolBido
             </div>
           )}
         </div>
-      ))}
+        ))}
+        </div>
+      )}
       <p className="text-[10px] text-[#5c5c6b] px-1">
         Regla de oro: al tanque final echá primero el bidón A (calcio), agitá, después el B. Nunca juntes A y B concentrados.
       </p>
+    </div>
+  )
+}
+
+// Botella dibujada por bidón (SVG)
+function BotellaSVG({ color, letra, volumenL }: { color: string; letra: string; volumenL: number }) {
+  return (
+    <div className="flex flex-col items-center flex-shrink-0">
+      <svg viewBox="0 0 48 76" width="52" height="82">
+        <rect x="18" y="2" width="12" height="7" rx="2" fill={color} opacity="0.9" />
+        <rect x="20" y="9" width="8" height="6" fill={color} opacity="0.45" />
+        <rect x="8" y="15" width="32" height="56" rx="7" fill={color} opacity="0.10" stroke={color} strokeWidth="1.6" />
+        <rect x="10.5" y="34" width="27" height="35" rx="5" fill={color} opacity="0.32" />
+        <text x="24" y="50" textAnchor="middle" fontSize="19" fontWeight="bold" fill={color} fontFamily="monospace">{letra}</text>
+      </svg>
+      <span className="text-[10px] text-[#5c5c6b] mt-0.5 tabular-nums">{volumenL} L</span>
     </div>
   )
 }
