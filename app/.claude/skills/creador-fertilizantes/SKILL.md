@@ -49,6 +49,14 @@ Precios actuales y proveedores: ver memoria `reference_precios_sales_fertirriego
 - `KITS_SALES`: kits manuales (limpio/económico/finish). El finish NO debe incluir sulfatos de micros ni Epsom (arrastran Mn/Zn/Mg); el S sale de K₂SO₄+yeso.
 - Rangos `RANGOS_FLORA_COCO` son referencia de FLORA → solo se muestran en veg/flora (en finish se limpian para no confundir).
 
+## Lógica de N/K en kitParaPerfil (afinada con tests reales)
+- N amoniacal: si has('NO3')→nh4no3 (NH4+NO3 limpio); elif has('S')→amsulf; elif has('P')→map; else amsulf. (Casos: AN Grow A alto NH4 bajo S→nh4no3; Maikro NH4+S→amsulf.)
+- Potasio: kno3 SOLO si has('NO3') (no contaminar perfiles amoniacales como Makro); k2so4 si has('S'); khco3 SIEMPRE como K puro de respaldo (perfiles K alto como AN Bloom A que no llegan con kno3/k2so4/mkp).
+- Solver: toFixed(6) en gramosPorL y umbral nnls 1e-6 (micros traza como Mo, antes daban doble por redondeo a 4 dec).
+- DOSIS_REC: dosis recomendada por producto, autocompleta al clonar (Ryanodine 4ml/L, Athena 0.9g/L, AN 1g/L, etc).
+- Input de litros en la receta (gramosPorL × litros = total a pesar).
+- LÍMITE de química conocido: NO3 alto con Ca/K/NH4 limitados no se alcanza 100% (no existe nitrato puro salvo ácido nítrico); el solver da el óptimo (~80-92%). Es correcto, no bug.
+
 ## Clon fiel por marca (opcionesDeMarca)
 `kitParaPerfil(perfil, opts)` acepta `{feChelate, microsQuelatados}`. `opcionesDeMarca(salId)` por prefijo: Athena→Fe-DTPA+micros EDTA; AN/Ryanodine→Fe-EDDHA+micros EDTA; Jacks/Canna/Plagron→sulfatos+EDDHA. La Clonar pasa el id del producto → usa el hierro/micros exactos de esa marca. Las 6 sales base son iguales en todas (cano3+mkp+kno3+k2so4+epsom+micros); la diferencia real es el quelato de hierro y si micros son EDTA vs sulfato. NH4+P → MAP cubre el amoniacal. Si→ksilic. Cl/Na no se sourcean (intencional, clon más limpio).
 
