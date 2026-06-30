@@ -538,7 +538,7 @@ export function calcularReceta(perfil: Perfil, salesDisp: Sal[], agua: Perfil = 
   const bs = b.map((v, i) => v * scale[i])
   const x = nnls(As, bs)
   const dosis: ResultadoSal[] = salesDisp
-    .map((sal, j) => ({ sal, gramosPorL: +(x[j] ?? 0).toFixed(4) }))
+    .map((sal, j) => ({ sal, gramosPorL: +(x[j] ?? 0).toFixed(6) })) // 6 decimales: micros traza (Mo) exactos
     .filter(d => d.gramosPorL > 0)
     .sort((a, b2) => b2.gramosPorL - a.gramosPorL)
   const ppmLogrado = {} as Record<ElementKey, number>

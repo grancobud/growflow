@@ -329,7 +329,7 @@ function CalcTab(p: CalcTabProps) {
                       <div key={d.sal.id} className="flex items-center gap-2 bg-[#15151d] border border-[#1f1f2b] rounded-md px-2.5 py-1.5">
                         <span className="text-[11.5px] text-[#d4d4dd] flex-1 min-w-0 truncate">{d.sal.nombre}</span>
                         <span className="text-[12px] font-mono tabular-nums font-bold text-[#ececf1]">
-                          {gv >= 0.01 ? gv.toFixed(2) : gv.toFixed(4)} <span className="text-[#5c5c6b] font-normal">{litros === 1 ? 'g/L' : 'g'}</span>
+                          {gv >= 0.01 ? gv.toFixed(2) : gv >= 0.001 ? gv.toFixed(4) : gv.toFixed(6)} <span className="text-[#5c5c6b] font-normal">{litros === 1 ? 'g/L' : 'g'}</span>
                         </span>
                       </div>
                       )
