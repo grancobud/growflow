@@ -61,7 +61,7 @@ Precios actuales y proveedores: ver memoria `reference_precios_sales_fertirriego
 - necesitaSepararAB(dosis): true solo si conviven Ca y (S o P). bidonDeSal(sal, separar): si !separar→todo 'A' (1 botella); si separar→ SP a 'B', Ca+neutras a 'A'. Usado en la Receta (CalcTab porBidon) Y en calcularConcentrados. Balance/Fade/Calcis = 1 botella ("Botella única · todo junto"); nutriente completo Ca+sulfatos = 2.
 - Concentrados A/B: botellas dibujadas (SVG BotellaSVG) por bidón con gramos + "agua hasta X L".
 - Input de litros en Receta (gramos totales = g/L × litros).
-- Rangos al clonar: se mantienen (RANGOS_FLORA_COCO) PERO el estado EN RANGO/bajo/alto solo se evalúa en elementos con objetivo>0 (no marca "bajo" falso en partes como Calcis que no tienen P/K/Mg).
+- Rangos: clones y presets finish usan rangosDesdePerfil(perfil, 0.15) = banda ±15% del propio objetivo (el "EN RANGO" refleja fidelidad al producto clonado). Veg/flora usan RANGOS_FLORA_COCO (hortícola real). El estado solo se evalúa en elementos con objetivo>0 (no "bajo" falso en partes como Calcis).
 - Finis: la etiqueta dice "fosfato de calcio" pero NO reconcilia (S 12.54% no sale de K2SO4 sin pasarse de K; fosfato de Ca dispararía el P). El clon usa YESO (Ca+S) que sí cuadra con la composición garantizada. Correcto: la planta absorbe iones, no la sal. Yeso va en seco al tanque (poco soluble), no en concentrado.
 
 ## Clon fiel por marca (opcionesDeMarca)
