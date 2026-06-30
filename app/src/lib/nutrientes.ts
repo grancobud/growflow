@@ -400,9 +400,9 @@ export function kitParaPerfil(p: Perfil, opts: OpcionesKit = {}): string[] {
   }
   // --- Potasio ---
   if (has('K')) {
-    if (N > 0) kit.add('kno3')                 // K + N nítrico
-    if (has('S')) kit.add('k2so4')             // K + S
-    if (!has('S') && N === 0) kit.add('khco3') // K sin S ni N (finish)
+    if (N > 0) kit.add('kno3')      // K + N nítrico
+    if (has('S')) kit.add('k2so4')  // K + S
+    kit.add('khco3')                // K PURO de respaldo (sin S/N/P): cubre el K alto que las otras no alcanzan
   }
   // --- Silicio (silicato de potasio; va en bidón aparte, sube pH) ---
   if (has('Si')) kit.add('ksilic')
