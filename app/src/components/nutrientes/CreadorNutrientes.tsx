@@ -36,7 +36,7 @@ const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
   { id: 'clonar', label: 'Clonar marca', icon: Copy },
   { id: 'sustancias', label: 'Sustancias', icon: FlaskRound },
   { id: 'agua', label: 'Agua', icon: Droplets },
-  { id: 'concentrados', label: 'Concentrados A/B', icon: Layers },
+  { id: 'concentrados', label: 'Soluciones madre', icon: Layers },
   { id: 'estab', label: 'Estabilizantes', icon: ShieldCheck },
   { id: 'ph', label: 'Ajuste de pH', icon: Droplet },
   { id: 'comparar', label: 'Comparar', icon: GitCompare },
@@ -167,7 +167,7 @@ export default function CreadorNutrientes() {
         <AguaTab {...{ agua, setAgua, macros, micros, otros }} />
       )}
       {sub === 'concentrados' && (
-        <ConcentradosTab {...{ concentrados, factor, setFactor, volBidon, setVolBidon, resolucion, setResolucion, dosisCount: res.dosis.length }} />
+        <ConcentradosTab {...{ concentrados, factor, setFactor, volBidon, setVolBidon, resolucion, setResolucion, dosisCount: res.dosis.length, guardados, salesTodas, modoPrep }} />
       )}
       {sub === 'clonar' && (
         <ClonarTab productos={salesTodas.filter(esComercial)} onUsar={(p, salId) => {
@@ -673,13 +673,20 @@ function AguaTab({ agua, setAgua, macros, micros, otros }: { agua: Perfil; setAg
 }
 
 // ===================== CONCENTRADOS =====================
-function ConcentradosTab({ concentrados, factor, setFactor, volBidon, setVolBidon, resolucion, setResolucion, dosisCount }: { concentrados: BidonConcentrado[]; factor: number; setFactor: (n: number) => void; volBidon: number; setVolBidon: (n: number) => void; resolucion: number; setResolucion: (n: number) => void; dosisCount: number }) {
+function ConcentradosTab({ concentrados, factor, setFactor, volBidon, setVolBidon, resolucion, setResolucion, dosisCount, guardados, salesTodas }: { concentrados: BidonConcentrado[]; factor: number; setFactor: (n: number) => void; volBidon: number; setVolBidon: (n: number) => void; resolucion: number; setResolucion: (n: number) => void; dosisCount: number; guardados: PerfilGuardado[]; salesTodas: Sal[]; modoPrep: 'polvo' | 'liquido' }) {
+  // botella madre de cada perfil/clon guardado
+  const botellasGuardadas = guardados.map(g => {
+    const salesDisp = salesTodas.filter(s => (g.sales ?? []).includes(s.id))
+    const r = calcularReceta(g.perfil, salesDisp, g.agua ?? {})
+    return { nombre: g.nombre, concentrados: calcularConcentrados(r.dosis, factor, volBidon) }
+  }).filter(b => b.concentrados.length > 0)
+
   return (
     <div className="space-y-4">
       <div className={card}>
         <div className="flex items-center gap-2 mb-3">
           <Layers className="w-4 h-4 text-[#a78bfa]" strokeWidth={1.8} />
-          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Soluciones madre (concentrados)</h3>
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Soluciones madre</h3>
         </div>
         <div className="flex flex-wrap gap-4">
           <label className="text-[11px] text-[#a6a6b5]">Factor de concentración
@@ -711,44 +718,34 @@ function ConcentradosTab({ concentrados, factor, setFactor, volBidon, setVolBido
         </div>
       </div>
 
+      {/* Receta actual */}
       {dosisCount === 0 ? (
-        <p className="text-[12px] text-[#5c5c6b] py-6 text-center">Calculá una receta primero (pestaña Calculadora).</p>
+        <p className="text-[12px] text-[#5c5c6b] py-6 text-center">Calculá o cloná una receta primero.</p>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {concentrados.map((g: BidonConcentrado) => (
-        <div key={g.bidon} className={card}>
-          <p className="text-[11px] uppercase tracking-[0.12em] font-medium mb-2" style={{ color: BIDON_INFO[g.bidon].color }}>
-            {concentrados.length === 1 ? 'Botella única · todo junto' : BIDON_INFO[g.bidon].label}
-          </p>
-          <div className="flex gap-3">
-            <BotellaSVG color={BIDON_INFO[g.bidon].color} letra={g.bidon} volumenL={g.volumenL} />
-            <div className="flex-1 min-w-0 space-y-1">
-              {g.items.map(it => {
-                const gv = resolucion > 0 ? redondearBalanza(it.gramos, resolucion) : it.gramos
-                return (
-                <div key={it.sal.id} className="flex items-center gap-2 bg-[#15151d] border border-[#1f1f2b] rounded-md px-2.5 py-1.5">
-                  <span className="text-[11px] text-[#d4d4dd] flex-1 min-w-0 truncate">{it.sal.nombre}</span>
-                  <span className="text-[12px] font-mono tabular-nums font-bold text-[#ececf1]">
-                    {it.mlSiLiquido != null ? `${it.mlSiLiquido} mL` : `${gv} g`}
-                  </span>
-                </div>
-                )
-              })}
-              <p className="text-[10px] text-[#5c5c6b] pt-1">+ agua hasta {g.volumenL} L</p>
-            </div>
-          </div>
-          {g.advertencia && (
-            <div className="flex items-start gap-2 mt-2 rounded-lg bg-[#ff8a7a]/08 border border-[#ff8a7a]/25 px-3 py-2">
-              <AlertTriangle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[#ff8a7a]" strokeWidth={1.8} />
-              <p className="text-[10.5px] text-[#d4a89f]">{g.advertencia}</p>
-            </div>
-          )}
-        </div>
-        ))}
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-semibold mb-2 px-0.5">Receta actual</p>
+          <BotellasGrid concentrados={concentrados} resolucion={resolucion} />
         </div>
       )}
+
+      {/* Galería: una botella madre por cada clon/perfil guardado */}
+      {botellasGuardadas.length > 0 && (
+        <div className="pt-2">
+          <p className="text-[10px] uppercase tracking-[0.14em] text-[#a78bfa] font-semibold mb-2 px-0.5">Mis soluciones madre guardadas · {botellasGuardadas.length}</p>
+          <div className="space-y-3">
+            {botellasGuardadas.map((b, i) => (
+              <div key={i} className={card}>
+                <p className="text-[12px] font-display font-semibold text-[#d9f99d] mb-2">🧴 {b.nombre}</p>
+                <BotellasGrid concentrados={b.concentrados} resolucion={resolucion} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <p className="text-[10px] text-[#5c5c6b] px-1">
         Regla de oro: al tanque final echá primero el bidón A (calcio), agitá, después el B. Nunca juntes A y B concentrados.
+        Para tener tus clones acá, guardalos con un nombre en la pestaña Calculadora.
       </p>
     </div>
   )
@@ -766,6 +763,45 @@ function BotellaSVG({ color, letra, volumenL }: { color: string; letra: string; 
         <text x="24" y="50" textAnchor="middle" fontSize="19" fontWeight="bold" fill={color} fontFamily="monospace">{letra}</text>
       </svg>
       <span className="text-[10px] text-[#5c5c6b] mt-0.5 tabular-nums">{volumenL} L</span>
+    </div>
+  )
+}
+
+// Grilla de botellas (bidones) reutilizable
+function BotellasGrid({ concentrados, resolucion }: { concentrados: BidonConcentrado[]; resolucion: number }) {
+  const unica = concentrados.length === 1
+  return (
+    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      {concentrados.map((g: BidonConcentrado) => (
+        <div key={g.bidon} className="rounded-lg bg-[#101016] border border-[#1f1f2b] p-3">
+          <p className="text-[10.5px] uppercase tracking-[0.12em] font-medium mb-2" style={{ color: BIDON_INFO[g.bidon].color }}>
+            {unica ? 'Botella única · todo junto' : BIDON_INFO[g.bidon].label}
+          </p>
+          <div className="flex gap-3">
+            <BotellaSVG color={BIDON_INFO[g.bidon].color} letra={g.bidon} volumenL={g.volumenL} />
+            <div className="flex-1 min-w-0 space-y-1">
+              {g.items.map(it => {
+                const gv = resolucion > 0 ? redondearBalanza(it.gramos, resolucion) : it.gramos
+                return (
+                  <div key={it.sal.id} className="flex items-center gap-2 bg-[#15151d] border border-[#1f1f2b] rounded-md px-2.5 py-1.5">
+                    <span className="text-[11px] text-[#d4d4dd] flex-1 min-w-0 truncate">{it.sal.nombre}</span>
+                    <span className="text-[12px] font-mono tabular-nums font-bold text-[#ececf1]">
+                      {it.mlSiLiquido != null ? `${it.mlSiLiquido} mL` : `${gv} g`}
+                    </span>
+                  </div>
+                )
+              })}
+              <p className="text-[10px] text-[#5c5c6b] pt-1">+ agua hasta {g.volumenL} L</p>
+            </div>
+          </div>
+          {g.advertencia && (
+            <div className="flex items-start gap-2 mt-2 rounded-lg bg-[#ff8a7a]/08 border border-[#ff8a7a]/25 px-3 py-2">
+              <AlertTriangle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[#ff8a7a]" strokeWidth={1.8} />
+              <p className="text-[10.5px] text-[#d4a89f]">{g.advertencia}</p>
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   )
 }
