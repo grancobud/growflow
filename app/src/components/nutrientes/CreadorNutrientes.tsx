@@ -7,7 +7,7 @@ import {
 import { toast } from 'sonner'
 import {
   SALES_DEFECTO, ELEMENTOS, PRESETS, calcularReceta, ecAprox, nTotal,
-  calcularConcentrados, calcularRatios, calcularCosto, calcularBalanceIonico,
+  calcularConcentrados, calcularRatios, calcularCosto, calcularBalanceIonico, calcularStocksMicros,
   redondearBalanza, AGENTES_PH, calcularAjustePH, oxidoAElemental, OXIDOS,
   recomendarEstabilizantes, esComercial, marcaDe, perfilDesdeProducto, categoriaSal, KITS_SALES, kitParaPerfil, opcionesDeMarca, DOSIS_REC,
   necesitaSepararAB, bidonDeSal,
@@ -358,6 +358,45 @@ function CalcTab(p: CalcTabProps) {
           )}
         </div>
       </div>
+
+      {/* Solución stock: micros impesables → pesar grande + dosificar por mL */}
+      {(() => {
+        const stocks = calcularStocksMicros(res.dosis, resolucion)
+        if (stocks.length === 0) return null
+        return (
+          <div className="rounded-xl bg-[#101016] border border-[#facc15]/25 overflow-hidden">
+            <div className="px-4 py-3 border-b border-[#1f1f2b] flex items-center gap-2">
+              <FlaskConical className="w-3.5 h-3.5 text-[#facc15]" strokeWidth={1.8} />
+              <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Solución stock (micros que no podés pesar)</h3>
+            </div>
+            <div className="p-3 space-y-2">
+              <p className="text-[10.5px] text-[#a6a6b5]">
+                Estas sales piden menos de lo que tu balanza pesa. Pesá grande UNA vez, disolvé en agua, y después dosificás por volumen con jeringa.
+              </p>
+              {stocks.map(s => (
+                <div key={s.salId} className="rounded-lg bg-[#15151d] border border-[#1f1f2b] px-3 py-2">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[12px] font-semibold text-[#facc15]">{s.nombre}</span>
+                    <span className="text-[10px] text-[#5c5c6b] font-mono">pedía {s.gramosPorL < 0.001 ? s.gramosPorL.toFixed(6) : s.gramosPorL.toFixed(4)} g/L · impesable</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                    <span className="px-2 py-1 rounded bg-[#101016] border border-[#1f1f2b]">1️⃣ Pesá <b className="text-[#d9f99d] font-mono">{s.pesar} g</b></span>
+                    <span className="text-[#5c5c6b]">→</span>
+                    <span className="px-2 py-1 rounded bg-[#101016] border border-[#1f1f2b]">2️⃣ Disolvé en <b className="text-[#7dd3fc] font-mono">{s.volumenStockMl} mL</b> de agua</span>
+                    <span className="text-[#5c5c6b]">→</span>
+                    <span className="px-2 py-1 rounded bg-[#101016] border border-[#1f1f2b]">
+                      3️⃣ Agregá <b className="text-[#a78bfa] font-mono">{s.dosisMlPorL} mL</b>/L
+                      {s.litrosSugeridos > 1 && <span className="text-[#8f8f9f]"> (o <b className="text-[#a78bfa] font-mono">{s.mlTotal} mL</b> para {s.litrosSugeridos} L)</span>}
+                    </span>
+                    <span className="px-2 py-1 rounded bg-[#facc15]/10 text-[#facc15]">jeringa {s.jeringa}</span>
+                  </div>
+                </div>
+              ))}
+              <p className="text-[10px] text-[#5c5c6b]">El stock te dura muchos lotes. Guardalo rotulado en la heladera. Ajustá la precisión de balanza en "Soluciones madre".</p>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* ppm logrado vs objetivo + rango */}
       <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden">

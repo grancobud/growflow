@@ -632,6 +632,36 @@ export function calcularBalanceIonico(ppm: Partial<Record<ElementKey, number>>):
   return { cationesMeq, anionesMeq, desbalancePct, nh4Pct, tendenciaPh, detalle: { cationes: cat, aniones: ani } }
 }
 
+// --- Solución stock: para micros que no se pueden pesar (0.0006 g) ---
+// Pesás grande una vez, disolvés en 1 L, y dosificás por VOLUMEN (jeringa).
+export interface StockMicro {
+  salId: string
+  nombre: string
+  gramosPorL: number       // lo que pediría la receta directo (impesable)
+  pesar: number            // g a pesar para el stock (ya pesable)
+  volumenStockMl: number   // disolver en estos mL de agua
+  dosisMlPorL: number      // agregar estos mL por cada litro de solución final
+  litrosSugeridos: number  // si la dosis es muy chica, preparar de a N litros
+  mlTotal: number          // mL a agregar para el lote sugerido
+  jeringa: string
+}
+/** Detecta las sales de la receta que NO se pueden pesar con la balanza y arma su solución stock. */
+export function calcularStocksMicros(dosis: ResultadoSal[], resolucion: number): StockMicro[] {
+  const minPesable = resolucion > 0 ? +(resolucion * 50).toFixed(3) : 0.1 // ~50 divisiones = error <2%
+  const volumenStockMl = 1000 // stock de 1 L, cómodo
+  return dosis
+    .filter(d => !d.sal.liquido && d.gramosPorL > 0 && d.gramosPorL < minPesable)
+    .map(d => {
+      const T = d.gramosPorL
+      const pesar = +Math.max(T * volumenStockMl, minPesable).toFixed(2) // apunta a ~1 mL/L, pero pesable
+      const dosisMlPorL = +((T * volumenStockMl) / pesar).toFixed(2)
+      const litrosSugeridos = dosisMlPorL < 0.3 ? Math.ceil(1 / dosisMlPorL) : 1
+      const mlTotal = +(dosisMlPorL * litrosSugeridos).toFixed(2)
+      const jeringa = mlTotal <= 1 ? '1 mL' : mlTotal <= 5 ? '5 mL' : '10 mL'
+      return { salId: d.sal.id, nombre: d.sal.nombre, gramosPorL: T, pesar, volumenStockMl, dosisMlPorL, litrosSugeridos, mlTotal, jeringa }
+    })
+}
+
 // --- Soluciones madre (concentrados A/B/C) ---
 export interface BidonConcentrado {
   bidon: Bidon
