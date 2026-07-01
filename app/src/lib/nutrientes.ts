@@ -378,14 +378,14 @@ export interface OpcionesKit {
   feChelate?: string        // id del quelato de hierro a usar (default feeddha)
   microsQuelatados?: boolean // true = Mn/Zn/Cu EDTA (como las marcas premium); false = sulfatos (barato)
 }
-/** Opciones de sales según cómo formula cada marca (tipo de hierro y micros). */
+/** Opciones de sales según cómo formula cada marca (tipo de hierro y micros).
+ * MÁXIMA CALIDAD: micros Mn/Zn/Cu quelatados EDTA (como las marcas premium de verdad),
+ * más estables en concentrado líquido y a pH alto que los sulfatos. */
 export function opcionesDeMarca(salId: string): OpcionesKit {
-  // Hierro: el quelato de cada marca (lo que importa). Mn/Zn/Cu: sulfatos (baratos, con precio,
-  // la planta absorbe el mismo ion; el quelato es marginal en trazas).
-  if (salId.startsWith('athena_')) return { feChelate: 'fedtpa' }   // Athena usa Fe-DTPA
-  if (salId.startsWith('an_sensi_')) return { feChelate: 'feeddha' } // AN
-  if (salId.startsWith('ryano_')) return { feChelate: 'feeddha' }    // Ryanodine
-  return {} // Jacks/Canna/Plagron: Fe-EDDHA por defecto
+  if (salId.startsWith('athena_')) return { feChelate: 'fedtpa', microsQuelatados: true }   // Athena: Fe-DTPA + micros EDTA
+  if (salId.startsWith('an_sensi_')) return { feChelate: 'feeddha', microsQuelatados: true } // AN: Fe-EDDHA + micros EDTA
+  if (salId.startsWith('ryano_')) return { feChelate: 'feeddha', microsQuelatados: true }    // Ryanodine
+  return { feChelate: 'feeddha', microsQuelatados: true } // resto: Fe-EDDHA + micros EDTA (calidad)
 }
 
 export function kitParaPerfil(p: Perfil, opts: OpcionesKit = {}): string[] {
