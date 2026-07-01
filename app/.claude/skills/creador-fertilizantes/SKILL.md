@@ -92,3 +92,6 @@ Precios actuales y proveedores: ver memoria `reference_precios_sales_fertirriego
 
 ## Receta imprimible (feat)
 imprimirReceta({nombre,perfil,res,porBidon,ec,litros,modoPrep,resolucion}) en CreadorNutrientes.tsx: genera HTML tema claro profesional (branding GrowFlow, chips EC/costo/NH4/pH, tabla sales por bidon, perfil ppm obj vs logrado, instrucciones mezcla A->B, solucion stock) y window.open+print. Boton Printer en el header de la Receta (CalcTab). Idea de BudLabs/GrowPro. Ademas: pestana Ayuda/Guia (GUIA_PASOS, GUIA_PESTANAS, GUIA_CONCEPTOS) y RATIO_INFO con ideal+desc por ratio.
+
+## Balance ionico v2 + tooltips + mobile (feat 7e4c730)
+calcularBalanceIonico(ppm, dosis?) ahora suma ANIONES INVISIBLES: por cada sal, max(0, catEq - aniEq) → cuenta bicarbonato/gluconato/silicato/EDTA que balancean la carga pero no son nutrientes. Elimina el falso "+15.8% desbalanceada" de recetas con khco3/gluconato. Panel: caja dinamica "como corregir" (sobran cationes/aniones). Componente <Info> reutilizable = circulito ? con tooltip hover (descripcion + ejemplo en verde) en TODOS los titulos de seccion y campos clave. Sub-tabs con overflow-x-auto scroll en mobile. Ayuda tab con GUIA_PASOS/PESTANAS/CONCEPTOS ampliados con ejemplos. Receta imprimible profesional (imprimirReceta).
