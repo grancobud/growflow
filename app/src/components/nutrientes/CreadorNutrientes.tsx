@@ -968,34 +968,35 @@ const RATIO_INFO: Record<string, { ideal: string; desc: string }> = {
 }
 
 // Contenido de la guía / ayuda
-const GUIA_PASOS: { n: number; t: string; d: string }[] = [
-  { n: 1, t: 'Elegí un objetivo', d: 'En Calculadora, cargá el perfil (ppm) que querés, o elegí un preset (veg/flora/finish). El "objetivo" es la receta a la que apuntás.' },
-  { n: 2, t: 'O cloná una marca', d: 'En Clonar marca, elegí un producto comercial (Ryanodine, Athena, etc.) y la app arma el objetivo igual al original, con las sales crudas más baratas.' },
-  { n: 3, t: 'Ajustá tu agua', d: 'En Agua, cargá el análisis de tu agua (o dejá RO en cero). Lo que ya trae el agua se descuenta de lo que tenés que agregar.' },
-  { n: 4, t: 'Mirá "Logrado vs objetivo"', d: 'La tabla te dice cuánto lográs de cada elemento y si está EN RANGO (verde). Verde = tu receta clava el objetivo.' },
-  { n: 5, t: 'Pesá las sales', d: 'La "Receta g/L" te da los gramos por litro. Elegí litros a preparar. Si un micro no se puede pesar, aparece el asistente de Solución stock (pesás grande y dosificás por mL).' },
-  { n: 6, t: 'Armá las soluciones madre', d: 'En Soluciones madre guardás cada clon como botella(s) concentradas listas para preparar. Ojo: bidón A (calcio) y B (sulfatos) van separados si son líquidos.' },
-  { n: 7, t: 'Controlá pH y balance', d: 'En Ajuste de pH corregís. En Ratios y costo ves el balance iónico (predice si el pH sube o baja) y cuánto te sale por litro.' },
+const GUIA_PASOS: { n: number; t: string; d: string; ej: string }[] = [
+  { n: 1, t: 'Elegí un objetivo', d: 'Todo arranca definiendo QUÉ querés lograr, en ppm (partes por millón de cada nutriente). En la pestaña Calculadora podés escribir los valores a mano, o tocar un preset armado (Vegetativo, Floración, Finish) que ya trae números probados para coco. El "objetivo" es la meta: la app va a buscar la mezcla de sales que llegue justo a esos números.', ej: 'Ejemplo: para flora en coco cargás algo como N 150 · P 55 · K 200 · Ca 170 · Mg 55 · S 90. O tocás el preset "Floración" y ya te los completa.' },
+  { n: 2, t: 'O cloná una marca', d: 'Si no querés inventar la receta, copiá una comercial. En Clonar marca elegís un producto (Ryanodine Calcis, Athena Fade, Advanced Nutrients, etc.) y la app calcula el perfil ppm que da ese producto a su dosis de etiqueta, y arma la receta con sales crudas baratas que igualan ese perfil. Es como comprar la marca pero pagando la materia prima.', ej: 'Ejemplo: clonás "Ryanodine Calcis" → la app te dice que con 0.75 g/L de nitrato de calcio agrícola conseguís el mismo Ca y N que el producto original, mucho más barato.' },
+  { n: 3, t: 'Ajustá tu agua', d: 'El agua NO siempre está en cero: el agua de canilla ya trae calcio, magnesio, sodio, etc. En la pestaña Agua cargás el análisis de tu agua y la app lo DESCUENTA del objetivo (solo agrega lo que falta). Si usás agua de ósmosis (RO), dejá todo en cero porque viene limpia.', ej: 'Ejemplo: si tu agua ya trae 30 ppm de Ca y tu objetivo es 170, la app solo agrega sales para los 140 que faltan.' },
+  { n: 4, t: 'Mirá "Logrado vs objetivo"', d: 'La tabla del medio te muestra, elemento por elemento, cuánto pediste (Objetivo) y cuánto conseguís realmente con la receta (Logrado), más un rango verde. Si dice EN RANGO en verde, tu receta clava el objetivo. Si algo queda "bajo" o "alto", ajustás. El cloro y el sodio no se evalúan (son indeseados).', ej: 'Ejemplo: Calcio objetivo 170, logrado 168, rango 145–195 → EN RANGO ✓. Perfecto, no toques nada.' },
+  { n: 5, t: 'Pesá las sales', d: 'La tarjeta "Receta" te da los gramos por litro de cada sal. Escribí cuántos litros vas a preparar y los gramos se recalculan para ese volumen. Si un micro pide una cantidad imposible de pesar (ej. 0.0006 g), aparece solo el asistente de Solución stock: pesás grande una vez y después dosificás por mililitros con jeringa.', ej: 'Ejemplo: la receta dice MKP 0.24 g/L y preparás 10 L → pesás 2.4 g de MKP. El molibdato pide 0.0004 g/L → usás el stock.' },
+  { n: 6, t: 'Armá las soluciones madre', d: 'Si preferís tener concentrados listos (en vez de pesar cada vez), en Soluciones madre guardás cada receta como botella(s) concentradas. La app separa el bidón A (calcio) del B (sulfatos/fosfatos) cuando es líquido, porque juntos precipitan. Después, en el tanque, echás primero A y luego B.', ej: 'Ejemplo: guardás tu "Flora coco" como un concentrado 100x. Preparás 1 L de A y 1 L de B; con eso regás 100 L simplemente diluyendo.' },
+  { n: 7, t: 'Controlá pH, balance y costo', d: 'Última parada: en Ajuste de pH ves cuánto ácido/base agregar para llegar a 5.8–6.2 (ideal coco). En Ratios y costo ves el balance iónico (te avisa si el pH del riego va a subir o bajar), los ratios entre nutrientes, y cuánto te sale por litro. Con eso sabés si la fórmula es sana y barata antes de regar.', ej: 'Ejemplo: el balance te dice "pH tiende a subir" (mucho nitrato) → sabés que vas a tener que bajar con un poco de ácido en cada riego.' },
 ]
-const GUIA_PESTANAS: { icon: typeof Calculator; t: string; d: string }[] = [
-  { icon: Calculator, t: 'Calculadora', d: 'El corazón. Cargás el objetivo en ppm y ves la receta de sales + logrado vs objetivo + rangos.' },
-  { icon: Copy, t: 'Clonar marca', d: 'Copiás un producto comercial: la app genera su perfil y te dice con qué sales crudas replicarlo barato.' },
-  { icon: FlaskRound, t: 'Sustancias', d: 'La base de sales: cuáles usás, su composición química y su precio ($/kg). Podés agregar las tuyas.' },
-  { icon: Droplets, t: 'Agua', d: 'El análisis de tu agua de partida. Lo que ya trae se resta del objetivo.' },
-  { icon: Layers, t: 'Soluciones madre', d: 'Tus clones guardados como botellas concentradas (stock A/B) listas para preparar.' },
-  { icon: ShieldCheck, t: 'Estabilizantes', d: 'Qué agregar para que un concentrado líquido no precipite ni se pudra (cítrico, benzoato, etc.).' },
-  { icon: Droplet, t: 'Ajuste de pH', d: 'Cuánto ácido/base agregar para llevar el pH al rango del coco (5.8–6.2).' },
-  { icon: GitCompare, t: 'Comparar', d: 'Poné dos perfiles lado a lado para ver diferencias.' },
-  { icon: Scale, t: 'Ratios y costo', d: 'Los ratios nutricionales (antagonismos), el balance iónico (mEq, predice pH) y cuánto sale por litro.' },
+const GUIA_PESTANAS: { icon: typeof Calculator; t: string; d: string; ej: string }[] = [
+  { icon: Calculator, t: 'Calculadora', d: 'El corazón de todo. Cargás el objetivo en ppm (o un preset), elegís qué sales tenés disponibles, y la app resuelve la mejor receta y te muestra el logrado vs objetivo con rangos de color. También ajustás litros a preparar y modo polvo/líquido.', ej: 'Usala cuando: querés armar una receta desde cero o ver la receta de un clon.' },
+  { icon: Copy, t: 'Clonar marca', d: 'Copiás un producto comercial. Elegís la marca y el producto, la app genera su perfil ppm a la dosis recomendada, y te arma la receta casera equivalente con el hierro y micros fieles a esa marca. Ideal para dejar de comprar caro.', ej: 'Usala cuando: usás Athena/Ryanodine/AN y querés hacerlo vos más barato.' },
+  { icon: FlaskRound, t: 'Sustancias', d: 'La base de datos de sales: nitrato de calcio, MKP, Epsom, micros, etc. Ves la composición química de cada una, su precio por kg, y podés activar/desactivar cuáles usar o cargar tus propias sales con su análisis.', ej: 'Usala cuando: cargás un precio nuevo, agregás una sal que compraste, o querés filtrar solo las que tenés.' },
+  { icon: Droplets, t: 'Agua', d: 'El análisis de tu agua de partida. Cargás los ppm que ya trae tu agua (calcio, magnesio, sodio, alcalinidad) y la app los resta del objetivo. Con ósmosis (RO) dejás todo en cero.', ej: 'Usala cuando: regás con agua de canilla o pozo y tenés su análisis.' },
+  { icon: Layers, t: 'Soluciones madre', d: 'Tus clones guardados convertidos en botellas concentradas listas para preparar, con el dibujo de cada bidón y los gramos exactos. Elegís el factor de concentración (ej. 100x) y el volumen de la botella.', ej: 'Usala cuando: querés preparar stock concentrado para no pesar en cada riego.' },
+  { icon: ShieldCheck, t: 'Estabilizantes', d: 'Qué aditivos sumar para que un concentrado líquido no precipite (se ponga turbio o tire sedimento) ni se contamine con hongos. Te recomienda cítrico como quelante, benzoato como conservante, etc., con las dosis.', ej: 'Usala cuando: hacés concentrados líquidos que vas a guardar semanas.' },
+  { icon: Droplet, t: 'Ajuste de pH', d: 'Cuánto ácido (para bajar) o base (para subir) agregar para llevar la solución al rango del coco (5.8–6.2). Elegís el corrector (ácido fosfórico, cítrico, etc.) y te da los mL.', ej: 'Usala cuando: mediste el pH y está fuera de 5.8–6.2.' },
+  { icon: GitCompare, t: 'Comparar', d: 'Poné dos perfiles guardados lado a lado para ver en qué se diferencian (más K acá, menos N allá). Útil para comparar tu clon casero contra el objetivo, o dos etapas.', ej: 'Usala cuando: querés ver la diferencia entre veg y flora, o entre dos marcas.' },
+  { icon: Scale, t: 'Ratios y costo', d: 'Tres cosas: los ratios nutricionales (proporciones que avisan antagonismos), el balance iónico en mEq (valida la receta y predice la deriva de pH), y el costo por litro de la fórmula. Es el control de calidad final.', ej: 'Usala cuando: querés saber si la receta es sana, coherente y cuánto sale.' },
 ]
-const GUIA_CONCEPTOS: { t: string; d: string }[] = [
-  { t: 'ppm (mg/L)', d: 'Partes por millón: cuántos miligramos de un elemento hay por litro de agua. Es la unidad del "objetivo".' },
-  { t: 'EC (mS/cm)', d: 'Electroconductividad: cuán "fuerte" está la solución (total de sales). Veg ~1.2–1.8, flora ~1.8–2.4. Es lo que mide tu medidor EC/TDS.' },
-  { t: 'Bidón A / B / C', d: 'A = calcio (nitrato de Ca). B = sulfatos y fosfatos. Se separan porque el calcio precipita con el sulfato/fosfato en concentrado. C = micros.' },
-  { t: 'Ratios', d: 'Proporción entre dos nutrientes (ej. Ca:Mg). Avisan antagonismos: si uno está muy alto, la planta absorbe menos el otro.' },
-  { t: 'Balance iónico (mEq)', d: 'Las cargas + (cationes) deben igualar las – (aniones). Si no cierran, la receta es imposible. Además el % de amonio predice si el pH del riego sube o baja.' },
-  { t: 'Solución stock', d: 'Para micros que no podés pesar: pesás una cantidad grande una vez, la disolvés en agua, y dosificás por mL con jeringa.' },
-  { t: 'Óxido → elemental', d: 'Las etiquetas dan P₂O₅, K₂O (óxidos). La app los convierte a P y K reales (elemental) para calcular bien.' },
+const GUIA_CONCEPTOS: { t: string; d: string; ej: string }[] = [
+  { t: 'ppm (mg/L)', d: 'Partes por millón = miligramos de un nutriente por litro de agua. Es la unidad con la que se mide "cuánto" de cada cosa hay en tu solución. Todo el objetivo y el logrado se expresan en ppm.', ej: '150 ppm de nitrógeno = 150 mg de N en cada litro de agua.' },
+  { t: 'EC (mS/cm)', d: 'Electroconductividad: mide cuán "cargada" de sales está el agua (a más sales, más conduce electricidad). Es tu termómetro de fuerza de la solución. La medís con un lápiz medidor de EC/TDS.', ej: 'Coco: veg 1.2–1.8, flora 1.8–2.4, finish ~1.3. Si medís EC 3.0 estás pasado de sales (riesgo de quemar).' },
+  { t: 'Bidón A / B / C', d: 'La receta líquida se separa en botellas porque hay sales que juntas y concentradas reaccionan. A = el calcio (nitrato de calcio). B = sulfatos y fosfatos (Epsom, MKP, sulfato de K). C = micros. En el tanque van de a uno: primero A, agitás, después B.', ej: 'Si juntás calcio (A) con sulfato (B) concentrados, se forma yeso y precipita (se va al fondo, blanco). Por eso van separados.' },
+  { t: 'Ratios', d: 'Es la proporción entre dos nutrientes. Importa porque algunos compiten: si uno está muy alto, la planta absorbe de menos el otro aunque sobre (antagonismo). Mantener los ratios en rango evita carencias "fantasma".', ej: 'Ca:Mg ideal ~3:1. Si tenés mucho potasio, bloquea el calcio y el magnesio aunque los hayas puesto.' },
+  { t: 'Balance iónico (mEq)', d: 'Toda sal se disuelve en iones con carga + (cationes: Ca, Mg, K, NH₄) y – (aniones: NO₃, SO₄, fosfato, Cl). En una receta real, las cargas + deben igualar a las –. Si no cierran, la fórmula es físicamente imposible. Además, el % de amonio predice hacia dónde se mueve el pH del riego.', ej: 'Mucho amonio (NH₄) → la planta libera H⁺ → el pH del sustrato BAJA. Mucho nitrato → el pH SUBE.' },
+  { t: 'Solución stock (madre)', d: 'Truco para dosificar cantidades que ninguna balanza casera pesa. En vez de pesar 0.0006 g, pesás 1 gramo (que sí podés), lo disolvés en agua, y de esa botella agregás unos mililitros con jeringa. La dilución hace el trabajo fino.', ej: '1 g de molibdato en 1 L de agua → agregás 0.6 mL por litro = los 0.0006 g exactos, medidos con jeringa.' },
+  { t: 'Óxido → elemental', d: 'Las etiquetas de fertilizante dan el fósforo y potasio como óxidos (P₂O₅, K₂O), no como elemento puro. La app los convierte a P y K reales automáticamente, así los números cierran con la química de verdad.', ej: 'Una etiqueta "0-15-25" tiene 15% de P₂O₅ = 6.5% de fósforo real, y 25% de K₂O = 20.7% de potasio real.' },
+  { t: 'Nitrato vs Amonio (NO₃ / NH₄)', d: 'Son las dos formas del nitrógeno. El nitrato es el N "seguro" y estable en coco. El amonio es más rápido pero en exceso acidifica y da plantas blandas. La app los separa porque afectan distinto al pH y a la planta.', ej: 'Una buena fórmula de coco tiene ~90% nitrato y ~10% amonio.' },
 ]
 
 function AyudaTab({ irA }: { irA: (s: SubTab) => void }) {
@@ -1021,7 +1022,8 @@ function AyudaTab({ irA }: { irA: (s: SubTab) => void }) {
               <div className="w-6 h-6 flex-shrink-0 rounded-full bg-[#a3e635]/15 text-[#a3e635] text-[12px] font-bold flex items-center justify-center">{p.n}</div>
               <div className="min-w-0">
                 <p className="text-[12px] font-semibold text-[#ececf1]">{p.t}</p>
-                <p className="text-[10.5px] text-[#9494a3] leading-snug">{p.d}</p>
+                <p className="text-[10.5px] text-[#9494a3] leading-relaxed">{p.d}</p>
+                <p className="text-[10px] text-[#a3e635]/80 leading-snug mt-1 border-l-2 border-[#a3e635]/30 pl-2">{p.ej}</p>
               </div>
             </div>
           ))}
@@ -1042,7 +1044,8 @@ function AyudaTab({ irA }: { irA: (s: SubTab) => void }) {
                 <Icon className="w-4 h-4 flex-shrink-0 mt-0.5 text-[#a78bfa]" strokeWidth={1.8} />
                 <div className="min-w-0">
                   <p className="text-[11.5px] font-semibold text-[#d9f99d]">{t.t}</p>
-                  <p className="text-[10.5px] text-[#9494a3] leading-snug">{t.d}</p>
+                  <p className="text-[10.5px] text-[#9494a3] leading-relaxed">{t.d}</p>
+                  <p className="text-[10px] text-[#7dd3fc]/80 leading-snug mt-1">{t.ej}</p>
                 </div>
               </div>
             )
@@ -1060,7 +1063,8 @@ function AyudaTab({ irA }: { irA: (s: SubTab) => void }) {
           {GUIA_CONCEPTOS.map(c => (
             <div key={c.t} className="bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2">
               <p className="text-[11.5px] font-semibold text-[#ececf1]">{c.t}</p>
-              <p className="text-[10.5px] text-[#9494a3] leading-snug">{c.d}</p>
+              <p className="text-[10.5px] text-[#9494a3] leading-relaxed">{c.d}</p>
+              <p className="text-[10px] text-[#bef264]/80 leading-snug mt-1 border-l-2 border-[#bef264]/30 pl-2">{c.ej}</p>
             </div>
           ))}
         </div>
