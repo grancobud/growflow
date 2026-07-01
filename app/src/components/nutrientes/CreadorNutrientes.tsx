@@ -154,13 +154,13 @@ export default function CreadorNutrientes() {
 
   return (
     <div className="space-y-4">
-      {/* Sub-tabs */}
-      <div className="flex gap-1 flex-wrap border-b border-[#1f1f2b] -mt-1">
+      {/* Sub-tabs: scroll horizontal en mobile, wrap en desktop */}
+      <div className="flex gap-1 flex-nowrap sm:flex-wrap overflow-x-auto border-b border-[#1f1f2b] -mt-1 -mx-1 px-1 scrollbar-thin">
         {SUBTABS.map(t => {
           const Icon = t.icon, on = sub === t.id
           return (
             <button key={t.id} onClick={() => setSub(t.id)}
-              className={`flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium border-b-2 transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium border-b-2 transition-colors shrink-0 whitespace-nowrap ${
                 on ? 'border-[#a3e635] text-[#d9f99d]' : 'border-transparent text-[#8f8f9f] hover:text-[#d4d4dd]'
               }`}>
               <Icon className="w-3.5 h-3.5" strokeWidth={1.8} /> {t.label}
@@ -378,6 +378,7 @@ function CalcTab(p: CalcTabProps) {
         <div className="flex items-center gap-2 mb-3">
           <Save className="w-4 h-4 text-[#a78bfa]" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Mis perfiles guardados</h3>
+          <Info><b className="text-[#d9f99d]">Tus recetas guardadas</b> con nombre, para recuperarlas cuando quieras.<br /><span className="text-[#a3e635]">Ej: guardás "Flora coco sem 5" y la volvés a cargar el mes que viene.</span></Info>
           <span className="ml-auto text-[10px] text-[#5c5c6b]">{guardados.length} guardados</span>
         </div>
         <div className="flex gap-2">
@@ -413,6 +414,7 @@ function CalcTab(p: CalcTabProps) {
           <div className="flex items-center gap-2 mb-3">
             <Beaker className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
             <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Objetivo (ppm)</h3>
+            <Info><b className="text-[#d9f99d]">La receta que querés lograr</b>, en ppm de cada nutriente. Cargalos a mano o usá un preset.<br /><span className="text-[#a3e635]">Ej: flora coco → N 150, P 55, K 200, Ca 170, Mg 55.</span></Info>
             <span className="ml-auto text-[10px] text-[#5c5c6b]">N total: {nLog.toFixed(0)}</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -505,6 +507,7 @@ function CalcTab(p: CalcTabProps) {
             <div className="px-4 py-3 border-b border-[#1f1f2b] flex items-center gap-2">
               <FlaskConical className="w-3.5 h-3.5 text-[#facc15]" strokeWidth={1.8} />
               <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Solución stock (micros que no podés pesar)</h3>
+              <Info><b className="text-[#d9f99d]">Para dosificar lo impesable</b>: pesás grande una vez, disolvés en agua, y agregás por mL con jeringa.<br /><span className="text-[#a3e635]">Ej: 1 g de molibdato en 1 L → 0.6 mL/L = los 0.0006 g exactos.</span></Info>
             </div>
             <div className="p-3 space-y-2">
               <p className="text-[10.5px] text-[#a6a6b5]">
@@ -540,6 +543,7 @@ function CalcTab(p: CalcTabProps) {
         <div className="px-4 py-3 border-b border-[#1f1f2b] flex items-center gap-2">
           <Sparkles className="w-3.5 h-3.5 text-[#bef264]" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Logrado vs objetivo y rango</h3>
+          <Info><b className="text-[#d9f99d]">Cuánto conseguís de cada nutriente</b> con la receta, vs lo que pediste. Verde EN RANGO = clavaste el objetivo.<br /><span className="text-[#a3e635]">Ej: Ca objetivo 170, logrado 168 → EN RANGO ✓.</span></Info>
           <button onClick={() => setEditarRangos(v => !v)} className="ml-auto text-[10px] px-2 py-0.5 rounded border border-[#1f1f2b] text-[#8f8f9f] hover:text-[#d9f99d] hover:border-[#404d20] transition-colors">
             {editarRangos ? 'Listo' : 'Editar rangos'}
           </button>
@@ -614,6 +618,7 @@ function SustanciasTab({ salesTodas, activas, setActivas, recargarCustoms, recar
         <div className="flex items-center gap-2 mb-3 flex-wrap">
           <FlaskRound className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Sustancias disponibles</h3>
+          <Info><b className="text-[#d9f99d]">Las sales que la app puede usar</b> en la receta. Activá las que tenés, cargá su precio, o agregá las tuyas.<br /><span className="text-[#a3e635]">Ej: destildá las que no tenés para que no las use el solver.</span></Info>
           <span className="ml-auto text-[10px] text-[#5c5c6b]">{visibles.length} visibles</span>
           <button onClick={() => setSoloConPrecio(v => !v)}
             className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] border transition-colors ${
@@ -837,6 +842,7 @@ function AguaTab({ agua, setAgua, macros, micros, otros }: { agua: Perfil; setAg
       <div className="flex items-center gap-2">
         <Droplets className="w-4 h-4 text-blue-400" strokeWidth={1.8} />
         <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Análisis del agua de partida (ppm)</h3>
+        <Info><b className="text-[#d9f99d]">Lo que tu agua ya trae</b> antes de agregar sales. Se descuenta del objetivo. Con ósmosis (RO) dejá todo en 0.<br /><span className="text-[#a3e635]">Ej: agua de canilla con 30 ppm Ca → la app agrega sales solo para el resto.</span></Info>
         <span className="ml-auto text-[10px] text-[#5c5c6b]">RO = 0 · se descuenta del objetivo</span>
       </div>
       <p className="text-[11px] text-[#757584]">Cargá lo que ya trae tu agua (remineralizador, canilla, pozo). El cálculo lo resta para no pasarte.</p>
@@ -863,6 +869,7 @@ function ConcentradosTab({ factor, setFactor, volBidon, setVolBidon, resolucion,
         <div className="flex items-center gap-2 mb-3">
           <Layers className="w-4 h-4 text-[#a78bfa]" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Soluciones madre</h3>
+          <Info><b className="text-[#d9f99d]">Concentrados listos</b> de tus clones guardados. Preparás una vez y después solo diluís en cada riego.<br /><span className="text-[#a3e635]">Ej: 1 L de concentrado 100x rinde 100 L de riego.</span></Info>
         </div>
         <div className="flex flex-wrap gap-4">
           <label className="text-[11px] text-[#a6a6b5]">Factor de concentración
@@ -1099,8 +1106,13 @@ function RatiosTab({ ratios, res, costo }: { ratios: Ratios; res: Resultado; cos
   const N = nTotal(res.ppmLogrado)
   const P = res.ppmLogrado.P ?? 0, K = res.ppmLogrado.K ?? 0
   const npk = P > 0 ? `${(N / P).toFixed(1)} : 1 : ${(K / P).toFixed(1)}` : '—'
-  const bal = calcularBalanceIonico(res.ppmLogrado)
+  const bal = calcularBalanceIonico(res.ppmLogrado, res.dosis)
   const desbAbs = Math.abs(bal.desbalancePct)
+  const corregir = desbAbs <= 5
+    ? 'Receta balanceada: las cargas cierran. No hay nada que corregir. ✓'
+    : bal.desbalancePct > 5
+      ? 'Sobran cationes (+). Cómo corregir: sumá una fuente de sulfato (Epsom, sulfato de K) o nitrato, o bajá un poco el K/Ca/Mg. Si usás bicarbonato de K, gluconato o silicato, un pequeño exceso es normal (su anión no es nutriente).'
+      : 'Sobran aniones (–). Cómo corregir: bajá los sulfatos/fosfatos, o subí un catión (más K con nitrato de K, o Ca con nitrato de calcio).'
   const balColor = desbAbs <= 5 ? '#a3e635' : desbAbs <= 12 ? '#facc15' : '#ff8a7a'
   const balEstado = desbAbs <= 5 ? 'Balanceada ✓' : desbAbs <= 12 ? 'Leve desbalance' : 'Desbalanceada'
   const phInfo = { sube: { t: 'pH tiende a SUBIR', c: '#7dd3fc', d: 'Domina el nitrato (la planta libera OH⁻). Normal; corregí bajando con ácido.' },
@@ -1114,6 +1126,7 @@ function RatiosTab({ ratios, res, costo }: { ratios: Ratios; res: Resultado; cos
         <div className="flex items-center gap-2 mb-3">
           <Scale className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Ratios nutricionales</h3>
+          <Info><b className="text-[#d9f99d]">Proporciones entre nutrientes</b>. Avisan antagonismos: si uno está muy alto, bloquea la absorción de otro.<br /><span className="text-[#a3e635]">Ej: mucho K bloquea Ca y Mg aunque los hayas puesto.</span></Info>
         </div>
         <div className="space-y-1.5">
           <div className="bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2">
@@ -1143,6 +1156,7 @@ function RatiosTab({ ratios, res, costo }: { ratios: Ratios; res: Resultado; cos
         <div className="flex items-center gap-2 mb-3">
           <DollarSign className="w-4 h-4 text-[#bef264]" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Costo del lote</h3>
+          <Info><b className="text-[#d9f99d]">Cuánto sale por litro</b> tu receta, sumando el precio de cada sal. Cargá los precios en Sustancias.<br /><span className="text-[#a3e635]">Ej: te dice que tu clon del Calcis sale ~$2.3/L.</span></Info>
           <span className="ml-auto text-[12px] font-mono tabular-nums font-bold text-[#d9f99d]">${costo.porLitro}/L</span>
         </div>
         {costo.detalle.length === 0 ? (
@@ -1166,6 +1180,7 @@ function RatiosTab({ ratios, res, costo }: { ratios: Ratios; res: Resultado; cos
       <div className="flex items-center gap-2 mb-3">
         <Scale className="w-4 h-4 text-[#7dd3fc]" strokeWidth={1.8} />
         <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Balance iónico (mEq/L)</h3>
+        <Info><b className="text-[#d9f99d]">Cargas + vs –</b>: los cationes deben igualar a los aniones. Valida que la receta sea real y predice si el pH del riego sube o baja.<br /><span className="text-[#a3e635]">Ej: desbalance ≤5% = perfecta. Mucho amonio → pH baja.</span></Info>
         <span className="ml-auto text-[11px] font-semibold" style={{ color: balColor }}>{balEstado} · {bal.desbalancePct > 0 ? '+' : ''}{bal.desbalancePct}%</span>
       </div>
 
@@ -1203,7 +1218,11 @@ function RatiosTab({ ratios, res, costo }: { ratios: Ratios; res: Resultado; cos
           <p className="text-[12px] font-bold" style={{ color: phInfo.c }}>{phInfo.t}</p>
         </div>
       </div>
-      <p className="text-[10px] text-[#5c5c6b] mt-2">{phInfo.d} Los cationes (Ca+Mg+K+NH₄) deben igualar a los aniones (NO₃+SO₄+H₂PO₄+Cl) — desbalance ≤5% = receta física real.</p>
+      <div className="mt-2 rounded-lg px-3 py-2 border" style={{ background: `${balColor}12`, borderColor: `${balColor}40` }}>
+        <p className="text-[10.5px] font-semibold mb-0.5" style={{ color: balColor }}>Cómo interpretarlo / corregir</p>
+        <p className="text-[10.5px] text-[#c4c4d0] leading-relaxed">{corregir}</p>
+      </div>
+      <p className="text-[10px] text-[#5c5c6b] mt-2">{phInfo.d} · Los cationes (⊕ Ca+Mg+K+NH₄) deben igualar a los aniones (⊖ NO₃+SO₄+H₂PO₄+Cl y otros). "otros⁻" = bicarbonato/gluconato/silicato (balancean pero no son nutrientes). Desbalance ≤5% = receta física real.</p>
     </div>
     </div>
   )
@@ -1228,6 +1247,7 @@ function ClonarTab({ productos, onUsar }: { productos: Sal[]; onUsar: (p: Perfil
         <div className="flex items-center gap-2 mb-3">
           <Copy className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Clonar un producto comercial</h3>
+          <Info><b className="text-[#d9f99d]">Copiá una marca</b>: elegís el producto y la app arma la receta casera equivalente con sales baratas.<br /><span className="text-[#a3e635]">Ej: clonás Athena Fade → te da la mezcla que iguala su perfil por mucho menos.</span></Info>
         </div>
         <p className="text-[11px] text-[#757584] mb-3">
           Elegí un producto y su dosis: la calculadora arma el objetivo en ppm y después, en la pestaña Calculadora,
@@ -1286,6 +1306,7 @@ function EstabilizantesTab({ dosis }: { dosis: ResultadoSal[] }) {
         <div className="flex items-center gap-2 mb-3">
           <ShieldCheck className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Reglas para que no decante (según tu receta)</h3>
+          <Info><b className="text-[#d9f99d]">Cómo evitar que el concentrado precipite</b> (se ponga turbio o tire polvo al fondo) o crie hongos.<br /><span className="text-[#a3e635]">Ej: separar A/B, pH bajo, y un poco de cítrico como quelante.</span></Info>
         </div>
         <ul className="space-y-1.5">
           {rec.reglas.map((r, i) => (
@@ -1301,6 +1322,7 @@ function EstabilizantesTab({ dosis }: { dosis: ResultadoSal[] }) {
         <div className="flex items-center gap-2 mb-3">
           <FlaskConical className="w-4 h-4 text-[#a78bfa]" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Aditivos estabilizantes · cuánto poner</h3>
+          <Info><b className="text-[#d9f99d]">Qué agregar y en qué dosis</b> para conservar el concentrado líquido.<br /><span className="text-[#a3e635]">Ej: benzoato de sodio 150–250 mg/L como conservante anti-hongo.</span></Info>
           <label className="ml-auto flex items-center gap-1 text-[11px] text-[#a6a6b5]">Volumen del bidón
             <input type="number" min={0.1} step={0.5} value={volumen} onChange={e => setVolumen(Math.max(0.1, +e.target.value))} className={`${inp} w-20`} /> L
           </label>
@@ -1359,6 +1381,7 @@ function PHTab({ agua }: { agua: Perfil }) {
         <div className="flex items-center gap-2 mb-3">
           <Droplet className="w-4 h-4 text-blue-400" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Ajuste de pH por alcalinidad</h3>
+          <Info><b className="text-[#d9f99d]">Cuánto ácido/base agregar</b> para llevar el pH al rango del coco (5.8–6.2).<br /><span className="text-[#a3e635]">Ej: agua alcalina → te dice los mL de ácido para bajarla.</span></Info>
         </div>
         <p className="text-[11px] text-[#757584] mb-3">
           El pH de tu solución lo gobierna la <b className="text-[#a6a6b5]">alcalinidad</b> (bicarbonatos) del agua, no el pH directo.
@@ -1416,6 +1439,7 @@ function CompararTab({ guardados }: { guardados: PerfilGuardado[] }) {
         <div className="flex items-center gap-2 mb-3">
           <GitCompare className="w-4 h-4 text-[#a78bfa]" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Comparar dos perfiles</h3>
+          <Info><b className="text-[#d9f99d]">Dos recetas lado a lado</b> para ver en qué se diferencian nutriente por nutriente.<br /><span className="text-[#a3e635]">Ej: comparás tu clon casero contra el objetivo de la marca.</span></Info>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <select value={a} onChange={e => setA(e.target.value)} className={inp}>

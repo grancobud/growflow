@@ -600,13 +600,22 @@ export function calcularRatios(ppm: Record<ElementKey, number>): Ratios {
 // meq/L = ppm × carga / peso_atómico. N va como N (NO3-N, NH4-N). Fosfato a pH 5.5-6.5 = H2PO4⁻ (carga 1).
 export interface BalanceIonico {
   cationesMeq: number          // Ca+Mg+K+NH4+Na
-  anionesMeq: number           // NO3+SO4+H2PO4+Cl
+  anionesMeq: number           // NO3+SO4+H2PO4+Cl + otros (invisibles)
   desbalancePct: number        // (cat-an)/promedio ×100. ~0 = receta realista
   nh4Pct: number               // % de NH4 sobre el N total
   tendenciaPh: 'sube' | 'estable' | 'baja'
   detalle: { cationes: { k: string; meq: number }[]; aniones: { k: string; meq: number }[] }
 }
-export function calcularBalanceIonico(ppm: Partial<Record<ElementKey, number>>): BalanceIonico {
+// meq de cationes de un mapa de ppm
+function catEqDe(p: Partial<Record<ElementKey, number>>): number {
+  return (p.Ca ?? 0) * 2 / 40.08 + (p.Mg ?? 0) * 2 / 24.31 + (p.K ?? 0) / 39.10 + (p.NH4 ?? 0) / 14.01 + (p.Na ?? 0) / 22.99
+}
+function aniEqDe(p: Partial<Record<ElementKey, number>>): number {
+  return (p.NO3 ?? 0) / 14.01 + (p.S ?? 0) * 2 / 32.06 + (p.P ?? 0) / 30.97 + (p.Cl ?? 0) / 35.45
+}
+// dosis opcional: para contar los aniones "invisibles" (bicarbonato, gluconato, silicato, EDTA)
+// que balancean la carga pero no son nutrientes rastreados → evita falso desbalance.
+export function calcularBalanceIonico(ppm: Partial<Record<ElementKey, number>>, dosis?: ResultadoSal[]): BalanceIonico {
   const v = (val: number | undefined, carga: number, pa: number) => +(((val ?? 0) * carga) / pa).toFixed(3)
   const cat = [
     { k: 'Ca²⁺', meq: v(ppm.Ca, 2, 40.08) },
@@ -621,6 +630,18 @@ export function calcularBalanceIonico(ppm: Partial<Record<ElementKey, number>>):
     { k: 'H₂PO₄⁻', meq: v(ppm.P, 1, 30.97) },
     { k: 'Cl⁻', meq: v(ppm.Cl, 1, 35.45) },
   ].filter(x => x.meq > 0)
+  // aniones invisibles: por cada sal, la carga de cationes que no está cubierta por aniones rastreados
+  let invisiblesMeq = 0
+  if (dosis) {
+    for (const d of dosis) {
+      const gl = d.gramosPorL
+      const ppmSal: Partial<Record<ElementKey, number>> = {}
+      for (const [k, frac] of Object.entries(d.sal.comp)) ppmSal[k as ElementKey] = (frac ?? 0) * gl * 1000
+      invisiblesMeq += Math.max(0, catEqDe(ppmSal) - aniEqDe(ppmSal))
+    }
+    invisiblesMeq = +invisiblesMeq.toFixed(2)
+    if (invisiblesMeq > 0.01) ani.push({ k: 'otros⁻', meq: invisiblesMeq })
+  }
   const cationesMeq = +cat.reduce((a, b) => a + b.meq, 0).toFixed(2)
   const anionesMeq = +ani.reduce((a, b) => a + b.meq, 0).toFixed(2)
   const prom = (cationesMeq + anionesMeq) / 2
