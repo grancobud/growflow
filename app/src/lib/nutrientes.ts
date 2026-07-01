@@ -187,12 +187,12 @@ export const SALES_DEFECTO: Sal[] = [
     comp: { Mn: 0.13 } },
   { id: 'znso4', nombre: 'Sulfato de zinc', formula: 'ZnSO₄·7H₂O', bidon: 'C',
     comp: { Zn: 0.227, S: 0.11 } },
-  { id: 'znedta', nombre: 'Quelato de zinc (EDTA)', formula: 'Zn-EDTA', bidon: 'C',
-    comp: { Zn: 0.14 } },
+  { id: 'znedta', nombre: 'Quelato de zinc (EDTA 15%)', formula: 'Zn-EDTA', bidon: 'C',
+    comp: { Zn: 0.15 }, nota: 'Grado agro AR (Valagro/SoloStocks/Folikel). Se consigue suelto.' },
   { id: 'cuso4', nombre: 'Sulfato de cobre', formula: 'CuSO₄·5H₂O', bidon: 'C',
     comp: { Cu: 0.255, S: 0.128 } },
-  { id: 'cuedta', nombre: 'Quelato de cobre (EDTA)', formula: 'Cu-EDTA', bidon: 'C',
-    comp: { Cu: 0.13 } },
+  { id: 'cuedta', nombre: 'Quelato de cobre (EDTA 14%)', formula: 'Cu-EDTA', bidon: 'C',
+    comp: { Cu: 0.14 }, nota: 'Grado agro AR. Suele venderse por pedido a distribuidor.' },
   { id: 'boric', nombre: 'Ácido bórico', formula: 'H₃BO₃', bidon: 'C',
     comp: { B: 0.175 } },
   { id: 'solubor', nombre: 'Solubor', formula: 'Na₂B₈O₁₃·4H₂O', bidon: 'C',
@@ -205,6 +205,16 @@ export const SALES_DEFECTO: Sal[] = [
     comp: { Mo: 0.54, NH4: 0.057 } },
   { id: 'ksilic', nombre: 'Silicato de potasio', formula: 'K₂SiO₃', bidon: 'C',
     comp: { Si: 0.18, K: 0.20 }, nota: 'Aporta Si. Sube pH; va en bidón aparte.' },
+
+  // --- Micromix (todos los micros en un producto) ---
+  { id: 'fetrilon_combi2', nombre: 'Fetrilon Combi 2 (micromix EDTA)', bidon: 'C',
+    comp: { Fe: 0.04, Mn: 0.04, Zn: 0.015, Cu: 0.015, B: 0.005, Mo: 0.001, Mg: 0.0199, S: 0.03 },
+    nota: 'Compo Expert. Todos los micros EDTA en 1 producto. Se consigue en AR (1 y 5 kg). Etiqueta: Fe4·Mn4·Zn1.5·Cu1.5·B0.5·Mo0.1·MgO3.3·S3.',
+    descripcion: 'Micromix profesional: reemplaza pesar 6 micros por separado. Metales 100% quelatados con EDTA. Ideal para arrancar una fórmula sin comprar cada quelato suelto.' },
+  { id: 'afital_micromix', nombre: 'Afital Micromix (EDTA) — aprox', bidon: 'C',
+    comp: { Fe: 0.04, Zn: 0.04, Mn: 0.03, Cu: 0.005, B: 0.015, Mo: 0.0005, Mg: 0.012, S: 0.026 },
+    nota: 'Arriazu Agro. Micros EDTA. % APROXIMADOS según ficha — confirmar con la etiqueta real (pasá foto y lo ajusto).',
+    descripcion: 'Micromix alternativo (línea Afital, distribuidor Arriazu). Composición aproximada; verificar en la bolsa.' },
 
   // --- Compuestas ---
   { id: 'masterblend', nombre: 'Masterblend 4-18-38', bidon: 'B',
