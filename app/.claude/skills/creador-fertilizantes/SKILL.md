@@ -83,3 +83,6 @@ Precios actuales y proveedores: ver memoria `reference_precios_sales_fertirriego
 
 ## Memorias relacionadas
 `project_growflow_creador_nutrientes`, `reference_precios_sales_fertirriego_ar`, `reference_hidroponia_sales_calcio`, `reference_estabilizantes_fertilizantes_liquidos`.
+
+## Balance iónico (mEq/L) — agregado (feat 0d4f0a7)
+`calcularBalanceIonico(ppm)` en lib: cationes (Ca*2/40.08 + Mg*2/24.31 + K/39.10 + NH4/14.01 + Na/22.99) vs aniones (NO3/14.01 + S*2/32.06 [SO4] + P/30.97 [H2PO4 carga 1 a pH 5.5-6.5] + Cl/35.45), en mEq/L. desbalancePct=(cat-an)/prom*100 (verde<=5, amarillo<=12, rojo>12). nh4Pct=NH4/Ntotal*100 → tendenciaPh: <8 sube (nitrato, planta libera OH-), 8-15 estable, >=15 baja (amonio, libera H+). Panel full-width al final de RatiosTab con barras segmentadas por ion. Es la mejora "nivel pro" que faltaba (valida realismo físico + predice deriva de pH). Química verificada contra pesos atómicos reales.
