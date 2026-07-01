@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   FlaskConical, Beaker, Droplets, ChevronDown, Sparkles, AlertTriangle,
   Save, FolderOpen, Trash2, Calculator, FlaskRound, Layers, Scale, Plus, DollarSign,
-  Droplet, GitCompare, Package, ShieldCheck, Copy,
+  Droplet, GitCompare, Package, ShieldCheck, Copy, HelpCircle, BookOpen, Lightbulb,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -29,7 +29,7 @@ interface CalcTabProps {
 }
 type CostoResultado = { porLitro: number; detalle: { sal: Sal; costo: number }[] }
 
-type SubTab = 'calc' | 'clonar' | 'sustancias' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar'
+type SubTab = 'calc' | 'clonar' | 'sustancias' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar' | 'ayuda'
 
 const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
   { id: 'calc', label: 'Calculadora', icon: Calculator },
@@ -41,6 +41,7 @@ const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
   { id: 'ph', label: 'Ajuste de pH', icon: Droplet },
   { id: 'comparar', label: 'Comparar', icon: GitCompare },
   { id: 'ratios', label: 'Ratios y costo', icon: Scale },
+  { id: 'ayuda', label: 'Ayuda / Guía', icon: HelpCircle },
 ]
 
 const BIDON_INFO: Record<Bidon, { label: string; color: string }> = {
@@ -192,6 +193,9 @@ export default function CreadorNutrientes() {
       )}
       {sub === 'ratios' && (
         <RatiosTab {...{ ratios, res, costo }} />
+      )}
+      {sub === 'ayuda' && (
+        <AyudaTab irA={setSub} />
       )}
     </div>
   )
@@ -838,6 +842,119 @@ function BotellasGrid({ concentrados, resolucion }: { concentrados: BidonConcent
 }
 
 // ===================== RATIOS Y COSTO =====================
+const RATIO_INFO: Record<string, { ideal: string; desc: string }> = {
+  'N:K': { ideal: '~1 a 1.5', desc: 'Nitrógeno vs potasio. En veg querés más N (crecimiento); en flora más K (engorde) → el ratio baja.' },
+  'K:Ca': { ideal: '~1.2', desc: 'Potasio vs calcio. Si el K se dispara, bloquea la entrada de Ca (blossom-end rot). Mantenelos parejos.' },
+  'Ca:Mg': { ideal: '~3 a 4', desc: 'Calcio vs magnesio. Clásico 3:1 a 4:1. Mucho Ca frena el Mg (clorosis entre nervios).' },
+  'K:Mg': { ideal: '~4 a 5', desc: 'Potasio vs magnesio. Si el K es muy alto, la planta absorbe poco Mg aunque haya.' },
+  'NO3:NH4': { ideal: '~8 a 10', desc: 'Nitrato vs amonio. Mucho amonio acidifica y da plantas blandas; el nitrato es el N seguro en coco.' },
+}
+
+// Contenido de la guía / ayuda
+const GUIA_PASOS: { n: number; t: string; d: string }[] = [
+  { n: 1, t: 'Elegí un objetivo', d: 'En Calculadora, cargá el perfil (ppm) que querés, o elegí un preset (veg/flora/finish). El "objetivo" es la receta a la que apuntás.' },
+  { n: 2, t: 'O cloná una marca', d: 'En Clonar marca, elegí un producto comercial (Ryanodine, Athena, etc.) y la app arma el objetivo igual al original, con las sales crudas más baratas.' },
+  { n: 3, t: 'Ajustá tu agua', d: 'En Agua, cargá el análisis de tu agua (o dejá RO en cero). Lo que ya trae el agua se descuenta de lo que tenés que agregar.' },
+  { n: 4, t: 'Mirá "Logrado vs objetivo"', d: 'La tabla te dice cuánto lográs de cada elemento y si está EN RANGO (verde). Verde = tu receta clava el objetivo.' },
+  { n: 5, t: 'Pesá las sales', d: 'La "Receta g/L" te da los gramos por litro. Elegí litros a preparar. Si un micro no se puede pesar, aparece el asistente de Solución stock (pesás grande y dosificás por mL).' },
+  { n: 6, t: 'Armá las soluciones madre', d: 'En Soluciones madre guardás cada clon como botella(s) concentradas listas para preparar. Ojo: bidón A (calcio) y B (sulfatos) van separados si son líquidos.' },
+  { n: 7, t: 'Controlá pH y balance', d: 'En Ajuste de pH corregís. En Ratios y costo ves el balance iónico (predice si el pH sube o baja) y cuánto te sale por litro.' },
+]
+const GUIA_PESTANAS: { icon: typeof Calculator; t: string; d: string }[] = [
+  { icon: Calculator, t: 'Calculadora', d: 'El corazón. Cargás el objetivo en ppm y ves la receta de sales + logrado vs objetivo + rangos.' },
+  { icon: Copy, t: 'Clonar marca', d: 'Copiás un producto comercial: la app genera su perfil y te dice con qué sales crudas replicarlo barato.' },
+  { icon: FlaskRound, t: 'Sustancias', d: 'La base de sales: cuáles usás, su composición química y su precio ($/kg). Podés agregar las tuyas.' },
+  { icon: Droplets, t: 'Agua', d: 'El análisis de tu agua de partida. Lo que ya trae se resta del objetivo.' },
+  { icon: Layers, t: 'Soluciones madre', d: 'Tus clones guardados como botellas concentradas (stock A/B) listas para preparar.' },
+  { icon: ShieldCheck, t: 'Estabilizantes', d: 'Qué agregar para que un concentrado líquido no precipite ni se pudra (cítrico, benzoato, etc.).' },
+  { icon: Droplet, t: 'Ajuste de pH', d: 'Cuánto ácido/base agregar para llevar el pH al rango del coco (5.8–6.2).' },
+  { icon: GitCompare, t: 'Comparar', d: 'Poné dos perfiles lado a lado para ver diferencias.' },
+  { icon: Scale, t: 'Ratios y costo', d: 'Los ratios nutricionales (antagonismos), el balance iónico (mEq, predice pH) y cuánto sale por litro.' },
+]
+const GUIA_CONCEPTOS: { t: string; d: string }[] = [
+  { t: 'ppm (mg/L)', d: 'Partes por millón: cuántos miligramos de un elemento hay por litro de agua. Es la unidad del "objetivo".' },
+  { t: 'EC (mS/cm)', d: 'Electroconductividad: cuán "fuerte" está la solución (total de sales). Veg ~1.2–1.8, flora ~1.8–2.4. Es lo que mide tu medidor EC/TDS.' },
+  { t: 'Bidón A / B / C', d: 'A = calcio (nitrato de Ca). B = sulfatos y fosfatos. Se separan porque el calcio precipita con el sulfato/fosfato en concentrado. C = micros.' },
+  { t: 'Ratios', d: 'Proporción entre dos nutrientes (ej. Ca:Mg). Avisan antagonismos: si uno está muy alto, la planta absorbe menos el otro.' },
+  { t: 'Balance iónico (mEq)', d: 'Las cargas + (cationes) deben igualar las – (aniones). Si no cierran, la receta es imposible. Además el % de amonio predice si el pH del riego sube o baja.' },
+  { t: 'Solución stock', d: 'Para micros que no podés pesar: pesás una cantidad grande una vez, la disolvés en agua, y dosificás por mL con jeringa.' },
+  { t: 'Óxido → elemental', d: 'Las etiquetas dan P₂O₅, K₂O (óxidos). La app los convierte a P y K reales (elemental) para calcular bien.' },
+]
+
+function AyudaTab({ irA }: { irA: (s: SubTab) => void }) {
+  return (
+    <div className="space-y-4">
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-1">
+          <Lightbulb className="w-4 h-4 text-[#facc15]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">¿Necesitás ayuda? Empezá acá</h3>
+        </div>
+        <p className="text-[11px] text-[#a6a6b5]">Esta calculadora arma recetas de fertilizante desde cero o clonando marcas comerciales, con las sales crudas más baratas. Abajo tenés todo explicado.</p>
+      </div>
+
+      {/* Guía paso a paso */}
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-3">
+          <BookOpen className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Guía paso a paso</h3>
+        </div>
+        <div className="space-y-2">
+          {GUIA_PASOS.map(p => (
+            <div key={p.n} className="flex gap-3 bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2">
+              <div className="w-6 h-6 flex-shrink-0 rounded-full bg-[#a3e635]/15 text-[#a3e635] text-[12px] font-bold flex items-center justify-center">{p.n}</div>
+              <div className="min-w-0">
+                <p className="text-[12px] font-semibold text-[#ececf1]">{p.t}</p>
+                <p className="text-[10.5px] text-[#9494a3] leading-snug">{p.d}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Qué es cada pestaña */}
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-3">
+          <HelpCircle className="w-4 h-4 text-[#7dd3fc]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Qué hace cada pestaña</h3>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-2">
+          {GUIA_PESTANAS.map(t => {
+            const Icon = t.icon
+            return (
+              <div key={t.t} className="flex gap-2.5 bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2">
+                <Icon className="w-4 h-4 flex-shrink-0 mt-0.5 text-[#a78bfa]" strokeWidth={1.8} />
+                <div className="min-w-0">
+                  <p className="text-[11.5px] font-semibold text-[#d9f99d]">{t.t}</p>
+                  <p className="text-[10.5px] text-[#9494a3] leading-snug">{t.d}</p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Diccionario de conceptos */}
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-3">
+          <FlaskConical className="w-4 h-4 text-[#bef264]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Diccionario (en criollo)</h3>
+        </div>
+        <div className="space-y-2">
+          {GUIA_CONCEPTOS.map(c => (
+            <div key={c.t} className="bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2">
+              <p className="text-[11.5px] font-semibold text-[#ececf1]">{c.t}</p>
+              <p className="text-[10.5px] text-[#9494a3] leading-snug">{c.d}</p>
+            </div>
+          ))}
+        </div>
+        <button onClick={() => irA('calc')} className="mt-3 text-[11px] px-3 py-1.5 rounded-lg bg-[#a3e635] text-[#0a0a0f] font-semibold hover:bg-[#bef264] transition-colors">
+          Ir a la Calculadora →
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function RatiosTab({ ratios, res, costo }: { ratios: Ratios; res: Resultado; costo: CostoResultado }) {
   const N = nTotal(res.ppmLogrado)
   const P = res.ppmLogrado.P ?? 0, K = res.ppmLogrado.K ?? 0
@@ -859,18 +976,27 @@ function RatiosTab({ ratios, res, costo }: { ratios: Ratios; res: Resultado; cos
           <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Ratios nutricionales</h3>
         </div>
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2">
-            <span className="text-[11.5px] text-[#a6a6b5]">N : P : K</span>
-            <span className="text-[12px] font-mono tabular-nums font-bold text-[#d9f99d]">{npk}</span>
-          </div>
-          {Object.entries(ratios).filter(([k]) => k !== 'N:P:K').map(([k, v]) => (
-            <div key={k} className="flex items-center justify-between bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2">
-              <span className="text-[11.5px] text-[#a6a6b5]">{k}</span>
-              <span className="text-[12px] font-mono tabular-nums font-bold text-[#ececf1]">{(v as number) || '—'}</span>
+          <div className="bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[11.5px] text-[#a6a6b5]">N : P : K</span>
+              <span className="text-[12px] font-mono tabular-nums font-bold text-[#d9f99d]">{npk}</span>
             </div>
-          ))}
+            <p className="text-[10px] text-[#6b6b7a] mt-0.5">La proporción de los 3 macros principales (siempre relativa al fósforo=1). Es la "firma" NPK de tu fórmula.</p>
+          </div>
+          {Object.entries(ratios).filter(([k]) => k !== 'N:P:K').map(([k, v]) => {
+            const info = RATIO_INFO[k]
+            return (
+            <div key={k} className="bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11.5px] text-[#a6a6b5]">{k} {info && <span className="text-[10px] text-[#5c5c6b]">· ideal {info.ideal}</span>}</span>
+                <span className="text-[12px] font-mono tabular-nums font-bold text-[#ececf1]">{(v as number) || '—'}</span>
+              </div>
+              {info && <p className="text-[10px] text-[#6b6b7a] mt-0.5">{info.desc}</p>}
+            </div>
+            )
+          })}
         </div>
-        <p className="text-[10px] text-[#5c5c6b] mt-2">Referencia coco flora: K:Ca ~1.2, Ca:Mg ~3, NO3:NH4 ~8-10.</p>
+        <p className="text-[10px] text-[#5c5c6b] mt-2">Los ratios te avisan de antagonismos: si un elemento está muy alto respecto a otro, la planta absorbe de menos el segundo aunque sobre.</p>
       </div>
 
       <div className={card}>
