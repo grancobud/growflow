@@ -89,3 +89,6 @@ Precios actuales y proveedores: ver memoria `reference_precios_sales_fertirriego
 
 ## Solucion stock micros impesables (feat 6e0e090)
 `calcularStocksMicros(dosis, resolucion)` en lib: minPesable = resolucion>0 ? resolucion*50 : 0.1 g (~50 divisiones, error <2%). Filtra sales no-liquidas con gramosPorL < minPesable. Arma stock: pesar = max(T*1000, minPesable) g, disolver en 1000 mL, dosis mL/L = T*1000/pesar, litrosSugeridos si dosis<0.3 mL/L, jeringa segun mlTotal. Panel amarillo en CalcTab (entre receta y tabla ppm) con pasos 1-2-3. Resuelve el problema de no poder pesar 0.0006 g de un micro: pesas grande 1 vez y dosificas por volumen con jeringa. Investigado: ninguna calc open source (HydroBuddy/hydrosolver/hydromisc) lo integra asi.
+
+## Receta imprimible (feat)
+imprimirReceta({nombre,perfil,res,porBidon,ec,litros,modoPrep,resolucion}) en CreadorNutrientes.tsx: genera HTML tema claro profesional (branding GrowFlow, chips EC/costo/NH4/pH, tabla sales por bidon, perfil ppm obj vs logrado, instrucciones mezcla A->B, solucion stock) y window.open+print. Boton Printer en el header de la Receta (CalcTab). Idea de BudLabs/GrowPro. Ademas: pestana Ayuda/Guia (GUIA_PASOS, GUIA_PESTANAS, GUIA_CONCEPTOS) y RATIO_INFO con ideal+desc por ratio.
