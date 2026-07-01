@@ -393,9 +393,10 @@ export function kitParaPerfil(p: Perfil, opts: OpcionesKit = {}): string[] {
   const N = nTotal(p)
   const kit = new Set<string>()
   const fe = opts.feChelate ?? 'feeddha'
-  const mn = opts.microsQuelatados ? 'mnedta' : 'mnso4'
-  const zn = opts.microsQuelatados ? 'znedta' : 'znso4'
-  const cu = opts.microsQuelatados ? 'cuedta' : 'cuso4'
+  const useQuel = opts.microsQuelatados ?? true // MÁXIMA CALIDAD por defecto: micros EDTA (no sulfatos)
+  const mn = useQuel ? 'mnedta' : 'mnso4'
+  const zn = useQuel ? 'znedta' : 'znso4'
+  const cu = useQuel ? 'cuedta' : 'cuso4'
   // --- Calcio (bidón A) ---
   if (has('Ca')) {
     if (has('NO3') || N > 0) kit.add('cano3_ag')          // Ca + N nítrico (parte A de toda marca)
@@ -507,8 +508,8 @@ export const DOSIS_REC: Record<string, number> = {
 export interface KitSales { id: string; nombre: string; desc: string; sales: string[] }
 export const KITS_SALES: KitSales[] = [
   { id: 'limpio', nombre: 'Kit limpio (recomendado)',
-    desc: 'Calidad pro: 1 sal por nutriente, sin cloro, sin redundancia. A=nitrato Ca · B=nitrato K+MKP+sulfato K+Epsom · C=micros.',
-    sales: ['cano3_ag', 'kno3', 'mkp', 'k2so4', 'epsom', 'feeddha', 'mnso4', 'znso4', 'cuso4', 'boric', 'namolib'] },
+    desc: 'Calidad pro: 1 sal por nutriente, sin cloro, micros EDTA quelatados (estables). A=nitrato Ca · B=nitrato K+MKP+sulfato K+Epsom · C=micros EDDHA/EDTA.',
+    sales: ['cano3_ag', 'kno3', 'mkp', 'k2so4', 'epsom', 'feeddha', 'mnedta', 'znedta', 'cuedta', 'boric', 'namolib'] },
   { id: 'economico', nombre: 'Kit económico',
     desc: 'El más barato por nutriente (MAP en vez de MKP, sulfato de hierro). Mete algo de N amoniacal.',
     sales: ['cano3_ag', 'kno3', 'map', 'k2so4', 'epsom', 'feso4', 'mnso4', 'znso4', 'cuso4', 'boric', 'namolib'] },
