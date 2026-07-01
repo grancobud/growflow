@@ -575,10 +575,14 @@ export function ppmDesdeDosis(dosis: ResultadoSal[], agua: Perfil = {}): Record<
   return out
 }
 
-/** EC aproximada (mS/cm) a partir de ppm totales (escala 500). */
+/**
+ * EC aproximada (mS/cm). Se calcula desde los mEq/L de cationes (Ca+Mg+K+NH₄+Na),
+ * regla estándar de soluciones nutritivas: EC(µS/cm) ≈ 100 × Σcationes(meq/L).
+ * (Sumar ppm ELEMENTALES y dividir por una escala subestima ~2x, porque el N/S/P
+ * pesan mucho menos como elemento que como ion NO₃/SO₄/H₂PO₄.)
+ */
 export function ecAprox(ppm: Record<ElementKey, number>): number {
-  const total = Object.values(ppm).reduce((a, b) => a + b, 0)
-  return +(total / 640).toFixed(2)
+  return +(catEqDe(ppm) * 0.1).toFixed(2)
 }
 
 /** Ratios nutricionales clave (relaciones de masa). */

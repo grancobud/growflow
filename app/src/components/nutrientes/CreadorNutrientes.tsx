@@ -63,7 +63,7 @@ function Info({ children }: { children: React.ReactNode }) {
   return (
     <span className="relative inline-flex group align-middle ml-1">
       <span className="w-3.5 h-3.5 rounded-full bg-[#1f1f2b] border border-[#404d20] text-[#8f8f9f] text-[9px] font-bold flex items-center justify-center cursor-help group-hover:text-[#d9f99d] group-hover:border-[#a3e635] transition-colors">?</span>
-      <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-60 z-50 opacity-0 group-hover:opacity-100 transition-opacity bg-[#0d0d14] border border-[#2a2a38] rounded-lg px-3 py-2 text-[10.5px] text-[#c4c4d0] leading-relaxed shadow-2xl">
+      <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-60 max-w-[calc(100vw-2rem)] z-50 opacity-0 group-hover:opacity-100 transition-opacity bg-[#0d0d14] border border-[#2a2a38] rounded-lg px-3 py-2 text-[10.5px] text-[#c4c4d0] leading-relaxed shadow-2xl">
         {children}
         <span className="absolute left-1/2 -translate-x-1/2 top-full w-2 h-2 rotate-45 -mt-1 bg-[#0d0d14] border-r border-b border-[#2a2a38]" />
       </span>
@@ -596,7 +596,7 @@ function SugerenciaSalesActivas({ salesTodas, activas, setActivas }: { salesToda
   return (
     <p className="text-[10px] text-[#5c5c6b] px-1">
       {activas.size} sustancias activas de {salesTodas.length}. Gestionalas en la pestaña "Sustancias".
-      Solver NNLS · EC estimada (escala 500). Verificá pH 5.8–6.2 en coco. Inspirado en HydroBuddy (D. Fernández).
+      Solver NNLS · EC estimada por balance iónico. Verificá pH 5.8–6.2 en coco. Inspirado en HydroBuddy (D. Fernández).
       {activas.size === 0 && <button onClick={() => setActivas(new Set(salesTodas.map((s: Sal) => s.id)))} className="ml-1 text-[#a3e635] underline">activar todas</button>}
     </p>
   )
