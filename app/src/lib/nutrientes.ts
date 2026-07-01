@@ -238,7 +238,7 @@ export const SALES_DEFECTO: Sal[] = [
     comp: { NO3: 0.0248, NH4: 0.0019, Ca: 0.032 },
     descripcion: 'Comercial Ryanodine: fuente de calcio + nitrógeno nítrico. Es el bidón A del sistema. Se dosifica al final, después de A y B.' },
   { id: 'ryano_makro', nombre: 'Ryanodine Makro (A)', bidon: 'B', liquido: true, densidad: 1.1,
-    comp: { NH4: 0.0098, P: 0.0115, K: 0.0473, S: 0.0182 },
+    comp: { NH4: 0.0098, P: 0.0115, K: 0.0472, S: 0.0182 },
     descripcion: 'Comercial Ryanodine (sistema 3 partes): macros sin calcio. N 100% amoniacal, P, K, S.' },
   { id: 'ryano_mikro', nombre: 'Ryanodine Mikro (B)', bidon: 'C', liquido: true, densidad: 1.1,
     comp: { Mg: 0.01, S: 0.0135, Fe: 0.00109, Mn: 0.0002, Zn: 0.00005, B: 0.00008, Cu: 0.00003, Mo: 0.000005 },
