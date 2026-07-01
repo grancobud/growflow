@@ -559,9 +559,23 @@ export function calcularReceta(perfil: Perfil, salesDisp: Sal[], agua: Perfil = 
   const As = A.map((fila, i) => fila.map(v => v * scale[i]))
   const bs = b.map((v, i) => v * scale[i])
   const x = nnls(As, bs)
-  const dosis: ResultadoSal[] = salesDisp
+  const dosis0: ResultadoSal[] = salesDisp
     .map((sal, j) => ({ sal, gramosPorL: +(x[j] ?? 0).toFixed(6) })) // 6 decimales: micros traza (Mo) exactos
     .filter(d => d.gramosPorL > 0)
+  // ppm con TODAS las sales, para medir el aporte relativo de cada una
+  const ppmFull = {} as Record<ElementKey, number>
+  for (const e of ELEMENTOS) {
+    let s = agua[e.key] ?? 0
+    for (const d of dosis0) s += (d.sal.comp[e.key] ?? 0) * d.gramosPorL * 1000
+    ppmFull[e.key] = s
+  }
+  // descarta sales "fantasma": las que aportan <2% en TODOS los elementos que tocan
+  // (ruido del solver, gramos impesables, sin efecto real en la receta)
+  const dosis = dosis0
+    .filter(d => ELEMENTOS.some(e => {
+      const contrib = (d.sal.comp[e.key] ?? 0) * d.gramosPorL * 1000
+      return ppmFull[e.key] > 0 && contrib / ppmFull[e.key] >= 0.02
+    }))
     .sort((a, b2) => b2.gramosPorL - a.gramosPorL)
   const ppmLogrado = {} as Record<ElementKey, number>
   for (const e of ELEMENTOS) {
