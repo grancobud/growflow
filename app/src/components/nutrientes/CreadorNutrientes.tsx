@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   FlaskConical, Beaker, Droplets, ChevronDown, Sparkles, AlertTriangle,
   Save, FolderOpen, Trash2, Calculator, FlaskRound, Layers, Scale, Plus, DollarSign,
-  Droplet, GitCompare, Package, ShieldCheck, Copy, HelpCircle, BookOpen, Lightbulb,
+  Droplet, GitCompare, Package, ShieldCheck, Copy, HelpCircle, BookOpen, Lightbulb, Printer,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -201,6 +201,118 @@ export default function CreadorNutrientes() {
   )
 }
 
+// ===================== RECETA IMPRIMIBLE (PDF/print) =====================
+function imprimirReceta(d: {
+  nombre: string; perfil: Perfil; res: Resultado
+  porBidon: { bidon: Bidon; items: ResultadoSal[] }[]
+  ec: number; litros: number; modoPrep: 'polvo' | 'liquido'; resolucion: number
+}) {
+  const { nombre, perfil, res, porBidon, ec, litros, modoPrep, resolucion } = d
+  const costo = calcularCosto(res.dosis)
+  const bal = calcularBalanceIonico(res.ppmLogrado)
+  const stocks = calcularStocksMicros(res.dosis, resolucion)
+  const fecha = new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })
+  const titulo = (nombre || 'Receta de fertilizante').trim()
+  const unaBotella = porBidon.length === 1
+  const fmt = (g: number) => g >= 0.01 ? g.toFixed(2) : g >= 0.001 ? g.toFixed(4) : g.toFixed(6)
+  const bidonLabel = (b: Bidon) => modoPrep === 'polvo' ? 'Mezcla en polvo — todo junto'
+    : unaBotella ? 'Botella única — todo junto'
+    : b === 'A' ? 'Bidón A — Calcio' : b === 'B' ? 'Bidón B — Base / Sulfatos' : 'Bidón C — Micros'
+
+  const salesRows = porBidon.map(g => `
+    <div class="grupo">
+      <div class="grupo-tit">${bidonLabel(g.bidon)}</div>
+      <table>
+        <thead><tr><th>Sustancia</th><th class="num">g / L</th><th class="num">Total ${litros} L</th></tr></thead>
+        <tbody>
+          ${g.items.map(it => {
+            const gL = resolucion > 0 ? redondearBalanza(it.gramosPorL, resolucion) : it.gramosPorL
+            return `<tr><td>${it.sal.nombre}</td><td class="num">${fmt(gL)}</td><td class="num strong">${fmt(gL * litros)} g</td></tr>`
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`).join('')
+
+  const ppmRows = ELEMENTOS.filter(e => (perfil[e.key] ?? 0) > 0 || (res.ppmLogrado[e.key] ?? 0) > 0).map(e => {
+    const obj = perfil[e.key] ?? 0, log = res.ppmLogrado[e.key] ?? 0
+    return `<tr><td>${e.label}</td><td class="num">${obj || '—'}</td><td class="num strong">${log}</td></tr>`
+  }).join('')
+
+  const stockRows = stocks.length === 0 ? '' : `
+    <div class="seccion">
+      <h2>Solución stock — micros que no se pesan</h2>
+      <p class="hint">Pesá grande una vez, disolvé en agua, y dosificá por volumen con jeringa.</p>
+      ${stocks.map(s => `<div class="stock"><b>${s.nombre}</b> — Pesá <b>${s.pesar} g</b> · Disolvé en <b>${s.volumenStockMl} mL</b> · Agregá <b>${s.dosisMlPorL} mL/L</b> (jeringa ${s.jeringa})</div>`).join('')}
+    </div>`
+
+  const phTxt = bal.tendenciaPh === 'sube' ? 'tiende a SUBIR' : bal.tendenciaPh === 'baja' ? 'tiende a BAJAR' : 'ESTABLE'
+  const html = `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>${titulo}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1f2937; padding: 40px 44px; max-width: 820px; margin: 0 auto; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .head { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid #65a30d; padding-bottom: 14px; margin-bottom: 6px; }
+    .brand { font-size: 13px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: #4d7c0f; }
+    .brand small { display:block; font-size: 9px; letter-spacing:.2em; color:#9ca3af; font-weight:600; }
+    .head .fecha { font-size: 11px; color: #9ca3af; }
+    h1 { font-size: 25px; font-weight: 800; margin: 16px 0 4px; color: #111827; }
+    .sub { font-size: 12px; color: #6b7280; margin-bottom: 18px; }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; }
+    .chip { border: 1px solid #e5e7eb; border-radius: 9px; padding: 8px 14px; }
+    .chip .k { font-size: 9px; text-transform: uppercase; letter-spacing: .1em; color: #9ca3af; }
+    .chip .v { font-size: 15px; font-weight: 700; color: #111827; }
+    .chip.lime { background: #f7fee7; border-color: #d9f99d; } .chip.lime .v { color: #4d7c0f; }
+    .seccion { margin-bottom: 22px; }
+    h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: #4d7c0f; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px; margin-bottom: 10px; }
+    .grupo { margin-bottom: 12px; break-inside: avoid; }
+    .grupo-tit { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #6b7280; margin-bottom: 5px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { font-size: 9px; text-transform: uppercase; letter-spacing: .06em; color: #9ca3af; text-align: left; padding: 4px 8px; border-bottom: 1.5px solid #e5e7eb; }
+    td { font-size: 12px; padding: 6px 8px; border-bottom: 1px solid #f3f4f6; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; font-family: 'SF Mono', Consolas, monospace; }
+    .strong { font-weight: 700; color: #111827; }
+    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .instr { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px 16px; }
+    .instr ol { margin-left: 16px; } .instr li { font-size: 11.5px; margin-bottom: 5px; color: #374151; }
+    .hint { font-size: 10.5px; color: #9ca3af; margin-bottom: 8px; }
+    .stock { font-size: 11px; padding: 7px 10px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; margin-bottom: 6px; color: #713f12; }
+    .foot { margin-top: 28px; border-top: 1px solid #e5e7eb; padding-top: 12px; font-size: 10px; color: #9ca3af; display: flex; justify-content: space-between; }
+    @media print { body { padding: 0; } @page { margin: 16mm; } }
+  </style></head><body>
+    <div class="head"><div class="brand">GrowFlow<small>Calculadora de fertilizantes</small></div><div class="fecha">${fecha}</div></div>
+    <h1>${titulo}</h1>
+    <div class="sub">Receta calculada para ${litros} litro${litros === 1 ? '' : 's'} de solución final · preparación en ${modoPrep === 'polvo' ? 'polvo' : 'líquido (A/B)'}.</div>
+    <div class="chips">
+      <div class="chip lime"><div class="k">EC estimada</div><div class="v">${ec} mS/cm</div></div>
+      <div class="chip"><div class="k">Costo</div><div class="v">$${costo.porLitro}/L</div></div>
+      <div class="chip"><div class="k">Volumen</div><div class="v">${litros} L</div></div>
+      <div class="chip"><div class="k">NH₄ del N</div><div class="v">${bal.nh4Pct}%</div></div>
+      <div class="chip"><div class="k">pH riego</div><div class="v">${phTxt}</div></div>
+    </div>
+    <div class="seccion"><h2>Sustancias a pesar</h2>${salesRows}</div>
+    <div class="cols">
+      <div class="seccion"><h2>Perfil nutricional (ppm)</h2>
+        <table><thead><tr><th>Elemento</th><th class="num">Objetivo</th><th class="num">Logrado</th></tr></thead><tbody>${ppmRows}</tbody></table>
+      </div>
+      <div class="seccion"><h2>Cómo preparar</h2>
+        <div class="instr"><ol>
+          <li>Llená el tanque con ${litros} L de agua (idealmente RO u osmosis).</li>
+          ${modoPrep === 'polvo' ? '<li>Agregá todas las sales pesadas y revolvé hasta disolver.</li>' : '<li>Echá primero el <b>bidón A (calcio)</b> y agitá.</li><li>Después el <b>bidón B</b>. Nunca los juntes concentrados.</li>'}
+          <li>Ajustá el pH a <b>5.8 – 6.2</b> (coco).</li>
+          <li>Verificá la EC (~${ec} mS/cm) antes de regar.</li>
+        </ol></div>
+      </div>
+    </div>
+    ${stockRows}
+    <div class="foot"><span>Generado con GrowFlow · growflow-5vs.pages.dev</span><span>${fecha}</span></div>
+    <script>window.onload=function(){setTimeout(function(){window.print()},250)}</script>
+  </body></html>`
+
+  const w = window.open('', '_blank')
+  if (!w) { alert('Habilitá las ventanas emergentes para imprimir.'); return }
+  w.document.write(html)
+  w.document.close()
+}
+
 // ===================== CALCULADORA =====================
 function CalcTab(p: CalcTabProps) {
   const { perfil, presetId, setPreset, setPpm, macros, micros, res, ec, salesTodas, activas, setActivas,
@@ -334,6 +446,11 @@ function CalcTab(p: CalcTabProps) {
               ))}
             </div>
             <span className="ml-auto text-[11px] font-mono tabular-nums px-2 py-0.5 rounded border border-[#404d20] bg-[#a3e635]/10 text-[#d9f99d]">EC ≈ {ec}</span>
+            <button onClick={() => imprimirReceta({ nombre: p.nombreNuevo, perfil, res, porBidon, ec, litros, modoPrep, resolucion })}
+              disabled={porBidon.length === 0}
+              className="text-[10.5px] flex items-center gap-1 px-2 py-1 rounded-md bg-[#15151d] border border-[#1f1f2b] text-[#a6a6b5] hover:text-[#d9f99d] hover:border-[#404d20] transition-colors disabled:opacity-40">
+              <Printer className="w-3.5 h-3.5" strokeWidth={1.8} /> Imprimir
+            </button>
           </div>
           {porBidon.length === 0 ? (
             <p className="text-[12px] text-[#5c5c6b] py-6 text-center">Sin sales que cubran el objetivo. Activá más en "Sustancias".</p>
