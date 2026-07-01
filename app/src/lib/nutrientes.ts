@@ -596,6 +596,42 @@ export function calcularRatios(ppm: Record<ElementKey, number>): Ratios {
   }
 }
 
+// --- Balance iónico (mEq/L): cationes vs aniones + tendencia de pH ---
+// meq/L = ppm × carga / peso_atómico. N va como N (NO3-N, NH4-N). Fosfato a pH 5.5-6.5 = H2PO4⁻ (carga 1).
+export interface BalanceIonico {
+  cationesMeq: number          // Ca+Mg+K+NH4+Na
+  anionesMeq: number           // NO3+SO4+H2PO4+Cl
+  desbalancePct: number        // (cat-an)/promedio ×100. ~0 = receta realista
+  nh4Pct: number               // % de NH4 sobre el N total
+  tendenciaPh: 'sube' | 'estable' | 'baja'
+  detalle: { cationes: { k: string; meq: number }[]; aniones: { k: string; meq: number }[] }
+}
+export function calcularBalanceIonico(ppm: Partial<Record<ElementKey, number>>): BalanceIonico {
+  const v = (val: number | undefined, carga: number, pa: number) => +(((val ?? 0) * carga) / pa).toFixed(3)
+  const cat = [
+    { k: 'Ca²⁺', meq: v(ppm.Ca, 2, 40.08) },
+    { k: 'Mg²⁺', meq: v(ppm.Mg, 2, 24.31) },
+    { k: 'K⁺', meq: v(ppm.K, 1, 39.10) },
+    { k: 'NH₄⁺', meq: v(ppm.NH4, 1, 14.01) },
+    { k: 'Na⁺', meq: v(ppm.Na, 1, 22.99) },
+  ].filter(x => x.meq > 0)
+  const ani = [
+    { k: 'NO₃⁻', meq: v(ppm.NO3, 1, 14.01) },
+    { k: 'SO₄²⁻', meq: v(ppm.S, 2, 32.06) },
+    { k: 'H₂PO₄⁻', meq: v(ppm.P, 1, 30.97) },
+    { k: 'Cl⁻', meq: v(ppm.Cl, 1, 35.45) },
+  ].filter(x => x.meq > 0)
+  const cationesMeq = +cat.reduce((a, b) => a + b.meq, 0).toFixed(2)
+  const anionesMeq = +ani.reduce((a, b) => a + b.meq, 0).toFixed(2)
+  const prom = (cationesMeq + anionesMeq) / 2
+  const desbalancePct = prom > 0 ? +(((cationesMeq - anionesMeq) / prom) * 100).toFixed(1) : 0
+  const nTot = nTotal(ppm)
+  const nh4Pct = nTot > 0 ? +(((ppm.NH4 ?? 0) / nTot) * 100).toFixed(1) : 0
+  // La planta absorbe NO3 liberando OH⁻ (pH sube) y NH4 liberando H⁺ (pH baja).
+  const tendenciaPh: BalanceIonico['tendenciaPh'] = nh4Pct >= 15 ? 'baja' : nh4Pct >= 8 ? 'estable' : 'sube'
+  return { cationesMeq, anionesMeq, desbalancePct, nh4Pct, tendenciaPh, detalle: { cationes: cat, aniones: ani } }
+}
+
 // --- Soluciones madre (concentrados A/B/C) ---
 export interface BidonConcentrado {
   bidon: Bidon

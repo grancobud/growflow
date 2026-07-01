@@ -7,7 +7,7 @@ import {
 import { toast } from 'sonner'
 import {
   SALES_DEFECTO, ELEMENTOS, PRESETS, calcularReceta, ecAprox, nTotal,
-  calcularConcentrados, calcularRatios, calcularCosto,
+  calcularConcentrados, calcularRatios, calcularCosto, calcularBalanceIonico,
   redondearBalanza, AGENTES_PH, calcularAjustePH, oxidoAElemental, OXIDOS,
   recomendarEstabilizantes, esComercial, marcaDe, perfilDesdeProducto, categoriaSal, KITS_SALES, kitParaPerfil, opcionesDeMarca, DOSIS_REC,
   necesitaSepararAB, bidonDeSal,
@@ -803,7 +803,16 @@ function RatiosTab({ ratios, res, costo }: { ratios: Ratios; res: Resultado; cos
   const N = nTotal(res.ppmLogrado)
   const P = res.ppmLogrado.P ?? 0, K = res.ppmLogrado.K ?? 0
   const npk = P > 0 ? `${(N / P).toFixed(1)} : 1 : ${(K / P).toFixed(1)}` : '—'
+  const bal = calcularBalanceIonico(res.ppmLogrado)
+  const desbAbs = Math.abs(bal.desbalancePct)
+  const balColor = desbAbs <= 5 ? '#a3e635' : desbAbs <= 12 ? '#facc15' : '#ff8a7a'
+  const balEstado = desbAbs <= 5 ? 'Balanceada ✓' : desbAbs <= 12 ? 'Leve desbalance' : 'Desbalanceada'
+  const phInfo = { sube: { t: 'pH tiende a SUBIR', c: '#7dd3fc', d: 'Domina el nitrato (la planta libera OH⁻). Normal; corregí bajando con ácido.' },
+    estable: { t: 'pH ESTABLE', c: '#a3e635', d: 'Relación NH₄:NO₃ equilibrada. Poca deriva.' },
+    baja: { t: 'pH tiende a BAJAR', c: '#fca5a5', d: 'Mucho amonio (la planta libera H⁺). Ojo en coco, puede acidificar la rizósfera.' } }[bal.tendenciaPh]
+  const catMax = Math.max(bal.cationesMeq, bal.anionesMeq, 0.001)
   return (
+    <div className="space-y-4">
     <div className="grid lg:grid-cols-2 gap-4">
       <div className={card}>
         <div className="flex items-center gap-2 mb-3">
@@ -845,6 +854,52 @@ function RatiosTab({ ratios, res, costo }: { ratios: Ratios; res: Resultado; cos
         )}
         <p className="text-[10px] text-[#5c5c6b] mt-2">El costo sale de "costo/kg" que cargues en cada sustancia (pestaña Sustancias).</p>
       </div>
+    </div>
+
+    {/* Balance iónico (mEq/L) — validación pro + tendencia de pH */}
+    <div className={card}>
+      <div className="flex items-center gap-2 mb-3">
+        <Scale className="w-4 h-4 text-[#7dd3fc]" strokeWidth={1.8} />
+        <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Balance iónico (mEq/L)</h3>
+        <span className="ml-auto text-[11px] font-semibold" style={{ color: balColor }}>{balEstado} · {bal.desbalancePct > 0 ? '+' : ''}{bal.desbalancePct}%</span>
+      </div>
+
+      {/* Barras cationes vs aniones */}
+      <div className="space-y-2 mb-3">
+        {([['Cationes ⊕', bal.cationesMeq, bal.detalle.cationes, '#a78bfa'], ['Aniones ⊖', bal.anionesMeq, bal.detalle.aniones, '#7dd3fc']] as const).map(([lbl, tot, items, col]) => (
+          <div key={lbl}>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[11px] text-[#a6a6b5]">{lbl}</span>
+              <span className="text-[12px] font-mono tabular-nums font-bold" style={{ color: col }}>{tot} mEq/L</span>
+            </div>
+            <div className="flex h-5 rounded overflow-hidden bg-[#15151d] border border-[#1f1f2b]" style={{ width: `${(tot / catMax) * 100}%`, minWidth: '30%' }}>
+              {items.map((it, i) => (
+                <div key={it.k} className="flex items-center justify-center text-[9px] text-[#0a0a0f] font-semibold" title={`${it.k}: ${it.meq} mEq/L`}
+                  style={{ flex: it.meq, background: col, opacity: 1 - i * 0.14, borderRight: '1px solid #0a0a0f' }}>
+                  {it.meq >= tot * 0.12 ? it.k : ''}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid sm:grid-cols-3 gap-2">
+        <div className="bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2">
+          <p className="text-[10px] text-[#757584]">Desbalance carga</p>
+          <p className="text-[13px] font-mono font-bold" style={{ color: balColor }}>{bal.desbalancePct > 0 ? '+' : ''}{bal.desbalancePct}%</p>
+        </div>
+        <div className="bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2">
+          <p className="text-[10px] text-[#757584]">NH₄ del N total</p>
+          <p className="text-[13px] font-mono font-bold text-[#d9f99d]">{bal.nh4Pct}%</p>
+        </div>
+        <div className="bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2">
+          <p className="text-[10px] text-[#757584]">Tendencia pH riego</p>
+          <p className="text-[12px] font-bold" style={{ color: phInfo.c }}>{phInfo.t}</p>
+        </div>
+      </div>
+      <p className="text-[10px] text-[#5c5c6b] mt-2">{phInfo.d} Los cationes (Ca+Mg+K+NH₄) deben igualar a los aniones (NO₃+SO₄+H₂PO₄+Cl) — desbalance ≤5% = receta física real.</p>
+    </div>
     </div>
   )
 }
