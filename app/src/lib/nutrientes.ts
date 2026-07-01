@@ -244,7 +244,7 @@ export const SALES_DEFECTO: Sal[] = [
     comp: { Mg: 0.01, S: 0.0135, Fe: 0.00109, Mn: 0.0002, Zn: 0.00005, B: 0.00008, Cu: 0.00003, Mo: 0.000005 },
     descripcion: 'Comercial Ryanodine: micros quelatados + magnesio. Fe EDDHA, Mn/Zn/Cu EDTA, B, Mo.' },
   { id: 'ryano_maikro', nombre: 'Ryanodine Maikro (AB)', bidon: 'B', liquido: true, densidad: 1.1,
-    comp: { NH4: 0.0098, P: 0.0115, K: 0.0472, S: 0.0317, Mg: 0.01, Fe: 0.00109, Mn: 0.0002, Zn: 0.00004, Cu: 0.00003, B: 0.00008, Mo: 0.000005 },
+    comp: { NH4: 0.0098, P: 0.0115, K: 0.0473, S: 0.0317, Mg: 0.01, Fe: 0.00109, Mn: 0.0002, Zn: 0.00005, Cu: 0.00003, B: 0.00008, Mo: 0.000005 },
     descripcion: 'Comercial Ryanodine (sistema 2 partes): Makro + Mikro fusionados. Todo menos el calcio. Dosis típica 4 ml/L.' },
   { id: 'ryano_finis', nombre: 'Ryanodine Finis (finalizador)', bidon: 'B',
     comp: { P: 0.0659, K: 0.2058, Ca: 0.1082, S: 0.1254 },
