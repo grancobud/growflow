@@ -103,3 +103,11 @@ BUG MAYOR encontrado y arreglado: ecAprox sumaba ppm ELEMENTALES / 640 → EC su
 Gaston eligio CALIDAD sobre barato. kitParaPerfil default microsQuelatados=true (const useQuel = opts.microsQuelatados ?? true) -> Fe-EDDHA + Mn/Zn/Cu-EDTA en TODO: presets, perfiles manuales y clones. opcionesDeMarca ahora microsQuelatados:true en todas las marcas. Kit "limpio" usa mnedta/znedta/cuedta. Solo el kit "economico" mantiene sulfatos (es su proposito). Razon: EDTA es fiel a las premium + estable en concentrado liquido (no precipita con fosfato, aguanta pH alto) + sin azufre parasito. Agregados micromix Fetrilon Combi 2 (verificado, $4489/kg) y Afital (aprox). Zn-EDTA 15
 ## DECISION: MAXIMA CALIDAD por defecto (commit ed7ca4f)
 Gaston eligio CALIDAD sobre barato. kitParaPerfil default microsQuelatados=true (useQuel = opts.microsQuelatados ?? true) -> Fe-EDDHA + Mn/Zn/Cu-EDTA en TODO: presets, perfiles manuales y clones. opcionesDeMarca ahora microsQuelatados:true en todas las marcas. Kit "limpio" usa mnedta/znedta/cuedta. Solo el kit "economico" mantiene sulfatos. Razon: EDTA fiel a premium + estable en concentrado liquido + sin azufre parasito. Agregados micromix Fetrilon Combi 2 (verificado, 4489/kg) y Afital (aprox). Zn-EDTA 15%, Cu-EDTA 14%.
+
+## Verificacion etiquetas Ryanodine (commit 6c98d64)
+Los 4 productos Ryanodine verificados contra etiquetas oficiales y EXACTOS:
+- Calcis (C): NO3 0.0248, NH4 0.0019, Ca 0.032 (N nitrico 2.48, amoniacal 0.19, Ca 3.20).
+- Makro (A): NH4 0.0098, P 0.0115, K 0.0473, S 0.0182 (K2O 5.70).
+- Mikro (B): Mg 0.01, S 0.0135, Fe 0.00109(EDDHA), Mn 0.0002, Zn 0.00005, B 0.00008, Cu 0.00003, Mo 0.000005 (todo EDTA).
+- Maikro (AB): tiene ETIQUETA PROPIA distinta de Makro+Mikro sumados: K2O 5.68 -> K 0.0472 (NO 0.0473), Zn 0.004 -> 0.00004 (NO 0.00005). S 3.17. CUIDADO: no asumir que Maikro = suma de partes, usar su etiqueta.
+Finis (finalizador polvo): P 0.0659 K 0.2058 Ca 0.1082 S 0.1254 (P2O5 15.10, K2O 24.79, Ca 10.82, S 12.54). La etiqueta dice "derivado de fosfato de calcio" pero los numeros SOLO cierran con YESO (calcium phosphate dispararia el P a ~16%; S solo de K2SO4 dispararia el K a ~30%). El clon usa yeso = fiel al analisis garantizado. Va en POLVO (yeso no se concentra, precipita).
