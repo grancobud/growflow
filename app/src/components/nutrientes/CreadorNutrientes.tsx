@@ -58,6 +58,19 @@ function colorDelta(logrado: number, obj: number) {
   return { c: '#d9f99d', bg: 'rgba(63,176,116,0.10)' }
 }
 
+// Tooltip de ayuda: "?" que al pasar el mouse muestra descripción + ejemplo.
+function Info({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="relative inline-flex group align-middle ml-1">
+      <span className="w-3.5 h-3.5 rounded-full bg-[#1f1f2b] border border-[#404d20] text-[#8f8f9f] text-[9px] font-bold flex items-center justify-center cursor-help group-hover:text-[#d9f99d] group-hover:border-[#a3e635] transition-colors">?</span>
+      <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-60 z-50 opacity-0 group-hover:opacity-100 transition-opacity bg-[#0d0d14] border border-[#2a2a38] rounded-lg px-3 py-2 text-[10.5px] text-[#c4c4d0] leading-relaxed shadow-2xl">
+        {children}
+        <span className="absolute left-1/2 -translate-x-1/2 top-full w-2 h-2 rotate-45 -mt-1 bg-[#0d0d14] border-r border-b border-[#2a2a38]" />
+      </span>
+    </span>
+  )
+}
+
 const card = 'rounded-xl bg-[#101016] border border-[#1f1f2b] p-4'
 const inp = 'w-full bg-[#15151d] border border-[#1f1f2b] rounded-md px-2 py-1 text-[12px] text-[#ececf1] font-mono tabular-nums focus:border-[#404d20] outline-none'
 
@@ -436,6 +449,7 @@ function CalcTab(p: CalcTabProps) {
               <span className="text-[#5c5c6b]">prepará</span>
               <input type="number" min={0.1} step={1} value={litros} onChange={e => setLitros(Math.max(0.1, +e.target.value))}
                 className="w-16 bg-[#15151d] border border-[#1f1f2b] rounded px-1.5 py-0.5 text-[12px] text-[#ececf1] font-mono tabular-nums focus:border-[#404d20] outline-none" /> L
+              <Info><b className="text-[#d9f99d]">Cuántos litros de riego vas a preparar</b>. Los gramos de la receta se multiplican por este número.<br /><span className="text-[#a3e635]">Ej: MKP 0.24 g/L × 10 L = 2.4 g a pesar.</span></Info>
             </label>
             <div className="flex rounded-md overflow-hidden border border-[#1f1f2b]">
               {(['polvo', 'liquido'] as const).map(m => (
@@ -445,7 +459,9 @@ function CalcTab(p: CalcTabProps) {
                 </button>
               ))}
             </div>
+            <Info><b className="text-[#d9f99d]">Cómo vas a preparar la receta.</b> <b>Polvo</b>: todo junto en un envase seco (se echa al tanque). <b>Líquido A/B</b>: concentrado en botellas, separando calcio (A) de sulfatos (B) para que no precipiten.<br /><span className="text-[#a3e635]">Ej: el Finis viene en polvo; el Athena Fade viene líquido.</span></Info>
             <span className="ml-auto text-[11px] font-mono tabular-nums px-2 py-0.5 rounded border border-[#404d20] bg-[#a3e635]/10 text-[#d9f99d]">EC ≈ {ec}</span>
+            <Info><b className="text-[#d9f99d]">EC estimada</b> (electroconductividad): cuán fuerte queda la solución. Es lo que vas a medir con el lápiz de EC.<br /><span className="text-[#a3e635]">Coco: veg 1.2–1.8, flora 1.8–2.4. Si te da mucho más, bajá las dosis.</span></Info>
             <button onClick={() => imprimirReceta({ nombre: p.nombreNuevo, perfil, res, porBidon, ec, litros, modoPrep, resolucion })}
               disabled={porBidon.length === 0}
               className="text-[10.5px] flex items-center gap-1 px-2 py-1 rounded-md bg-[#15151d] border border-[#1f1f2b] text-[#a6a6b5] hover:text-[#d9f99d] hover:border-[#404d20] transition-colors disabled:opacity-40">
@@ -850,18 +866,21 @@ function ConcentradosTab({ factor, setFactor, volBidon, setVolBidon, resolucion,
         </div>
         <div className="flex flex-wrap gap-4">
           <label className="text-[11px] text-[#a6a6b5]">Factor de concentración
+            <Info><b className="text-[#d9f99d]">Cuántas veces concentrada</b> es la solución madre respecto al riego final. Pesás lo mismo pero en menos agua, y después diluís.<br /><span className="text-[#a3e635]">Ej: 100x = 1 L de concentrado rinde 100 L de riego (agregás 10 mL por litro).</span></Info>
             <div className="flex items-center gap-1 mt-1">
               <input type="number" min={1} step={1} value={factor} onChange={e => setFactor(Math.max(1, +e.target.value))} className={`${inp} w-24`} />
               <span className="text-[#5c5c6b]">x</span>
             </div>
           </label>
           <label className="text-[11px] text-[#a6a6b5]">Volumen de cada bidón
+            <Info><b className="text-[#d9f99d]">Litros de la botella</b> concentrada que vas a preparar. Define cuántos gramos totales pesás para llenarla.<br /><span className="text-[#a3e635]">Ej: bidón de 1 L a 100x → adentro va lo que rinde 100 L de riego.</span></Info>
             <div className="flex items-center gap-1 mt-1">
               <input type="number" min={0.1} step={0.5} value={volBidon} onChange={e => setVolBidon(Math.max(0.1, +e.target.value))} className={`${inp} w-24`} />
               <span className="text-[#5c5c6b]">L</span>
             </div>
           </label>
           <label className="text-[11px] text-[#a6a6b5]">Precisión de balanza
+            <Info><b className="text-[#d9f99d]">El salto mínimo de tu balanza</b>. La app redondea los gramos a lo que tu balanza puede pesar de verdad, y activa el asistente de solución stock para lo impesable.<br /><span className="text-[#a3e635]">Ej: elegí 0.01 g si tu balanza muestra dos decimales.</span></Info>
             <div className="flex items-center gap-1 mt-1">
               <select value={resolucion} onChange={e => setResolucion(+e.target.value)} className={`${inp} w-28`}>
                 <option value={0}>Exacta</option>
