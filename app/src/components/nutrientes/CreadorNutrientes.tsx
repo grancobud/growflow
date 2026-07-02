@@ -990,8 +990,22 @@ function BotellasGrid({ concentrados, resolucion }: { concentrados: BidonConcent
 
 // ===================== RATIOS Y COSTO =====================
 // ===================== PROVEEDORES =====================
+// Opciones de presentación: el precio se carga por la bolsa como viene, y calculamos el $/kg.
+const UNIDADES_PROV: { v: string; l: string }[] = [
+  { v: '100g', l: 'por 100 g' }, { v: '500g', l: 'por 500 g' }, { v: '1kg', l: 'por 1 kg' },
+  { v: '2kg', l: 'por 2 kg' }, { v: '5kg', l: 'por 5 kg' }, { v: '10kg', l: 'por 10 kg' },
+  { v: '20kg', l: 'por 20 kg' }, { v: '25kg', l: 'por 25 kg' }, { v: 'kg', l: 'por kg (directo)' },
+  { v: 'unidad', l: 'por unidad/bolsa' }, { v: 'L', l: 'por litro' },
+]
+const KG_UNIDAD: Record<string, number> = { g: 0.001, '100g': 0.1, '500g': 0.5, kg: 1, '1kg': 1, '2kg': 2, '5kg': 5, '10kg': 10, '20kg': 20, '25kg': 25 }
+/** Precio por kg a partir del precio de la bolsa y su tamaño. null si la unidad no es de peso. */
+function precioPorKg(precio?: number | null, unidad?: string | null): number | null {
+  const k = KG_UNIDAD[unidad ?? '']
+  return (precio != null && k) ? +(precio / k).toFixed(2) : null
+}
+
 function ProveedoresTab({ salesTodas }: { salesTodas: Sal[] }) {
-  const vacio = { sal_id: '', nombre_local: '', telefono: '', pagina: '', precio: '', unidad: 'kg', presentacion: '', calidad: 'alta', imagen: '', nota: '' }
+  const vacio = { sal_id: '', nombre_local: '', telefono: '', pagina: '', precio: '', unidad: '1kg', presentacion: '', calidad: 'alta', imagen: '', nota: '' }
   const [provs, setProvs] = useState<Proveedor[]>([])
   const [form, setForm] = useState(vacio)
   const [guardando, setGuardando] = useState(false)
@@ -1089,13 +1103,14 @@ function ProveedoresTab({ salesTodas }: { salesTodas: Sal[] }) {
           <label className="text-[11px] text-[#a6a6b5]">Presentación
             <input value={form.presentacion} onChange={e => setForm(v => ({ ...v, presentacion: e.target.value }))} placeholder="ej. 25 kg / 1 kg" className={`${inp} mt-1`} />
           </label>
-          <label className="text-[11px] text-[#a6a6b5]">Precio (ARS)
-            <input type="number" value={form.precio} onChange={e => setForm(v => ({ ...v, precio: e.target.value }))} className={`${inp} mt-1`} />
+          <label className="text-[11px] text-[#a6a6b5]">Precio de la bolsa (ARS)
+            <input type="number" value={form.precio} onChange={e => setForm(v => ({ ...v, precio: e.target.value }))} placeholder="ej. 27596" className={`${inp} mt-1`} />
           </label>
-          <label className="text-[11px] text-[#a6a6b5]">Unidad
+          <label className="text-[11px] text-[#a6a6b5]">Presentación (tamaño)
             <select value={form.unidad} onChange={e => setForm(v => ({ ...v, unidad: e.target.value }))} className={`${inp} mt-1`}>
-              <option value="kg">por kg</option><option value="g">por g</option><option value="unidad">por unidad/bolsa</option><option value="L">por litro</option>
+              {UNIDADES_PROV.map(u => <option key={u.v} value={u.v}>{u.l}</option>)}
             </select>
+            {form.precio && precioPorKg(+form.precio, form.unidad) != null && <span className="text-[10px] text-[#a3e635] block mt-0.5">= ${precioPorKg(+form.precio, form.unidad)}/kg</span>}
           </label>
           <label className="text-[11px] text-[#a6a6b5]">Foto (etiqueta/precio)
             <div className="mt-1 flex items-center gap-2">
@@ -1151,7 +1166,7 @@ function ProveedoresTab({ salesTodas }: { salesTodas: Sal[] }) {
                         <button onClick={e => { e.stopPropagation(); borrar(p.id) }} className="ml-auto p-0.5 rounded text-[#5c5c6b] hover:text-[#ff8a7a]"><Trash2 className="w-3.5 h-3.5" strokeWidth={1.8} /></button>
                       </div>
                       <div className="text-[10.5px] text-[#a6a6b5] mt-0.5 space-y-0.5">
-                        {p.precio != null && <div className="font-mono text-[#bef264]">${p.precio}/{p.unidad}{p.presentacion ? ` · ${p.presentacion}` : ''}</div>}
+                        {p.precio != null && <div className="font-mono"><span className="text-[#d4d4dd]">${p.precio}</span> <span className="text-[#757584]">/ {p.unidad}</span>{precioPorKg(p.precio, p.unidad) != null && <span className="text-[#a3e635]"> · ${precioPorKg(p.precio, p.unidad)}/kg</span>}{p.presentacion ? <span className="text-[#5c5c6b]"> · {p.presentacion}</span> : null}</div>}
                         {p.telefono && <div className="flex items-center gap-1"><Phone className="w-3 h-3" strokeWidth={1.8} /> {p.telefono}</div>}
                         {p.pagina && <a onClick={e => e.stopPropagation()} href={p.pagina.startsWith('http') ? p.pagina : `https://${p.pagina}`} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[#7dd3fc] hover:underline truncate"><Globe className="w-3 h-3" strokeWidth={1.8} /> {p.pagina}</a>}
                         {p.nota && <div className="text-[10px] text-[#757584] line-clamp-1">{p.nota}</div>}
@@ -1201,11 +1216,12 @@ function ProveedoresTab({ salesTodas }: { salesTodas: Sal[] }) {
                 <input value={detalle.telefono ?? ''} onChange={e => setD('telefono', e.target.value)} className={`${inp} mt-1`} /></label>
               <label className="text-[11px] text-[#a6a6b5]">Página / link
                 <input value={detalle.pagina ?? ''} onChange={e => setD('pagina', e.target.value)} className={`${inp} mt-1`} /></label>
-              <label className="text-[11px] text-[#a6a6b5]">Precio (ARS)
+              <label className="text-[11px] text-[#a6a6b5]">Precio de la bolsa (ARS)
                 <input type="number" value={detalle.precio ?? ''} onChange={e => setD('precio', e.target.value ? +e.target.value : null)} className={`${inp} mt-1`} /></label>
-              <label className="text-[11px] text-[#a6a6b5]">Unidad
-                <select value={detalle.unidad ?? 'kg'} onChange={e => setD('unidad', e.target.value)} className={`${inp} mt-1`}>
-                  <option value="kg">por kg</option><option value="g">por g</option><option value="unidad">por unidad/bolsa</option><option value="L">por litro</option></select></label>
+              <label className="text-[11px] text-[#a6a6b5]">Presentación (tamaño)
+                <select value={detalle.unidad ?? '1kg'} onChange={e => setD('unidad', e.target.value)} className={`${inp} mt-1`}>
+                  {UNIDADES_PROV.map(u => <option key={u.v} value={u.v}>{u.l}</option>)}</select>
+                {precioPorKg(detalle.precio, detalle.unidad) != null && <span className="text-[10px] text-[#a3e635] block mt-0.5">= ${precioPorKg(detalle.precio, detalle.unidad)}/kg</span>}</label>
               <label className="text-[11px] text-[#a6a6b5]">Presentación
                 <input value={detalle.presentacion ?? ''} onChange={e => setD('presentacion', e.target.value)} className={`${inp} mt-1`} /></label>
               <label className="text-[11px] text-[#a6a6b5]">Nota
