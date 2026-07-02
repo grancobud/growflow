@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   FlaskConical, Beaker, Droplets, ChevronDown, Sparkles, AlertTriangle,
   Save, FolderOpen, Trash2, Calculator, FlaskRound, Layers, Scale, Plus, DollarSign,
-  Droplet, GitCompare, Package, ShieldCheck, Copy, HelpCircle, BookOpen, Lightbulb, Printer,
+  Droplet, GitCompare, Package, ShieldCheck, Copy, HelpCircle, BookOpen, Lightbulb, Printer, Store, Phone, Globe, Upload, Star,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -11,7 +11,7 @@ import {
   redondearBalanza, AGENTES_PH, calcularAjustePH, oxidoAElemental, OXIDOS,
   recomendarEstabilizantes, esComercial, marcaDe, perfilDesdeProducto, categoriaSal, KITS_SALES, kitParaPerfil, opcionesDeMarca, DOSIS_REC,
   necesitaSepararAB, bidonDeSal,
-  perfilesNutrientesService, sustanciasService, inventarioService, aplicarInventario,
+  perfilesNutrientesService, sustanciasService, inventarioService, aplicarInventario, proveedoresService, type Proveedor,
   compatibilidad, estadoRango, RANGOS_FLORA_COCO, rangosDesdePerfil,
   type ElementKey, type Perfil, type PerfilGuardado, type Sal, type Bidon,
   type Resultado, type ResultadoSal, type BidonConcentrado, type Ratios,
@@ -29,12 +29,13 @@ interface CalcTabProps {
 }
 type CostoResultado = { porLitro: number; detalle: { sal: Sal; costo: number }[] }
 
-type SubTab = 'calc' | 'clonar' | 'sustancias' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar' | 'ayuda'
+type SubTab = 'calc' | 'clonar' | 'sustancias' | 'proveedores' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar' | 'ayuda'
 
 const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
   { id: 'calc', label: 'Calculadora', icon: Calculator },
   { id: 'clonar', label: 'Clonar marca', icon: Copy },
   { id: 'sustancias', label: 'Sustancias', icon: FlaskRound },
+  { id: 'proveedores', label: 'Proveedores', icon: Store },
   { id: 'agua', label: 'Agua', icon: Droplets },
   { id: 'concentrados', label: 'Soluciones madre', icon: Layers },
   { id: 'estab', label: 'Estabilizantes', icon: ShieldCheck },
@@ -176,6 +177,9 @@ export default function CreadorNutrientes() {
       )}
       {sub === 'sustancias' && (
         <SustanciasTab {...{ salesTodas, activas, setActivas, recargarCustoms, inventario, recargarInventario }} />
+      )}
+      {sub === 'proveedores' && (
+        <ProveedoresTab salesTodas={salesTodas} />
       )}
       {sub === 'agua' && (
         <AguaTab {...{ agua, setAgua, macros, micros, otros }} />
@@ -985,6 +989,142 @@ function BotellasGrid({ concentrados, resolucion }: { concentrados: BidonConcent
 }
 
 // ===================== RATIOS Y COSTO =====================
+// ===================== PROVEEDORES =====================
+function ProveedoresTab({ salesTodas }: { salesTodas: Sal[] }) {
+  const vacio = { sal_id: '', nombre_local: '', telefono: '', pagina: '', precio: '', unidad: 'kg', presentacion: '', calidad: 'alta', imagen: '', nota: '' }
+  const [provs, setProvs] = useState<Proveedor[]>([])
+  const [form, setForm] = useState(vacio)
+  const [guardando, setGuardando] = useState(false)
+  const cargar = () => { proveedoresService.list().then(setProvs).catch(() => setProvs([])) }
+  useEffect(cargar, [])
+
+  const salesOrden = [...salesTodas].sort((a, b) => a.nombre.localeCompare(b.nombre))
+  const salNombre = (id: string) => salesTodas.find(s => s.id === id)?.nombre ?? id
+  const calColor = (c?: string | null) => c === 'alta' ? '#a3e635' : c === 'media' ? '#facc15' : '#ff8a7a'
+
+  const onImagen = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0]; if (!f) return
+    if (f.size > 3_000_000) { toast.error('Imagen muy grande (máx 3 MB)'); return }
+    const r = new FileReader(); r.onload = () => setForm(v => ({ ...v, imagen: String(r.result) })); r.readAsDataURL(f)
+  }
+  const guardar = async () => {
+    if (!form.sal_id || !form.nombre_local.trim()) { toast.error('Elegí la sal y el nombre del local'); return }
+    setGuardando(true)
+    try {
+      await proveedoresService.crear({
+        sal_id: form.sal_id, nombre_local: form.nombre_local.trim(),
+        telefono: form.telefono || null, pagina: form.pagina || null,
+        precio: form.precio ? +form.precio : null, unidad: form.unidad,
+        presentacion: form.presentacion || null, calidad: form.calidad,
+        imagen: form.imagen || null, nota: form.nota || null,
+      })
+      toast.success('Proveedor guardado'); setForm(vacio); cargar()
+    } catch (e) { toast.error('No se pudo guardar: ' + (e instanceof Error ? e.message : String(e))) } finally { setGuardando(false) }
+  }
+  const borrar = async (id: string) => { try { await proveedoresService.eliminar(id); toast.success('Eliminado'); cargar() } catch (e) { toast.error(String(e)) } }
+
+  const porSal = new Map<string, Proveedor[]>()
+  for (const p of provs) { const a = porSal.get(p.sal_id) ?? []; a.push(p); porSal.set(p.sal_id, a) }
+  const ordenCal = { alta: 0, media: 1, baja: 2 } as Record<string, number>
+
+  return (
+    <div className="space-y-4">
+      {/* Alta de proveedor */}
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-1">
+          <Store className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Agregar proveedor</h3>
+          <Info><b className="text-[#d9f99d]">Directorio de dónde comprar cada sal</b>: local, teléfono, página, precio, presentación e imagen. Podés cargar varios por sal.<br /><span className="text-[#a3e635]">Se prioriza la CALIDAD, no el precio.</span></Info>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2.5 mt-2">
+          <label className="text-[11px] text-[#a6a6b5]">Sal / insumo *
+            <select value={form.sal_id} onChange={e => setForm(v => ({ ...v, sal_id: e.target.value }))} className={`${inp} mt-1`}>
+              <option value="">— elegí la sal —</option>
+              {salesOrden.map(s => <option key={s.id} value={s.id}>{s.nombre}</option>)}
+            </select>
+          </label>
+          <label className="text-[11px] text-[#a6a6b5]">Nombre del local *
+            <input value={form.nombre_local} onChange={e => setForm(v => ({ ...v, nombre_local: e.target.value }))} placeholder="ej. AgroCentral" className={`${inp} mt-1`} />
+          </label>
+          <label className="text-[11px] text-[#a6a6b5]">Calidad
+            <select value={form.calidad} onChange={e => setForm(v => ({ ...v, calidad: e.target.value }))} className={`${inp} mt-1`}>
+              <option value="alta">Alta</option><option value="media">Media</option><option value="baja">Baja</option>
+            </select>
+          </label>
+          <label className="text-[11px] text-[#a6a6b5]">Teléfono
+            <input value={form.telefono} onChange={e => setForm(v => ({ ...v, telefono: e.target.value }))} placeholder="ej. 0351 442-1600" className={`${inp} mt-1`} />
+          </label>
+          <label className="text-[11px] text-[#a6a6b5]">Página / link
+            <input value={form.pagina} onChange={e => setForm(v => ({ ...v, pagina: e.target.value }))} placeholder="ej. agrocentral.com.ar" className={`${inp} mt-1`} />
+          </label>
+          <label className="text-[11px] text-[#a6a6b5]">Presentación
+            <input value={form.presentacion} onChange={e => setForm(v => ({ ...v, presentacion: e.target.value }))} placeholder="ej. 25 kg / 1 kg" className={`${inp} mt-1`} />
+          </label>
+          <label className="text-[11px] text-[#a6a6b5]">Precio (ARS)
+            <input type="number" value={form.precio} onChange={e => setForm(v => ({ ...v, precio: e.target.value }))} className={`${inp} mt-1`} />
+          </label>
+          <label className="text-[11px] text-[#a6a6b5]">Unidad
+            <select value={form.unidad} onChange={e => setForm(v => ({ ...v, unidad: e.target.value }))} className={`${inp} mt-1`}>
+              <option value="kg">por kg</option><option value="g">por g</option><option value="unidad">por unidad/bolsa</option><option value="L">por litro</option>
+            </select>
+          </label>
+          <label className="text-[11px] text-[#a6a6b5]">Foto (etiqueta/precio)
+            <div className="mt-1 flex items-center gap-2">
+              <label className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] bg-[#15151d] border border-[#1f1f2b] text-[#a6a6b5] hover:text-[#d9f99d] cursor-pointer">
+                <Upload className="w-3.5 h-3.5" strokeWidth={1.8} /> Subir
+                <input type="file" accept="image/*" onChange={onImagen} className="hidden" />
+              </label>
+              {form.imagen && <img src={form.imagen} alt="" className="w-8 h-8 rounded object-cover border border-[#1f1f2b]" />}
+            </div>
+          </label>
+        </div>
+        <label className="text-[11px] text-[#a6a6b5] block mt-2">Nota
+          <input value={form.nota} onChange={e => setForm(v => ({ ...v, nota: e.target.value }))} placeholder="ej. pedir por WhatsApp, mínimo 5 kg…" className={`${inp} mt-1`} />
+        </label>
+        <button onClick={guardar} disabled={guardando} className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] hover:bg-[#a3e635]/25 transition-colors disabled:opacity-50">
+          <Store className="w-3.5 h-3.5" strokeWidth={1.8} /> Guardar proveedor
+        </button>
+      </div>
+
+      {/* Listado agrupado por sal */}
+      {provs.length === 0 ? (
+        <p className="text-[12px] text-[#5c5c6b] py-6 text-center">Todavía no cargaste proveedores. Agregá el primero arriba.</p>
+      ) : (
+        <div className="space-y-3">
+          {[...porSal.entries()].map(([salId, lista]) => (
+            <div key={salId} className={card}>
+              <p className="text-[12px] font-display font-semibold text-[#d9f99d] mb-2">{salNombre(salId)} <span className="text-[10px] text-[#5c5c6b]">· {lista.length} proveedor{lista.length > 1 ? 'es' : ''}</span></p>
+              <div className="grid sm:grid-cols-2 gap-2">
+                {[...lista].sort((a, b) => (ordenCal[a.calidad ?? 'baja'] ?? 3) - (ordenCal[b.calidad ?? 'baja'] ?? 3)).map(p => (
+                  <div key={p.id} className="rounded-lg bg-[#15151d] border border-[#1f1f2b] p-2.5 flex gap-2.5">
+                    {p.imagen && <img src={p.imagen} alt="" className="w-14 h-14 rounded object-cover border border-[#1f1f2b] flex-shrink-0" />}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[12px] font-semibold text-[#ececf1] truncate">{p.nombre_local}</span>
+                        <span className="text-[9px] px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5" style={{ color: calColor(p.calidad), background: `${calColor(p.calidad)}18` }}>
+                          <Star className="w-2.5 h-2.5" strokeWidth={2} /> {p.calidad}
+                        </span>
+                        <button onClick={() => borrar(p.id)} className="ml-auto p-0.5 rounded text-[#5c5c6b] hover:text-[#ff8a7a]"><Trash2 className="w-3.5 h-3.5" strokeWidth={1.8} /></button>
+                      </div>
+                      <div className="text-[10.5px] text-[#a6a6b5] mt-0.5 space-y-0.5">
+                        {p.precio != null && <div className="font-mono text-[#bef264]">${p.precio}/{p.unidad}{p.presentacion ? ` · ${p.presentacion}` : ''}</div>}
+                        {p.telefono && <div className="flex items-center gap-1"><Phone className="w-3 h-3" strokeWidth={1.8} /> {p.telefono}</div>}
+                        {p.pagina && <a href={p.pagina.startsWith('http') ? p.pagina : `https://${p.pagina}`} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[#7dd3fc] hover:underline truncate"><Globe className="w-3 h-3" strokeWidth={1.8} /> {p.pagina}</a>}
+                        {p.nota && <div className="text-[10px] text-[#757584]">{p.nota}</div>}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <p className="text-[10px] text-[#5c5c6b] px-1">Podés cargar varios proveedores por sal. Se ordenan por calidad (Alta primero). La app prioriza la mejor calidad, no el precio más bajo.</p>
+    </div>
+  )
+}
+
 const RATIO_INFO: Record<string, { ideal: string; desc: string }> = {
   'N:K': { ideal: '~1 a 1.5', desc: 'Nitrógeno vs potasio. En veg querés más N (crecimiento); en flora más K (engorde) → el ratio baja.' },
   'K:Ca': { ideal: '~1.2', desc: 'Potasio vs calcio. Si el K se dispara, bloquea la entrada de Ca (blossom-end rot). Mantenelos parejos.' },

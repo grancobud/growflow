@@ -983,3 +983,36 @@ export const sustanciasService = {
     if (error) throw error
   },
 }
+
+// --- Proveedores: directorio de contactos por sal (local, tel, precio, calidad, imagen) ---
+export interface Proveedor {
+  id: string
+  sal_id: string
+  nombre_local: string
+  telefono?: string | null
+  pagina?: string | null
+  precio?: number | null
+  unidad?: string | null        // kg | g
+  presentacion?: string | null  // "25 kg", "1 kg"
+  calidad?: string | null       // alta | media | baja
+  imagen?: string | null        // data URL base64 o URL
+  nota?: string | null
+  creado_en?: string
+}
+export const proveedoresService = {
+  async list(): Promise<Proveedor[]> {
+    const { data, error } = await supabase
+      .from('proveedores_nutrientes').select('*').order('creado_en', { ascending: false })
+    if (error) throw error
+    return (data ?? []) as unknown as Proveedor[]
+  },
+  async crear(p: Omit<Proveedor, 'id' | 'creado_en'>): Promise<void> {
+    const { data: u } = await supabase.auth.getUser()
+    const { error } = await supabase.from('proveedores_nutrientes').insert({ ...p, user_id: u?.user?.id ?? null })
+    if (error) throw error
+  },
+  async eliminar(id: string): Promise<void> {
+    const { error } = await supabase.from('proveedores_nutrientes').delete().eq('id', id)
+    if (error) throw error
+  },
+}
