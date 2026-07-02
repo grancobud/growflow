@@ -118,7 +118,14 @@ export default function CreadorNutrientes() {
   async function recargarInventario() {
     try { setInventario(await inventarioService.list()) } catch { /* offline */ }
   }
-  useEffect(() => { recargarGuardados(); recargarCustoms(); recargarInventario() }, [])
+  useEffect(() => {
+    recargarGuardados(); recargarCustoms(); recargarInventario()
+    // Al iniciar, activas (verde) = las sales que tienen al menos un proveedor cargado
+    proveedoresService.list().then(ps => {
+      const conProv = new Set(ps.map(p => p.sal_id))
+      if (conProv.size > 0) setActivas(conProv)
+    }).catch(() => { /* offline: deja el default */ })
+  }, [])
 
   function setPreset(id: string) {
     const p = PRESETS.find(x => x.id === id)
