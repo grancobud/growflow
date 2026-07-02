@@ -1224,12 +1224,12 @@ function ProveedoresTab({ salesTodas, recargarInventario, recargarProveedores }:
       ) : (
         <div className="space-y-3">
           {[...porSal.entries()].map(([salId, lista]) => (
-            <div key={salId} className={card}>
-              <p className="text-[12px] font-display font-semibold text-[#d9f99d] mb-2">{salNombre(salId)} <span className="text-[10px] text-[#5c5c6b]">· {lista.length} proveedor{lista.length > 1 ? 'es' : ''}</span></p>
+            <div key={salId} className={`${card} overflow-hidden`}>
+              <p className="text-[12px] font-display font-semibold text-[#d9f99d] mb-2 break-words">{salNombre(salId)} <span className="text-[10px] text-[#5c5c6b]">· {lista.length} proveedor{lista.length > 1 ? 'es' : ''}</span></p>
               <div className="grid sm:grid-cols-2 gap-2">
                 {[...lista].sort((a, b) => (ordenCal[a.calidad ?? 'baja'] ?? 3) - (ordenCal[b.calidad ?? 'baja'] ?? 3)).map(p => (
                   <div key={p.id} onClick={() => setDetalle(p)} title="Ver / editar ficha"
-                    className={`rounded-lg p-2.5 flex gap-2.5 cursor-pointer transition-colors ${p.elegido ? 'bg-[#facc15]/[0.07] border border-[#facc15]/50' : 'bg-[#15151d] border border-[#1f1f2b] hover:border-[#404d20]'}`}>
+                    className={`rounded-lg p-2.5 flex gap-2.5 cursor-pointer transition-colors overflow-hidden ${p.elegido ? 'bg-[#facc15]/[0.07] border border-[#facc15]/50' : 'bg-[#15151d] border border-[#1f1f2b] hover:border-[#404d20]'}`}>
                     {p.imagen && <img src={p.imagen} alt="" className="w-14 h-14 rounded object-cover border border-[#1f1f2b] flex-shrink-0" />}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
@@ -1242,12 +1242,12 @@ function ProveedoresTab({ salesTodas, recargarInventario, recargarProveedores }:
                         <button onClick={e => { e.stopPropagation(); borrar(p) }} title="Borrar proveedor" className="p-0.5 rounded text-[#5c5c6b] hover:text-[#ff8a7a]"><Trash2 className="w-3.5 h-3.5" strokeWidth={1.8} /></button>
                       </div>
                       {p.elegido && <span className="text-[9px] text-[#facc15] font-semibold">★ referencia de costo</span>}
-                      <div className="text-[10.5px] text-[#a6a6b5] mt-0.5 space-y-0.5">
-                        {p.precio != null && <div className="font-mono"><span className="text-[#d4d4dd]">${p.precio}</span> <span className="text-[#757584]">/ {p.unidad}</span>{precioPorKg(p.precio, p.unidad) != null && <span className="text-[#a3e635]"> · ${precioPorKg(p.precio, p.unidad)}/kg</span>}{p.presentacion ? <span className="text-[#5c5c6b]"> · {p.presentacion}</span> : null}</div>}
-                        {p.provincia && <div className="flex items-center gap-1"><MapPin className="w-3 h-3" strokeWidth={1.8} /> {p.provincia}</div>}
-                        {p.telefono && <div className="flex items-center gap-1"><Phone className="w-3 h-3" strokeWidth={1.8} /> {p.telefono}</div>}
-                        {p.email && <a onClick={e => e.stopPropagation()} href={`mailto:${p.email}`} className="flex items-center gap-1 min-w-0 text-[#7dd3fc] hover:underline"><Mail className="w-3 h-3 flex-shrink-0" strokeWidth={1.8} /> <span className="truncate">{p.email}</span></a>}
-                        {p.pagina && <a onClick={e => e.stopPropagation()} href={p.pagina.startsWith('http') ? p.pagina : `https://${p.pagina}`} target="_blank" rel="noreferrer" className="flex items-center gap-1 min-w-0 text-[#7dd3fc] hover:underline"><Globe className="w-3 h-3 flex-shrink-0" strokeWidth={1.8} /> <span className="truncate">{p.pagina}</span></a>}
+                      <div className="text-[10.5px] text-[#a6a6b5] mt-0.5 space-y-0.5 min-w-0">
+                        {p.precio != null && <div className="font-mono truncate"><span className="text-[#d4d4dd]">${p.precio}</span> <span className="text-[#757584]">/ {p.unidad}</span>{precioPorKg(p.precio, p.unidad) != null && <span className="text-[#a3e635]"> · ${precioPorKg(p.precio, p.unidad)}/kg</span>}{p.presentacion ? <span className="text-[#5c5c6b]"> · {p.presentacion}</span> : null}</div>}
+                        {p.provincia && <div className="truncate"><MapPin className="inline w-3 h-3 mr-1 align-[-2px]" strokeWidth={1.8} />{p.provincia}</div>}
+                        {p.telefono && <div className="truncate"><Phone className="inline w-3 h-3 mr-1 align-[-2px]" strokeWidth={1.8} />{p.telefono}</div>}
+                        {p.email && <a onClick={e => e.stopPropagation()} href={`mailto:${p.email}`} className="block truncate text-[#7dd3fc] hover:underline"><Mail className="inline w-3 h-3 mr-1 align-[-2px]" strokeWidth={1.8} />{p.email}</a>}
+                        {p.pagina && <a onClick={e => e.stopPropagation()} href={p.pagina.startsWith('http') ? p.pagina : `https://${p.pagina}`} target="_blank" rel="noreferrer" className="block truncate text-[#7dd3fc] hover:underline"><Globe className="inline w-3 h-3 mr-1 align-[-2px]" strokeWidth={1.8} />{p.pagina}</a>}
                         {p.nota && <div className="text-[10px] text-[#757584] line-clamp-1">{p.nota}</div>}
                       </div>
                       <p className="text-[9px] text-[#5c5c6b] mt-1">Tocá para ver / editar ▸</p>
