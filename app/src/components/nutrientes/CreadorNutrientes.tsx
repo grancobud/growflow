@@ -179,7 +179,7 @@ export default function CreadorNutrientes() {
         <SustanciasTab {...{ salesTodas, activas, setActivas, recargarCustoms, inventario, recargarInventario }} />
       )}
       {sub === 'proveedores' && (
-        <ProveedoresTab salesTodas={salesTodas} />
+        <ProveedoresTab salesTodas={salesTodas} recargarInventario={recargarInventario} />
       )}
       {sub === 'agua' && (
         <AguaTab {...{ agua, setAgua, macros, micros, otros }} />
@@ -1005,7 +1005,7 @@ function precioPorKg(precio?: number | null, unidad?: string | null): number | n
   return (precio != null && k) ? +(precio / k).toFixed(2) : null
 }
 
-function ProveedoresTab({ salesTodas }: { salesTodas: Sal[] }) {
+function ProveedoresTab({ salesTodas, recargarInventario }: { salesTodas: Sal[]; recargarInventario: () => void }) {
   const vacio = { sal_id: '', nombre_local: '', telefono: '', email: '', provincia: '', pagina: '', precio: '', unidad: '1kg', presentacion: '', calidad: 'alta', imagen: '', nota: '' }
   const [provs, setProvs] = useState<Proveedor[]>([])
   const [form, setForm] = useState(vacio)
@@ -1040,6 +1040,17 @@ function ProveedoresTab({ salesTodas }: { salesTodas: Sal[] }) {
     } catch (e) { toast.error('No se pudo guardar: ' + (e instanceof Error ? e.message : String(e))) } finally { setGuardando(false) }
   }
   const borrar = async (id: string) => { try { await proveedoresService.eliminar(id); toast.success('Eliminado'); cargar() } catch (e) { toast.error(String(e)) } }
+  const toggleElegido = async (p: Proveedor) => {
+    try {
+      if (p.elegido) { await proveedoresService.deselegir(p.id); toast.success('Quitada la referencia') }
+      else {
+        const pk = precioPorKg(p.precio, p.unidad)
+        await proveedoresService.elegir(p.id, p.sal_id, pk)
+        toast.success(pk != null ? `Referencia: ${p.nombre_local} ($${pk}/kg)` : `Referencia: ${p.nombre_local}`)
+      }
+      cargar(); recargarInventario()
+    } catch (e) { toast.error('No se pudo: ' + (e instanceof Error ? e.message : String(e))) }
+  }
   const onImagenDetalle = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]; if (!f || !detalle) return
     if (f.size > 3_000_000) { toast.error('Imagen muy grande (máx 3 MB)'); return }
@@ -1165,16 +1176,19 @@ function ProveedoresTab({ salesTodas }: { salesTodas: Sal[] }) {
               <div className="grid sm:grid-cols-2 gap-2">
                 {[...lista].sort((a, b) => (ordenCal[a.calidad ?? 'baja'] ?? 3) - (ordenCal[b.calidad ?? 'baja'] ?? 3)).map(p => (
                   <div key={p.id} onClick={() => setDetalle(p)} title="Ver / editar ficha"
-                    className="rounded-lg bg-[#15151d] border border-[#1f1f2b] p-2.5 flex gap-2.5 cursor-pointer hover:border-[#404d20] transition-colors">
+                    className={`rounded-lg p-2.5 flex gap-2.5 cursor-pointer transition-colors ${p.elegido ? 'bg-[#facc15]/[0.07] border border-[#facc15]/50' : 'bg-[#15151d] border border-[#1f1f2b] hover:border-[#404d20]'}`}>
                     {p.imagen && <img src={p.imagen} alt="" className="w-14 h-14 rounded object-cover border border-[#1f1f2b] flex-shrink-0" />}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
                         <span className="text-[12px] font-semibold text-[#ececf1] truncate">{p.nombre_local}</span>
-                        <span className="text-[9px] px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5" style={{ color: calColor(p.calidad), background: `${calColor(p.calidad)}18` }}>
-                          <Star className="w-2.5 h-2.5" strokeWidth={2} /> {p.calidad}
-                        </span>
-                        <button onClick={e => { e.stopPropagation(); borrar(p.id) }} className="ml-auto p-0.5 rounded text-[#5c5c6b] hover:text-[#ff8a7a]"><Trash2 className="w-3.5 h-3.5" strokeWidth={1.8} /></button>
+                        <span className="text-[9px] px-1.5 py-0.5 rounded font-medium" style={{ color: calColor(p.calidad), background: `${calColor(p.calidad)}18` }}>{p.calidad}</span>
+                        <button onClick={e => { e.stopPropagation(); toggleElegido(p) }} title={p.elegido ? 'Precio de referencia (clic para quitar)' : 'Usar este precio para calcular el costo'}
+                          className="ml-auto p-0.5 rounded hover:scale-110 transition-transform" style={{ color: p.elegido ? '#facc15' : '#5c5c6b' }}>
+                          <Star className="w-4 h-4" strokeWidth={1.8} fill={p.elegido ? '#facc15' : 'none'} />
+                        </button>
+                        <button onClick={e => { e.stopPropagation(); borrar(p.id) }} className="p-0.5 rounded text-[#5c5c6b] hover:text-[#ff8a7a]"><Trash2 className="w-3.5 h-3.5" strokeWidth={1.8} /></button>
                       </div>
+                      {p.elegido && <span className="text-[9px] text-[#facc15] font-semibold">★ referencia de costo</span>}
                       <div className="text-[10.5px] text-[#a6a6b5] mt-0.5 space-y-0.5">
                         {p.precio != null && <div className="font-mono"><span className="text-[#d4d4dd]">${p.precio}</span> <span className="text-[#757584]">/ {p.unidad}</span>{precioPorKg(p.precio, p.unidad) != null && <span className="text-[#a3e635]"> · ${precioPorKg(p.precio, p.unidad)}/kg</span>}{p.presentacion ? <span className="text-[#5c5c6b]"> · {p.presentacion}</span> : null}</div>}
                         {p.provincia && <div className="flex items-center gap-1"><MapPin className="w-3 h-3" strokeWidth={1.8} /> {p.provincia}</div>}

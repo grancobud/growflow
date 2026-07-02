@@ -143,6 +143,7 @@ const TABLAS: DefTabla[] = [
       { campo: 'sal_id', titulo: 'Sal / insumo', tipo: 'text', ancho: 'min-w-[140px]' },
       { campo: 'nombre_local', titulo: 'Local', tipo: 'text', ancho: 'min-w-[140px]' },
       { campo: 'calidad', titulo: 'Calidad', tipo: { select: ['alta', 'media', 'baja'] } },
+      { campo: 'elegido', titulo: 'Ref. costo', tipo: 'bool' },
       { campo: 'provincia', titulo: 'Provincia', tipo: 'text' },
       { campo: 'telefono', titulo: 'Teléfono', tipo: 'text' },
       { campo: 'email', titulo: 'Email', tipo: 'text', ancho: 'min-w-[160px]' },

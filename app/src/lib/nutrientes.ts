@@ -1001,6 +1001,7 @@ export interface Proveedor {
   calidad?: string | null       // alta | media | baja
   imagen?: string | null        // data URL base64 o URL
   nota?: string | null
+  elegido?: boolean             // el proveedor de referencia para el costo (1 por sal)
   creado_en?: string
 }
 export const proveedoresService = {
@@ -1021,6 +1022,21 @@ export const proveedoresService = {
   },
   async eliminar(id: string): Promise<void> {
     const { error } = await supabase.from('proveedores_nutrientes').delete().eq('id', id)
+    if (error) throw error
+  },
+  /** Marca este proveedor como referencia de esa sal (desmarca los demás) y usa su $/kg como costo. */
+  async elegir(id: string, sal_id: string, costoKg: number | null): Promise<void> {
+    await supabase.from('proveedores_nutrientes').update({ elegido: false }).eq('sal_id', sal_id)
+    await supabase.from('proveedores_nutrientes').update({ elegido: true }).eq('id', id)
+    if (costoKg != null) {
+      const { data: u } = await supabase.auth.getUser()
+      await supabase.from('inventario_nutrientes').upsert(
+        { sal_id, costo_kg: costoKg, user_id: u?.user?.id ?? null }, { onConflict: 'sal_id' })
+    }
+  },
+  /** Quita la marca de referencia de este proveedor. */
+  async deselegir(id: string): Promise<void> {
+    const { error } = await supabase.from('proveedores_nutrientes').update({ elegido: false }).eq('id', id)
     if (error) throw error
   },
 }
