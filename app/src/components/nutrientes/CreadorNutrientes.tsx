@@ -998,7 +998,8 @@ function ProveedoresTab({ salesTodas }: { salesTodas: Sal[] }) {
   const cargar = () => { proveedoresService.list().then(setProvs).catch(() => setProvs([])) }
   useEffect(cargar, [])
 
-  const salesOrden = [...salesTodas].sort((a, b) => a.nombre.localeCompare(b.nombre))
+  // solo materias primas (sales/insumos que se COMPRAN), no los productos de marca que se clonan
+  const salesOrden = salesTodas.filter(s => !esComercial(s)).sort((a, b) => a.nombre.localeCompare(b.nombre))
   const salNombre = (id: string) => salesTodas.find(s => s.id === id)?.nombre ?? id
   const calColor = (c?: string | null) => c === 'alta' ? '#a3e635' : c === 'media' ? '#facc15' : '#ff8a7a'
 
