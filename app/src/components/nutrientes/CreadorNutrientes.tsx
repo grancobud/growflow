@@ -120,7 +120,13 @@ export default function CreadorNutrientes() {
     try { setInventario(await inventarioService.list()) } catch { /* offline */ }
   }
   async function recargarProveedores() {
-    try { setProveedores(await proveedoresService.list()) } catch { /* offline */ }
+    try {
+      const ps = await proveedoresService.list()
+      setProveedores(ps)
+      // las sales que tienen proveedor se marcan en verde (activas), sin sacar las ya activas
+      const conProv = ps.map(p => p.sal_id)
+      setActivas(prev => new Set([...prev, ...conProv]))
+    } catch { /* offline */ }
   }
   useEffect(() => {
     recargarGuardados(); recargarCustoms(); recargarInventario()
