@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   FlaskConical, Beaker, Droplets, ChevronDown, Sparkles, AlertTriangle,
   Save, FolderOpen, Trash2, Calculator, FlaskRound, Layers, Scale, Plus, DollarSign,
-  Droplet, GitCompare, Package, ShieldCheck, Copy, HelpCircle, BookOpen, Lightbulb, Printer, Store, Phone, Globe, Upload, Star, X,
+  Droplet, GitCompare, Package, ShieldCheck, Copy, HelpCircle, BookOpen, Lightbulb, Printer, Store, Phone, Globe, Upload, Star, X, Mail, MapPin,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -998,6 +998,7 @@ const UNIDADES_PROV: { v: string; l: string }[] = [
   { v: 'unidad', l: 'por unidad/bolsa' }, { v: 'L', l: 'por litro' },
 ]
 const KG_UNIDAD: Record<string, number> = { g: 0.001, '100g': 0.1, '500g': 0.5, kg: 1, '1kg': 1, '2kg': 2, '5kg': 5, '10kg': 10, '20kg': 20, '25kg': 25 }
+const PROVINCIAS_AR = ['Buenos Aires', 'CABA', 'Catamarca', 'Chaco', 'Chubut', 'Córdoba', 'Corrientes', 'Entre Ríos', 'Formosa', 'Jujuy', 'La Pampa', 'La Rioja', 'Mendoza', 'Misiones', 'Neuquén', 'Río Negro', 'Salta', 'San Juan', 'San Luis', 'Santa Cruz', 'Santa Fe', 'Santiago del Estero', 'Tierra del Fuego', 'Tucumán', 'Online / Nacional']
 /** Precio por kg a partir del precio de la bolsa y su tamaño. null si la unidad no es de peso. */
 function precioPorKg(precio?: number | null, unidad?: string | null): number | null {
   const k = KG_UNIDAD[unidad ?? '']
@@ -1005,7 +1006,7 @@ function precioPorKg(precio?: number | null, unidad?: string | null): number | n
 }
 
 function ProveedoresTab({ salesTodas }: { salesTodas: Sal[] }) {
-  const vacio = { sal_id: '', nombre_local: '', telefono: '', pagina: '', precio: '', unidad: '1kg', presentacion: '', calidad: 'alta', imagen: '', nota: '' }
+  const vacio = { sal_id: '', nombre_local: '', telefono: '', email: '', provincia: '', pagina: '', precio: '', unidad: '1kg', presentacion: '', calidad: 'alta', imagen: '', nota: '' }
   const [provs, setProvs] = useState<Proveedor[]>([])
   const [form, setForm] = useState(vacio)
   const [guardando, setGuardando] = useState(false)
@@ -1030,7 +1031,7 @@ function ProveedoresTab({ salesTodas }: { salesTodas: Sal[] }) {
     try {
       await proveedoresService.crear({
         sal_id: form.sal_id, nombre_local: form.nombre_local.trim(),
-        telefono: form.telefono || null, pagina: form.pagina || null,
+        telefono: form.telefono || null, email: form.email || null, provincia: form.provincia || null, pagina: form.pagina || null,
         precio: form.precio ? +form.precio : null, unidad: form.unidad,
         presentacion: form.presentacion || null, calidad: form.calidad,
         imagen: form.imagen || null, nota: form.nota || null,
@@ -1051,7 +1052,7 @@ function ProveedoresTab({ salesTodas }: { salesTodas: Sal[] }) {
     try {
       await proveedoresService.actualizar(detalle.id, {
         sal_id: detalle.sal_id, nombre_local: detalle.nombre_local.trim(),
-        telefono: detalle.telefono || null, pagina: detalle.pagina || null,
+        telefono: detalle.telefono || null, email: detalle.email || null, provincia: detalle.provincia || null, pagina: detalle.pagina || null,
         precio: detalle.precio ?? null, unidad: detalle.unidad || 'kg',
         presentacion: detalle.presentacion || null, calidad: detalle.calidad || 'alta',
         imagen: detalle.imagen || null, nota: detalle.nota || null,
@@ -1096,6 +1097,15 @@ function ProveedoresTab({ salesTodas }: { salesTodas: Sal[] }) {
           </label>
           <label className="text-[11px] text-[#a6a6b5]">Teléfono
             <input value={form.telefono} onChange={e => setForm(v => ({ ...v, telefono: e.target.value }))} placeholder="ej. 0351 442-1600" className={`${inp} mt-1`} />
+          </label>
+          <label className="text-[11px] text-[#a6a6b5]">Email
+            <input type="email" value={form.email} onChange={e => setForm(v => ({ ...v, email: e.target.value }))} placeholder="ej. ventas@local.com" className={`${inp} mt-1`} />
+          </label>
+          <label className="text-[11px] text-[#a6a6b5]">Provincia
+            <select value={form.provincia} onChange={e => setForm(v => ({ ...v, provincia: e.target.value }))} className={`${inp} mt-1`}>
+              <option value="">— provincia —</option>
+              {PROVINCIAS_AR.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
           </label>
           <label className="text-[11px] text-[#a6a6b5]">Página / link
             <input value={form.pagina} onChange={e => setForm(v => ({ ...v, pagina: e.target.value }))} placeholder="ej. agrocentral.com.ar" className={`${inp} mt-1`} />
@@ -1167,7 +1177,9 @@ function ProveedoresTab({ salesTodas }: { salesTodas: Sal[] }) {
                       </div>
                       <div className="text-[10.5px] text-[#a6a6b5] mt-0.5 space-y-0.5">
                         {p.precio != null && <div className="font-mono"><span className="text-[#d4d4dd]">${p.precio}</span> <span className="text-[#757584]">/ {p.unidad}</span>{precioPorKg(p.precio, p.unidad) != null && <span className="text-[#a3e635]"> · ${precioPorKg(p.precio, p.unidad)}/kg</span>}{p.presentacion ? <span className="text-[#5c5c6b]"> · {p.presentacion}</span> : null}</div>}
+                        {p.provincia && <div className="flex items-center gap-1"><MapPin className="w-3 h-3" strokeWidth={1.8} /> {p.provincia}</div>}
                         {p.telefono && <div className="flex items-center gap-1"><Phone className="w-3 h-3" strokeWidth={1.8} /> {p.telefono}</div>}
+                        {p.email && <a onClick={e => e.stopPropagation()} href={`mailto:${p.email}`} className="flex items-center gap-1 text-[#7dd3fc] hover:underline truncate"><Mail className="w-3 h-3" strokeWidth={1.8} /> {p.email}</a>}
                         {p.pagina && <a onClick={e => e.stopPropagation()} href={p.pagina.startsWith('http') ? p.pagina : `https://${p.pagina}`} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[#7dd3fc] hover:underline truncate"><Globe className="w-3 h-3" strokeWidth={1.8} /> {p.pagina}</a>}
                         {p.nota && <div className="text-[10px] text-[#757584] line-clamp-1">{p.nota}</div>}
                       </div>
@@ -1214,6 +1226,12 @@ function ProveedoresTab({ salesTodas }: { salesTodas: Sal[] }) {
                   <option value="alta">Alta</option><option value="media">Media</option><option value="baja">Baja</option></select></label>
               <label className="text-[11px] text-[#a6a6b5]">Teléfono
                 <input value={detalle.telefono ?? ''} onChange={e => setD('telefono', e.target.value)} className={`${inp} mt-1`} /></label>
+              <label className="text-[11px] text-[#a6a6b5]">Email
+                <input type="email" value={detalle.email ?? ''} onChange={e => setD('email', e.target.value)} className={`${inp} mt-1`} /></label>
+              <label className="text-[11px] text-[#a6a6b5]">Provincia
+                <select value={detalle.provincia ?? ''} onChange={e => setD('provincia', e.target.value)} className={`${inp} mt-1`}>
+                  <option value="">— provincia —</option>
+                  {PROVINCIAS_AR.map(p => <option key={p} value={p}>{p}</option>)}</select></label>
               <label className="text-[11px] text-[#a6a6b5]">Página / link
                 <input value={detalle.pagina ?? ''} onChange={e => setD('pagina', e.target.value)} className={`${inp} mt-1`} /></label>
               <label className="text-[11px] text-[#a6a6b5]">Precio de la bolsa (ARS)

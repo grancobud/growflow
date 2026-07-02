@@ -990,6 +990,8 @@ export interface Proveedor {
   sal_id: string
   nombre_local: string
   telefono?: string | null
+  email?: string | null
+  provincia?: string | null
   pagina?: string | null
   precio?: number | null
   unidad?: string | null        // kg | g
