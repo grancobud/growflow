@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   FlaskConical, Beaker, Droplets, ChevronDown, Sparkles, AlertTriangle,
   Save, FolderOpen, Trash2, Calculator, FlaskRound, Layers, Scale, Plus, DollarSign,
-  Droplet, GitCompare, Package, ShieldCheck, Copy, HelpCircle, BookOpen, Lightbulb, Printer, Store, Phone, Globe, Upload, Star, X, Mail, MapPin,
+  Droplet, GitCompare, Package, ShieldCheck, Copy, HelpCircle, BookOpen, Lightbulb, Printer, Store, Phone, Globe, Upload, Star, X, Mail, MapPin, Repeat,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -10,6 +10,7 @@ import {
   calcularConcentrados, calcularRatios, calcularCosto, calcularBalanceIonico, calcularStocksMicros,
   redondearBalanza, AGENTES_PH, calcularAjustePH, oxidoAElemental, OXIDOS,
   recomendarEstabilizantes, esComercial, marcaDe, perfilDesdeProducto, categoriaSal, KITS_SALES, kitParaPerfil, opcionesDeMarca, DOSIS_REC, usosDeSal,
+  CONV_OXIDO, PESO_EQ, ppmAmeq, meqAppm,
   necesitaSepararAB, bidonDeSal,
   perfilesNutrientesService, sustanciasService, inventarioService, aplicarInventario, proveedoresService, type Proveedor,
   compatibilidad, estadoRango, RANGOS_FLORA_COCO, rangosDesdePerfil,
@@ -29,7 +30,7 @@ interface CalcTabProps {
 }
 type CostoResultado = { porLitro: number; detalle: { sal: Sal; costo: number }[] }
 
-type SubTab = 'calc' | 'clonar' | 'sustancias' | 'proveedores' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar' | 'ayuda'
+type SubTab = 'calc' | 'clonar' | 'sustancias' | 'proveedores' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar' | 'conversor' | 'ayuda'
 
 const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
   { id: 'calc', label: 'Calculadora', icon: Calculator },
@@ -42,6 +43,7 @@ const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
   { id: 'ph', label: 'Ajuste de pH', icon: Droplet },
   { id: 'comparar', label: 'Comparar', icon: GitCompare },
   { id: 'ratios', label: 'Ratios y costo', icon: Scale },
+  { id: 'conversor', label: 'Conversor', icon: Repeat },
   { id: 'ayuda', label: 'Ayuda / Guía', icon: HelpCircle },
 ]
 
@@ -228,6 +230,9 @@ export default function CreadorNutrientes() {
       )}
       {sub === 'ratios' && (
         <RatiosTab {...{ ratios, res, costo }} />
+      )}
+      {sub === 'conversor' && (
+        <ConversorTab />
       )}
       {sub === 'ayuda' && (
         <AyudaTab irA={setSub} />
@@ -1363,6 +1368,100 @@ const GUIA_CONCEPTOS: { t: string; d: string; ej: string }[] = [
   { t: 'Óxido → elemental', d: 'Las etiquetas de fertilizante dan el fósforo y potasio como óxidos (P₂O₅, K₂O), no como elemento puro. La app los convierte a P y K reales automáticamente, así los números cierran con la química de verdad.', ej: 'Una etiqueta "0-15-25" tiene 15% de P₂O₅ = 6.5% de fósforo real, y 25% de K₂O = 20.7% de potasio real.' },
   { t: 'Nitrato vs Amonio (NO₃ / NH₄)', d: 'Son las dos formas del nitrógeno. El nitrato es el N "seguro" y estable en coco. El amonio es más rápido pero en exceso acidifica y da plantas blandas. La app los separa porque afectan distinto al pH y a la planta.', ej: 'Una buena fórmula de coco tiene ~90% nitrato y ~10% amonio.' },
 ]
+
+// ===================== CONVERSOR =====================
+function ConversorTab() {
+  // 1) Óxido → elemental
+  const [oxIdx, setOxIdx] = useState(0)
+  const [oxVal, setOxVal] = useState('15')
+  const ox = CONV_OXIDO[oxIdx]
+  const oxRes = oxVal ? +(+oxVal * ox.factor).toFixed(3) : null
+  // 2) Concentración: base en ppm (mg/L). 1% = 10 g/L = 10000 ppm (w/v)
+  const [concVal, setConcVal] = useState('1')
+  const [concUnit, setConcUnit] = useState<'pct' | 'gl' | 'ppm'>('gl')
+  const ppmBase = concVal ? (concUnit === 'pct' ? +concVal * 10000 : concUnit === 'gl' ? +concVal * 1000 : +concVal) : 0
+  // 3) ppm ↔ meq/L
+  const [ionElem, setIonElem] = useState('Ca')
+  const [ionVal, setIonVal] = useState('40')
+  const [ionDir, setIonDir] = useState<'ppm2meq' | 'meq2ppm'>('ppm2meq')
+  const ionRes = ionVal ? (ionDir === 'ppm2meq' ? ppmAmeq(+ionVal, ionElem) : meqAppm(+ionVal, ionElem)) : null
+  // 4) unidades
+  const [g, setG] = useState('100'); const [ml, setMl] = useState('4')
+
+  const box = 'bg-[#15151d] border border-[#1f1f2b] rounded-md px-2.5 py-1.5 text-[12px] text-[#ececf1] font-mono tabular-nums'
+  const res = (v: React.ReactNode) => <span className="text-[14px] font-mono tabular-nums font-bold text-[#d9f99d]">{v}</span>
+
+  return (
+    <div className="space-y-4">
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-1">
+          <Repeat className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Conversor químico</h3>
+          <Info><b className="text-[#d9f99d]">Convertí unidades al leer etiquetas y análisis.</b> Óxidos→elemental, ppm↔%↔g/L, ppm↔meq.<br /><span className="text-[#a3e635]">Basado en Factores de Conversión (IPNI).</span></Info>
+        </div>
+        <p className="text-[11px] text-[#757584]">Herramientas para pasar de lo que dice una etiqueta o un análisis a las unidades del objetivo (ppm elemental).</p>
+      </div>
+
+      {/* 1) Óxido → elemental */}
+      <div className={card}>
+        <h4 className="text-[12px] font-semibold text-[#d9f99d] mb-2">Óxido → Elemental <span className="text-[10px] text-[#5c5c6b] font-normal">· leer etiquetas NPK</span></h4>
+        <div className="flex flex-wrap items-end gap-2">
+          <label className="text-[10px] text-[#a6a6b5]">Valor (%)<input type="number" value={oxVal} onChange={e => setOxVal(e.target.value)} className={`${box} w-20 mt-0.5 block`} /></label>
+          <label className="text-[10px] text-[#a6a6b5]">Forma<select value={oxIdx} onChange={e => setOxIdx(+e.target.value)} className={`${box} mt-0.5 block`}>{CONV_OXIDO.map((o, i) => <option key={i} value={i}>{o.de} → {o.a}</option>)}</select></label>
+          <span className="text-[#5c5c6b] pb-1.5">=</span>
+          <div className="pb-1">{res(oxRes != null ? `${oxRes} % ${ox.a}` : '—')}</div>
+        </div>
+        <p className="text-[10px] text-[#5c5c6b] mt-1.5">{ox.nota}. Factor ×{ox.factor}. Ej: una etiqueta 0-15-25 → P {(+15 * 0.4364).toFixed(1)}% · K {(+25 * 0.8301).toFixed(1)}%.</p>
+      </div>
+
+      {/* 2) Concentración */}
+      <div className={card}>
+        <h4 className="text-[12px] font-semibold text-[#d9f99d] mb-2">Concentración <span className="text-[10px] text-[#5c5c6b] font-normal">· % ↔ g/L ↔ ppm</span></h4>
+        <div className="flex flex-wrap items-end gap-2 mb-2">
+          <label className="text-[10px] text-[#a6a6b5]">Valor<input type="number" value={concVal} onChange={e => setConcVal(e.target.value)} className={`${box} w-24 mt-0.5 block`} /></label>
+          <label className="text-[10px] text-[#a6a6b5]">Unidad<select value={concUnit} onChange={e => setConcUnit(e.target.value as typeof concUnit)} className={`${box} mt-0.5 block`}><option value="pct">%  (w/v)</option><option value="gl">g/L</option><option value="ppm">ppm (mg/L)</option></select></label>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2"><p className="text-[9px] text-[#757584]">%</p>{res(+(ppmBase / 10000).toFixed(4))}</div>
+          <div className="bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2"><p className="text-[9px] text-[#757584]">g/L</p>{res(+(ppmBase / 1000).toFixed(3))}</div>
+          <div className="bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2"><p className="text-[9px] text-[#757584]">ppm (mg/L)</p>{res(+ppmBase.toFixed(1))}</div>
+        </div>
+        <p className="text-[10px] text-[#5c5c6b] mt-1.5">1% = 10 g/L = 10.000 ppm (asume solución acuosa, densidad ~1).</p>
+      </div>
+
+      {/* 3) ppm ↔ meq */}
+      <div className={card}>
+        <h4 className="text-[12px] font-semibold text-[#d9f99d] mb-2">Iónico <span className="text-[10px] text-[#5c5c6b] font-normal">· ppm ↔ meq/L (análisis de agua)</span></h4>
+        <div className="flex flex-wrap items-end gap-2">
+          <label className="text-[10px] text-[#a6a6b5]">Valor<input type="number" value={ionVal} onChange={e => setIonVal(e.target.value)} className={`${box} w-20 mt-0.5 block`} /></label>
+          <label className="text-[10px] text-[#a6a6b5]">Dirección<select value={ionDir} onChange={e => setIonDir(e.target.value as typeof ionDir)} className={`${box} mt-0.5 block`}><option value="ppm2meq">ppm → meq/L</option><option value="meq2ppm">meq/L → ppm</option></select></label>
+          <label className="text-[10px] text-[#a6a6b5]">Elemento<select value={ionElem} onChange={e => setIonElem(e.target.value)} className={`${box} mt-0.5 block`}>{Object.keys(PESO_EQ).map(k => <option key={k} value={k}>{k}</option>)}</select></label>
+          <span className="text-[#5c5c6b] pb-1.5">=</span>
+          <div className="pb-1">{res(ionRes != null ? `${ionRes} ${ionDir === 'ppm2meq' ? 'meq/L' : 'ppm'}` : '—')}</div>
+        </div>
+        <p className="text-[10px] text-[#5c5c6b] mt-1.5">Peso equivalente {ionElem} = {PESO_EQ[ionElem]} g/eq. Útil para leer dureza/bases de un análisis de agua.</p>
+      </div>
+
+      {/* 4) Unidades */}
+      <div className={card}>
+        <h4 className="text-[12px] font-semibold text-[#d9f99d] mb-2">Unidades <span className="text-[10px] text-[#5c5c6b] font-normal">· para productos importados</span></h4>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div className="flex items-end gap-2">
+            <label className="text-[10px] text-[#a6a6b5]">gramos<input type="number" value={g} onChange={e => setG(e.target.value)} className={`${box} w-20 mt-0.5 block`} /></label>
+            <span className="text-[#5c5c6b] pb-1.5">=</span>
+            <div className="pb-1">{res(g ? `${(+g / 28.3495).toFixed(2)} oz` : '—')}</div>
+          </div>
+          <div className="flex items-end gap-2">
+            <label className="text-[10px] text-[#a6a6b5]">mL por galón (US)<input type="number" value={ml} onChange={e => setMl(e.target.value)} className={`${box} w-20 mt-0.5 block`} /></label>
+            <span className="text-[#5c5c6b] pb-1.5">=</span>
+            <div className="pb-1">{res(ml ? `${(+ml / 3.78541).toFixed(2)} mL/L` : '—')}</div>
+          </div>
+        </div>
+        <p className="text-[10px] text-[#5c5c6b] mt-1.5">1 oz = 28.35 g · 1 galón US = 3.785 L. Ej: una etiqueta yanqui "4 mL/gal" = {(4 / 3.78541).toFixed(2)} mL/L.</p>
+      </div>
+    </div>
+  )
+}
 
 function AyudaTab({ irA }: { irA: (s: SubTab) => void }) {
   return (

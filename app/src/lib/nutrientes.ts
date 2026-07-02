@@ -533,6 +533,32 @@ export function usosDeSal(salesTodas: Sal[]): Record<string, { marcas: string[];
   return out
 }
 
+// ---------------------------------------------------------------------------
+// Conversor químico (basado en "Factores de Conversión" IPNI, García/Correndo).
+// ---------------------------------------------------------------------------
+/** Óxido/forma → elemento. Factor = (elemento / compuesto). Ej: K2O→K = 0.8301. */
+export const CONV_OXIDO: { de: string; a: string; factor: number; nota: string }[] = [
+  { de: 'P₂O₅', a: 'P', factor: 0.4364, nota: 'Fósforo de la etiqueta' },
+  { de: 'K₂O', a: 'K', factor: 0.8301, nota: 'Potasio de la etiqueta' },
+  { de: 'CaO', a: 'Ca', factor: 0.7147, nota: 'Calcio de la etiqueta' },
+  { de: 'MgO', a: 'Mg', factor: 0.6030, nota: 'Magnesio de la etiqueta' },
+  { de: 'SO₃', a: 'S', factor: 0.4005, nota: 'Azufre (como SO₃)' },
+  { de: 'SO₄', a: 'S', factor: 0.3338, nota: 'Azufre (como sulfato)' },
+  { de: 'Na₂O', a: 'Na', factor: 0.7419, nota: 'Sodio de la etiqueta' },
+  { de: 'NO₃', a: 'N', factor: 0.2259, nota: 'N de un nitrato (ion NO₃)' },
+  { de: 'NH₄', a: 'N', factor: 0.7765, nota: 'N de un amonio (ion NH₄)' },
+  { de: 'NH₃', a: 'N', factor: 0.8224, nota: 'N del amoníaco' },
+]
+/** Peso equivalente (g/eq) por elemento, para ppm ↔ meq/L. */
+export const PESO_EQ: Record<string, number> = { Ca: 20.04, Mg: 12.15, K: 39.10, Na: 23.0, NH4: 18.04, NO3: 62.0, S: 16.03, Cl: 35.45, HCO3: 61.01 }
+/** ppm → meq/L = ppm / peso_eq. */
+export function ppmAmeq(ppm: number, elem: string): number | null {
+  const pe = PESO_EQ[elem]; return pe ? +(ppm / pe).toFixed(3) : null
+}
+export function meqAppm(meq: number, elem: string): number | null {
+  const pe = PESO_EQ[elem]; return pe ? +(meq * pe).toFixed(2) : null
+}
+
 export interface KitSales { id: string; nombre: string; desc: string; sales: string[] }
 export const KITS_SALES: KitSales[] = [
   { id: 'limpio', nombre: 'Kit limpio (recomendado)',
