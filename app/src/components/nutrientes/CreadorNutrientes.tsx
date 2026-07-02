@@ -96,6 +96,7 @@ export default function CreadorNutrientes() {
   const [volBidon, setVolBidon] = useState(1)
   const [resolucion, setResolucion] = useState(0) // resolución de balanza (g); 0 = sin redondeo
   const [modoPrep, setModoPrep] = useState<'polvo' | 'liquido'>('polvo')
+  const [proveedores, setProveedores] = useState<Proveedor[]>([])
 
   const salesTodas = useMemo(() => aplicarInventario([...SALES_DEFECTO, ...customs], inventario), [customs, inventario])
   const salesDisp = useMemo(() => salesTodas.filter(s => activas.has(s.id)), [salesTodas, activas])
@@ -118,10 +119,14 @@ export default function CreadorNutrientes() {
   async function recargarInventario() {
     try { setInventario(await inventarioService.list()) } catch { /* offline */ }
   }
+  async function recargarProveedores() {
+    try { setProveedores(await proveedoresService.list()) } catch { /* offline */ }
+  }
   useEffect(() => {
     recargarGuardados(); recargarCustoms(); recargarInventario()
     // Al iniciar, activas (verde) = las sales que tienen al menos un proveedor cargado
     proveedoresService.list().then(ps => {
+      setProveedores(ps)
       const conProv = new Set(ps.map(p => p.sal_id))
       if (conProv.size > 0) setActivas(conProv)
     }).catch(() => { /* offline: deja el default */ })
@@ -183,10 +188,10 @@ export default function CreadorNutrientes() {
           rangos, setRangos, modoPrep, setModoPrep }} />
       )}
       {sub === 'sustancias' && (
-        <SustanciasTab {...{ salesTodas, activas, setActivas, recargarCustoms, inventario, recargarInventario }} />
+        <SustanciasTab {...{ salesTodas, activas, setActivas, recargarCustoms, inventario, recargarInventario, proveedores }} />
       )}
       {sub === 'proveedores' && (
-        <ProveedoresTab salesTodas={salesTodas} recargarInventario={recargarInventario} />
+        <ProveedoresTab salesTodas={salesTodas} recargarInventario={recargarInventario} recargarProveedores={recargarProveedores} />
       )}
       {sub === 'agua' && (
         <AguaTab {...{ agua, setAgua, macros, micros, otros }} />
@@ -614,15 +619,26 @@ function SugerenciaSalesActivas({ salesTodas, activas, setActivas }: { salesToda
 }
 
 // ===================== SUSTANCIAS =====================
-function SustanciasTab({ salesTodas, activas, setActivas, recargarCustoms, recargarInventario }: { salesTodas: Sal[]; activas: Set<string>; setActivas: SetSet; recargarCustoms: () => void; recargarInventario: () => void }) {
+function SustanciasTab({ salesTodas, activas, setActivas, recargarCustoms, recargarInventario, proveedores }: { salesTodas: Sal[]; activas: Set<string>; setActivas: SetSet; recargarCustoms: () => void; recargarInventario: () => void; proveedores: Proveedor[] }) {
   const [form, setForm] = useState(false)
   const [abierta, setAbierta] = useState<string | null>(null)
   const [soloConPrecio, setSoloConPrecio] = useState(true)
   const usos = useMemo(() => usosDeSal(salesTodas), [salesTodas]) // qué marca/receta necesita cada sal
-  // Visibles: con el filtro ON, oculta las sales sin precio (que Gastón no usa),
-  // pero mantiene siempre los productos comerciales (para clonar).
+  // proveedores por sal + el elegido de referencia
+  const provPorSal = useMemo(() => {
+    const m: Record<string, { list: Proveedor[]; star?: Proveedor }> = {}
+    for (const p of proveedores) { (m[p.sal_id] ??= { list: [] }).list.push(p); if (p.elegido) m[p.sal_id].star = p }
+    return m
+  }, [proveedores])
+  const refDe = (salId: string) => {
+    const e = provPorSal[salId]
+    if (!e) return { tiene: false as const }
+    if (e.star) return { tiene: true as const, elegido: true as const, precio: precioPorKg(e.star.precio, e.star.unidad), local: e.star.nombre_local }
+    return { tiene: true as const, elegido: false as const, count: e.list.length }
+  }
+  // Visibles: con el filtro ON, muestra solo las que tienen proveedor (+ comerciales para clonar).
   const visibles = soloConPrecio
-    ? salesTodas.filter(s => (s.costoKg != null && s.costoKg > 0) || esComercial(s))
+    ? salesTodas.filter(s => provPorSal[s.id] || esComercial(s))
     : salesTodas
   return (
     <div className="space-y-4">
@@ -635,8 +651,8 @@ function SustanciasTab({ salesTodas, activas, setActivas, recargarCustoms, recar
           <button onClick={() => setSoloConPrecio(v => !v)}
             className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] border transition-colors ${
               soloConPrecio ? 'bg-[#a3e635]/15 border-[#404d20] text-[#d9f99d]' : 'bg-[#15151d] border-[#1f1f2b] text-[#8f8f9f] hover:text-[#d4d4dd]'
-            }`} title="Oculta las sales sin precio cargado">
-            {soloConPrecio ? '✓ Solo con precio' : 'Mostrar todas'}
+            }`} title="Muestra solo las sales que tienen proveedor cargado">
+            {soloConPrecio ? '✓ Solo con proveedor' : 'Mostrar todas'}
           </button>
           <button onClick={() => setForm(f => !f)} className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] hover:bg-[#a3e635]/25 transition-colors">
             <Plus className="w-3.5 h-3.5" /> Nueva
@@ -671,7 +687,12 @@ function SustanciasTab({ salesTodas, activas, setActivas, recargarCustoms, recar
                       {s.custom && <span className="ml-1 text-[9px] px-1 rounded bg-[#a78bfa]/20 text-[#c4b5fd]">propia</span>}
                       {s.aditivo && <span className="ml-1 text-[9px] px-1 rounded bg-[#bef264]/15 text-[#bef264]">aditivo</span>}
                       {s.stock != null && s.stock > 0 && <span className="ml-1 text-[9px] px-1 rounded bg-[#60a5fa]/20 text-[#93c5fd]">stock {s.stock}{s.stockUnidad ?? ''}</span>}
-                      {s.costoKg != null && s.costoKg > 0 && <span className="ml-1 text-[9px] px-1 rounded bg-[#bef264]/15 text-[#bef264]">${s.costoKg}/kg</span>}
+                      {(() => {
+                        const r = refDe(s.id)
+                        if (r.tiene && r.elegido && r.precio != null) return <span title={`Referencia: ${r.local}`} className="ml-1 text-[9px] px-1 rounded bg-[#facc15]/15 text-[#facc15] font-medium">★ ${r.precio}/kg</span>
+                        if (r.tiene && !r.elegido) return <span className="ml-1 text-[9px] px-1 rounded bg-[#7dd3fc]/15 text-[#7dd3fc]">{r.count} prov · elegí ⭐</span>
+                        return null
+                      })()}
                     </span>
                     <span className="block text-[10px] text-[#5c5c6b] mt-0.5 line-clamp-2">{s.descripcion ?? s.nota ?? 'Sin descripción.'}</span>
                     {(() => {
@@ -1022,14 +1043,15 @@ function precioPorKg(precio?: number | null, unidad?: string | null): number | n
   return (precio != null && k) ? +(precio / k).toFixed(2) : null
 }
 
-function ProveedoresTab({ salesTodas, recargarInventario }: { salesTodas: Sal[]; recargarInventario: () => void }) {
+function ProveedoresTab({ salesTodas, recargarInventario, recargarProveedores }: { salesTodas: Sal[]; recargarInventario: () => void; recargarProveedores: () => void }) {
   const vacio = { sal_id: '', nombre_local: '', telefono: '', email: '', provincia: '', pagina: '', precio: '', unidad: '1kg', presentacion: '', calidad: 'alta', imagen: '', nota: '' }
   const [provs, setProvs] = useState<Proveedor[]>([])
   const [form, setForm] = useState(vacio)
   const [guardando, setGuardando] = useState(false)
   const [detalle, setDetalle] = useState<Proveedor | null>(null) // ficha abierta (ver/editar)
   const [filtroSal, setFiltroSal] = useState('') // '' = todas
-  const cargar = () => { proveedoresService.list().then(setProvs).catch(() => setProvs([])) }
+  const cargar = () => { proveedoresService.list().then(p => { setProvs(p); recargarProveedores() }).catch(() => setProvs([])) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(cargar, [])
 
   // solo materias primas (sales/insumos que se COMPRAN), no los productos de marca que se clonan
