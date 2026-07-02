@@ -1084,7 +1084,10 @@ function ProveedoresTab({ salesTodas, recargarInventario, recargarProveedores }:
       toast.success('Proveedor guardado'); setForm(vacio); cargar()
     } catch (e) { toast.error('No se pudo guardar: ' + (e instanceof Error ? e.message : String(e))) } finally { setGuardando(false) }
   }
-  const borrar = async (id: string) => { try { await proveedoresService.eliminar(id); toast.success('Eliminado'); cargar() } catch (e) { toast.error(String(e)) } }
+  const borrar = async (p: Proveedor): Promise<boolean> => {
+    if (!window.confirm(`¿Borrar el proveedor "${p.nombre_local}" de ${salNombre(p.sal_id)}?\n\nEsta acción no se puede deshacer.`)) return false
+    try { await proveedoresService.eliminar(p.id); toast.success('Proveedor eliminado'); cargar(); return true } catch (e) { toast.error(String(e)); return false }
+  }
   const toggleElegido = async (p: Proveedor) => {
     try {
       if (p.elegido) { await proveedoresService.deselegir(p.id); toast.success('Quitada la referencia') }
@@ -1231,7 +1234,7 @@ function ProveedoresTab({ salesTodas, recargarInventario, recargarProveedores }:
                           className="ml-auto p-0.5 rounded hover:scale-110 transition-transform" style={{ color: p.elegido ? '#facc15' : '#5c5c6b' }}>
                           <Star className="w-4 h-4" strokeWidth={1.8} fill={p.elegido ? '#facc15' : 'none'} />
                         </button>
-                        <button onClick={e => { e.stopPropagation(); borrar(p.id) }} className="p-0.5 rounded text-[#5c5c6b] hover:text-[#ff8a7a]"><Trash2 className="w-3.5 h-3.5" strokeWidth={1.8} /></button>
+                        <button onClick={e => { e.stopPropagation(); borrar(p) }} title="Borrar proveedor" className="p-0.5 rounded text-[#5c5c6b] hover:text-[#ff8a7a]"><Trash2 className="w-3.5 h-3.5" strokeWidth={1.8} /></button>
                       </div>
                       {p.elegido && <span className="text-[9px] text-[#facc15] font-semibold">★ referencia de costo</span>}
                       <div className="text-[10.5px] text-[#a6a6b5] mt-0.5 space-y-0.5">
@@ -1310,7 +1313,7 @@ function ProveedoresTab({ salesTodas, recargarInventario, recargarProveedores }:
                 <Save className="w-3.5 h-3.5" strokeWidth={1.8} /> Guardar cambios
               </button>
               <button onClick={() => setDetalle(null)} className="px-3 py-1.5 rounded-md text-[12px] text-[#8f8f9f] border border-[#1f1f2b] hover:text-[#d4d4dd]">Cerrar</button>
-              <button onClick={() => { const id = detalle.id; setDetalle(null); borrar(id) }} className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] text-[#ff8a7a] border border-[#ff8a7a]/25 hover:bg-[#ff8a7a]/10">
+              <button onClick={() => borrar(detalle).then(ok => { if (ok) setDetalle(null) })} className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] text-[#ff8a7a] border border-[#ff8a7a]/25 hover:bg-[#ff8a7a]/10">
                 <Trash2 className="w-3.5 h-3.5" strokeWidth={1.8} /> Borrar
               </button>
             </div>
