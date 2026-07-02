@@ -996,6 +996,7 @@ function ProveedoresTab({ salesTodas }: { salesTodas: Sal[] }) {
   const [form, setForm] = useState(vacio)
   const [guardando, setGuardando] = useState(false)
   const [detalle, setDetalle] = useState<Proveedor | null>(null) // ficha abierta (ver/editar)
+  const [filtroSal, setFiltroSal] = useState('') // '' = todas
   const cargar = () => { proveedoresService.list().then(setProvs).catch(() => setProvs([])) }
   useEffect(cargar, [])
 
@@ -1046,8 +1047,13 @@ function ProveedoresTab({ salesTodas }: { salesTodas: Sal[] }) {
   }
   const setD = (k: keyof Proveedor, v: unknown) => setDetalle(d => d ? { ...d, [k]: v } : d)
 
+  // sales que tienen al menos un proveedor (para el filtro), ordenadas por nombre
+  const salesConProv = [...new Set(provs.map(p => p.sal_id))]
+    .map(id => ({ id, nombre: salNombre(id) }))
+    .sort((a, b) => a.nombre.localeCompare(b.nombre))
+  const provsFiltrados = filtroSal ? provs.filter(p => p.sal_id === filtroSal) : provs
   const porSal = new Map<string, Proveedor[]>()
-  for (const p of provs) { const a = porSal.get(p.sal_id) ?? []; a.push(p); porSal.set(p.sal_id, a) }
+  for (const p of provsFiltrados) { const a = porSal.get(p.sal_id) ?? []; a.push(p); porSal.set(p.sal_id, a) }
   const ordenCal = { alta: 0, media: 1, baja: 2 } as Record<string, number>
 
   return (
@@ -1109,9 +1115,23 @@ function ProveedoresTab({ salesTodas }: { salesTodas: Sal[] }) {
         </button>
       </div>
 
+      {/* Filtro por sal */}
+      {provs.length > 0 && (
+        <div className={`${card} flex items-center gap-2 flex-wrap`}>
+          <span className="text-[11px] text-[#a6a6b5] font-medium">Filtrar por sal:</span>
+          <select value={filtroSal} onChange={e => setFiltroSal(e.target.value)} className={`${inp} w-auto min-w-[220px]`}>
+            <option value="">Todas ({provs.length} proveedores)</option>
+            {salesConProv.map(s => <option key={s.id} value={s.id}>{s.nombre}</option>)}
+          </select>
+          {filtroSal && <button onClick={() => setFiltroSal('')} className="text-[11px] px-2 py-1 rounded border border-[#1f1f2b] text-[#8f8f9f] hover:text-[#d9f99d]">Ver todas</button>}
+        </div>
+      )}
+
       {/* Listado agrupado por sal */}
       {provs.length === 0 ? (
         <p className="text-[12px] text-[#5c5c6b] py-6 text-center">Todavía no cargaste proveedores. Agregá el primero arriba.</p>
+      ) : provsFiltrados.length === 0 ? (
+        <p className="text-[12px] text-[#5c5c6b] py-6 text-center">No hay proveedores para esa sal.</p>
       ) : (
         <div className="space-y-3">
           {[...porSal.entries()].map(([salId, lista]) => (
