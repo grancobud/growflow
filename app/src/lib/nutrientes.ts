@@ -179,7 +179,9 @@ export const SALES_DEFECTO: Sal[] = [
   { id: 'fedtpa', nombre: 'Quelato de hierro (DTPA)', formula: 'Fe-DTPA', bidon: 'C',
     comp: { Fe: 0.11 }, nota: 'Aguanta hasta pH ~7.' },
   { id: 'feeddha', nombre: 'Quelato de hierro (EDDHA)', formula: 'Fe-EDDHA', bidon: 'C',
-    comp: { Fe: 0.06 }, nota: 'El rojo. Aguanta pH alto.' },
+    comp: { Fe: 0.06 }, nota: 'El rojo. Aguanta pH alto (~9).' },
+  { id: 'fehbed', nombre: 'Quelato de hierro (HBED)', formula: 'Fe-HBED', bidon: 'C',
+    comp: { Fe: 0.06 }, nota: 'El más estable de todos: aguanta pH 3.5-12 (mejor que EDDHA). Yara Rexolin X60, 6% Fe orto-orto.' },
   // --- Micros: resto ---
   { id: 'mnso4', nombre: 'Sulfato de manganeso', formula: 'MnSO₄·H₂O', bidon: 'C',
     comp: { Mn: 0.325, S: 0.19 } },
