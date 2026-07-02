@@ -137,6 +137,48 @@ const TABLAS: DefTabla[] = [
       { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[160px]' },
     ],
   },
+  {
+    id: 'proveedores_nutrientes', nombre: 'Proveedores (nutrientes)', orden: 'sal_id',
+    cols: [
+      { campo: 'sal_id', titulo: 'Sal / insumo', tipo: 'text', ancho: 'min-w-[140px]' },
+      { campo: 'nombre_local', titulo: 'Local', tipo: 'text', ancho: 'min-w-[140px]' },
+      { campo: 'calidad', titulo: 'Calidad', tipo: { select: ['alta', 'media', 'baja'] } },
+      { campo: 'telefono', titulo: 'Teléfono', tipo: 'text' },
+      { campo: 'pagina', titulo: 'Página', tipo: 'text', ancho: 'min-w-[160px]' },
+      { campo: 'precio', titulo: 'Precio', tipo: 'number' },
+      { campo: 'unidad', titulo: 'Unidad', tipo: { select: ['kg', 'g', 'unidad', 'L'] } },
+      { campo: 'presentacion', titulo: 'Presentación', tipo: 'text' },
+      { campo: 'nota', titulo: 'Nota', tipo: 'text', ancho: 'min-w-[160px]' },
+    ],
+  },
+  {
+    id: 'inventario_nutrientes', nombre: 'Precios (nutrientes)', orden: 'sal_id',
+    cols: [
+      { campo: 'sal_id', titulo: 'Sal', tipo: 'text', ancho: 'min-w-[140px]' },
+      { campo: 'costo_kg', titulo: 'Costo/kg', tipo: 'number' },
+      { campo: 'stock', titulo: 'Stock', tipo: 'number' },
+      { campo: 'unidad', titulo: 'Unidad', tipo: 'text' },
+      { campo: 'nota', titulo: 'Nota', tipo: 'text', ancho: 'min-w-[200px]' },
+    ],
+  },
+  {
+    id: 'sustancias_nutrientes', nombre: 'Sustancias custom (nutrientes)', orden: 'nombre',
+    cols: [
+      { campo: 'nombre', titulo: 'Nombre', tipo: 'text', ancho: 'min-w-[160px]' },
+      { campo: 'formula', titulo: 'Fórmula', tipo: 'text' },
+      { campo: 'bidon', titulo: 'Bidón', tipo: { select: ['A', 'B', 'C'] } },
+      { campo: 'liquido', titulo: 'Líquido', tipo: 'bool' },
+      { campo: 'densidad', titulo: 'Densidad', tipo: 'number' },
+      { campo: 'costo_kg', titulo: 'Costo/kg', tipo: 'number' },
+    ],
+  },
+  {
+    id: 'perfiles_nutrientes', nombre: 'Perfiles guardados (nutrientes)', orden: 'nombre',
+    cols: [
+      { campo: 'nombre', titulo: 'Nombre', tipo: 'text', ancho: 'min-w-[180px]' },
+      { campo: 'creado_en', titulo: 'Creado', tipo: 'date' },
+    ],
+  },
 ]
 
 // Tablas que referencian una planta: mostramos la columna con nombre legible
