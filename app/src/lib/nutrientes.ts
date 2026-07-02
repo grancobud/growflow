@@ -116,8 +116,8 @@ export function compatibilidad(sal: Sal): string {
 // Replica el set de HydroBuddy + agregados útiles para coco/cannabis.
 export const SALES_DEFECTO: Sal[] = [
   // --- Calcio / nitratos (bidón A) ---
-  { id: 'cano3_ag', nombre: 'Nitrato de calcio (agrícola CN-9)', formula: 'Ca(NO₃)₂·NH₄·H₂O', bidon: 'A',
-    comp: { Ca: 0.19, NO3: 0.144, NH4: 0.011 }, nota: 'Calcinit/YaraLiva. Caballo de batalla del Ca.' },
+  { id: 'cano3_ag', nombre: 'Nitrato de calcio', formula: 'Ca(NO₃)₂·NH₄·H₂O', bidon: 'A',
+    comp: { Ca: 0.19, NO3: 0.144, NH4: 0.011 }, nota: 'Caballo de batalla del Ca. Grado agrícola CN-9 (Calcinit/YaraLiva). Las marcas/proveedores se cargan en la pestaña Proveedores.' },
   { id: 'cano3_puro', nombre: 'Nitrato de calcio (puro anhidro)', formula: 'Ca(NO₃)₂', bidon: 'A',
     comp: { Ca: 0.244, NO3: 0.17 } },
   { id: 'cacl2', nombre: 'Cloruro de calcio', formula: 'CaCl₂·2H₂O', bidon: 'A',
