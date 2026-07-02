@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   FlaskConical, Beaker, Droplets, ChevronDown, Sparkles, AlertTriangle,
   Save, FolderOpen, Trash2, Calculator, FlaskRound, Layers, Scale, Plus, DollarSign,
-  Droplet, GitCompare, Package, ShieldCheck, Copy, HelpCircle, BookOpen, Lightbulb, Printer, Store, Phone, Globe, Upload, Star,
+  Droplet, GitCompare, Package, ShieldCheck, Copy, HelpCircle, BookOpen, Lightbulb, Printer, Store, Phone, Globe, Upload, Star, X,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -995,6 +995,7 @@ function ProveedoresTab({ salesTodas }: { salesTodas: Sal[] }) {
   const [provs, setProvs] = useState<Proveedor[]>([])
   const [form, setForm] = useState(vacio)
   const [guardando, setGuardando] = useState(false)
+  const [detalle, setDetalle] = useState<Proveedor | null>(null) // ficha abierta (ver/editar)
   const cargar = () => { proveedoresService.list().then(setProvs).catch(() => setProvs([])) }
   useEffect(cargar, [])
 
@@ -1023,6 +1024,27 @@ function ProveedoresTab({ salesTodas }: { salesTodas: Sal[] }) {
     } catch (e) { toast.error('No se pudo guardar: ' + (e instanceof Error ? e.message : String(e))) } finally { setGuardando(false) }
   }
   const borrar = async (id: string) => { try { await proveedoresService.eliminar(id); toast.success('Eliminado'); cargar() } catch (e) { toast.error(String(e)) } }
+  const onImagenDetalle = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0]; if (!f || !detalle) return
+    if (f.size > 3_000_000) { toast.error('Imagen muy grande (máx 3 MB)'); return }
+    const r = new FileReader(); r.onload = () => setDetalle(v => v ? { ...v, imagen: String(r.result) } : v); r.readAsDataURL(f)
+  }
+  const guardarEdicion = async () => {
+    if (!detalle) return
+    if (!detalle.nombre_local?.trim()) { toast.error('Falta el nombre del local'); return }
+    setGuardando(true)
+    try {
+      await proveedoresService.actualizar(detalle.id, {
+        sal_id: detalle.sal_id, nombre_local: detalle.nombre_local.trim(),
+        telefono: detalle.telefono || null, pagina: detalle.pagina || null,
+        precio: detalle.precio ?? null, unidad: detalle.unidad || 'kg',
+        presentacion: detalle.presentacion || null, calidad: detalle.calidad || 'alta',
+        imagen: detalle.imagen || null, nota: detalle.nota || null,
+      })
+      toast.success('Ficha actualizada'); setDetalle(null); cargar()
+    } catch (e) { toast.error('No se pudo: ' + (e instanceof Error ? e.message : String(e))) } finally { setGuardando(false) }
+  }
+  const setD = (k: keyof Proveedor, v: unknown) => setDetalle(d => d ? { ...d, [k]: v } : d)
 
   const porSal = new Map<string, Proveedor[]>()
   for (const p of provs) { const a = porSal.get(p.sal_id) ?? []; a.push(p); porSal.set(p.sal_id, a) }
@@ -1097,7 +1119,8 @@ function ProveedoresTab({ salesTodas }: { salesTodas: Sal[] }) {
               <p className="text-[12px] font-display font-semibold text-[#d9f99d] mb-2">{salNombre(salId)} <span className="text-[10px] text-[#5c5c6b]">· {lista.length} proveedor{lista.length > 1 ? 'es' : ''}</span></p>
               <div className="grid sm:grid-cols-2 gap-2">
                 {[...lista].sort((a, b) => (ordenCal[a.calidad ?? 'baja'] ?? 3) - (ordenCal[b.calidad ?? 'baja'] ?? 3)).map(p => (
-                  <div key={p.id} className="rounded-lg bg-[#15151d] border border-[#1f1f2b] p-2.5 flex gap-2.5">
+                  <div key={p.id} onClick={() => setDetalle(p)} title="Ver / editar ficha"
+                    className="rounded-lg bg-[#15151d] border border-[#1f1f2b] p-2.5 flex gap-2.5 cursor-pointer hover:border-[#404d20] transition-colors">
                     {p.imagen && <img src={p.imagen} alt="" className="w-14 h-14 rounded object-cover border border-[#1f1f2b] flex-shrink-0" />}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
@@ -1105,14 +1128,15 @@ function ProveedoresTab({ salesTodas }: { salesTodas: Sal[] }) {
                         <span className="text-[9px] px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5" style={{ color: calColor(p.calidad), background: `${calColor(p.calidad)}18` }}>
                           <Star className="w-2.5 h-2.5" strokeWidth={2} /> {p.calidad}
                         </span>
-                        <button onClick={() => borrar(p.id)} className="ml-auto p-0.5 rounded text-[#5c5c6b] hover:text-[#ff8a7a]"><Trash2 className="w-3.5 h-3.5" strokeWidth={1.8} /></button>
+                        <button onClick={e => { e.stopPropagation(); borrar(p.id) }} className="ml-auto p-0.5 rounded text-[#5c5c6b] hover:text-[#ff8a7a]"><Trash2 className="w-3.5 h-3.5" strokeWidth={1.8} /></button>
                       </div>
                       <div className="text-[10.5px] text-[#a6a6b5] mt-0.5 space-y-0.5">
                         {p.precio != null && <div className="font-mono text-[#bef264]">${p.precio}/{p.unidad}{p.presentacion ? ` · ${p.presentacion}` : ''}</div>}
                         {p.telefono && <div className="flex items-center gap-1"><Phone className="w-3 h-3" strokeWidth={1.8} /> {p.telefono}</div>}
-                        {p.pagina && <a href={p.pagina.startsWith('http') ? p.pagina : `https://${p.pagina}`} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[#7dd3fc] hover:underline truncate"><Globe className="w-3 h-3" strokeWidth={1.8} /> {p.pagina}</a>}
-                        {p.nota && <div className="text-[10px] text-[#757584]">{p.nota}</div>}
+                        {p.pagina && <a onClick={e => e.stopPropagation()} href={p.pagina.startsWith('http') ? p.pagina : `https://${p.pagina}`} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[#7dd3fc] hover:underline truncate"><Globe className="w-3 h-3" strokeWidth={1.8} /> {p.pagina}</a>}
+                        {p.nota && <div className="text-[10px] text-[#757584] line-clamp-1">{p.nota}</div>}
                       </div>
+                      <p className="text-[9px] text-[#5c5c6b] mt-1">Tocá para ver / editar ▸</p>
                     </div>
                   </div>
                 ))}
@@ -1121,7 +1145,65 @@ function ProveedoresTab({ salesTodas }: { salesTodas: Sal[] }) {
           ))}
         </div>
       )}
-      <p className="text-[10px] text-[#5c5c6b] px-1">Podés cargar varios proveedores por sal. Se ordenan por calidad (Alta primero). La app prioriza la mejor calidad, no el precio más bajo.</p>
+      <p className="text-[10px] text-[#5c5c6b] px-1">Podés cargar varios proveedores por sal. Tocá una ficha para ver el detalle y editarla. Se ordenan por calidad (Alta primero); prioriza calidad, no precio.</p>
+
+      {/* Modal ficha detalle / edición */}
+      {detalle && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setDetalle(null)}>
+          <div className="bg-[#101016] border border-[#2a2a38] rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-2 mb-3">
+              <Store className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
+              <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Ficha del proveedor</h3>
+              <span className="text-[10px] text-[#5c5c6b]">· {salNombre(detalle.sal_id)}</span>
+              <button onClick={() => setDetalle(null)} className="ml-auto p-1 rounded text-[#5c5c6b] hover:text-[#d4d4dd]"><X className="w-4 h-4" strokeWidth={1.8} /></button>
+            </div>
+
+            {/* imagen grande */}
+            <div className="mb-3">
+              {detalle.imagen ? (
+                <img src={detalle.imagen} alt="" className="w-full max-h-56 object-contain rounded-lg border border-[#1f1f2b] bg-[#0a0a0f]" />
+              ) : (
+                <div className="w-full h-24 rounded-lg border border-dashed border-[#2a2a38] flex items-center justify-center text-[11px] text-[#5c5c6b]">Sin imagen</div>
+              )}
+              <label className="mt-1.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] bg-[#15151d] border border-[#1f1f2b] text-[#a6a6b5] hover:text-[#d9f99d] cursor-pointer">
+                <Upload className="w-3.5 h-3.5" strokeWidth={1.8} /> {detalle.imagen ? 'Cambiar foto' : 'Subir foto'}
+                <input type="file" accept="image/*" onChange={onImagenDetalle} className="hidden" />
+              </label>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-2.5">
+              <label className="text-[11px] text-[#a6a6b5]">Nombre del local
+                <input value={detalle.nombre_local ?? ''} onChange={e => setD('nombre_local', e.target.value)} className={`${inp} mt-1`} /></label>
+              <label className="text-[11px] text-[#a6a6b5]">Calidad
+                <select value={detalle.calidad ?? 'alta'} onChange={e => setD('calidad', e.target.value)} className={`${inp} mt-1`}>
+                  <option value="alta">Alta</option><option value="media">Media</option><option value="baja">Baja</option></select></label>
+              <label className="text-[11px] text-[#a6a6b5]">Teléfono
+                <input value={detalle.telefono ?? ''} onChange={e => setD('telefono', e.target.value)} className={`${inp} mt-1`} /></label>
+              <label className="text-[11px] text-[#a6a6b5]">Página / link
+                <input value={detalle.pagina ?? ''} onChange={e => setD('pagina', e.target.value)} className={`${inp} mt-1`} /></label>
+              <label className="text-[11px] text-[#a6a6b5]">Precio (ARS)
+                <input type="number" value={detalle.precio ?? ''} onChange={e => setD('precio', e.target.value ? +e.target.value : null)} className={`${inp} mt-1`} /></label>
+              <label className="text-[11px] text-[#a6a6b5]">Unidad
+                <select value={detalle.unidad ?? 'kg'} onChange={e => setD('unidad', e.target.value)} className={`${inp} mt-1`}>
+                  <option value="kg">por kg</option><option value="g">por g</option><option value="unidad">por unidad/bolsa</option><option value="L">por litro</option></select></label>
+              <label className="text-[11px] text-[#a6a6b5]">Presentación
+                <input value={detalle.presentacion ?? ''} onChange={e => setD('presentacion', e.target.value)} className={`${inp} mt-1`} /></label>
+              <label className="text-[11px] text-[#a6a6b5]">Nota
+                <input value={detalle.nota ?? ''} onChange={e => setD('nota', e.target.value)} className={`${inp} mt-1`} /></label>
+            </div>
+
+            <div className="flex gap-2 mt-3">
+              <button onClick={guardarEdicion} disabled={guardando} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] hover:bg-[#a3e635]/25 disabled:opacity-50">
+                <Save className="w-3.5 h-3.5" strokeWidth={1.8} /> Guardar cambios
+              </button>
+              <button onClick={() => setDetalle(null)} className="px-3 py-1.5 rounded-md text-[12px] text-[#8f8f9f] border border-[#1f1f2b] hover:text-[#d4d4dd]">Cerrar</button>
+              <button onClick={() => { const id = detalle.id; setDetalle(null); borrar(id) }} className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] text-[#ff8a7a] border border-[#ff8a7a]/25 hover:bg-[#ff8a7a]/10">
+                <Trash2 className="w-3.5 h-3.5" strokeWidth={1.8} /> Borrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

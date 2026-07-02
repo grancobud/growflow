@@ -1011,6 +1011,10 @@ export const proveedoresService = {
     const { error } = await supabase.from('proveedores_nutrientes').insert({ ...p, user_id: u?.user?.id ?? null })
     if (error) throw error
   },
+  async actualizar(id: string, patch: Partial<Omit<Proveedor, 'id' | 'creado_en'>>): Promise<void> {
+    const { error } = await supabase.from('proveedores_nutrientes').update(patch).eq('id', id)
+    if (error) throw error
+  },
   async eliminar(id: string): Promise<void> {
     const { error } = await supabase.from('proveedores_nutrientes').delete().eq('id', id)
     if (error) throw error
