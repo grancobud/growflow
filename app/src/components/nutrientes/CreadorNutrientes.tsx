@@ -9,7 +9,7 @@ import {
   SALES_DEFECTO, ELEMENTOS, PRESETS, calcularReceta, ecAprox, nTotal,
   calcularConcentrados, calcularRatios, calcularCosto, calcularBalanceIonico, calcularStocksMicros,
   redondearBalanza, AGENTES_PH, calcularAjustePH, oxidoAElemental, OXIDOS,
-  recomendarEstabilizantes, esComercial, marcaDe, perfilDesdeProducto, categoriaSal, KITS_SALES, kitParaPerfil, opcionesDeMarca, DOSIS_REC,
+  recomendarEstabilizantes, esComercial, marcaDe, perfilDesdeProducto, categoriaSal, KITS_SALES, kitParaPerfil, opcionesDeMarca, DOSIS_REC, usosDeSal,
   necesitaSepararAB, bidonDeSal,
   perfilesNutrientesService, sustanciasService, inventarioService, aplicarInventario, proveedoresService, type Proveedor,
   compatibilidad, estadoRango, RANGOS_FLORA_COCO, rangosDesdePerfil,
@@ -618,6 +618,7 @@ function SustanciasTab({ salesTodas, activas, setActivas, recargarCustoms, recar
   const [form, setForm] = useState(false)
   const [abierta, setAbierta] = useState<string | null>(null)
   const [soloConPrecio, setSoloConPrecio] = useState(true)
+  const usos = useMemo(() => usosDeSal(salesTodas), [salesTodas]) // qué marca/receta necesita cada sal
   // Visibles: con el filtro ON, oculta las sales sin precio (que Gastón no usa),
   // pero mantiene siempre los productos comerciales (para clonar).
   const visibles = soloConPrecio
@@ -673,6 +674,15 @@ function SustanciasTab({ salesTodas, activas, setActivas, recargarCustoms, recar
                       {s.costoKg != null && s.costoKg > 0 && <span className="ml-1 text-[9px] px-1 rounded bg-[#bef264]/15 text-[#bef264]">${s.costoKg}/kg</span>}
                     </span>
                     <span className="block text-[10px] text-[#5c5c6b] mt-0.5 line-clamp-2">{s.descripcion ?? s.nota ?? 'Sin descripción.'}</span>
+                    {(() => {
+                      const u = usos[s.id]
+                      if (!u) return null
+                      const txt = u.marcas.length >= 4 ? 'Base · casi todas las marcas'
+                        : u.marcas.length ? 'Para clonar: ' + u.marcas.join(' · ')
+                        : u.presets.length ? 'Recetas base' : null
+                      if (!txt) return null
+                      return <span className="inline-block text-[8.5px] px-1.5 py-0.5 rounded mt-1 bg-[#7dd3fc]/12 text-[#7dd3fc] font-medium">🎯 {txt}</span>
+                    })()}
                   </button>
                   <ChevronDown className={`w-4 h-4 mt-0.5 text-[#5c5c6b] flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
                 </div>

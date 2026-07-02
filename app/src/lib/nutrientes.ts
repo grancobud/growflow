@@ -507,6 +507,32 @@ export const DOSIS_REC: Record<string, number> = {
   plagron_green_sensation: 1.5,
 }
 
+/** Para cada sal, qué marcas la usan en su clon y en qué presets base aparece.
+ * Sirve para etiquetar "necesaria para clonar Ryanodine / Athena / etc.". */
+export function usosDeSal(salesTodas: Sal[]): Record<string, { marcas: string[]; presets: string[] }> {
+  const marcasSet: Record<string, Set<string>> = {}
+  const presetsSet: Record<string, Set<string>> = {}
+  for (const prod of salesTodas.filter(esComercial)) {
+    const dose = DOSIS_REC[prod.id] ?? 3
+    const doseGL = prod.liquido ? dose * (prod.densidad ?? 1.1) : dose
+    const kit = kitParaPerfil(perfilDesdeProducto(prod, doseGL), opcionesDeMarca(prod.id))
+    const marca = marcaDe(prod)
+    for (const salId of kit) (marcasSet[salId] ??= new Set()).add(marca)
+  }
+  for (const preset of PRESETS) {
+    const kit = kitParaPerfil(preset.perfil)
+    for (const salId of kit) (presetsSet[salId] ??= new Set()).add(preset.nombre)
+  }
+  const out: Record<string, { marcas: string[]; presets: string[] }> = {}
+  const orden = ['Ryanodine', 'Advanced Nutrients', 'Athena', 'Jacks', 'Canna', 'Plagron']
+  for (const s of salesTodas) {
+    const marcas = [...(marcasSet[s.id] ?? [])].sort((a, b) => orden.indexOf(a) - orden.indexOf(b))
+    const presets = [...(presetsSet[s.id] ?? [])]
+    if (marcas.length || presets.length) out[s.id] = { marcas, presets }
+  }
+  return out
+}
+
 export interface KitSales { id: string; nombre: string; desc: string; sales: string[] }
 export const KITS_SALES: KitSales[] = [
   { id: 'limpio', nombre: 'Kit limpio (recomendado)',
