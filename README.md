@@ -19,47 +19,35 @@ Diario de cultivo personal de cannabis, self-hosted y 100% local. Registrá gen�
 - Base de datos y auth: Supabase (cloud o self-hosted)
 - Chat IA (opcional): cualquier webhook que reciba `{"messages":[...]}` y devuelva `{"reply":"..."}` — el setup de referencia usa n8n + Ollama (qwen3:14b)
 
-## Setup
+## Cómo está desplegado (producción)
 
-### 1. Base de datos
+- **Frontend:** Cloudflare Pages — proyecto `growflow`, root `app/`, build `npm run build`.
+  **Deploy automático** al pushear a `main`. Sitio: https://growflow-5vs.pages.dev
+- **Base de datos:** Supabase cloud. Las credenciales (`VITE_SUPABASE_*`) están en las env vars de
+  Cloudflare Pages, **no en el repo**.
 
-Con [Supabase CLI](https://supabase.com/docs/guides/local-development) (corre todo en Docker):
+No hace falta Docker ni nginx para trabajar: para desarrollar alcanza con `npm run dev` (ver abajo).
 
-```bash
-supabase start        # desde la raiz del repo; aplica las migraciones de supabase/migrations
-```
+## Setup local
 
-O creá un proyecto en [supabase.com](https://supabase.com) y aplicá las migraciones de `supabase/migrations/` con el SQL editor.
-
-### 2. Usuario
-
-Creá un usuario en Supabase Auth (Studio → Authentication → Add user) y agregale un perfil:
-
-```sql
-insert into perfiles_usuario (id, nombre_completo, rol)
-select id, 'Tu Nombre', 'administrador' from auth.users where email = 'tu@email.com';
-```
-
-### 3. Frontend
+### 1. Frontend (lo único que necesitás para empezar)
 
 ```bash
 cd app
-cp .env.example .env   # completar VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY
+cp .env.example .env   # opcional; sin esto arranca en MODO DEMO (localStorage)
 npm install
-npm run dev            # desarrollo
-npm run build          # produccion (sirve dist/ con cualquier estatico; hay nginx.conf en deploy/)
+npm run dev            # http://localhost:5173
+npm run build          # verificar antes de pushear (= tsc -b && vite build)
 ```
+**Sin `.env` funciona todo** (guarda en el navegador). Para usar la base real, completá
+`VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`.
 
-### 4. Servirlo permanente (opcional)
+### 2. Base de datos propia (opcional, solo si querés tu propio backend)
 
-```bash
-docker run -d --name growflow --restart always -p 5180:80 \
-  -v ./app/dist:/usr/share/nginx/html:ro \
-  -v ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro \
-  nginx:alpine
-```
+Creá un proyecto en [supabase.com](https://supabase.com) y aplicá las migraciones de
+`supabase/migrations/` desde el SQL editor. (O local con Supabase CLI: `supabase start`.)
 
-### 5. Chat IA (opcional)
+### 3. Chat IA (opcional)
 
 Apuntá `VITE_CHAT_WEBHOOK_URL` a un endpoint POST que reciba `{"messages":[{"role":"user","content":"..."}]}` y responda `{"reply":"..."}`. El setup de referencia es un workflow de n8n que junta el estado del cultivo desde Supabase y le pasa todo a Ollama. Sin esa variable, la sección de chat queda deshabilitada.
 
