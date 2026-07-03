@@ -71,6 +71,41 @@ supabase/migrations/  Esquema: geneticas, plantas, eventos, cosechas + vista res
 deploy/nginx.conf     Config nginx para servir el build como SPA
 ```
 
+## Calculadora creadora de fertilizantes
+
+Módulo tipo **HydroBuddy** en español (ruta `/nutrientes`, sidebar *Calculadora Fertilizantes*).
+Arma recetas de fertilizante desde cero o **clonando marcas comerciales** (Ryanodine, Athena,
+Advanced Nutrients, Jacks, Canna, Plagron) con sales crudas baratas.
+
+**Mapa del código (todo en `app/src`):**
+- **`lib/nutrientes.ts`** — el MOTOR: base de sales (composición elemental), solver NNLS,
+  `kitParaPerfil`, presets, clonado de marcas, conversiones (óxido→elemental, EC por balance
+  iónico, ppm↔meq), costos, `usosDeSal`, y los servicios Supabase (perfiles, sustancias,
+  inventario, proveedores).
+- **`components/nutrientes/CreadorNutrientes.tsx`** — la UI: 12 sub-pestañas (Calculadora,
+  Clonar marca, Sustancias, Proveedores, Agua, Soluciones madre, Estabilizantes, Ajuste de pH,
+  Comparar, Ratios y costo, Conversor, Ayuda/Guía).
+- **`pages/PaginaCreadorNutrientes.tsx`** — la página (ruteada en `App.tsx`).
+- **`pages/PaginaTablas.tsx`** — editor genérico de tablas (grilla estilo NocoDB).
+
+**Modelo químico:** 16 nutrientes (NO3, NH4, P, K, Mg, Ca, S, Fe, Zn, B, Cu, Mo, Mn, Na, Si, Cl).
+Composición de cada sal = fracción elemental (0-1); ppm = fracción × g/L × 1000. Etiquetas en
+óxidos se convierten a elemental (P2O5×0.4364, K2O×0.8301, etc.).
+
+**Tablas Supabase:** `perfiles_nutrientes`, `sustancias_nutrientes`, `inventario_nutrientes`
+(precios), `proveedores_nutrientes` (dónde comprar). Al crear una tabla nueva, registrala también
+en `pages/PaginaTablas.tsx` y `lib/demo/demoStore.ts` para que sea editable desde la app.
+
+## Para colaboradores
+
+1. `git clone` + `cd app` + `npm install` + `npm run dev`. **Sin `.env` corre en modo demo**
+   (datos en localStorage) — alcanza para trabajar en la calculadora.
+2. Antes de pushear: `cd app && npm run build` (debe quedar en verde; NO corre eslint).
+3. La rama `main` **deploya sola** en Cloudflare Pages → no rompas `main`. Ideal: trabajar en un
+   branch y abrir Pull Request.
+4. Las credenciales de Supabase **no están en el repo** (están en Cloudflare). Pedilas aparte solo
+   si necesitás la base real; si no, modo demo.
+
 ## Licencia
 
 MIT. Usalo, modificalo y compartilo como quieras.
