@@ -916,6 +916,13 @@ function ConcentradosTab({ factor, setFactor, volBidon, setVolBidon, resolucion,
     return { nombre: g.nombre, concentrados: calcularConcentrados(r.dosis, factor, volBidon) }
   }).filter(b => b.concentrados.length > 0)
 
+  // sales únicas que aparecen en las soluciones madre guardadas (para la matriz de compatibilidad)
+  const salesEnMadres = (() => {
+    const m = new Map<string, Sal>()
+    botellasGuardadas.forEach(b => b.concentrados.forEach(g => g.items.forEach(it => m.set(it.sal.id, it.sal))))
+    return [...m.values()]
+  })()
+
   return (
     <div className="space-y-4">
       <div className={card}>
@@ -974,10 +981,87 @@ function ConcentradosTab({ factor, setFactor, volBidon, setVolBidon, resolucion,
         </div>
       )}
 
+      {/* Matriz de compatibilidad de mezcla */}
+      <MatrizCompatibilidad sales={salesEnMadres.length ? salesEnMadres : salesTodas.filter(s => !s.aditivo && Object.keys(s.comp ?? {}).length > 0).slice(0, 12)} />
+
       <p className="text-[10px] text-[#5c5c6b] px-1">
         Regla de oro: al tanque final echá primero el bidón A (calcio), agitá, después el B. Nunca juntes A y B concentrados.
         Para tener tus clones acá, guardalos con un nombre en la pestaña Calculadora.
       </p>
+    </div>
+  )
+}
+
+// ===================== MATRIZ DE COMPATIBILIDAD =====================
+// Deriva la compatibilidad de mezcla par-a-par de la composición (no hardcodeada):
+// Ca + sulfato → yeso; Ca + fosfato → fosfato de Ca; Ca + carbonato → CaCO₃; Mg + fosfato → a pH alto.
+type CompatNivel = 'ok' | 'warn' | 'bad'
+const _hasEl = (s: Sal, k: string) => ((s.comp as Record<string, number>)?.[k] ?? 0) > 0
+const _esCarbonato = (s: Sal) => /hco3|caco3|carbon|bicarb/i.test(s.id)
+function compatPar(a: Sal, b: Sal): { nivel: CompatNivel; motivo: string } {
+  const caA = _hasEl(a, 'Ca'), caB = _hasEl(b, 'Ca')
+  const sA = _hasEl(a, 'S'), sB = _hasEl(b, 'S')
+  const pA = _hasEl(a, 'P'), pB = _hasEl(b, 'P')
+  const mgA = _hasEl(a, 'Mg'), mgB = _hasEl(b, 'Mg')
+  if ((caA && _esCarbonato(b)) || (caB && _esCarbonato(a))) return { nivel: 'bad', motivo: 'Calcio + carbonato/bicarbonato → precipita carbonato de calcio (CaCO₃, blanco).' }
+  if ((caA && sB) || (caB && sA)) return { nivel: 'bad', motivo: 'Calcio + sulfato → precipita yeso (CaSO₄). Van en bidones separados (A y B).' }
+  if ((caA && pB) || (caB && pA)) return { nivel: 'bad', motivo: 'Calcio + fosfato → precipita fosfato de calcio. Separá en A y B.' }
+  if ((mgA && pB) || (mgB && pA)) return { nivel: 'warn', motivo: 'Magnesio + fosfato → puede precipitar fosfato de Mg a pH alto. Mantené el concentrado a pH < 6.' }
+  return { nivel: 'ok', motivo: 'Compatibles: se pueden concentrar en la misma botella.' }
+}
+const COMPAT_UI: Record<CompatNivel, { bg: string; em: string }> = {
+  ok: { bg: '#16351f', em: '🟢' },
+  warn: { bg: '#3a2e10', em: '🟡' },
+  bad: { bg: '#3a1416', em: '🔴' },
+}
+function MatrizCompatibilidad({ sales }: { sales: Sal[] }) {
+  const lista = sales.slice(0, 14) // acotar para que la grilla sea legible
+  const abrev = (s: Sal) => s.nombre.length > 16 ? s.nombre.slice(0, 15) + '…' : s.nombre
+  if (lista.length < 2) return null
+  return (
+    <div className={card}>
+      <div className="flex items-center gap-2 mb-1">
+        <Layers className="w-4 h-4 text-[#a78bfa]" strokeWidth={1.8} />
+        <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Compatibilidad de mezcla</h3>
+        <Info><b className="text-[#d9f99d]">Qué sales podés juntar</b> en el mismo concentrado sin que precipite. Se calcula de la química de cada sal.<br /><span className="text-[#a3e635]">Ej: calcio + sulfato = 🔴 (forma yeso). Por eso van en bidones A y B separados.</span></Info>
+      </div>
+      <p className="text-[10.5px] text-[#757584] mb-3">Cruzá dos sales para ver si conviven en la misma botella concentrada. Pasá el mouse por cada celda para el motivo.</p>
+      <div className="overflow-x-auto -mx-1 px-1">
+        <table className="border-collapse text-[10.5px]">
+          <thead>
+            <tr>
+              <th className="sticky left-0 z-10 bg-[#15151d] p-1"></th>
+              {lista.map(s => (
+                <th key={s.id} className="p-1 align-bottom">
+                  <div className="text-[#a6a6b5] font-medium whitespace-nowrap" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', height: 84 }} title={s.nombre}>{abrev(s)}</div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {lista.map(fila => (
+              <tr key={fila.id}>
+                <th className="sticky left-0 z-10 bg-[#15151d] text-right pr-2 py-1 text-[#d4d4dd] font-medium whitespace-nowrap max-w-[130px] truncate" title={fila.nombre}>{abrev(fila)}</th>
+                {lista.map(col => {
+                  if (fila.id === col.id) return <td key={col.id} className="text-center text-[#3a3a48] w-8 h-8 border border-[#1f1f2b]">—</td>
+                  const { nivel, motivo } = compatPar(fila, col)
+                  const ui = COMPAT_UI[nivel]
+                  return (
+                    <td key={col.id} className="text-center w-8 h-8 border border-[#1f1f2b] cursor-help" style={{ backgroundColor: ui.bg }} title={`${fila.nombre} + ${col.nombre}: ${motivo}`}>
+                      {ui.em}
+                    </td>
+                  )
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="flex flex-wrap gap-3 mt-3 text-[10.5px] text-[#a6a6b5]">
+        <span>🟢 Compatibles</span>
+        <span>🟡 Cuidado (pH / condicional)</span>
+        <span>🔴 Precipita — separá en bidones</span>
+      </div>
     </div>
   )
 }
