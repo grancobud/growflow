@@ -213,10 +213,10 @@ export const SALES_DEFECTO: Sal[] = [
     comp: { Fe: 0.04, Mn: 0.04, Zn: 0.015, Cu: 0.015, B: 0.005, Mo: 0.001, Mg: 0.0199, S: 0.03 },
     nota: 'Compo Expert. Todos los micros EDTA en 1 producto. Se consigue en AR (1 y 5 kg). Etiqueta: Fe4·Mn4·Zn1.5·Cu1.5·B0.5·Mo0.1·MgO3.3·S3.',
     descripcion: 'Micromix profesional: reemplaza pesar 6 micros por separado. Metales 100% quelatados con EDTA. Ideal para arrancar una fórmula sin comprar cada quelato suelto.' },
-  { id: 'afital_micromix', nombre: 'Afital Micromix (EDTA) — aprox', bidon: 'C',
-    comp: { Fe: 0.04, Zn: 0.04, Mn: 0.03, Cu: 0.005, B: 0.015, Mo: 0.0005, Mg: 0.012, S: 0.026 },
-    nota: 'Arriazu Agro. Micros EDTA. % APROXIMADOS según ficha — confirmar con la etiqueta real (pasá foto y lo ajusto).',
-    descripcion: 'Micromix alternativo (línea Afital, distribuidor Arriazu). Composición aproximada; verificar en la bolsa.' },
+  { id: 'afital_micromix', nombre: 'Afital Micromix (micromix)', bidon: 'C',
+    comp: { Fe: 0.04, Mn: 0.03, Zn: 0.04, B: 0.015, Cu: 0.006, Mo: 0.0005, Mg: 0.00724 },
+    nota: 'Etiqueta VERIFICADA: Fe4·Mn3·Zn4·B1.5·Cu0.6·Mo0.05·MgO1.2 (Mg 0.72%). Presentaciones 100g/1kg/5kg. Cargado a Zn/Mn (Zn ratio 100 vs 35 ideal, Fe-pobre relativo → completar Fe aparte con Fe-EDDHA).',
+    descripcion: 'Micromix completo (Fe, Mn, Zn, B, Cu, Mo + algo de Mg). Reemplaza pesar 6 micros por separado. OJO: es Zn/Mn-dominante y pobre en Fe relativo — si al clonar falta hierro, sumá Fe-EDDHA o Fe-DTPA por separado para llegar al ratio Fe-dominante que quiere el cannabis.' },
 
   // --- Compuestas ---
   { id: 'masterblend', nombre: 'Masterblend 4-18-38', bidon: 'B',
