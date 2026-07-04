@@ -302,6 +302,16 @@ export const SALES_DEFECTO: Sal[] = [
     descripcion: 'Aporta hormonas naturales (auxinas, citoquininas, giberelinas) + micros traza + anti-estrés. Es la parte "hormonas y fitorreguladores" del elicitor. Dosis foliar ~2,5–4 mL/L (foros). Ej: Plagron Alga, Ascophyllum nodosum.' },
   { id: 'vit_b_complejo', nombre: 'Complejo vitamina B (B1)', formula: 'vit B', bidon: 'C', aditivo: true, comp: {},
     descripcion: 'Cofactor anti-estrés (tiamina B1 + complejo). Es la parte "vitaminas grupo B" del elicitor tipo Phitonat. Unas gotas/L de complejo B de farmacia. NO es nutriente mineral.' },
+  { id: 'aminoacidos', nombre: 'Aminoácidos (L-aminoácidos)', formula: 'aminoácidos', bidon: 'C', aditivo: true, comp: {},
+    descripcion: 'Bioestimulante: L-aminoácidos libres (hidrólisis enzimática). Mejora fotosíntesis, recuperación de estrés y absorción de nutrientes; quela micros. Dosis foliar/riego ~0,5–1 g/L. Materia prima pura en Pura Química (x kg). Sustituto de la "proteína de leche" de boosters como Green Sensation.' },
+  { id: 'humico_fulvico', nombre: 'Ácido húmico/fúlvico (leonardita)', formula: 'leonardita', bidon: 'C', aditivo: true, comp: {},
+    descripcion: 'Acondicionador de sustrato y potenciador de absorción. NO es nutriente por sí mismo. Mejora la CIC, quela nutrientes y estimula raíces. Dosis riego ~0,5–1 g/L (polvo) o según etiqueta si es líquido. Fuente: leonardita (Jardinero Correntino, AstroGrow, bolsa 25 kg).' },
+  { id: 'aloe_vera', nombre: 'Aloe vera (gel/jugo)', formula: 'aloe', bidon: 'C', aditivo: true, comp: {},
+    descripcion: 'Bioestimulante natural: enzimas (amilasa, cellulasa, catalasa), salicílico natural, saponinas (mojante) y azúcares simples. Estimula raíces y protege. Dosis: 1 filete de hoja licuado por ~4 L, o 1 mL/L de jugo. Aplicar recién hecho.' },
+  { id: 'agua_coco', nombre: 'Agua de coco', formula: 'agua de coco', bidon: 'C', aditivo: true, comp: {},
+    descripcion: 'Bioestimulante: rica en citoquininas (hormona de división celular). Más sitios de cogollo y entrenudos cortos. Dosis ~15 mL/L en veg/estiramiento. Usar natural, sin azúcar agregada.' },
+  { id: 'sst', nombre: 'SST — Té de semillas germinadas', formula: 'SST', bidon: 'C', aditivo: true, comp: {},
+    descripcion: 'Enzima + bioestimulante DIY todo en uno. Semillas germinadas (cebada=amilasa/enzimas, maíz=giberelinas, lentejas=auxinas) licuadas y coladas. Diluir ~1:20 en el riego y aplicar DENTRO DE LA HORA (las enzimas se degradan). El bioestimulante casero más potente y barato.' },
 
   // --- Jacks 321 (JR Peters) — sistema de 3 sales ---
   { id: 'jacks_a', nombre: 'Jacks 5-12-26 (Parte A)', bidon: 'B',

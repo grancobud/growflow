@@ -30,7 +30,7 @@ interface CalcTabProps {
 }
 type CostoResultado = { porLitro: number; detalle: { sal: Sal; costo: number }[] }
 
-type SubTab = 'calc' | 'clonar' | 'sustancias' | 'proveedores' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar' | 'conversor' | 'enraizado' | 'elicitor' | 'ayuda'
+type SubTab = 'calc' | 'clonar' | 'sustancias' | 'proveedores' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar' | 'conversor' | 'enraizado' | 'elicitor' | 'bioestim' | 'ayuda'
 
 const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
   { id: 'calc', label: 'Calculadora', icon: Calculator },
@@ -46,6 +46,7 @@ const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
   { id: 'conversor', label: 'Conversor', icon: Repeat },
   { id: 'enraizado', label: 'Gel de enraizado', icon: Sprout },
   { id: 'elicitor', label: 'Elicitor DIY', icon: Sparkles },
+  { id: 'bioestim', label: 'Bioestimulantes DIY', icon: Beaker },
   { id: 'ayuda', label: 'Ayuda / Guía', icon: HelpCircle },
 ]
 
@@ -241,6 +242,9 @@ export default function CreadorNutrientes() {
       )}
       {sub === 'elicitor' && (
         <ElicitorTab />
+      )}
+      {sub === 'bioestim' && (
+        <BioestimulantesTab />
       )}
       {sub === 'ayuda' && (
         <AyudaTab irA={setSub} />
@@ -1363,6 +1367,102 @@ function ElicitorTab() {
           ))}
         </ul>
         <p className="text-[10px] text-[#5c5c6b] mt-3">Dosis de estudios en Cannabis sativa/hemp (quitosano 50–250 mg/L, salicílico ~200 µM) + recetas de foros (kelp/fúlvico/vit B). Insumos cargados en Sustancias.</p>
+      </div>
+    </div>
+  )
+}
+
+// ===================== BIOESTIMULANTES DIY (enzimas + hormonas para el riego) =====================
+const BIOESTIM_RECETAS: { icon: typeof Beaker; nombre: string; que: string; ingredientes: string[]; dosis: string; cuando: string; tip: string }[] = [
+  {
+    icon: Sprout, nombre: 'SST — Té de semillas germinadas ⭐', que: 'Enzimas + hormonas naturales en uno. El bioestimulante DIY más potente y barato.',
+    ingredientes: ['¼ taza de semillas: cebada (enzimas/amilasa), maíz (giberelinas) o lentejas (auxinas)', 'Agua sin cloro'],
+    dosis: 'Germiná las semillas 2–3 días (hasta que saquen colita). Licuá con agua, colá. Diluí ~1:20 en el riego.',
+    cuando: 'Cada 10–15 días. Cebada en general, maíz en estiramiento, lentejas para raíces.',
+    tip: 'Aplicalo DENTRO DE LA HORA de hacerlo — las enzimas y hormonas se degradan rápido.',
+  },
+  {
+    icon: Droplets, nombre: 'Aloe vera', que: 'Enzimas (amilasa, cellulasa, catalasa), salicílico natural, saponinas (mojante) y azúcares.',
+    ingredientes: ['1 filete de hoja de aloe (gel)', 'o 1 mL/L de jugo de aloe', 'Agua sin cloro'],
+    dosis: '1 filete licuado por ~4 L de agua, o 1 mL/L de jugo. Colá bien.',
+    cuando: 'Rutina, veg y flora temprana. Foliar o riego.',
+    tip: 'Recién hecho. La saponina hace de mojante natural en foliares (no necesitás surfactante).',
+  },
+  {
+    icon: Beaker, nombre: 'Agua de coco', que: 'Citoquininas (hormona de división celular): más sitios de cogollo, entrenudos cortos.',
+    ingredientes: ['Agua de coco natural (sin azúcar agregada)', 'Agua de riego'],
+    dosis: '15 mL/L de riego.',
+    cuando: 'Vegetativo y estiramiento (transición a flora).',
+    tip: 'Que sea 100% agua de coco, no "bebida" con azúcar (la azúcar alimenta hongos en el tanque).',
+  },
+  {
+    icon: FlaskConical, nombre: 'Té de humus / lombricompuesto', que: 'Microbiología viva (bacterias y hongos benéficos) para la rizósfera.',
+    ingredientes: ['1–2 tazas de humus de lombriz', 'Agua sin cloro', 'Burbujeador de acuario', 'Opcional: pizca de melaza (comida de microbios)'],
+    dosis: 'Humus en una media/bolsa dentro del agua, burbujeá 24–48 h. Usá el té sin diluir o 1:5.',
+    cuando: 'Living soil / tierra. En coco/hidro usar con cuidado.',
+    tip: 'Usalo apenas termina de burbujear (microbios vivos). No lo guardes.',
+  },
+  {
+    icon: ShieldCheck, nombre: 'Eco-enzima (fermentada)', que: 'Limpieza de sales/orgánico + microbios. Más para limpiar que para nutrir.',
+    ingredientes: ['1 parte melaza', '3 partes restos de fruta/verdura', '10 partes agua'],
+    dosis: 'Fermentar 3 meses en oscuridad (largar gases 1 vez/semana). Lista cuando huele a vinagre. Colar. Diluir mucho (~1:100).',
+    cuando: 'Tierra/living soil. Preventivo de sales.',
+    tip: 'En coco/hidro cuidado: puede armar biofilm. Mejor SST o aloe.',
+  },
+]
+function BioestimulantesTab() {
+  return (
+    <div className="space-y-4">
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-1">
+          <Beaker className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Bioestimulantes DIY — enzimas y hormonas para el riego</h3>
+          <Info><b className="text-[#d9f99d]">Extras de vigor y salud radicular</b> que hacés vos y agregás al riego. NO son nutrientes (no van en la receta de ppm): estimulan raíces, limpian sales y suman biología.<br /><span className="text-[#a3e635]">El SST (té de semillas) es el más potente y barato.</span></Info>
+        </div>
+        <p className="text-[11px] text-[#a6a6b5]">Materias primas en <b className="text-[#d9f99d]">Pura Química</b> (aminoácidos, vitaminas) y growshops (leonardita/húmico-fúlvico), o directo de cocina (semillas, aloe, agua de coco). Todos cargados en <b>Sustancias</b>.</p>
+      </div>
+
+      {BIOESTIM_RECETAS.map((r, i) => {
+        const Icon = r.icon
+        return (
+          <div key={i} className={card}>
+            <div className="flex items-center gap-2 mb-2">
+              <Icon className="w-4 h-4 text-[#a78bfa]" strokeWidth={1.8} />
+              <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">{r.nombre}</h3>
+            </div>
+            <p className="text-[11.5px] text-[#c4c4d0] mb-2">{r.que}</p>
+            <div className="grid sm:grid-cols-2 gap-2 mb-2">
+              <div className="rounded-lg bg-[#101016] border border-[#1f1f2b] p-2.5">
+                <p className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1">Ingredientes</p>
+                <ul className="space-y-0.5">
+                  {r.ingredientes.map((ing, j) => <li key={j} className="text-[11px] text-[#d4d4dd] flex gap-1.5"><span className="text-[#a3e635]">·</span>{ing}</li>)}
+                </ul>
+              </div>
+              <div className="rounded-lg bg-[#101016] border border-[#1f1f2b] p-2.5">
+                <p className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1">Preparación y dosis</p>
+                <p className="text-[11px] text-[#d4d4dd]">{r.dosis}</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2 text-[10.5px]">
+              <span className="px-2 py-1 rounded bg-[#15151d] border border-[#1f1f2b] text-[#a6a6b5]">🗓️ {r.cuando}</span>
+              <span className="px-2 py-1 rounded bg-[#facc15]/10 text-[#facc15]">💡 {r.tip}</span>
+            </div>
+          </div>
+        )
+      })}
+
+      {/* Advertencias */}
+      <div className={`${card} border-[#facc15]/25`}>
+        <div className="flex items-center gap-2 mb-2">
+          <AlertTriangle className="w-4 h-4 text-[#facc15]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Reglas de oro</h3>
+        </div>
+        <ul className="space-y-1.5 text-[11px] text-[#a6a6b5]">
+          <li className="flex gap-2"><span className="text-[#facc15]">•</span><span><b className="text-[#d9f99d]">NO mezcles bio vivo con HOCl/H₂O₂:</b> el sanitizante (Cleanse) mata enzimas y microbios. Elegí: sistema estéril con HOCl <b>o</b> biología viva, nunca juntos.</span></li>
+          <li className="flex gap-2"><span className="text-[#facc15]">•</span><span><b className="text-[#d9f99d]">No mezcles melaza con tus sales minerales</b> en el mismo tanque → bloqueo de nutrientes y sludge. Va aparte.</span></li>
+          <li className="flex gap-2"><span className="text-[#facc15]">•</span><span><b className="text-[#d9f99d]">En coco/hidro, cuidado con fermentos:</b> pueden armar biofilm/moho en el tanque. Los más seguros son SST, aloe y agua de coco.</span></li>
+          <li className="flex gap-2"><span className="text-[#facc15]">•</span><span><b className="text-[#d9f99d]">Aplicá recién hecho:</b> enzimas y hormonas se degradan en horas. No guardes SST ni tés.</span></li>
+        </ul>
       </div>
     </div>
   )
