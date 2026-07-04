@@ -253,6 +253,8 @@ export const SALES_DEFECTO: Sal[] = [
     descripcion: 'Comercial Ryanodine: finalizador 0-15-25 en polvo. Cero N. Uso: 0.91 g/L + 4 ml/L de Mikro, pH 6.0-6.4, últimas 2-3 semanas. Trae Ca y S altos.' },
   { id: 'ryano_radics', nombre: 'Ryanodine Radics / Mini-Radics (enraizante)', formula: 'IBA 0.31%', bidon: 'C', aditivo: true, comp: {},
     descripcion: 'Hormona de enraizado en gel: ácido indol-3-butírico (IBA) 0.31% + excipientes. NO es nutriente. Untar la base del clon 3-5 cm e introducir en el sustrato. Un solo uso, descartar el sobrante. Refrigerar 2-9°C. Rinde +25 clones (7 g).' },
+  { id: 'iba', nombre: 'Ácido indol-3-butírico (IBA)', formula: 'C12H13NO2', bidon: 'C', aditivo: true, comp: {},
+    descripcion: 'Auxina pura (materia prima) para enraizar clones/esquejes. NO es nutriente. Se usa en dosis muy bajas: gel/polvo comercial ~0.1–0.3% (ej. Radics 0.31%). Para hacerlo propio: disolver en un poco de alcohol/NaOH y llevar a agua. Guardar al reparo de la luz. Con esta materia prima cargá los proveedores (ej. Química Córdoba).' },
 
   // --- Advanced Nutrients Sensi Professional Grow (polvo, discontinuado) ---
   { id: 'an_sensi_grow_a', nombre: 'AN Sensi Pro Grow A (9-10-28)', bidon: 'B',

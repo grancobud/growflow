@@ -1125,12 +1125,12 @@ function BotellasGrid({ concentrados, resolucion }: { concentrados: BidonConcent
 // ===================== PROVEEDORES =====================
 // Opciones de presentación: el precio se carga por la bolsa como viene, y calculamos el $/kg.
 const UNIDADES_PROV: { v: string; l: string }[] = [
-  { v: '100g', l: 'por 100 g' }, { v: '500g', l: 'por 500 g' }, { v: '1kg', l: 'por 1 kg' },
+  { v: 'g', l: 'por gramo' }, { v: '25g', l: 'por 25 g' }, { v: '100g', l: 'por 100 g' }, { v: '500g', l: 'por 500 g' }, { v: '1kg', l: 'por 1 kg' },
   { v: '2kg', l: 'por 2 kg' }, { v: '5kg', l: 'por 5 kg' }, { v: '10kg', l: 'por 10 kg' },
   { v: '20kg', l: 'por 20 kg' }, { v: '25kg', l: 'por 25 kg' }, { v: 'kg', l: 'por kg (directo)' },
   { v: 'unidad', l: 'por unidad/bolsa' }, { v: 'L', l: 'por litro' },
 ]
-const KG_UNIDAD: Record<string, number> = { g: 0.001, '100g': 0.1, '500g': 0.5, kg: 1, '1kg': 1, '2kg': 2, '5kg': 5, '10kg': 10, '20kg': 20, '25kg': 25 }
+const KG_UNIDAD: Record<string, number> = { g: 0.001, '25g': 0.025, '100g': 0.1, '500g': 0.5, kg: 1, '1kg': 1, '2kg': 2, '5kg': 5, '10kg': 10, '20kg': 20, '25kg': 25 }
 const PROVINCIAS_AR = ['Buenos Aires', 'CABA', 'Catamarca', 'Chaco', 'Chubut', 'Córdoba', 'Corrientes', 'Entre Ríos', 'Formosa', 'Jujuy', 'La Pampa', 'La Rioja', 'Mendoza', 'Misiones', 'Neuquén', 'Río Negro', 'Salta', 'San Juan', 'San Luis', 'Santa Cruz', 'Santa Fe', 'Santiago del Estero', 'Tierra del Fuego', 'Tucumán', 'Online / Nacional']
 /** Precio por kg a partir del precio de la bolsa y su tamaño. null si la unidad no es de peso. */
 function precioPorKg(precio?: number | null, unidad?: string | null): number | null {
