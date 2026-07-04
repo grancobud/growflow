@@ -9,7 +9,7 @@ import {
   SALES_DEFECTO, ELEMENTOS, PRESETS, calcularReceta, ecAprox, nTotal,
   calcularConcentrados, calcularRatios, calcularCosto, calcularBalanceIonico, calcularStocksMicros,
   redondearBalanza, AGENTES_PH, calcularAjustePH, oxidoAElemental, OXIDOS,
-  recomendarEstabilizantes, esComercial, marcaDe, perfilDesdeProducto, categoriaSal, KITS_SALES, kitParaPerfil, opcionesDeMarca, DOSIS_REC, usosDeSal,
+  recomendarEstabilizantes, esComercial, marcaDe, perfilDesdeProducto, categoriaSal, KITS_SALES, kitParaPerfil, opcionesDeMarca, DOSIS_REC, usosDeSal, compararMicros,
   CONV_OXIDO, PESO_EQ, ppmAmeq, meqAppm,
   necesitaSepararAB, bidonDeSal,
   perfilesNutrientesService, sustanciasService, inventarioService, aplicarInventario, proveedoresService, type Proveedor,
@@ -529,6 +529,9 @@ function CalcTab(p: CalcTabProps) {
         </div>
       </div>
 
+      {/* Micros: 2 formas de armarlos (sueltos vs micromix + refuerzo Fe) */}
+      <PanelMicros2 perfil={perfil} salesTodas={salesTodas} litros={litros} resolucion={resolucion} />
+
       {/* Solución stock: micros impesables → pesar grande + dosificar por mL */}
       {(() => {
         const stocks = calcularStocksMicros(res.dosis, resolucion)
@@ -992,6 +995,88 @@ function ConcentradosTab({ factor, setFactor, volBidon, setVolBidon, resolucion,
         Regla de oro: al tanque final echá primero el bidón A (calcio), agitá, después el B. Nunca juntes A y B concentrados.
         Para tener tus clones acá, guardalos con un nombre en la pestaña Calculadora.
       </p>
+    </div>
+  )
+}
+
+// ===================== MICROS: 2 FORMAS (sueltos vs micromix + refuerzo Fe) =====================
+const MICRO_LABELS: [ElementKey, string][] = [['Fe', 'Hierro'], ['Mn', 'Manganeso'], ['Zn', 'Zinc'], ['B', 'Boro'], ['Cu', 'Cobre'], ['Mo', 'Molibdeno']]
+function fmtG(n: number, litros: number, resolucion: number): string {
+  const g0 = resolucion > 0 ? redondearBalanza(n, resolucion) : n
+  const g = g0 * litros
+  return g >= 0.01 ? g.toFixed(2) : g >= 0.001 ? g.toFixed(4) : g.toFixed(6)
+}
+function ColMicros({ titulo, sub, dosis, litros, resolucion, acento }: { titulo: string; sub: string; dosis: ResultadoSal[]; litros: number; resolucion: number; acento: string }) {
+  return (
+    <div className="flex-1 min-w-0 rounded-lg bg-[#101016] border border-[#1f1f2b] p-3">
+      <p className="text-[11px] font-semibold mb-0.5" style={{ color: acento }}>{titulo}</p>
+      <p className="text-[10px] text-[#5c5c6b] mb-2">{sub}</p>
+      {dosis.length === 0 ? (
+        <p className="text-[10.5px] text-[#5c5c6b] py-2">Sin micros en este perfil.</p>
+      ) : (
+        <div className="space-y-1">
+          {dosis.map(d => (
+            <div key={d.sal.id} className="flex items-center gap-2 bg-[#15151d] border border-[#1f1f2b] rounded-md px-2.5 py-1.5">
+              <span className="text-[11px] text-[#d4d4dd] flex-1 min-w-0 truncate">{d.sal.nombre}</span>
+              <span className="text-[11.5px] font-mono tabular-nums font-bold text-[#ececf1]">{fmtG(d.gramosPorL, litros, resolucion)} <span className="text-[#5c5c6b] font-normal">{litros === 1 ? 'g/L' : 'g'}</span></span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+function PanelMicros2({ perfil, salesTodas, litros, resolucion }: { perfil: Perfil; salesTodas: Sal[]; litros: number; resolucion: number }) {
+  const cmp = useMemo(() => compararMicros(perfil, salesTodas), [perfil, salesTodas])
+  const micros = MICRO_LABELS.filter(([k]) => (cmp.microPerfil[k] ?? 0) > 0)
+  if (micros.length === 0) return null
+  const estado = (obj: number, log: number) => {
+    const r = log / obj
+    if (r < 0.85) return { c: '#f87171', t: 'falta' }
+    if (r > 1.2) return { c: '#facc15', t: 'sobra' }
+    return { c: '#a3e635', t: 'ok' }
+  }
+  return (
+    <div className={card}>
+      <div className="flex items-center gap-2 mb-1">
+        <FlaskRound className="w-4 h-4 text-[#a78bfa]" strokeWidth={1.8} />
+        <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Micros: dos formas de armarlos</h3>
+        <Info><b className="text-[#d9f99d]">Mismo objetivo, dos caminos.</b> Sales sueltas = cada quelato por separado (clon exacto). Micromix = Fetrilon Combi 2 + Fe-HBED para reforzar el hierro.<br /><span className="text-[#a3e635]">El micromix es más práctico pero como sus ratios son fijos, mirá abajo qué micro queda corto o sobra.</span></Info>
+      </div>
+      <div className="flex flex-col sm:flex-row gap-2 mb-3">
+        <ColMicros titulo="A · Sales sueltas" sub="cada quelato individual — clon exacto" dosis={cmp.sueltos} litros={litros} resolucion={resolucion} acento="#a3e635" />
+        <ColMicros titulo="B · Micromix + refuerzo Fe" sub="Fetrilon Combi 2 + Fe-HBED (el hierro que falta)" dosis={cmp.micromix} litros={litros} resolucion={resolucion} acento="#7dd3fc" />
+      </div>
+      {/* Tabla ppm objetivo vs logrado en cada variante */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-[11px] border-collapse">
+          <thead>
+            <tr className="text-[#5c5c6b] text-[10px] uppercase tracking-[0.1em]">
+              <th className="text-left font-medium py-1">Micro</th>
+              <th className="text-right font-medium py-1">Objetivo</th>
+              <th className="text-right font-medium py-1 text-[#a3e635]">A · sueltos</th>
+              <th className="text-right font-medium py-1 text-[#7dd3fc]">B · micromix</th>
+            </tr>
+          </thead>
+          <tbody>
+            {micros.map(([k, nombre]) => {
+              const obj = cmp.microPerfil[k] ?? 0
+              const a = cmp.ppmSueltos[k] ?? 0
+              const b = cmp.ppmMicromix[k] ?? 0
+              const eb = estado(obj, b)
+              return (
+                <tr key={k} className="border-t border-[#1f1f2b]">
+                  <td className="py-1 text-[#d4d4dd]">{nombre} <span className="text-[#5c5c6b]">({k})</span></td>
+                  <td className="py-1 text-right font-mono text-[#a6a6b5]">{obj.toFixed(2)}</td>
+                  <td className="py-1 text-right font-mono text-[#d9f99d]">{a.toFixed(2)}</td>
+                  <td className="py-1 text-right font-mono" style={{ color: eb.c }}>{b.toFixed(2)} <span className="text-[9px]">{eb.t}</span></td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-[10px] text-[#5c5c6b] mt-2">La columna B usa el solver para repartir Fetrilon + Fe-HBED. Si un micro queda <span className="text-[#f87171]">falta</span>/<span className="text-[#facc15]">sobra</span>, es por los ratios fijos del micromix — el hierro se completa con Fe-HBED (el más estable, pH 3.5–12).</p>
     </div>
   )
 }

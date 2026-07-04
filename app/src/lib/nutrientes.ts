@@ -439,6 +439,24 @@ export function kitParaPerfil(p: Perfil, opts: OpcionesKit = {}): string[] {
   return [...kit]
 }
 
+/** Compara cómo cubrir los MICROS de un perfil de dos formas, con el mismo solver:
+ *  1) sueltos: cada quelato individual (Fe-HBED + Mn/Zn/Cu-EDTA + ácido bórico + molibdato)
+ *  2) micromix: Fetrilon Combi 2 + refuerzo de Fe-HBED (el solver reparte los gramos)
+ *  Devuelve las dosis (g/L) y el ppm logrado de cada micro en cada variante. */
+export function compararMicros(perfil: Perfil, salesTodas: Sal[]): {
+  microPerfil: Perfil
+  sueltos: ResultadoSal[]; ppmSueltos: Perfil
+  micromix: ResultadoSal[]; ppmMicromix: Perfil
+} {
+  const MICROS: ElementKey[] = ['Fe', 'Mn', 'Zn', 'B', 'Cu', 'Mo']
+  const microPerfil: Perfil = {}
+  for (const k of MICROS) if ((perfil[k] ?? 0) > 0) microPerfil[k] = perfil[k]
+  const pick = (ids: string[]) => ids.map(id => salesTodas.find(s => s.id === id)).filter(Boolean) as Sal[]
+  const suel = calcularReceta(microPerfil, pick(['fehbed', 'mnedta', 'znedta', 'cuedta', 'boric', 'namolib']))
+  const mmx = calcularReceta(microPerfil, pick(['fetrilon_combi2', 'fehbed']))
+  return { microPerfil, sueltos: suel.dosis, ppmSueltos: suel.ppmLogrado, micromix: mmx.dosis, ppmMicromix: mmx.ppmLogrado }
+}
+
 /** Genera el perfil ppm objetivo de un producto a una dosis (g/L de producto). */
 export function perfilDesdeProducto(sal: Sal, doseGL: number): Perfil {
   const out: Perfil = {}
