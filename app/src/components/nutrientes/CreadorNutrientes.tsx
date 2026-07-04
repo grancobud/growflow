@@ -1136,15 +1136,56 @@ function EnraizadoTab() {
 type CompatNivel = 'ok' | 'warn' | 'bad'
 const _hasEl = (s: Sal, k: string) => ((s.comp as Record<string, number>)?.[k] ?? 0) > 0
 const _esCarbonato = (s: Sal) => /hco3|caco3|carbon|bicarb/i.test(s.id)
+
+// Categorías de la tabla profesional de compatibilidad de fertilizantes (IPNI / fertirriego).
+type CatFert = 'urea' | 'nitrato_amonio' | 'sulfato_amonio' | 'nitrato_calcio' | 'nitrato_magnesio' | 'map' | 'mkp' | 'nitrato_potasio' | 'sulfato_potasio' | 'cloruro_potasio' | 'acido_fosforico' | 'acido_nitrico' | 'acido_sulfurico' | 'sulfatos_micros' | 'quelatos' | 'sulfato_magnesio'
+function catFertDe(s: Sal): CatFert | null {
+  const id = s.id
+  if (/edta|eddha|dtpa|hbed/i.test(id) || id === 'fetrilon_combi2' || id === 'afital_micromix') return 'quelatos'
+  const m: Record<string, CatFert> = {
+    urea: 'urea', nh4no3: 'nitrato_amonio', amsulf: 'sulfato_amonio', cano3_ag: 'nitrato_calcio',
+    mgno3: 'nitrato_magnesio', map: 'map', mkp: 'mkp', kno3: 'nitrato_potasio', k2so4: 'sulfato_potasio',
+    kcl: 'cloruro_potasio', epsom: 'sulfato_magnesio', mnso4: 'sulfatos_micros', znso4: 'sulfatos_micros',
+    cuso4: 'sulfatos_micros', feso4: 'sulfatos_micros', acido_fosforico: 'acido_fosforico',
+    acido_nitrico: 'acido_nitrico', acido_sulfurico: 'acido_sulfurico',
+  }
+  return m[id] ?? null
+}
+// Excepciones de la tabla profesional (lo NO compatible). Todo par no listado y con ambas categorías = compatible.
+const _keyCat = (a: string, b: string) => [a, b].sort().join('|')
+const _pIncompat: [CatFert, CatFert][] = [
+  ['sulfato_amonio', 'urea'], ['nitrato_calcio', 'sulfato_amonio'], ['map', 'nitrato_calcio'], ['map', 'nitrato_magnesio'],
+  ['mkp', 'nitrato_calcio'], ['mkp', 'nitrato_magnesio'], ['cloruro_potasio', 'nitrato_calcio'], ['acido_fosforico', 'nitrato_calcio'],
+  ['acido_sulfurico', 'sulfato_amonio'], ['acido_sulfurico', 'nitrato_calcio'], ['acido_sulfurico', 'nitrato_magnesio'],
+  ['sulfatos_micros', 'nitrato_calcio'], ['quelatos', 'acido_nitrico'],
+]
+const _pReduce: [CatFert, CatFert][] = [
+  ['nitrato_potasio', 'sulfato_amonio'], ['cloruro_potasio', 'sulfato_potasio'], ['acido_sulfurico', 'sulfato_potasio'],
+  ['sulfatos_micros', 'sulfato_potasio'], ['quelatos', 'sulfato_amonio'], ['quelatos', 'nitrato_calcio'],
+  ['quelatos', 'nitrato_magnesio'], ['quelatos', 'acido_fosforico'], ['sulfato_magnesio', 'sulfato_potasio'],
+]
+const MATRIZ_PRO = new Map<string, 'R' | 'I'>()
+_pIncompat.forEach(([a, b]) => MATRIZ_PRO.set(_keyCat(a, b), 'I'))
+_pReduce.forEach(([a, b]) => MATRIZ_PRO.set(_keyCat(a, b), 'R'))
+
 function compatPar(a: Sal, b: Sal): { nivel: CompatNivel; motivo: string } {
   const caA = _hasEl(a, 'Ca'), caB = _hasEl(b, 'Ca')
   const sA = _hasEl(a, 'S'), sB = _hasEl(b, 'S')
   const pA = _hasEl(a, 'P'), pB = _hasEl(b, 'P')
   const mgA = _hasEl(a, 'Mg'), mgB = _hasEl(b, 'Mg')
+  // 1) Reglas químicas duras del CONCENTRADO (mandan: el stock precipita aunque en riego diluido no).
   if ((caA && _esCarbonato(b)) || (caB && _esCarbonato(a))) return { nivel: 'bad', motivo: 'Calcio + carbonato/bicarbonato → precipita carbonato de calcio (CaCO₃, blanco).' }
-  if ((caA && sB) || (caB && sA)) return { nivel: 'bad', motivo: 'Calcio + sulfato → precipita yeso (CaSO₄). Van en bidones separados (A y B).' }
+  if ((caA && sB) || (caB && sA)) return { nivel: 'bad', motivo: 'Calcio + sulfato → precipita yeso (CaSO₄) en concentrado. Van en bidones separados (A y B).' }
   if ((caA && pB) || (caB && pA)) return { nivel: 'bad', motivo: 'Calcio + fosfato → precipita fosfato de calcio. Separá en A y B.' }
   if ((mgA && pB) || (mgB && pA)) return { nivel: 'warn', motivo: 'Magnesio + fosfato → puede precipitar fosfato de Mg a pH alto. Mantené el concentrado a pH < 6.' }
+  // 2) Tabla profesional de fertirriego (IPNI): agrega pares que la química de arriba no cubre.
+  const ca = catFertDe(a), cb = catFertDe(b)
+  if (ca && cb && ca !== cb) {
+    const st = MATRIZ_PRO.get(_keyCat(ca, cb))
+    if (st === 'I') return { nivel: 'bad', motivo: 'Incompatible (tabla profesional de fertirriego): precipitan o reaccionan. Van en tanques separados.' }
+    if (st === 'R') return { nivel: 'warn', motivo: 'Reduce la solubilidad (tabla profesional): se pueden mezclar pero baja cuánto se disuelve (posible turbidez). Mejor separadas o más diluidas.' }
+    return { nivel: 'ok', motivo: 'Compatibles (tabla profesional de fertirriego): se pueden concentrar en la misma botella.' }
+  }
   return { nivel: 'ok', motivo: 'Compatibles: se pueden concentrar en la misma botella.' }
 }
 const COMPAT_UI: Record<CompatNivel, { bg: string; em: string }> = {
@@ -1197,9 +1238,10 @@ function MatrizCompatibilidad({ sales }: { sales: Sal[] }) {
       </div>
       <div className="flex flex-wrap gap-3 mt-3 text-[10.5px] text-[#a6a6b5]">
         <span>🟢 Compatibles</span>
-        <span>🟡 Cuidado (pH / condicional)</span>
-        <span>🔴 Precipita — separá en bidones</span>
+        <span>🟡 Reduce solubilidad / cuidado de pH</span>
+        <span>🔴 Incompatible — separá en bidones</span>
       </div>
+      <p className="text-[10px] text-[#5c5c6b] mt-1">Basada en la tabla profesional de compatibilidad de fertirriego (IPNI) + las reglas del concentrado (Ca no va con sulfatos/fosfatos/carbonatos en stock).</p>
     </div>
   )
 }
