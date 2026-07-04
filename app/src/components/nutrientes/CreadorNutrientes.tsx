@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   FlaskConical, Beaker, Droplets, ChevronDown, Sparkles, AlertTriangle,
   Save, FolderOpen, Trash2, Calculator, FlaskRound, Layers, Scale, Plus, DollarSign,
-  Droplet, GitCompare, Package, ShieldCheck, Copy, HelpCircle, BookOpen, Lightbulb, Printer, Store, Phone, Globe, Upload, Star, X, Mail, MapPin, Repeat,
+  Droplet, GitCompare, Package, ShieldCheck, Copy, HelpCircle, BookOpen, Lightbulb, Printer, Store, Phone, Globe, Upload, Star, X, Mail, MapPin, Repeat, Sprout,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -30,7 +30,7 @@ interface CalcTabProps {
 }
 type CostoResultado = { porLitro: number; detalle: { sal: Sal; costo: number }[] }
 
-type SubTab = 'calc' | 'clonar' | 'sustancias' | 'proveedores' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar' | 'conversor' | 'ayuda'
+type SubTab = 'calc' | 'clonar' | 'sustancias' | 'proveedores' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar' | 'conversor' | 'enraizado' | 'ayuda'
 
 const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
   { id: 'calc', label: 'Calculadora', icon: Calculator },
@@ -44,6 +44,7 @@ const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
   { id: 'comparar', label: 'Comparar', icon: GitCompare },
   { id: 'ratios', label: 'Ratios y costo', icon: Scale },
   { id: 'conversor', label: 'Conversor', icon: Repeat },
+  { id: 'enraizado', label: 'Gel de enraizado', icon: Sprout },
   { id: 'ayuda', label: 'Ayuda / Guía', icon: HelpCircle },
 ]
 
@@ -233,6 +234,9 @@ export default function CreadorNutrientes() {
       )}
       {sub === 'conversor' && (
         <ConversorTab />
+      )}
+      {sub === 'enraizado' && (
+        <EnraizadoTab />
       )}
       {sub === 'ayuda' && (
         <AyudaTab irA={setSub} />
@@ -988,6 +992,140 @@ function ConcentradosTab({ factor, setFactor, volBidon, setVolBidon, resolucion,
         Regla de oro: al tanque final echá primero el bidón A (calcio), agitá, después el B. Nunca juntes A y B concentrados.
         Para tener tus clones acá, guardalos con un nombre en la pestaña Calculadora.
       </p>
+    </div>
+  )
+}
+
+// Fila de ingrediente para el gel de enraizado (a nivel módulo: no recrear en cada render)
+function FilaIngrediente({ nombre, cant, unidad, pct, nota }: { nombre: string; cant: string; unidad: string; pct?: string; nota?: string }) {
+  return (
+    <div className="flex items-center gap-2 bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2">
+      <div className="flex-1 min-w-0">
+        <p className="text-[12px] text-[#d4d4dd] truncate">{nombre}</p>
+        {nota && <p className="text-[10px] text-[#757584] truncate">{nota}</p>}
+      </div>
+      {pct && <span className="text-[10px] text-[#5c5c6b] tabular-nums">{pct}</span>}
+      <span className="text-[13px] font-mono tabular-nums font-bold text-[#bef264] whitespace-nowrap">{cant} {unidad}</span>
+    </div>
+  )
+}
+
+// ===================== GEL DE ENRAIZADO (clon de Radics / Clonex) =====================
+// Fórmula fiel al MSDS de Clonex/Radics: HEC 1.2% + IBA 0.31% + agua destilada, pH ~6, base alcohólica.
+// Todo escala linealmente con el lote. Pasos y tips tomados de foros (Rollitup) + MSDS Clonex.
+function EnraizadoTab() {
+  const [lote, setLote] = useState(250)   // gramos de gel a preparar
+  const [conNaa, setConNaa] = useState(false)  // sumar NAA (NO es fiel a Radics; refuerza rooteo)
+
+  const g = lote
+  const iba = +(g * 0.0031).toFixed(3)          // 0.31 %
+  const hec = +(g * 0.012).toFixed(2)           // 1.2 %
+  const alcohol = Math.max(5, Math.round(g * 0.05)) // ~5% del volumen para disolver el IBA
+  const agua = +(g - hec - iba).toFixed(1)      // resto (aprox, el alcohol se evapora/integra)
+  const naa = +(g * 0.0015).toFixed(3)          // 0.15 % opcional
+  const benzoato = +(g * 0.002).toFixed(2)      // ~0.2 % conservante
+  const clonesAprox = Math.round(g / 0.28)      // ~0.28 g gel/clon (7 g → +25 clones)
+
+  const num = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 3 })
+
+  return (
+    <div className="space-y-4">
+      {/* Intro */}
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-1">
+          <Sprout className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Gel de enraizado casero — clon de Radics / Clonex</h3>
+          <Info><b className="text-[#d9f99d]">Hormona de clonado DIY.</b> Radics y Clonex son el mismo gel: <b>IBA 0,31 %</b> en base de hidroxietilcelulosa. Acá calculás las cantidades exactas para tu lote.<br /><span className="text-[#a3e635]">Fórmula del MSDS oficial de Clonex.</span></Info>
+        </div>
+        <p className="text-[11px] text-[#a6a6b5]">
+          Clonar <b className="text-[#d9f99d]">Ryanodine Radics</b> (o Clonex) = hacer un gel de <b>ácido indol-3-butírico (IBA) al 0,31 %</b> en
+          hidroxietilcelulosa (HEC) al 1,2 %. El IBA lo tenés como materia prima en <b>Sustancias/Proveedores</b>.
+          El 0,31 % (3.100 ppm) es la dosis óptima confirmada para esquejes de cannabis (rango 1.000–3.000 ppm).
+        </p>
+      </div>
+
+      {/* Calculadora de lote */}
+      <div className={card}>
+        <div className="flex flex-wrap items-end gap-4 mb-3">
+          <label className="text-[11px] text-[#a6a6b5]">Gel a preparar
+            <Info><b className="text-[#d9f99d]">Gramos totales de gel</b> que querés hacer. Todo lo demás se calcula solo.<br /><span className="text-[#a3e635]">Ej: 100 g rinde ~350 clones. Empezá con un lote chico para calibrar la textura.</span></Info>
+            <div className="flex items-center gap-1 mt-1">
+              <input type="number" min={10} step={10} value={lote} onChange={e => setLote(Math.max(10, +e.target.value))} className={`${inp} w-28`} />
+              <span className="text-[#5c5c6b]">g</span>
+            </div>
+          </label>
+          <label className="flex items-center gap-2 text-[11px] text-[#a6a6b5] cursor-pointer select-none">
+            <input type="checkbox" checked={conNaa} onChange={e => setConNaa(e.target.checked)} className="accent-[#a3e635]" />
+            Sumar NAA (más potente, NO es fiel a Radics)
+            <Info><b className="text-[#d9f99d]">NAA = ácido naftalenacético</b>, otra auxina. Muchos DIY combinan IBA+NAA para reforzar el enraizado de especies difíciles. Radics/Clonex NO lo llevan (son IBA solo). Actívalo solo si querés un gel más agresivo.</Info>
+          </label>
+          <div className="text-[11px] text-[#757584] self-end">Rinde ~<b className="text-[#bef264]">{clonesAprox.toLocaleString('es-AR')}</b> clones</div>
+        </div>
+
+        <p className="text-[10px] uppercase tracking-[0.14em] text-[#a78bfa] font-semibold mb-2">Cantidades para {num(g)} g de gel</p>
+        <div className="grid sm:grid-cols-2 gap-2">
+          <FilaIngrediente nombre="IBA (ácido indol-3-butírico) puro" cant={num(iba)} unidad="g" pct="0,31 %" nota="la hormona — pesá con balanza de 0,001 g" />
+          <FilaIngrediente nombre="Hidroxietilcelulosa (HEC / Natrosol 250)" cant={num(hec)} unidad="g" pct="1,2 %" nota="el gelificante" />
+          <FilaIngrediente nombre="Alcohol (isopropílico 91° o etílico)" cant={num(alcohol)} unidad="mL" nota="para disolver el IBA primero" />
+          <FilaIngrediente nombre="Agua destilada (hervida y entibiada)" cant={num(agua)} unidad="g" pct="~98 %" nota="resto del lote" />
+          {conNaa && <FilaIngrediente nombre="NAA (ácido naftalenacético) — opcional" cant={num(naa)} unidad="g" pct="0,15 %" nota="refuerzo, no fiel a Radics" />}
+          <FilaIngrediente nombre="Benzoato de sodio (conservante) — opcional" cant={num(benzoato)} unidad="g" pct="~0,2 %" nota="si lo guardás semanas; evita hongos" />
+        </div>
+        <p className="text-[10px] text-[#5c5c6b] mt-2">Colorante violeta de cristal (1 gota) y trazas de antifúngico son solo estéticos/marketing — opcionales.</p>
+      </div>
+
+      {/* Paso a paso */}
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-3">
+          <BookOpen className="w-4 h-4 text-[#a78bfa]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Paso a paso</h3>
+        </div>
+        <ol className="space-y-2.5">
+          {[
+            { t: 'Disolvé el IBA en el alcohol PRIMERO', d: `Poné los ${num(iba)} g de IBA en los ${num(alcohol)} mL de alcohol y revolvé (ideal: agitador magnético) hasta que quede transparente. El IBA no entra en agua sola: sin este paso quedan grumos que no se integran.` },
+            { t: 'Herví el agua destilada y dejala entibiar', d: `Los ${num(agua)} g de agua destilada, hervidos y tibios, hacen que el HEC se disperse sin grumos. Un DIYer lo aclara: el agua caliente "rompe" la celulosa mucho más fácil.` },
+            { t: 'Agregá el HEC de a poco, en lluvia', d: `Sumá los ${num(hec)} g de hidroxietilcelulosa despacio, revolviendo constante. Empieza a espesar mientras se hidrata.` },
+            { t: '⚠️ NO te pases de HEC', d: 'Andá agregando y parando hasta textura de gel de pelo, NO de mermelada dura. Advertencia textual de foro: si te pasás, queda un "jelly que hace ruido cuando lo tocás" (sobre-gelificado, inutilizable). Mejor quedarse corto y espesar de a poco.' },
+            { t: 'Integrá la solución de IBA+alcohol al gel', d: 'Volcá el IBA disuelto sobre el gel y homogeneizá bien hasta que quede parejo.' },
+            { t: 'Ajustá el pH a ~6,0', d: 'Medí con tiritas o pHmetro y corregí con unas gotas de NaOH (o KOH) si quedó ácido. El "pH flux" es de lo que más arruina resultados según los que lo probaron: estabilizalo antes de usar.' },
+            { t: 'Conservante y color (opcional)', d: `Si lo vas a guardar: ${num(benzoato)} g de benzoato de sodio como conservante. Una gota de violeta de cristal si querés el look Clonex.` },
+            { t: 'Envasá y guardá bien', d: 'Frasco opaco, tapado, refrigerado (2–9 °C) y al reparo de la luz. El IBA se degrada con luz. Rotulá con fecha.' },
+            { t: 'Usalo', d: 'Untá 2–3 cm de la base del esqueje en el gel e insertá directo en el sustrato/taco. Un solo uso: no metas esquejes en el frasco madre (contaminás el lote), sacá una porción aparte.' },
+          ].map((p, i) => (
+            <li key={i} className="flex gap-3">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1a2410] border border-[#3d5720] text-[#a3e635] text-[11px] font-bold flex items-center justify-center tabular-nums">{i + 1}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[12px] font-medium text-[#ececf1]">{p.t}</p>
+                <p className="text-[11px] text-[#a6a6b5] leading-relaxed">{p.d}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      {/* Tips y errores */}
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-3">
+          <Lightbulb className="w-4 h-4 text-[#facc15]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Tips y errores a evitar (de los que lo hicieron)</h3>
+        </div>
+        <ul className="space-y-2 text-[11px] text-[#a6a6b5]">
+          {[
+            ['Conseguí IBA-K (sal potásica) si podés', 'Es soluble en agua directa: te saltea el alcohol entero y el olor. Misma potencia que el IBA puro. Ideal para gel casero.'],
+            ['No uses agua de ósmosis (RO) fría directa', 'Reportaron que el IBA se les precipitó ("cayó de la solución"). Por eso: disolver en alcohol + agua destilada hervida.'],
+            ['Radics/Clonex NO llevan NAA', 'Son IBA solo. Si querés clonar FIEL, dejá el NAA apagado. El NAA es para reforzar especies difíciles de rootear.'],
+            ['El IAA no sirve en gel', 'Se degrada rápido en líquido. Por eso los comerciales usan IBA (estable), no IAA. No lo agregues.'],
+            ['Empezá con lote chico', 'Hacé 50–100 g la primera vez para calibrar cuánto HEC necesitás antes de tirar un lote grande.'],
+            ['El frasco de 25 g de IBA es casi infinito', `A 0,31 %, 25 g de IBA hacen ~8 kg de gel = decenas de miles de clones. La hormona no es el gasto: es el gelificante y el laburo.`],
+          ].map(([t, d], i) => (
+            <li key={i} className="flex gap-2">
+              <span className="text-[#facc15] flex-shrink-0">•</span>
+              <span><b className="text-[#d9f99d]">{t}:</b> {d}</span>
+            </li>
+          ))}
+        </ul>
+        <p className="text-[10px] text-[#5c5c6b] mt-3">Fuentes: MSDS Clonex (HEC 1,2 % / IBA 0,3 %), foros Rollitup y THCFarmer, literatura de propagación (rango óptimo 1.000–3.000 ppm IBA).</p>
+      </div>
     </div>
   )
 }
