@@ -1081,6 +1081,50 @@ function PanelMicros2({ perfil, salesTodas, litros, resolucion }: { perfil: Perf
   )
 }
 
+// Mini-calculadora de dilución de HOCl (clon de Cleanse). Stock 2.5 g/5 L (0.5 g/L), dosis 1 mL/L.
+function HoclDilucionCalc() {
+  const [litrosStock, setLitrosStock] = useState(5)
+  const [dosisMlL, setDosisMlL] = useState(1)
+  const polvo = +(litrosStock * 0.5).toFixed(1)              // 0.5 g/L de polvo generador
+  const rindeL = Math.round(litrosStock * 1000 / dosisMlL)   // 1 L de stock = 1000 mL → /dosis = L de riego
+  const num = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 1 })
+  return (
+    <div className="mt-3 rounded-lg bg-[#101016] border border-[#2f5a72]/60 p-3">
+      <p className="text-[12px] text-[#7dd3fc] font-semibold mb-1">🧴 Calculadora de dilución HOCl (clon de Cleanse)</p>
+      <p className="text-[10.5px] text-[#5c5c6b] mb-3">Con el generador de HOCl en polvo (ej. Binal BioMax) armás el stock y lo dosificás en el riego. Misma dosis que el Cleanse.</p>
+      <div className="flex flex-wrap items-end gap-4 mb-3">
+        <label className="text-[11px] text-[#a6a6b5]">Stock a preparar
+          <div className="flex items-center gap-1 mt-1">
+            <input type="number" min={0.5} step={0.5} value={litrosStock} onChange={e => setLitrosStock(Math.max(0.5, +e.target.value))} className={`${inp} w-24`} />
+            <span className="text-[#5c5c6b]">L</span>
+          </div>
+        </label>
+        <label className="text-[11px] text-[#a6a6b5]">Dosis en el riego
+          <div className="flex items-center gap-1 mt-1">
+            <input type="number" min={0.1} step={0.1} value={dosisMlL} onChange={e => setDosisMlL(Math.max(0.1, +e.target.value))} className={`${inp} w-24`} />
+            <span className="text-[#5c5c6b]">mL/L</span>
+          </div>
+        </label>
+      </div>
+      <div className="grid sm:grid-cols-3 gap-2 text-center">
+        <div className="rounded-md bg-[#15151d] border border-[#1f1f2b] px-2 py-2">
+          <p className="text-[10px] text-[#5c5c6b]">1 · Pesá polvo HOCl</p>
+          <p className="text-[15px] font-mono font-bold text-[#bef264]">{num(polvo)} g</p>
+        </div>
+        <div className="rounded-md bg-[#15151d] border border-[#1f1f2b] px-2 py-2">
+          <p className="text-[10px] text-[#5c5c6b]">2 · Disolvé hasta</p>
+          <p className="text-[15px] font-mono font-bold text-[#7dd3fc]">{num(litrosStock)} L</p>
+        </div>
+        <div className="rounded-md bg-[#15151d] border border-[#1f1f2b] px-2 py-2">
+          <p className="text-[10px] text-[#5c5c6b]">3 · Rinde riego</p>
+          <p className="text-[15px] font-mono font-bold text-[#a78bfa]">{num(rindeL)} L</p>
+        </div>
+      </div>
+      <p className="text-[10px] text-[#5c5c6b] mt-2">Base: 0,5 g/L de polvo en el stock (= 2,5 g en 5 L) y {num(dosisMlL)} mL de stock por litro de riego. Guardá el stock al reparo de la luz.</p>
+    </div>
+  )
+}
+
 // Fila de ingrediente para el gel de enraizado (a nivel módulo: no recrear en cada render)
 function FilaIngrediente({ nombre, cant, unidad, pct, nota }: { nombre: string; cant: string; unidad: string; pct?: string; nota?: string }) {
   return (
@@ -2086,10 +2130,8 @@ function ClonarTab({ productos, onUsar, irA }: { productos: Sal[]; onUsar: (p: P
                   </>
                 ) : esSanitizante ? (
                   <>
-                    <p className="text-[12px] text-[#d4d4dd] mb-2">🧴 <b className="text-[#d9f99d]">{prod.nombre}</b> es un <b>sanitizante (HOCl)</b>, no un nutriente. La receta de dilución para clonarlo está en su ficha en <b>Sustancias</b> (materia prima: ácido hipocloroso en polvo).</p>
-                    <button onClick={() => irA('sustancias')} className="flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-medium bg-[#7dd3fc]/15 border border-[#2f5a72] text-[#7dd3fc] hover:bg-[#7dd3fc]/25">
-                      <FlaskRound className="w-3.5 h-3.5" /> Ver en Sustancias
-                    </button>
+                    <p className="text-[12px] text-[#d4d4dd]">🧴 <b className="text-[#d9f99d]">{prod.nombre}</b> es un <b>sanitizante (HOCl)</b>, no un nutriente. Se clona con el generador de HOCl en polvo — calculá la dilución acá:</p>
+                    <HoclDilucionCalc />
                   </>
                 ) : (
                   <p className="text-[12px] text-[#d4d4dd]">Es un aditivo/estabilizante: no se clona con sales porque no aporta nutrientes. Mirá su ficha en <b>Sustancias</b> o la pestaña <b>Estabilizantes</b>.</p>
