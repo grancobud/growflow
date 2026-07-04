@@ -1543,6 +1543,57 @@ function SuperBioTab() {
         </ol>
       </div>
 
+      {/* Preparación detallada de aminoácidos */}
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-2">
+          <FlaskRound className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Preparación de aminoácidos (detalle + dosis seguras)</h3>
+          <Info><b className="text-[#d9f99d]">Cómo disolverlos y una solución stock lista.</b> Cada aa tiene distinta solubilidad; el truco es agua tibia + a veces un toque de pH.</Info>
+        </div>
+        <p className="text-[11px] text-[#a6a6b5] mb-3">La forma práctica: hacé UNA <b className="text-[#d9f99d]">solución stock de aminoácidos</b> y dosificás por mL. Rinde muchos sprays.</p>
+
+        <div className="rounded-lg bg-[#101016] border border-[#3d5720]/50 p-3 mb-3">
+          <p className="text-[11px] text-[#d9f99d] font-semibold mb-2">🧪 Solución stock de aminoácidos (hacés 1 vez)</p>
+          <p className="text-[11px] text-[#a6a6b5] mb-2">En <b>250 mL de agua tibia (~40 °C, sin cloro)</b> disolvé, de a uno, revolviendo:</p>
+          <div className="space-y-1 mb-2">
+            <FilaIngrediente nombre="L-Glicina" cant="1,5" unidad="g" nota="se disuelve fácil (muy soluble)" />
+            <FilaIngrediente nombre="L-Prolina" cant="1,5" unidad="g" nota="se disuelve fácil (muy soluble)" />
+            <FilaIngrediente nombre="L-Ácido glutámico" cant="1,5" unidad="g" nota="poco soluble → agua tibia + revolver" />
+            <FilaIngrediente nombre="L-Triptófano" cant="1,5" unidad="g" nota="el menos soluble → tibia; unas gotas de bicarbonato ayudan" />
+          </div>
+          <p className="text-[11px] text-[#a6a6b5]">Queda un stock de <b className="text-[#bef264]">~6 mg/mL de cada aa</b> (24 mg/mL total). Filtralo si quedó turbio.</p>
+        </div>
+
+        <div className="overflow-x-auto mb-2">
+          <table className="w-full text-[11px] border-collapse">
+            <thead>
+              <tr className="text-[#5c5c6b] text-[10px] uppercase tracking-[0.1em] text-left">
+                <th className="font-medium py-1">Aminoácido</th>
+                <th className="font-medium py-1">Dosis final</th>
+                <th className="font-medium py-1">= concentración</th>
+                <th className="font-medium py-1">Solubilidad</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                ['L-Triptófano', '15 mg/L', '0,07 mM ✅', 'baja — agua tibia'],
+                ['L-Glicina', '15 mg/L', '0,20 mM ✅', 'alta — fácil'],
+                ['L-Ácido glutámico', '15 mg/L', '0,10 mM ✅', 'baja — tibia'],
+                ['L-Prolina', '15 mg/L', '0,13 mM ✅', 'muy alta — fácil'],
+              ].map(([a, d, c, s], i) => (
+                <tr key={i} className="border-t border-[#1f1f2b]">
+                  <td className="py-1 text-[#d9f99d]">{a}</td>
+                  <td className="py-1 font-mono text-[#bef264]">{d}</td>
+                  <td className="py-1 font-mono text-[#a6a6b5]">{c}</td>
+                  <td className="py-1 text-[#8f8f9f]">{s}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="text-[11px] text-[#a6a6b5]"><b className="text-[#d9f99d]">Dosis:</b> ~<b className="text-[#bef264]">2,5 mL de stock por litro</b> de spray → 15 mg/L de cada aa (~60 mg/L total). Todo por debajo del umbral de inhibición. <b className="text-[#d9f99d]">Conservación:</b> heladera 1–2 semanas, o congelá en cubitera (los aa fermentan). <b className="text-[#facc15]">Nunca en plántulas/clones.</b></p>
+      </div>
+
       {/* Ciencia y advertencias */}
       <div className={`${card} border-[#facc15]/25`}>
         <div className="flex items-center gap-2 mb-2">
