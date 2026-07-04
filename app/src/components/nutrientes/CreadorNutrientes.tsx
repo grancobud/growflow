@@ -218,7 +218,7 @@ export default function CreadorNutrientes() {
           const prod = salesTodas.find(s => s.id === salId)
           setModoPrep(prod?.liquido ? 'liquido' : 'polvo')
           setSub('calc')
-        }} />
+        }} irA={setSub} />
       )}
       {sub === 'estab' && (
         <EstabilizantesTab dosis={res.dosis} />
@@ -2018,7 +2018,7 @@ function RatiosTab({ ratios, res, costo }: { ratios: Ratios; res: Resultado; cos
 }
 
 // ===================== CLONAR MARCA =====================
-function ClonarTab({ productos, onUsar }: { productos: Sal[]; onUsar: (p: Perfil, salId: string) => void }) {
+function ClonarTab({ productos, onUsar, irA }: { productos: Sal[]; onUsar: (p: Perfil, salId: string) => void; irA: (s: SubTab) => void }) {
   const [id, setId] = useState(productos[0]?.id ?? '')
   const [dosis, setDosis] = useState(DOSIS_REC[productos[0]?.id ?? ''] ?? 3)
   function elegirProducto(nuevoId: string) {
@@ -2029,6 +2029,10 @@ function ClonarTab({ productos, onUsar }: { productos: Sal[]; onUsar: (p: Perfil
   const doseGL = prod?.liquido ? dosis * (prod.densidad ?? 1.1) : dosis
   const perfil = prod ? perfilDesdeProducto(prod, doseGL) : {}
   const marcas = [...new Set(productos.map(marcaDe))]
+  const esAditivo = !!prod && Object.keys(perfil).length === 0
+  // Tipo de aditivo → a qué herramienta mandar (no se clona con sales: no aporta nutrientes)
+  const esEnraizante = !!prod && (/iba|radics/i.test(prod.id) || /IBA/i.test(prod.formula ?? ''))
+  const esSanitizante = !!prod && (/hocl|cleanse/i.test(prod.id) || /HOCl/i.test(prod.formula ?? ''))
 
   return (
     <div className="space-y-4">
@@ -2067,16 +2071,41 @@ function ClonarTab({ productos, onUsar }: { productos: Sal[]; onUsar: (p: Perfil
                     {e.key} {perfil[e.key]}
                   </span>
                 ))}
-                {Object.keys(perfil).length === 0 && <span className="text-[11px] text-[#5c5c6b]">Este producto no aporta nutrientes (es un aditivo).</span>}
+                {esAditivo && <span className="text-[11px] text-[#5c5c6b]">Este producto no aporta nutrientes (es un aditivo): no se clona con sales.</span>}
               </div>
             </div>
-            <button onClick={() => onUsar(perfil, prod.id)} disabled={Object.keys(perfil).length === 0}
-              className="mt-3 flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-medium bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] hover:bg-[#a3e635]/25 disabled:opacity-50">
-              <Copy className="w-3.5 h-3.5" /> Usar como objetivo y clonar
-            </button>
-            <p className="text-[10px] text-[#5c5c6b] mt-2">
-              Para varias partes (A+B, etc.) clonás cada una por separado y sumás las recetas. Tip: en "Sustancias" desactivá los productos comerciales y dejá solo sales sueltas para que el clon use materia prima barata.
-            </p>
+            {esAditivo ? (
+              // Los aditivos (hormona de enraizado, sanitizante) NO se clonan con sales: se mandan a su herramienta propia.
+              <div className="mt-3 rounded-lg bg-[#101016] border border-[#463a66]/50 p-3">
+                {esEnraizante ? (
+                  <>
+                    <p className="text-[12px] text-[#d4d4dd] mb-2">🌱 <b className="text-[#d9f99d]">{prod.nombre}</b> es una <b>hormona de enraizado</b> (IBA), no un nutriente. Para hacerlo casero usá la calculadora de gel dedicada:</p>
+                    <button onClick={() => irA('enraizado')} className="flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-medium bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] hover:bg-[#a3e635]/25">
+                      <Sprout className="w-3.5 h-3.5" /> Ir a Gel de enraizado
+                    </button>
+                  </>
+                ) : esSanitizante ? (
+                  <>
+                    <p className="text-[12px] text-[#d4d4dd] mb-2">🧴 <b className="text-[#d9f99d]">{prod.nombre}</b> es un <b>sanitizante (HOCl)</b>, no un nutriente. La receta de dilución para clonarlo está en su ficha en <b>Sustancias</b> (materia prima: ácido hipocloroso en polvo).</p>
+                    <button onClick={() => irA('sustancias')} className="flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-medium bg-[#7dd3fc]/15 border border-[#2f5a72] text-[#7dd3fc] hover:bg-[#7dd3fc]/25">
+                      <FlaskRound className="w-3.5 h-3.5" /> Ver en Sustancias
+                    </button>
+                  </>
+                ) : (
+                  <p className="text-[12px] text-[#d4d4dd]">Es un aditivo/estabilizante: no se clona con sales porque no aporta nutrientes. Mirá su ficha en <b>Sustancias</b> o la pestaña <b>Estabilizantes</b>.</p>
+                )}
+              </div>
+            ) : (
+              <>
+                <button onClick={() => onUsar(perfil, prod.id)}
+                  className="mt-3 flex items-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-medium bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] hover:bg-[#a3e635]/25">
+                  <Copy className="w-3.5 h-3.5" /> Usar como objetivo y clonar
+                </button>
+                <p className="text-[10px] text-[#5c5c6b] mt-2">
+                  Para varias partes (A+B, etc.) clonás cada una por separado y sumás las recetas. Tip: en "Sustancias" desactivá los productos comerciales y dejá solo sales sueltas para que el clon use materia prima barata.
+                </p>
+              </>
+            )}
           </>
         )}
       </div>
