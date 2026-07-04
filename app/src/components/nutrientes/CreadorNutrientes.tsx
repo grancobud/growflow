@@ -1551,7 +1551,9 @@ function SuperBioTab() {
         </div>
         <ul className="space-y-1.5 text-[11px] text-[#a6a6b5]">
           {[
-            ['El cannabis es sensible a aminoácidos', 'Un estudio mostró inhibición del crecimiento a 0,1 mM. Por eso las dosis son BAJAS (mg/L, no g/L). No te tientes de subirlas.'],
+            ['El cannabis es sensible a aminoácidos', 'Un estudio mostró inhibición del crecimiento a 0,1 mM (en raíz de plántulas). Por eso las dosis son BAJAS (mg/L, no g/L). OJO: los aa NO queman como una sal — si te pasás, FRENAN el crecimiento. No subas la dosis.'],
+            ['NO en plántulas ni clones', 'Los aminoácidos son sensibles en plántula/clon. Usá este spray recién en vegetativo establecido y floración. La primera vez, aplicá a MEDIA dosis y esperá 48 h.'],
+            ['Qué sí podría quemar (y por qué no pasa acá)', 'Lo que quema es EC/sal alta o salicílico en mM altos. Tu salicílico (30 mg/L) está 10x por debajo del umbral, y el resto es traza. Foliar siempre con luz baja (primera hora), nunca en calor fuerte.'],
             ['Triptófano = el estrella', 'Es precursor directo de auxina (IAA) → raíces y crecimiento. Confirmado en estudios de raíz.'],
             ['El "mito B1"', 'La vitamina B1 NO estimula raíces mágicamente (mito de foros). Su valor real es anti-estrés/antioxidante. Por eso va en dosis baja.'],
             ['Menos es más', 'Este spray potencia, no alimenta. Con exceso hacés lo contrario. 1 vez/semana alcanza.'],
