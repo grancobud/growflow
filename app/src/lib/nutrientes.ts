@@ -289,7 +289,7 @@ export const SALES_DEFECTO: Sal[] = [
   { id: 'athena_cleanse', nombre: 'Athena Cleanse (limpieza)', formula: 'HOCl', bidon: 'C', aditivo: true, liquido: true, densidad: 1.0, comp: {},
     descripcion: 'Comercial Athena: NO es nutriente. Ácido hipocloroso (HOCl) derivado de sal, limpia raíces/sistema de riego y previene acumulación mineral/biofilm. Es un sanitizante, no aporta nada nutritivo.' },
   { id: 'hocl', nombre: 'Ácido hipocloroso (generador en polvo)', formula: 'HOCl', bidon: 'C', aditivo: true, comp: {},
-    descripcion: 'Materia prima genérica para clonar Cleanse (Athena/Ryanodine). Generador de HOCl a base de sal, en POLVO: estable +2 años (el HOCl líquido se degrada rápido). Sanitizante de amplio espectro (bacterias, hongos, algas, biofilm), pH neutro, biodegradable, no agresivo. NO es nutriente. Se activa disolviendo en agua al ppm deseado para limpiar raíces y líneas de riego. Ej. comercial: Binal BioMax (Axel Química).' },
+    descripcion: 'Materia prima genérica para clonar Cleanse (Athena/Ryanodine). Generador de HOCl a base de sal, en POLVO: estable +2 años (el HOCl líquido se degrada rápido). Sanitizante de amplio espectro (bacterias, hongos, algas, biofilm), pH neutro, biodegradable, no agresivo. NO es nutriente. Ej. comercial: Binal BioMax (Axel Química). RECETA (Gastón): stock = 2,5 g en 5 L de agua (0,5 g/L = 500 ppm); dosis = 1 mL de stock por litro de riego (dilución 1:1000 ≈ 0,5 ppm, misma dosis que Cleanse a 1 mL/L). Rinde: 2,5 g → 5 L stock → 5.000 L de riego.' },
 
   // --- Jacks 321 (JR Peters) — sistema de 3 sales ---
   { id: 'jacks_a', nombre: 'Jacks 5-12-26 (Parte A)', bidon: 'B',
