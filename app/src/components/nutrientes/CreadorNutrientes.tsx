@@ -30,7 +30,7 @@ interface CalcTabProps {
 }
 type CostoResultado = { porLitro: number; detalle: { sal: Sal; costo: number }[] }
 
-type SubTab = 'calc' | 'clonar' | 'sustancias' | 'proveedores' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar' | 'conversor' | 'enraizado' | 'elicitor' | 'bioestim' | 'ayuda'
+type SubTab = 'calc' | 'clonar' | 'sustancias' | 'proveedores' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar' | 'conversor' | 'enraizado' | 'elicitor' | 'bioestim' | 'superbio' | 'ayuda'
 
 const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
   { id: 'calc', label: 'Calculadora', icon: Calculator },
@@ -47,6 +47,7 @@ const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
   { id: 'enraizado', label: 'Gel de enraizado', icon: Sprout },
   { id: 'elicitor', label: 'Elicitor DIY', icon: Sparkles },
   { id: 'bioestim', label: 'Bioestimulantes DIY', icon: Beaker },
+  { id: 'superbio', label: 'Súper Bioestimulante', icon: Sparkles },
   { id: 'ayuda', label: 'Ayuda / Guía', icon: HelpCircle },
 ]
 
@@ -245,6 +246,9 @@ export default function CreadorNutrientes() {
       )}
       {sub === 'bioestim' && (
         <BioestimulantesTab />
+      )}
+      {sub === 'superbio' && (
+        <SuperBioTab />
       )}
       {sub === 'ayuda' && (
         <AyudaTab irA={setSub} />
@@ -1450,6 +1454,113 @@ function BioestimulantesTab() {
           <li className="flex gap-2"><span className="text-[#facc15]">•</span><span><b className="text-[#d9f99d]">Poco solubles en agua fría:</b> el triacontanol necesita alcohol; el húmico queda oscuro pero disuelve. Recién hechos rinden más.</span></li>
           <li className="flex gap-2"><span className="text-[#facc15]">•</span><span><b className="text-[#d9f99d]">No los combines con HOCl/Cleanse:</b> si usás sanitizante en el riego, aplicá los bioestimulantes en otro momento.</span></li>
         </ul>
+      </div>
+    </div>
+  )
+}
+
+// ===================== SÚPER BIOESTIMULANTE (fórmula completa, dosis seguras cannabis) =====================
+function SuperBioTab() {
+  const [litros, setLitros] = useState(1)
+  const [modo, setModo] = useState<'veg' | 'flora'>('veg')
+  const L = litros
+  // Dosis BAJAS (cannabis sensible a aa: inhibición ~0,1 mM). Foliar/riego suave.
+  const trip = +(L * 15).toFixed(0)     // mg — auxina (raíces)
+  const gli = +(L * 20).toFixed(0)      // mg — quelante/clorofila
+  const glu = +(L * 20).toFixed(0)      // mg — N/clorofila
+  const pro = +(L * 15).toFixed(0)      // mg — anti-estrés
+  const kelp = +(L * 0.4).toFixed(2)    // g — hormonas
+  const fulvico = +(L * 0.5).toFixed(2) // g — vehículo/absorción
+  const triac = +(L * 0.75).toFixed(2)  // mg — crecimiento potente
+  const vitB = +(L * 3).toFixed(0)      // mg — anti-estrés
+  const vitC = +(L * 150).toFixed(0)    // mg — antioxidante
+  const silic = +(L * 0.3).toFixed(2)   // g — estructura (más en flora)
+  const cocoAgua = modo === 'veg' ? +(L * 15).toFixed(0) : 0 // mL agua de coco solo veg (citoquininas)
+  const num = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 2 })
+  return (
+    <div className="space-y-4">
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-1">
+          <Sparkles className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Súper Bioestimulante de cannabis — fórmula completa DIY</h3>
+          <Info><b className="text-[#d9f99d]">Todo junto: aminoácidos + hormonas + vitaminas + antioxidantes.</b> Dosis BAJAS validadas: el cannabis se inhibe con exceso de aminoácidos (0,1 mM). NO es nutriente.<br /><span className="text-[#a3e635]">Foliar o riego suave. No reemplaza tu fórmula de nutrientes.</span></Info>
+        </div>
+        <p className="text-[11px] text-[#a6a6b5]">Combina lo mejor de todo lo DIY: <b>L-triptófano</b> (auxina→raíces), <b>glicina/glutámico</b> (clorofila+quela), <b>prolina</b> (anti-estrés), <b>kelp</b> (hormonas), <b>triacontanol</b> (crecimiento), <b>vitaminas B/C</b> y <b>fúlvico</b> (absorción). Materias primas en polvo de Pura Química + agro.</p>
+      </div>
+
+      <div className={card}>
+        <div className="flex flex-wrap items-end gap-4 mb-3">
+          <label className="text-[11px] text-[#a6a6b5]">Preparar
+            <div className="flex items-center gap-1 mt-1">
+              <input type="number" min={0.25} step={0.25} value={litros} onChange={e => setLitros(Math.max(0.25, +e.target.value))} className={`${inp} w-24`} />
+              <span className="text-[#5c5c6b]">L</span>
+            </div>
+          </label>
+          <div className="flex gap-1">
+            {(['veg', 'flora'] as const).map(m => (
+              <button key={m} onClick={() => setModo(m)} className={`px-3 py-1.5 rounded-md text-[11px] font-medium transition-colors ${modo === m ? 'bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d]' : 'bg-[#15151d] border border-[#1f1f2b] text-[#8f8f9f]'}`}>{m === 'veg' ? 'Vegetativo' : 'Floración'}</button>
+            ))}
+          </div>
+        </div>
+        <p className="text-[10px] uppercase tracking-[0.14em] text-[#a78bfa] font-semibold mb-2">Cantidades para {num(L)} L ({modo === 'veg' ? 'vegetativo' : 'floración'})</p>
+        <div className="grid sm:grid-cols-2 gap-2">
+          <FilaIngrediente nombre="L-Triptófano" cant={num(trip)} unidad="mg" nota="⭐ auxina → raíces/crecimiento" />
+          <FilaIngrediente nombre="L-Glicina" cant={num(gli)} unidad="mg" nota="quelante + clorofila" />
+          <FilaIngrediente nombre="L-Ácido glutámico" cant={num(glu)} unidad="mg" nota="N + clorofila" />
+          <FilaIngrediente nombre="L-Prolina" cant={num(pro)} unidad="mg" nota="anti-estrés" />
+          <FilaIngrediente nombre="Extracto de algas (kelp) polvo" cant={num(kelp)} unidad="g" nota="hormonas naturales" />
+          <FilaIngrediente nombre="Ácido fúlvico" cant={num(fulvico)} unidad="g" nota="mejora absorción" />
+          <FilaIngrediente nombre="Triacontanol" cant={num(triac)} unidad="mg" nota="crecimiento (por stock en alcohol)" />
+          <FilaIngrediente nombre="Vitamina B (complejo/B1)" cant={num(vitB)} unidad="mg" nota="anti-estrés" />
+          <FilaIngrediente nombre="Vitamina C (ascórbico)" cant={num(vitC)} unidad="mg" nota="antioxidante" />
+          <FilaIngrediente nombre="Silicato (Si)" cant={num(silic)} unidad="g" nota="pared celular" />
+          {cocoAgua > 0 && <FilaIngrediente nombre="Agua de coco (opcional)" cant={num(cocoAgua)} unidad="mL" nota="citoquininas (solo veg)" />}
+        </div>
+      </div>
+
+      {/* Paso a paso */}
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-3">
+          <BookOpen className="w-4 h-4 text-[#a78bfa]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Cómo prepararlo</h3>
+        </div>
+        <ol className="space-y-2.5">
+          {[
+            { t: 'Hacé los stocks de los impesables', d: `Triacontanol: 100 mg en 100 mL de alcohol. Vitamina B: 1 g en 100 mL de agua. Así dosificás por mL con jeringa (${num(triac)} mg y ${num(vitB)} mg no se pesan directo).` },
+            { t: 'Disolvé los aminoácidos en agua tibia', d: `Triptófano, glicina, glutámico y prolina en un poco de agua tibia (el triptófano es el que menos se disuelve). Revolvé bien.` },
+            { t: 'Sumá kelp, fúlvico, vitamina C y silicato', d: `${num(kelp)} g de kelp, ${num(fulvico)} g de fúlvico, ${num(vitC)} mg de vitamina C y ${num(silic)} g de silicato.` },
+            { t: 'Agregá los stocks y completá volumen', d: `Sumá los mL de stock de triacontanol y vitamina B${cocoAgua > 0 ? ` + ${num(cocoAgua)} mL de agua de coco` : ''}, llevá a ${num(L)} L con agua sin cloro y ajustá pH ~6.` },
+            { t: 'Aplicá', d: 'Foliar (primera hora de luz) o al riego suave. 1 vez por semana. Probá primero en pocas hojas por 24 h.' },
+          ].map((p, i) => (
+            <li key={i} className="flex gap-3">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1a2410] border border-[#3d5720] text-[#a3e635] text-[11px] font-bold flex items-center justify-center tabular-nums">{i + 1}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[12px] font-medium text-[#ececf1]">{p.t}</p>
+                <p className="text-[11px] text-[#a6a6b5] leading-relaxed">{p.d}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      {/* Ciencia y advertencias */}
+      <div className={`${card} border-[#facc15]/25`}>
+        <div className="flex items-center gap-2 mb-2">
+          <AlertTriangle className="w-4 h-4 text-[#facc15]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Ciencia y reglas</h3>
+        </div>
+        <ul className="space-y-1.5 text-[11px] text-[#a6a6b5]">
+          {[
+            ['El cannabis es sensible a aminoácidos', 'Un estudio mostró inhibición del crecimiento a 0,1 mM. Por eso las dosis son BAJAS (mg/L, no g/L). No te tientes de subirlas.'],
+            ['Triptófano = el estrella', 'Es precursor directo de auxina (IAA) → raíces y crecimiento. Confirmado en estudios de raíz.'],
+            ['El "mito B1"', 'La vitamina B1 NO estimula raíces mágicamente (mito de foros). Su valor real es anti-estrés/antioxidante. Por eso va en dosis baja.'],
+            ['Menos es más', 'Este spray potencia, no alimenta. Con exceso hacés lo contrario. 1 vez/semana alcanza.'],
+            ['No con HOCl', 'Si sanitizás con HOCl/Cleanse, aplicá el bioestimulante otro día.'],
+          ].map(([t, d], i) => (
+            <li key={i} className="flex gap-2"><span className="text-[#facc15] flex-shrink-0">•</span><span><b className="text-[#d9f99d]">{t}:</b> {d}</span></li>
+          ))}
+        </ul>
+        <p className="text-[10px] text-[#5c5c6b] mt-3">Dosis basadas en estudios de biostimulación en Cannabis sativa (sensibilidad a aa 0,1 mM; triptófano→auxina) + literatura de vitaminas B/C en plantas. Insumos en Sustancias.</p>
       </div>
     </div>
   )
