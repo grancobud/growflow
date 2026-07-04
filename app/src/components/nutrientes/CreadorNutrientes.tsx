@@ -30,7 +30,7 @@ interface CalcTabProps {
 }
 type CostoResultado = { porLitro: number; detalle: { sal: Sal; costo: number }[] }
 
-type SubTab = 'calc' | 'clonar' | 'sustancias' | 'proveedores' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar' | 'conversor' | 'enraizado' | 'ayuda'
+type SubTab = 'calc' | 'clonar' | 'sustancias' | 'proveedores' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar' | 'conversor' | 'enraizado' | 'elicitor' | 'ayuda'
 
 const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
   { id: 'calc', label: 'Calculadora', icon: Calculator },
@@ -45,6 +45,7 @@ const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
   { id: 'ratios', label: 'Ratios y costo', icon: Scale },
   { id: 'conversor', label: 'Conversor', icon: Repeat },
   { id: 'enraizado', label: 'Gel de enraizado', icon: Sprout },
+  { id: 'elicitor', label: 'Elicitor DIY', icon: Sparkles },
   { id: 'ayuda', label: 'Ayuda / Guía', icon: HelpCircle },
 ]
 
@@ -237,6 +238,9 @@ export default function CreadorNutrientes() {
       )}
       {sub === 'enraizado' && (
         <EnraizadoTab />
+      )}
+      {sub === 'elicitor' && (
+        <ElicitorTab />
       )}
       {sub === 'ayuda' && (
         <AyudaTab irA={setSub} />
@@ -1254,6 +1258,111 @@ function EnraizadoTab() {
           ))}
         </ul>
         <p className="text-[10px] text-[#5c5c6b] mt-3">Fuentes: MSDS Clonex (HEC 1,2 % / IBA 0,3 %), foros Rollitup y THCFarmer, literatura de propagación (rango óptimo 1.000–3.000 ppm IBA).</p>
+      </div>
+    </div>
+  )
+}
+
+// ===================== ELICITOR FOLIAR DIY (bioestimulante de defensa tipo Phitonat) =====================
+// Dosis validadas en cannabis/hemp (estudios) + base de foros. Todo escala con los litros de spray.
+function ElicitorTab() {
+  const [litros, setLitros] = useState(1)
+  const L = litros
+  const quitosano = +(L * 100).toFixed(0)        // 100 mg/L (0.01%) — óptimo hemp
+  const salicilico = +(L * 30).toFixed(0)        // 30 mg/L (~200 µM) — seguro y efectivo en cannabis
+  const aspirinas = +(L * 30 / 450).toFixed(2)   // ~450 mg salicílico útil por aspirina de 500 mg
+  const kelp = +(L * 4).toFixed(1)               // 4 mL/L
+  const fulvico = +(L * 5).toFixed(1)            // 5 mL/L
+  const vitB = Math.round(L * 4)                 // 4 gotas/L
+  const silicato = +(L * 2).toFixed(1)           // 2 mL/L
+  const citrico = +(L * 0.5).toFixed(1)          // para disolver el quitosano
+  const num = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 2 })
+  return (
+    <div className="space-y-4">
+      {/* Intro */}
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-1">
+          <Sparkles className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Elicitor foliar DIY — inductor de defensas (tipo Phitonat)</h3>
+          <Info><b className="text-[#d9f99d]">Bioestimulante de defensa, NO nutriente.</b> Activa la resistencia sistémica adquirida (SAR): la planta se defiende sola de plagas y hongos. Dosis de estudios en cannabis.<br /><span className="text-[#a3e635]">No lo cargues en la receta de nutrientes: es un spray foliar aparte.</span></Info>
+        </div>
+        <p className="text-[11px] text-[#a6a6b5]">
+          Replica el efecto del <b className="text-[#d9f99d]">Phitonat Powerful Elicitor</b> (fórmula propietaria) combinando insumos con dosis
+          validadas científicamente en cannabis: <b>quitosano</b> + <b>ácido salicílico</b> (elicitores SAR) + <b>algas</b> (hormonas) + <b>vitamina B</b> (anti-estrés).
+          Foliar, cada 7 días, primera hora de luz. Cortar 2–3 semanas antes de cosecha.
+        </p>
+      </div>
+
+      {/* Calculadora de lote */}
+      <div className={card}>
+        <div className="flex flex-wrap items-end gap-4 mb-3">
+          <label className="text-[11px] text-[#a6a6b5]">Spray a preparar
+            <Info><b className="text-[#d9f99d]">Litros de spray foliar</b>. Las cantidades escalan solas.<br /><span className="text-[#a3e635]">Ej: 1 L rinde para varias plantas rociando hasta que gotee.</span></Info>
+            <div className="flex items-center gap-1 mt-1">
+              <input type="number" min={0.25} step={0.25} value={litros} onChange={e => setLitros(Math.max(0.25, +e.target.value))} className={`${inp} w-28`} />
+              <span className="text-[#5c5c6b]">L</span>
+            </div>
+          </label>
+        </div>
+        <p className="text-[10px] uppercase tracking-[0.14em] text-[#a78bfa] font-semibold mb-2">Cantidades para {num(L)} L de spray</p>
+        <div className="grid sm:grid-cols-2 gap-2">
+          <FilaIngrediente nombre="Quitosano (chitosan)" cant={num(quitosano)} unidad="mg" pct="0,01%" nota="⭐ elicitor SAR — disolver en medio ácido" />
+          <FilaIngrediente nombre="Ácido salicílico (aspirina)" cant={`${num(salicilico)} mg ≈ ${num(aspirinas)}`} unidad="aspirina/s 500mg" pct="~200µM" nota="elicitor — NO te pases, quema" />
+          <FilaIngrediente nombre="Extracto de algas (kelp)" cant={num(kelp)} unidad="mL" nota="hormonas naturales" />
+          <FilaIngrediente nombre="Ácido fúlvico" cant={num(fulvico)} unidad="mL" nota="mejora la absorción foliar" />
+          <FilaIngrediente nombre="Complejo vitamina B" cant={num(vitB)} unidad="gotas" nota="anti-estrés" />
+          <FilaIngrediente nombre="Silicato (Si)" cant={num(silicato)} unidad="mL" nota="pared celular + defensa" />
+          <FilaIngrediente nombre="Ácido cítrico (para el quitosano)" cant={num(citrico)} unidad="g" nota="baja el pH para disolver el chitosan" />
+        </div>
+      </div>
+
+      {/* Paso a paso */}
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-3">
+          <BookOpen className="w-4 h-4 text-[#a78bfa]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Paso a paso</h3>
+        </div>
+        <ol className="space-y-2.5">
+          {[
+            { t: 'Disolvé el quitosano en medio ácido', d: `Poné los ${num(citrico)} g de ácido cítrico en un poco de agua tibia, agregá los ${num(quitosano)} mg de quitosano y revolvé hasta que se disuelva (el chitosan no entra en agua neutra).` },
+            { t: 'Disolvé la aspirina', d: `Triturá ${num(aspirinas)} aspirina(s) de 500 mg (sin recubrir) = ~${num(salicilico)} mg de ácido salicílico y disolvela en un poco de agua caliente.` },
+            { t: 'Sumá algas, fúlvico y vitamina B', d: `Agregá ${num(kelp)} mL de kelp, ${num(fulvico)} mL de fúlvico, ${num(vitB)} gotas de complejo B y ${num(silicato)} mL de silicato.` },
+            { t: 'Completá el volumen y ajustá pH', d: `Llevá a ${num(L)} L con agua (idealmente sin cloro) y ajustá el pH a ~6.` },
+            { t: 'Aplicá foliar', d: 'Rociá hasta que gotee, ambas caras de la hoja, en la PRIMERA hora después de que prenden las luces (estomas abiertos). Repetí cada 7 días.' },
+            { t: 'Cuándo parar', d: 'Cortá 2–3 semanas antes de cosecha (no mojar cogollos densos). En flora tardía, evitá.' },
+          ].map((p, i) => (
+            <li key={i} className="flex gap-3">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1a2410] border border-[#3d5720] text-[#a3e635] text-[11px] font-bold flex items-center justify-center tabular-nums">{i + 1}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[12px] font-medium text-[#ececf1]">{p.t}</p>
+                <p className="text-[11px] text-[#a6a6b5] leading-relaxed">{p.d}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      {/* Tips */}
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-3">
+          <Lightbulb className="w-4 h-4 text-[#facc15]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Tips y ciencia</h3>
+        </div>
+        <ul className="space-y-2 text-[11px] text-[#a6a6b5]">
+          {[
+            ['Quitosano es el ingrediente estrella', 'Es el elicitor SAR más potente y además mejora resina en flora. Dosis validada en hemp: 50–250 mg/L. Sin él, el elicitor pierde la mitad del efecto.'],
+            ['Con el salicílico, MENOS es más', 'La ciencia en cannabis usa ~30 mg/L (200 µM). Los foros tiran 86 mg/L pero ahí empieza a quemar. Quedate en la dosis baja.'],
+            ['Quitosano + salicílico juntos = sinergia', 'Un estudio 2025 mostró que combinados dieron el máximo crecimiento de tallos y hojas — justo lo que promete el Phitonat.'],
+            ['No es nutrición', 'Es un spray de defensa/estímulo. No reemplaza tu fórmula de nutrientes ni va en el tanque de riego.'],
+            ['Probá en pocas hojas primero', 'Antes de rociar toda la planta, probá en 1–2 hojas y esperá 24 h por si el salicílico quema.'],
+          ].map(([t, d], i) => (
+            <li key={i} className="flex gap-2">
+              <span className="text-[#facc15] flex-shrink-0">•</span>
+              <span><b className="text-[#d9f99d]">{t}:</b> {d}</span>
+            </li>
+          ))}
+        </ul>
+        <p className="text-[10px] text-[#5c5c6b] mt-3">Dosis de estudios en Cannabis sativa/hemp (quitosano 50–250 mg/L, salicílico ~200 µM) + recetas de foros (kelp/fúlvico/vit B). Insumos cargados en Sustancias.</p>
       </div>
     </div>
   )

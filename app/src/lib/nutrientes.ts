@@ -291,6 +291,18 @@ export const SALES_DEFECTO: Sal[] = [
   { id: 'hocl', nombre: 'Ácido hipocloroso (generador en polvo)', formula: 'HOCl', bidon: 'C', aditivo: true, comp: {},
     descripcion: 'Materia prima genérica para clonar Cleanse (Athena/Ryanodine). Generador de HOCl a base de sal, en POLVO: estable +2 años (el HOCl líquido se degrada rápido). Sanitizante de amplio espectro (bacterias, hongos, algas, biofilm), pH neutro, biodegradable, no agresivo. NO es nutriente. Ej. comercial: Binal BioMax (Axel Química). RECETA (Gastón): stock = 2,5 g en 5 L de agua (0,5 g/L = 500 ppm); dosis = 1 mL de stock por litro de riego (dilución 1:1000 ≈ 0,5 ppm, misma dosis que Cleanse a 1 mL/L). Rinde: 2,5 g → 5 L stock → 5.000 L de riego.' },
 
+  // --- Insumos para elicitor foliar DIY (bioestimulante de defensa tipo Phitonat) ---
+  { id: 'quitosano', nombre: 'Quitosano (chitosan)', formula: '(C₆H₁₁NO₄)ₙ', bidon: 'C', aditivo: true, comp: {},
+    descripcion: 'Elicitor SAR #1 (resistencia sistémica adquirida). NO es nutriente. Al contacto foliar, la planta lo lee como ataque y activa defensas (sube salicílico/jasmónico → genes PR). Además mejora resina en flora. Dosis foliar validada en hemp: 50–250 mg/L (óptimo ~100 mg/L = 0,01%). Necesita medio ácido para disolver (un poco de ácido cítrico). Insumo clave del elicitor DIY.' },
+  { id: 'acido_salicilico', nombre: 'Ácido salicílico (aspirina)', formula: 'C₇H₆O₃', bidon: 'C', aditivo: true, comp: {},
+    descripcion: 'Elicitor clásico de defensa (la señal SAR de la planta). NO es nutriente. Se consigue como aspirina sin recubrir molida. Dosis en cannabis: ~30 mg/L (200 µM) mejora cannabinoides/flavonoides. OJO: mucho QUEMA el follaje (foros: "te mata la planta"). ¼ de aspirina de 500 mg por litro. Protege ~1–2 semanas → repetir cada 7 días.' },
+  { id: 'acido_fulvico', nombre: 'Ácido fúlvico', formula: 'fúlvico', bidon: 'C', aditivo: true, comp: {},
+    descripcion: 'Mejora la absorción foliar y quela micros. NO es nutriente por sí mismo. Se usa como vehículo en el elicitor DIY (~5 mL/L). De leonardita/humus.' },
+  { id: 'kelp', nombre: 'Extracto de algas (kelp / Ascophyllum)', formula: 'kelp', bidon: 'C', aditivo: true, comp: {},
+    descripcion: 'Aporta hormonas naturales (auxinas, citoquininas, giberelinas) + micros traza + anti-estrés. Es la parte "hormonas y fitorreguladores" del elicitor. Dosis foliar ~2,5–4 mL/L (foros). Ej: Plagron Alga, Ascophyllum nodosum.' },
+  { id: 'vit_b_complejo', nombre: 'Complejo vitamina B (B1)', formula: 'vit B', bidon: 'C', aditivo: true, comp: {},
+    descripcion: 'Cofactor anti-estrés (tiamina B1 + complejo). Es la parte "vitaminas grupo B" del elicitor tipo Phitonat. Unas gotas/L de complejo B de farmacia. NO es nutriente mineral.' },
+
   // --- Jacks 321 (JR Peters) — sistema de 3 sales ---
   { id: 'jacks_a', nombre: 'Jacks 5-12-26 (Parte A)', bidon: 'B',
     comp: { NO3: 0.05, P: 0.0524, K: 0.2158, Mg: 0.03, S: 0.013, Fe: 0.0015, Mn: 0.0005, Zn: 0.0005, Cu: 0.0005, B: 0.0002, Mo: 0.00001 },
