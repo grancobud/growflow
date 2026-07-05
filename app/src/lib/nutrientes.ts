@@ -229,7 +229,7 @@ export const SALES_DEFECTO: Sal[] = [
   { id: 'add_benzoato', nombre: 'Benzoato de sodio', formula: 'NaC₇H₅O₂', bidon: 'B', aditivo: true, comp: {},
     descripcion: 'Aditivo conservante: evita que hongos/bacterias formen barro comiéndose los quelatos. 150–250 mg/L (máx 400). Lo usan casi todas las marcas sin declararlo.' },
   { id: 'add_ascorbico', nombre: 'Ácido ascórbico (vit. C)', formula: 'C₆H₈O₆', bidon: 'B', aditivo: true, comp: {},
-    descripcion: 'Aditivo antioxidante: mantiene el Fe²⁺ reducido para que no precipite marrón. 0.1–0.3 g/L.' },
+    descripcion: 'Antioxidante (vitamina C en polvo). Doble uso: (1) en concentrados mantiene el Fe reducido para que no precipite marrón; (2) como bioestimulante foliar anti-estrés. Dosis 0,1–0,3 g/L. Materia prima en Pura Química (x kg).' },
   { id: 'add_xantica', nombre: 'Goma xántica', formula: '(C₃₅H₄₉O₂₉)ₙ', bidon: 'B', aditivo: true, comp: {},
     descripcion: 'Aditivo anti-sedimentante: da cuerpo y evita que las partículas asienten en el fondo. 1–2 g/L (0.1–0.2%).' },
   { id: 'add_sorbato', nombre: 'Sorbato de potasio', formula: 'KC₆H₇O₂', bidon: 'B', aditivo: true, comp: {},
@@ -316,8 +316,6 @@ export const SALES_DEFECTO: Sal[] = [
     descripcion: 'Acondicionador de sustrato y potenciador de absorción, en POLVO soluble. NO es nutriente. Mejora la CIC, quela nutrientes y estimula raíces. Dosis riego ~0,5–1 g/L. Fuente: leonardita en polvo (bolsa 25 kg / growshops).' },
   { id: 'kelp_polvo', nombre: 'Extracto de algas soluble (kelp, polvo)', formula: 'Ascophyllum', bidon: 'C', aditivo: true, comp: {},
     descripcion: 'Extracto de algas en POLVO soluble (Ascophyllum nodosum). Hormonas naturales (auxinas, citoquininas, giberelinas) + micros traza + anti-estrés. Dosis riego/foliar ~0,3–0,5 g/L. Materia prima concentrada (rinde muchísimo).' },
-  { id: 'vit_c', nombre: 'Vitamina C (ácido ascórbico, polvo)', formula: 'C₆H₈O₆', bidon: 'C', aditivo: true, comp: {},
-    descripcion: 'Antioxidante en POLVO. Ayuda a la planta contra estrés oxidativo y estabiliza mezclas foliares. Dosis ~0,1–0,25 g/L. Materia prima pura en Pura Química / farmacia.' },
   { id: 'triacontanol', nombre: 'Triacontanol (polvo)', formula: 'C₃₀H₆₂O', bidon: 'C', aditivo: true, comp: {},
     descripcion: 'Bioestimulante de crecimiento muy potente (alcohol graso de la alfalfa). Aumenta fotosíntesis, biomasa y ramas. Dosis ínfima: 0,5–1 mg/L (impesable → solución stock obligatoria). Poco soluble: disolver en un poco de alcohol. Se consigue puro en polvo.' },
 
