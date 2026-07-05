@@ -301,7 +301,7 @@ export const SALES_DEFECTO: Sal[] = [
   { id: 'vit_b_complejo', nombre: 'Complejo vitamina B (B1)', formula: 'vit B', bidon: 'C', aditivo: true, comp: {},
     descripcion: 'Cofactor anti-estrés (tiamina B1 + complejo). Es la parte "vitaminas grupo B" del elicitor tipo Phitonat. Unas gotas/L de complejo B de farmacia. NO es nutriente mineral.' },
   { id: 'aminoacidos', nombre: 'Aminoácidos (blend/hidrolizado, polvo)', formula: 'L-aminoácidos', bidon: 'C', aditivo: true, comp: {},
-    descripcion: 'Bioestimulante en POLVO: mezcla de L-aminoácidos libres (hidrólisis enzimática). Ahorra energía a la planta, quela micros y ayuda en estrés. ⚠️ CANNABIS ES SENSIBLE: dosis BAJA (~0,1–0,2 g/L foliar, no gramos). Materia prima en Pura Química. Alternativa: armar tu blend con los aa de abajo.' },
+    descripcion: 'Bioestimulante: mezcla de L-aminoácidos libres. NO hace falta comprarlo hecho ni un producto como Delta 9 (Cannabiogen): se CLONA con los aminoácidos sueltos que tenés de Pura Química (L-triptófano + L-glicina + L-ác. glutámico + L-prolina), en polvo. Receta y stock en la pestaña Bioestimulantes DIY → "Preparación de aminoácidos". ⚠️ Cannabis sensible: dosis BAJA (mg/L, no g/L).' },
   { id: 'aa_triptofano', nombre: 'L-Triptófano (polvo)', formula: 'C₁₁H₁₂N₂O₂', bidon: 'C', aditivo: true, comp: {},
     descripcion: '⭐ Precursor de AUXINA (IAA): estimula raíces y crecimiento (enraizante suave). El aa más valioso para el cultivo. Dosis foliar baja ~10–20 mg/L (0,1 mM). Poco soluble: disolver en poca agua tibia.' },
   { id: 'aa_glicina', nombre: 'L-Glicina (polvo)', formula: 'C₂H₅NO₂', bidon: 'C', aditivo: true, comp: {},
