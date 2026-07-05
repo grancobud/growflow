@@ -77,6 +77,25 @@ function Info({ children }: { children: React.ReactNode }) {
   )
 }
 
+// Para qué DIY/clon sirve cada aditivo (los que el solver ignora y no salen en usosDeSal).
+const CLON_ADITIVO: Record<string, string> = {
+  iba: 'Radics (gel de enraizado)',
+  hocl: 'Cleanse (sanitizante)',
+  quitosano: 'Phitonat (elicitor)',
+  acido_salicilico: 'Phitonat (elicitor)',
+  aminoacidos: 'Green Sensation / bioestimulante',
+  aa_triptofano: 'Súper Bioestimulante',
+  aa_glicina: 'Súper Bioestimulante',
+  aa_glutamico: 'Súper Bioestimulante',
+  aa_prolina: 'Súper Bioestimulante',
+  acido_fulvico: 'Elicitor / bioestimulante',
+  humico_fulvico: 'Booster de raíz',
+  kelp_polvo: 'Bioestimulante (hormonas)',
+  triacontanol: 'Bioestimulante',
+  vit_b1: 'Bioestimulante (vitaminas)',
+  add_ascorbico: 'Bioestimulante / antioxidante',
+  ksilic: 'Athena Balance',
+}
 const card = 'rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4'
 const inp = 'w-full bg-[#15151d] border border-[#1f1f2b] rounded-md px-2 py-1 text-[12px] text-[#ececf1] font-mono tabular-nums focus:border-[#404d20] outline-none'
 
@@ -726,12 +745,14 @@ function SustanciasTab({ salesTodas, activas, setActivas, recargarCustoms, recar
                     <span className="block text-[10px] text-[#5c5c6b] mt-0.5 line-clamp-2">{s.descripcion ?? s.nota ?? 'Sin descripción.'}</span>
                     {(() => {
                       const u = usos[s.id]
-                      if (!u) return null
-                      const txt = u.marcas.length >= 4 ? 'Base · casi todas las marcas'
+                      const txt = u ? (u.marcas.length >= 4 ? 'Base · casi todas las marcas'
                         : u.marcas.length ? 'Para clonar: ' + u.marcas.join(' · ')
-                        : u.presets.length ? 'Recetas base' : null
-                      if (!txt) return null
-                      return <span className="inline-block text-[8.5px] px-1.5 py-0.5 rounded mt-1 bg-[#7dd3fc]/12 text-[#7dd3fc] font-medium">🎯 {txt}</span>
+                        : u.presets.length ? 'Recetas base' : null) : null
+                      if (txt) return <span className="inline-block text-[8.5px] px-1.5 py-0.5 rounded mt-1 bg-[#7dd3fc]/12 text-[#7dd3fc] font-medium">🎯 {txt}</span>
+                      // aditivos DIY: qué producto se clona/hace con ellos
+                      const diy = CLON_ADITIVO[s.id]
+                      if (diy) return <span className="inline-block text-[8.5px] px-1.5 py-0.5 rounded mt-1 bg-[#a3e635]/12 text-[#bef264] font-medium">🎯 Para clonar/hacer: {diy}</span>
+                      return null
                     })()}
                   </button>
                   <ChevronDown className={`w-4 h-4 mt-0.5 text-[#5c5c6b] flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
