@@ -751,7 +751,7 @@ function SustanciasTab({ salesTodas, activas, setActivas, recargarCustoms, recar
                       if (txt) return <span className="inline-block text-[8.5px] px-1.5 py-0.5 rounded mt-1 bg-[#7dd3fc]/12 text-[#7dd3fc] font-medium">🎯 {txt}</span>
                       // aditivos DIY: qué producto se clona/hace con ellos
                       const diy = CLON_ADITIVO[s.id]
-                      if (diy) return <span className="inline-block text-[8.5px] px-1.5 py-0.5 rounded mt-1 bg-[#a3e635]/12 text-[#bef264] font-medium">🎯 Para clonar/hacer: {diy}</span>
+                      if (diy) return <span className="inline-block text-[8.5px] px-1.5 py-0.5 rounded mt-1 bg-[#7dd3fc]/12 text-[#7dd3fc] font-medium">🎯 Para clonar/hacer: {diy}</span>
                       return null
                     })()}
                   </button>
