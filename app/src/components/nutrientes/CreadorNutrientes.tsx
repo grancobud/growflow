@@ -30,7 +30,7 @@ interface CalcTabProps {
 }
 type CostoResultado = { porLitro: number; detalle: { sal: Sal; costo: number }[] }
 
-type SubTab = 'calc' | 'clonar' | 'sustancias' | 'proveedores' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar' | 'conversor' | 'enraizado' | 'elicitor' | 'bioestim' | 'superbio' | 'ayuda'
+type SubTab = 'calc' | 'clonar' | 'sustancias' | 'proveedores' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar' | 'conversor' | 'enraizado' | 'elicitor' | 'bioestim' | 'ayuda'
 
 const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
   { id: 'calc', label: 'Calculadora', icon: Calculator },
@@ -46,8 +46,7 @@ const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
   { id: 'conversor', label: 'Conversor', icon: Repeat },
   { id: 'enraizado', label: 'Gel de enraizado', icon: Sprout },
   { id: 'elicitor', label: 'Elicitor DIY', icon: Sparkles },
-  { id: 'bioestim', label: 'Bioestimulantes DIY', icon: Beaker },
-  { id: 'superbio', label: 'Súper Bioestimulante', icon: Sparkles },
+  { id: 'bioestim', label: 'Bioestimulantes DIY', icon: Sparkles },
   { id: 'ayuda', label: 'Ayuda / Guía', icon: HelpCircle },
 ]
 
@@ -245,10 +244,10 @@ export default function CreadorNutrientes() {
         <ElicitorTab />
       )}
       {sub === 'bioestim' && (
-        <BioestimulantesTab />
-      )}
-      {sub === 'superbio' && (
-        <SuperBioTab />
+        <div className="space-y-4">
+          <SuperBioTab />
+          <BioestimulantesTab />
+        </div>
       )}
       {sub === 'ayuda' && (
         <AyudaTab irA={setSub} />
@@ -1409,14 +1408,12 @@ function BioestimulantesTab() {
       <div className={card}>
         <div className="flex items-center gap-2 mb-1">
           <Beaker className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
-          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Bioestimulantes DIY — materias primas en polvo</h3>
-          <Info><b className="text-[#d9f99d]">Comprás el insumo puro (en polvo), hacés stock y dosificás.</b> NO son nutrientes (no van en la receta de ppm): estimulan raíces, vigor y absorción.<br /><span className="text-[#a3e635]">Mismo método que el elicitor: materia prima concentrada → rinde muchísimo por litro.</span></Info>
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Catálogo de insumos sueltos (materias primas en polvo)</h3>
+          <Info><b className="text-[#d9f99d]">Cada materia prima por separado:</b> qué hace, cómo hacer el stock, dosis y dónde comprarla. Usalas sueltas o combinalas en la receta de arriba.</Info>
         </div>
         <p className="text-[11px] text-[#a6a6b5]">Casi todo se consigue en <b className="text-[#d9f99d]">Pura Química</b> (aminoácidos, vitaminas) y agro/growshops (leonardita, algas). Todos cargados en <b>Sustancias</b> — cuando tengas precios los cargás como proveedores.</p>
-      </div>
 
-      <div className={card}>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto mt-3">
           <table className="w-full text-[11px] border-collapse">
             <thead>
               <tr className="text-[#5c5c6b] text-[10px] uppercase tracking-[0.1em] text-left">
@@ -1440,20 +1437,6 @@ function BioestimulantesTab() {
             </tbody>
           </table>
         </div>
-      </div>
-
-      {/* Reglas de oro */}
-      <div className={`${card} border-[#facc15]/25`}>
-        <div className="flex items-center gap-2 mb-2">
-          <AlertTriangle className="w-4 h-4 text-[#facc15]" strokeWidth={1.8} />
-          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Reglas de oro</h3>
-        </div>
-        <ul className="space-y-1.5 text-[11px] text-[#a6a6b5]">
-          <li className="flex gap-2"><span className="text-[#facc15]">•</span><span><b className="text-[#d9f99d]">Impesables → solución stock:</b> el triacontanol y las vitaminas se dosifican en mg. Pesás grande una vez, disolvés, y dosificás por mL con jeringa (igual que los micros).</span></li>
-          <li className="flex gap-2"><span className="text-[#facc15]">•</span><span><b className="text-[#d9f99d]">Van aparte de la receta de nutrientes:</b> son aditivos, el solver los ignora. No ensucian los ppm.</span></li>
-          <li className="flex gap-2"><span className="text-[#facc15]">•</span><span><b className="text-[#d9f99d]">Poco solubles en agua fría:</b> el triacontanol necesita alcohol; el húmico queda oscuro pero disuelve. Recién hechos rinden más.</span></li>
-          <li className="flex gap-2"><span className="text-[#facc15]">•</span><span><b className="text-[#d9f99d]">No los combines con HOCl/Cleanse:</b> si usás sanitizante en el riego, aplicá los bioestimulantes en otro momento.</span></li>
-        </ul>
       </div>
     </div>
   )
