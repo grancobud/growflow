@@ -77,7 +77,7 @@ function Info({ children }: { children: React.ReactNode }) {
   )
 }
 
-const card = 'rounded-xl bg-[#101016] border border-[#1f1f2b] p-4'
+const card = 'rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4'
 const inp = 'w-full bg-[#15151d] border border-[#1f1f2b] rounded-md px-2 py-1 text-[12px] text-[#ececf1] font-mono tabular-nums focus:border-[#404d20] outline-none'
 
 export default function CreadorNutrientes() {
@@ -1413,8 +1413,8 @@ function BioestimulantesTab() {
         </div>
         <p className="text-[11px] text-[#a6a6b5]">Casi todo se consigue en <b className="text-[#d9f99d]">Pura Química</b> (aminoácidos, vitaminas) y agro/growshops (leonardita, algas). Todos cargados en <b>Sustancias</b> — cuando tengas precios los cargás como proveedores.</p>
 
-        <div className="overflow-x-auto mt-3">
-          <table className="w-full text-[11px] border-collapse">
+        <div className="overflow-x-auto mt-3 -mx-3 px-3">
+          <table className="w-full min-w-[620px] text-[11px] border-collapse">
             <thead>
               <tr className="text-[#5c5c6b] text-[10px] uppercase tracking-[0.1em] text-left">
                 <th className="font-medium py-1.5 pr-2">Insumo (polvo)</th>
