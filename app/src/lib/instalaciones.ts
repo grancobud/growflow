@@ -8,11 +8,12 @@ import { supabase } from './supabase'
 // alimenta selects y el agrupado. Si agregas uno, sumalo aca.
 export const SISTEMAS = [
   'Riego', 'CO2', 'Iluminacion', 'Ventilacion', 'Climatizacion',
-  'Automatizacion', 'Estructura', 'Medicion', 'Electrico', 'Seguridad', 'Otro',
+  'Automatizacion', 'Estructura', 'Medicion', 'Electrico', 'Seguridad',
+  'Mano de obra', 'Otro',
 ] as const
 export type Sistema = typeof SISTEMAS[number]
 
-export const UNIDADES_INST = ['u', 'm', 'kg', 'L', 'rollo', 'caja', 'par', 'kit'] as const
+export const UNIDADES_INST = ['u', 'hora', 'm', 'kg', 'L', 'rollo', 'caja', 'par', 'kit'] as const
 
 export interface ProveedorInstalacion {
   id: string
@@ -38,6 +39,20 @@ export interface ItemInstalacion {
   notas: string | null
   creado_en: string
   actualizado_en: string
+}
+
+// Oferta de proveedor para un ítem (alternativa de precio, con foto). La marcada
+// `elegido` define el precio de referencia que se copia a instalaciones_items.precio.
+export interface OfertaInstalacion {
+  id: string
+  item_id: string
+  proveedor_id: string | null
+  precio: number | null
+  presentacion: string | null
+  imagen: string | null       // data URL base64 o URL (captura del precio)
+  nota: string | null
+  elegido: boolean
+  creado_en: string
 }
 
 export interface Presupuesto {
@@ -131,6 +146,42 @@ export const instalacionesService = {
   async eliminarItem(id: string): Promise<void> {
     const { error } = await supabase.from('instalaciones_items').delete().eq('id', id)
     if (error) throw error
+  },
+
+  // --- ofertas de proveedor por ítem ---
+  async getOfertas(itemId: string): Promise<OfertaInstalacion[]> {
+    const { data, error } = await supabase.from('ofertas_instalacion')
+      .select('*').eq('item_id', itemId).order('precio', { ascending: true, nullsFirst: false })
+    if (error) throw error
+    return (data ?? []) as OfertaInstalacion[]
+  },
+  // Todas las ofertas (para contar/mostrar "mejor precio" en el catálogo sin N queries).
+  async getTodasOfertas(): Promise<Pick<OfertaInstalacion, 'id' | 'item_id' | 'precio' | 'elegido'>[]> {
+    const { data, error } = await supabase.from('ofertas_instalacion').select('id,item_id,precio,elegido')
+    if (error) throw error
+    return (data ?? []) as Pick<OfertaInstalacion, 'id' | 'item_id' | 'precio' | 'elegido'>[]
+  },
+  async crearOferta(o: Partial<OfertaInstalacion>): Promise<OfertaInstalacion> {
+    const { data, error } = await supabase.from('ofertas_instalacion').insert(o).select().single()
+    if (error) throw error
+    return data as OfertaInstalacion
+  },
+  async actualizarOferta(id: string, o: Partial<OfertaInstalacion>): Promise<void> {
+    const { error } = await supabase.from('ofertas_instalacion').update(o).eq('id', id)
+    if (error) throw error
+  },
+  async eliminarOferta(id: string): Promise<void> {
+    const { error } = await supabase.from('ofertas_instalacion').delete().eq('id', id)
+    if (error) throw error
+  },
+  // Marca una oferta como referencia (desmarca las demás del ítem) y copia su precio
+  // y proveedor al ítem del catálogo.
+  async elegirOferta(id: string, itemId: string, precio: number | null, proveedorId: string | null): Promise<void> {
+    await supabase.from('ofertas_instalacion').update({ elegido: false }).eq('item_id', itemId)
+    await supabase.from('ofertas_instalacion').update({ elegido: true }).eq('id', id)
+    await supabase.from('instalaciones_items')
+      .update({ precio: precio ?? null, proveedor_id: proveedorId ?? null, actualizado_en: new Date().toISOString() })
+      .eq('id', itemId)
   },
 
   // --- presupuestos ---

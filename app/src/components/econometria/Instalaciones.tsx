@@ -7,12 +7,13 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 import {
   Plus, X, Loader2, Trash2, Pencil, Boxes, Truck, FileText, ChevronLeft,
-  ExternalLink, Package, Printer, BarChart3,
+  ExternalLink, Package, Printer, BarChart3, Tag, Star, ImagePlus,
 } from 'lucide-react'
 import {
   instalacionesService, SISTEMAS, UNIDADES_INST, porSistema, totalLinea,
   totalPresupuesto, totalesPorSistema,
   type ItemInstalacion, type ProveedorInstalacion, type Presupuesto, type PresupuestoItem,
+  type OfertaInstalacion,
 } from '../../lib/instalaciones'
 
 const inputCls = 'w-full px-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
@@ -22,6 +23,31 @@ const btnSutil = 'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bord
 const fmt = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
 
 const escapeHtml = (s: string) => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!))
+
+// Lee un archivo de imagen, lo reescala a max 1000px y devuelve un data URL JPEG
+// (mantiene el peso bajo para guardarlo como base64 en la columna imagen).
+function comprimirImagen(file: File, max = 1000): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const img = new Image()
+      img.onload = () => {
+        const escala = Math.min(1, max / Math.max(img.width, img.height))
+        const canvas = document.createElement('canvas')
+        canvas.width = Math.round(img.width * escala)
+        canvas.height = Math.round(img.height * escala)
+        const ctx = canvas.getContext('2d')
+        if (!ctx) { reject(new Error('sin canvas')); return }
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        resolve(canvas.toDataURL('image/jpeg', 0.8))
+      }
+      img.onerror = () => reject(new Error('imagen inválida'))
+      img.src = reader.result as string
+    }
+    reader.onerror = () => reject(new Error('no se pudo leer'))
+    reader.readAsDataURL(file)
+  })
+}
 
 // Presupuesto imprimible: HTML tema claro con branding, tabla por sistema y total.
 function imprimirPresupuesto(nombre: string, grupos: { sistema: string; items: PresupuestoItem[] }[], total: number) {
@@ -71,21 +97,36 @@ export default function Instalaciones() {
 
   const [modalItem, setModalItem] = useState<ItemInstalacion | 'nuevo' | null>(null)
   const [modalProv, setModalProv] = useState<ProveedorInstalacion | 'nuevo' | null>(null)
+  const [modalOfertas, setModalOfertas] = useState<ItemInstalacion | null>(null)
+  const [ofertas, setOfertas] = useState<Pick<OfertaInstalacion, 'id' | 'item_id' | 'precio' | 'elegido'>[]>([])
   const [presupSel, setPresupSel] = useState<Presupuesto | null>(null)
   const [comparar, setComparar] = useState(false)
 
   const cargar = useCallback(async () => {
     try {
-      const [its, provs, presups] = await Promise.all([
+      const [its, provs, presups, ofs] = await Promise.all([
         instalacionesService.getItems(),
         instalacionesService.getProveedores(),
         instalacionesService.getPresupuestos(),
+        instalacionesService.getTodasOfertas(),
       ])
-      setItems(its); setProveedores(provs); setPresupuestos(presups)
+      setItems(its); setProveedores(provs); setPresupuestos(presups); setOfertas(ofs)
     } catch (err) { toast.error(`Error cargando instalaciones: ${(err as Error).message}`) }
     finally { setCargando(false) }
   }, [])
   useEffect(() => { cargar() }, [cargar])
+
+  // item_id -> { n ofertas, mejor precio } para el badge del catálogo.
+  const ofertasPorItem = useMemo(() => {
+    const m = new Map<string, { n: number; min: number | null }>()
+    for (const o of ofertas) {
+      const cur = m.get(o.item_id) ?? { n: 0, min: null }
+      cur.n += 1
+      if (o.precio != null) cur.min = cur.min == null ? Number(o.precio) : Math.min(cur.min, Number(o.precio))
+      m.set(o.item_id, cur)
+    }
+    return m
+  }, [ofertas])
 
   const provPorId = useMemo(() => new Map(proveedores.map(p => [p.id, p])), [proveedores])
   const totalCatalogo = useMemo(
@@ -156,6 +197,7 @@ export default function Instalaciones() {
                 <ul className="divide-y divide-[#1f1f2b]/60">
                   {g.items.map(i => {
                     const prov = i.proveedor_id ? provPorId.get(i.proveedor_id) : null
+                    const of = ofertasPorItem.get(i.id)
                     return (
                       <li key={i.id} className="flex items-center gap-3 px-4 py-2.5 group">
                         <div className="min-w-0 flex-1">
@@ -165,6 +207,7 @@ export default function Instalaciones() {
                           </div>
                           <div className="mt-0.5 flex items-center gap-2 text-[10.5px] text-[#5c5c6b]">
                             {prov ? <span className="text-[#84cc16]">{prov.nombre}</span> : <span className="text-[#5c5c6b]">sin proveedor</span>}
+                            {of && of.n > 0 && <button onClick={() => setModalOfertas(i)} className="inline-flex items-center gap-0.5 text-[#fbbf24] hover:underline"><Tag className="w-3 h-3" /> {of.n} oferta{of.n === 1 ? '' : 's'}{of.min != null ? ` · mejor ${fmt(of.min)}` : ''}</button>}
                             {i.url && <a href={i.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 text-[#38bdf8] hover:underline"><ExternalLink className="w-3 h-3" /> link</a>}
                             {i.specs && <span className="truncate">· {i.specs}</span>}
                           </div>
@@ -174,6 +217,7 @@ export default function Instalaciones() {
                           <div className="text-[9.5px] text-[#5c5c6b]">por {i.unidad || 'u'}</div>
                         </div>
                         <div className="flex flex-col gap-1 flex-shrink-0">
+                          <button onClick={() => setModalOfertas(i)} className="p-1.5 text-[#5c5c6b] hover:text-[#fbbf24] hover:bg-[#15151d] rounded-lg transition-colors" title="Ofertas / comparar precios"><Tag className="w-3.5 h-3.5" /></button>
                           <button onClick={() => setModalItem(i)} className="p-1.5 text-[#5c5c6b] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
                           <button onClick={() => borrarItem(i)} className="p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
                         </div>
@@ -243,7 +287,161 @@ export default function Instalaciones() {
         onCerrar={() => setModalItem(null)} onGuardado={() => { setModalItem(null); cargar() }} />}
       {modalProv && <ModalProveedor prov={modalProv === 'nuevo' ? null : modalProv}
         onCerrar={() => setModalProv(null)} onGuardado={() => { setModalProv(null); cargar() }} />}
+      {modalOfertas && <ModalOfertas item={modalOfertas} proveedores={proveedores}
+        onCerrar={() => setModalOfertas(null)} onCambio={cargar} />}
     </div>
+  )
+}
+
+// ---- Ofertas de proveedor por ítem: comparar precios, subir foto, elegir mejor ----
+function ModalOfertas({ item, proveedores, onCerrar, onCambio }: {
+  item: ItemInstalacion; proveedores: ProveedorInstalacion[]; onCerrar: () => void; onCambio: () => void
+}) {
+  const [ofertas, setOfertas] = useState<OfertaInstalacion[]>([])
+  const [cargando, setCargando] = useState(true)
+  const [edit, setEdit] = useState<OfertaInstalacion | 'nueva' | null>(null)
+  const [verImg, setVerImg] = useState<string | null>(null)
+  const provPorId = useMemo(() => new Map(proveedores.map(p => [p.id, p])), [proveedores])
+
+  const cargar = useCallback(async () => {
+    try { setOfertas(await instalacionesService.getOfertas(item.id)) }
+    catch (err) { toast.error(`Error: ${(err as Error).message}`) }
+    finally { setCargando(false) }
+  }, [item.id])
+  useEffect(() => { cargar() }, [cargar])
+
+  const elegir = async (o: OfertaInstalacion) => {
+    try {
+      await instalacionesService.elegirOferta(o.id, item.id, o.precio ?? null, o.proveedor_id ?? null)
+      toast.success('Precio de referencia actualizado'); await cargar(); onCambio()
+    } catch (err) { toast.error(`Error: ${(err as Error).message}`) }
+  }
+  const borrar = async (o: OfertaInstalacion) => {
+    if (!window.confirm('¿Borrar esta oferta?')) return
+    try { await instalacionesService.eliminarOferta(o.id); await cargar(); onCambio() }
+    catch (err) { toast.error(`Error: ${(err as Error).message}`) }
+  }
+
+  const mejor = ofertas.filter(o => o.precio != null).reduce<number | null>((m, o) => m == null ? Number(o.precio) : Math.min(m, Number(o.precio)), null)
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={onCerrar}>
+      <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="sticky top-0 bg-[#0d0d12] border-b border-[#1f1f2b] px-4 py-3 flex items-center justify-between">
+          <div className="min-w-0">
+            <h2 className="font-display font-bold text-[15px] text-[#ececf1] truncate flex items-center gap-2"><Tag className="w-4 h-4 text-[#fbbf24]" /> Ofertas · {item.nombre}</h2>
+            <div className="text-[10.5px] text-[#5c5c6b]">Cargá cada cotización con su foto y elegí ⭐ la de mejor precio</div>
+          </div>
+          <button onClick={onCerrar} className="p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
+        </div>
+        <div className="p-4 space-y-3">
+          {cargando ? (
+            <div className="h-24 rounded-xl bg-[#101016] border border-[#1f1f2b] animate-pulse" />
+          ) : ofertas.length === 0 ? (
+            <p className="text-[12px] text-[#5c5c6b] text-center py-6">Todavía no hay ofertas. Agregá la primera abajo.</p>
+          ) : (
+            <ul className="space-y-2">
+              {ofertas.map(o => {
+                const prov = o.proveedor_id ? provPorId.get(o.proveedor_id) : null
+                const esMejor = o.precio != null && mejor != null && Number(o.precio) === mejor
+                return (
+                  <li key={o.id} className={`rounded-xl border p-2.5 flex items-center gap-3 ${o.elegido ? 'border-[#a3e635]/50 bg-[#a3e635]/[0.06]' : 'border-[#1f1f2b] bg-[#101016]'}`}>
+                    {o.imagen
+                      ? <button onClick={() => setVerImg(o.imagen!)} className="flex-shrink-0"><img src={o.imagen} alt="" className="w-12 h-12 rounded-lg object-cover border border-[#2a2a3a]" /></button>
+                      : <div className="w-12 h-12 rounded-lg bg-[#15151d] border border-[#2a2a3a] flex items-center justify-center flex-shrink-0"><ImagePlus className="w-4 h-4 text-[#3a3a48]" /></div>}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[12.5px] font-medium text-[#ececf1]">{o.precio != null ? fmt(Number(o.precio)) : 's/precio'}</span>
+                        {esMejor && <span className="px-1.5 py-0.5 rounded-md text-[9px] bg-[#22c55e]/15 text-[#4ade80] border border-[#22c55e]/30">mejor</span>}
+                        {o.elegido && <span className="px-1.5 py-0.5 rounded-md text-[9px] bg-[#a3e635]/15 text-[#d9f99d] border border-[#a3e635]/30">referencia</span>}
+                      </div>
+                      <div className="text-[10.5px] text-[#5c5c6b] truncate">{prov?.nombre ?? 'sin proveedor'}{o.presentacion ? ` · ${o.presentacion}` : ''}{o.nota ? ` · ${o.nota}` : ''}</div>
+                    </div>
+                    <button onClick={() => elegir(o)} title="Elegir como referencia" className={`p-1.5 rounded-lg transition-colors ${o.elegido ? 'text-[#a3e635]' : 'text-[#5c5c6b] hover:text-[#a3e635] hover:bg-[#15151d]'}`}><Star className={`w-4 h-4 ${o.elegido ? 'fill-[#a3e635]' : ''}`} /></button>
+                    <button onClick={() => setEdit(o)} className="p-1.5 text-[#5c5c6b] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => borrar(o)} className="p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+          <button onClick={() => setEdit('nueva')} className={`${btnSutil} w-full justify-center`}><Plus className="w-3.5 h-3.5" /> Agregar oferta</button>
+        </div>
+      </div>
+
+      {edit && <ModalOferta item={item} oferta={edit === 'nueva' ? null : edit} proveedores={proveedores}
+        onCerrar={() => setEdit(null)} onGuardado={() => { setEdit(null); cargar(); onCambio() }} />}
+      {verImg && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/85 p-4" onClick={() => setVerImg(null)}>
+          <img src={verImg} alt="" className="max-w-full max-h-full rounded-lg" />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ModalOferta({ item, oferta, proveedores, onCerrar, onGuardado }: {
+  item: ItemInstalacion; oferta: OfertaInstalacion | null; proveedores: ProveedorInstalacion[]; onCerrar: () => void; onGuardado: () => void
+}) {
+  const [f, setF] = useState<Partial<OfertaInstalacion>>(oferta ?? {})
+  const [guardando, setGuardando] = useState(false)
+  const [subiendo, setSubiendo] = useState(false)
+  const set = (k: keyof OfertaInstalacion, v: unknown) => setF(prev => ({ ...prev, [k]: v }))
+
+  const onFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setSubiendo(true)
+    try { set('imagen', await comprimirImagen(file)) }
+    catch (err) { toast.error(`No se pudo procesar la imagen: ${(err as Error).message}`) }
+    finally { setSubiendo(false) }
+  }
+
+  const guardar = async () => {
+    setGuardando(true)
+    try {
+      const payload: Partial<OfertaInstalacion> = {
+        item_id: item.id, proveedor_id: f.proveedor_id || null,
+        precio: f.precio != null && (f.precio as unknown) !== '' ? Number(f.precio) : null,
+        presentacion: f.presentacion || null, imagen: f.imagen || null, nota: f.nota || null,
+      }
+      if (oferta) await instalacionesService.actualizarOferta(oferta.id, payload)
+      else await instalacionesService.crearOferta(payload)
+      toast.success(oferta ? 'Oferta actualizada' : 'Oferta agregada'); onGuardado()
+    } catch (err) { toast.error(`Error: ${(err as Error).message}`) }
+    finally { setGuardando(false) }
+  }
+
+  return (
+    <ModalShell titulo={oferta ? 'Editar oferta' : 'Nueva oferta'} onCerrar={onCerrar} onGuardar={guardar} guardando={guardando}>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={labelCls}>Proveedor</label>
+          <select className={inputCls} value={f.proveedor_id ?? ''} onChange={e => set('proveedor_id', e.target.value || null)}>
+            <option value="">— sin proveedor —</option>
+            {proveedores.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+          </select>
+        </div>
+        <div><label className={labelCls}>Precio ($)</label><input type="number" className={inputCls} value={f.precio ?? ''} onChange={e => set('precio', e.target.value === '' ? '' : Number(e.target.value))} placeholder="0" /></div>
+      </div>
+      <div><label className={labelCls}>Presentación</label><input className={inputCls} value={f.presentacion ?? ''} onChange={e => set('presentacion', e.target.value)} placeholder="Ej: caja x10 · bolsa 25kg · por hora" /></div>
+      <div>
+        <label className={labelCls}>Foto de la cotización (captura ML, etc.)</label>
+        <div className="flex items-center gap-3">
+          {f.imagen
+            ? <img src={f.imagen} alt="" className="w-16 h-16 rounded-lg object-cover border border-[#2a2a3a]" />
+            : <div className="w-16 h-16 rounded-lg bg-[#15151d] border border-[#2a2a3a] flex items-center justify-center"><ImagePlus className="w-5 h-5 text-[#3a3a48]" /></div>}
+          <div className="flex flex-col gap-1.5">
+            <label className={`${btnSutil} cursor-pointer`}>
+              {subiendo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ImagePlus className="w-3.5 h-3.5" />} {f.imagen ? 'Cambiar' : 'Subir foto'}
+              <input type="file" accept="image/*" className="hidden" onChange={onFoto} />
+            </label>
+            {f.imagen && <button onClick={() => set('imagen', null)} className="text-[10.5px] text-[#ff8a7a] hover:underline text-left">Quitar</button>}
+          </div>
+        </div>
+      </div>
+      <div><label className={labelCls}>Nota</label><input className={inputCls} value={f.nota ?? ''} onChange={e => set('nota', e.target.value)} placeholder="Opcional" /></div>
+    </ModalShell>
   )
 }
 

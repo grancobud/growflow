@@ -226,6 +226,17 @@ const TABLAS: DefTabla[] = [
       { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[160px]' },
     ],
   },
+  {
+    id: 'ofertas_instalacion', nombre: 'Ofertas (instalación)', orden: 'precio',
+    cols: [
+      { campo: 'item_id', titulo: 'Ítem (id)', tipo: 'text', ancho: 'min-w-[160px]' },
+      { campo: 'proveedor_id', titulo: 'Proveedor (id)', tipo: 'text', ancho: 'min-w-[160px]' },
+      { campo: 'precio', titulo: 'Precio', tipo: 'number' },
+      { campo: 'presentacion', titulo: 'Presentación', tipo: 'text' },
+      { campo: 'elegido', titulo: 'Referencia', tipo: 'bool' },
+      { campo: 'nota', titulo: 'Nota', tipo: 'text', ancho: 'min-w-[160px]' },
+    ],
+  },
 ]
 
 // Tablas que referencian una planta: mostramos la columna con nombre legible
