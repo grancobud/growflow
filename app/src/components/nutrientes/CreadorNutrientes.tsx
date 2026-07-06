@@ -495,7 +495,7 @@ function CalcTab(p: CalcTabProps) {
               {micros.map((e: Elem) => (
                 <label key={e.key} className="block">
                   <span className="text-[10px] text-[#8f8f9f]">{e.key}</span>
-                  <input type="number" min={0} step={0.1} value={perfil[e.key] ?? 0}
+                  <input type="number" min={0} step={1} value={perfil[e.key] ?? 0}
                     onChange={ev => setPpm(e.key, +ev.target.value)} className={inp} />
                 </label>
               ))}
@@ -809,7 +809,7 @@ function FichaSal({ sal, onSaved, onDelete }: { sal: Sal; onSaved: () => void; o
           <label className="text-[10px] text-[#8f8f9f]">Costo/kg (ARS)
             <input type="number" min={0} value={costo} onChange={e => setCosto(+e.target.value)} className={`${inp} mt-0.5`} /></label>
           <label className="text-[10px] text-[#8f8f9f]">Stock que tengo
-            <input type="number" min={0} step={0.1} value={stock} onChange={e => setStock(+e.target.value)} className={`${inp} mt-0.5`} /></label>
+            <input type="number" min={0} step={1} value={stock} onChange={e => setStock(+e.target.value)} className={`${inp} mt-0.5`} /></label>
           <label className="text-[10px] text-[#8f8f9f]">Unidad
             <select value={unidad} onChange={e => setUnidad(e.target.value)} className={`${inp} mt-0.5`}>
               {['kg', 'g', 'L', 'mL', 'u'].map(u => <option key={u} value={u}>{u}</option>)}
@@ -899,7 +899,7 @@ function NuevaSustancia({ onClose, onSaved }: { onClose: () => void; onSaved: ()
       <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
         {ELEMENTOS.map(e => (
           <label key={e.key} className="block"><span className="text-[9.5px] text-[#8f8f9f]">{labelDe(e.key)} %</span>
-            <input type="number" min={0} step={0.1} value={comp[e.key] ?? ''} placeholder="0"
+            <input type="number" min={0} step={1} value={comp[e.key] ?? ''} placeholder="0"
               onChange={ev => setComp(prev => ({ ...prev, [e.key]: +ev.target.value }))}
               className="w-full bg-[#101016] border border-[#1f1f2b] rounded px-1.5 py-1 text-[11px] text-[#ececf1] font-mono tabular-nums focus:border-[#404d20] outline-none" /></label>
         ))}
@@ -921,7 +921,7 @@ function GrupoAgua({ titulo, items, agua, set }: { titulo: string; items: Elem[]
       <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
         {items.map(e => (
           <label key={e.key} className="block"><span className="text-[10px] text-[#8f8f9f]">{e.key}</span>
-            <input type="number" min={0} step={0.1} value={agua[e.key] ?? 0} onChange={ev => set(e.key, +ev.target.value)} className={inp} /></label>
+            <input type="number" min={0} step={1} value={agua[e.key] ?? 0} onChange={ev => set(e.key, +ev.target.value)} className={inp} /></label>
         ))}
       </div>
     </div>
@@ -1148,13 +1148,13 @@ function HoclDilucionCalc() {
       <div className="flex flex-wrap items-end gap-4 mb-3">
         <label className="text-[11px] text-[#a6a6b5]">Stock a preparar
           <div className="flex items-center gap-1 mt-1">
-            <input type="number" min={0.5} step={0.5} value={litrosStock} onChange={e => setLitrosStock(Math.max(0.5, +e.target.value))} className={`${inp} w-24`} />
+            <input type="number" min={0.5} step={1} value={litrosStock} onChange={e => setLitrosStock(Math.max(0.5, +e.target.value))} className={`${inp} w-24`} />
             <span className="text-[#5c5c6b]">L</span>
           </div>
         </label>
         <label className="text-[11px] text-[#a6a6b5]">Dosis en el riego
           <div className="flex items-center gap-1 mt-1">
-            <input type="number" min={0.1} step={0.1} value={dosisMlL} onChange={e => setDosisMlL(Math.max(0.1, +e.target.value))} className={`${inp} w-24`} />
+            <input type="number" min={0.1} step={1} value={dosisMlL} onChange={e => setDosisMlL(Math.max(0.1, +e.target.value))} className={`${inp} w-24`} />
             <span className="text-[#5c5c6b]">mL/L</span>
           </div>
         </label>
@@ -1348,7 +1348,7 @@ function ElicitorTab() {
           <label className="text-[11px] text-[#a6a6b5]">Spray a preparar
             <Info><b className="text-[#d9f99d]">Litros de spray foliar</b>. Las cantidades escalan solas.<br /><span className="text-[#a3e635]">Ej: 1 L rinde para varias plantas rociando hasta que gotee.</span></Info>
             <div className="flex items-center gap-1 mt-1">
-              <input type="number" min={0.25} step={0.25} value={litros} onChange={e => setLitros(Math.max(0.25, +e.target.value))} className={`${inp} w-28`} />
+              <input type="number" min={0.25} step={1} value={litros} onChange={e => setLitros(Math.max(0.25, +e.target.value))} className={`${inp} w-28`} />
               <span className="text-[#5c5c6b]">L</span>
             </div>
           </label>
@@ -1517,7 +1517,7 @@ function SuperBioTab() {
         <div className="flex flex-wrap items-end gap-4 mb-3">
           <label className="text-[11px] text-[#a6a6b5]">Preparar
             <div className="flex items-center gap-1 mt-1">
-              <input type="number" min={0.25} step={0.25} value={litros} onChange={e => setLitros(Math.max(0.25, +e.target.value))} className={`${inp} w-24`} />
+              <input type="number" min={0.25} step={1} value={litros} onChange={e => setLitros(Math.max(0.25, +e.target.value))} className={`${inp} w-24`} />
               <span className="text-[#5c5c6b]">L</span>
             </div>
           </label>
@@ -2512,7 +2512,7 @@ function ClonarTab({ productos, onUsar, irA }: { productos: Sal[]; onUsar: (p: P
           </label>
           <label className="text-[11px] text-[#a6a6b5]">Dosis ({prod?.liquido ? 'mL/L' : 'g/L'})
             {DOSIS_REC[id] != null && <span className="text-[#5c5c6b] ml-1">· recomendada de la marca: {DOSIS_REC[id]}{prod?.liquido ? ' mL/L' : ' g/L'} (podés cambiarla)</span>}
-            <input type="number" min={0} step={0.1} value={dosis} onChange={e => setDosis(+e.target.value)} className={`${inp} mt-1`} />
+            <input type="number" min={0} step={1} value={dosis} onChange={e => setDosis(+e.target.value)} className={`${inp} mt-1`} />
           </label>
         </div>
         {prod && (
@@ -2594,7 +2594,7 @@ function EstabilizantesTab({ dosis }: { dosis: ResultadoSal[] }) {
           <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Aditivos estabilizantes · cuánto poner</h3>
           <Info><b className="text-[#d9f99d]">Qué agregar y en qué dosis</b> para conservar el concentrado líquido.<br /><span className="text-[#a3e635]">Ej: benzoato de sodio 150–250 mg/L como conservante anti-hongo.</span></Info>
           <label className="ml-auto flex items-center gap-1 text-[11px] text-[#a6a6b5]">Volumen del bidón
-            <input type="number" min={0.1} step={0.5} value={volumen} onChange={e => setVolumen(Math.max(0.1, +e.target.value))} className={`${inp} w-20`} /> L
+            <input type="number" min={0.1} step={1} value={volumen} onChange={e => setVolumen(Math.max(0.1, +e.target.value))} className={`${inp} w-20`} /> L
           </label>
         </div>
         <div className="space-y-1.5">
