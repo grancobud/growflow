@@ -981,7 +981,7 @@ function ConcentradosTab({ factor, setFactor, volBidon, setVolBidon, resolucion,
           <label className="text-[11px] text-[#a6a6b5]">Volumen de cada bidón
             <Info><b className="text-[#d9f99d]">Litros de la botella</b> concentrada que vas a preparar. Define cuántos gramos totales pesás para llenarla.<br /><span className="text-[#a3e635]">Ej: bidón de 1 L a 100x → adentro va lo que rinde 100 L de riego.</span></Info>
             <div className="flex items-center gap-1 mt-1">
-              <input type="number" min={0.1} step={0.5} value={volBidon} onChange={e => setVolBidon(Math.max(0.1, +e.target.value))} className={`${inp} w-24`} />
+              <input type="number" min={0.1} step={1} value={volBidon} onChange={e => setVolBidon(Math.max(0.1, +e.target.value))} className={`${inp} w-24`} />
               <span className="text-[#5c5c6b]">L</span>
             </div>
           </label>
