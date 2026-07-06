@@ -54,6 +54,7 @@ export const TABLAS_CONOCIDAS = [
   'riegos', 'aplicaciones', 'perfiles_usuario', 'pacientes',
   'cultivadores', 'jornadas', 'asistencias', 'actividades',
   'perfiles_nutrientes', 'sustancias_nutrientes', 'inventario_nutrientes', 'proveedores_nutrientes',
+  'proveedores_instalacion', 'instalaciones_items', 'presupuestos_instalacion', 'presupuesto_instalacion_items',
 ]
 
 export const USUARIO_DEMO = {

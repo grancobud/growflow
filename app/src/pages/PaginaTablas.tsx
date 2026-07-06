@@ -8,6 +8,7 @@ import { Plus, Trash2, RefreshCw, Table2, Download, Upload, X, Loader2 } from 'l
 import { supabase } from '../lib/supabase'
 import { FASES, TIPOS_EVENTO, TIPOS_GENETICA, SUSTRATOS } from '../lib/cultivo'
 import { CATEGORIAS_INSUMO, TIPOS_MANTENIMIENTO, UNIDADES } from '../lib/stock'
+import { SISTEMAS, UNIDADES_INST } from '../lib/instalaciones'
 import { exportarFull, importarFull } from '../lib/backup'
 
 const CATEGORIAS_APLIC = ['Fumigacion', 'Insecticida', 'Fungicida', 'Foliar', 'Acaricida', 'Bactericida', 'Otro'] as const
@@ -180,6 +181,49 @@ const TABLAS: DefTabla[] = [
     cols: [
       { campo: 'nombre', titulo: 'Nombre', tipo: 'text', ancho: 'min-w-[180px]' },
       { campo: 'creado_en', titulo: 'Creado', tipo: 'date' },
+    ],
+  },
+  {
+    id: 'proveedores_instalacion', nombre: 'Proveedores (instalación)', orden: 'nombre',
+    cols: [
+      { campo: 'nombre', titulo: 'Nombre', tipo: 'text', ancho: 'min-w-[160px]' },
+      { campo: 'contacto', titulo: 'Contacto', tipo: 'text', ancho: 'min-w-[160px]' },
+      { campo: 'url', titulo: 'URL', tipo: 'text', ancho: 'min-w-[160px]' },
+      { campo: 'zona', titulo: 'Zona', tipo: 'text' },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[180px]' },
+    ],
+  },
+  {
+    id: 'instalaciones_items', nombre: 'Instalación (catálogo)', orden: 'nombre',
+    cols: [
+      { campo: 'nombre', titulo: 'Nombre', tipo: 'text', ancho: 'min-w-[180px]' },
+      { campo: 'sistema', titulo: 'Sistema', tipo: { select: SISTEMAS } },
+      { campo: 'marca', titulo: 'Marca', tipo: 'text' },
+      { campo: 'modelo', titulo: 'Modelo', tipo: 'text' },
+      { campo: 'precio', titulo: 'Precio', tipo: 'number' },
+      { campo: 'unidad', titulo: 'Unidad', tipo: { select: UNIDADES_INST } },
+      { campo: 'specs', titulo: 'Specs', tipo: 'text', ancho: 'min-w-[160px]' },
+      { campo: 'url', titulo: 'URL', tipo: 'text', ancho: 'min-w-[160px]' },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[160px]' },
+    ],
+  },
+  {
+    id: 'presupuestos_instalacion', nombre: 'Presupuestos (instalación)', orden: 'nombre',
+    cols: [
+      { campo: 'nombre', titulo: 'Nombre', tipo: 'text', ancho: 'min-w-[200px]' },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[200px]' },
+      { campo: 'creado_en', titulo: 'Creado', tipo: 'date' },
+    ],
+  },
+  {
+    id: 'presupuesto_instalacion_items', nombre: 'Presupuesto · líneas', orden: 'nombre',
+    cols: [
+      { campo: 'nombre', titulo: 'Ítem', tipo: 'text', ancho: 'min-w-[180px]' },
+      { campo: 'sistema', titulo: 'Sistema', tipo: { select: SISTEMAS } },
+      { campo: 'proveedor', titulo: 'Proveedor', tipo: 'text' },
+      { campo: 'precio_unit', titulo: 'Precio unit.', tipo: 'number' },
+      { campo: 'cantidad', titulo: 'Cantidad', tipo: 'number' },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[160px]' },
     ],
   },
 ]

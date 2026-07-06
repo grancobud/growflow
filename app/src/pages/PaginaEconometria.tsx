@@ -9,8 +9,9 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 import {
   Calculator, Plus, X, Loader2, Trash2, Pencil, Boxes, Landmark, Activity,
-  PiggyBank, Sprout, CalendarRange, TrendingUp, Eye,
+  PiggyBank, Sprout, CalendarRange, TrendingUp, Eye, Wrench,
 } from 'lucide-react'
+import Instalaciones from '../components/econometria/Instalaciones'
 import {
   econometriaService, PERIODICIDADES, CATEGORIAS_COSTO_FIJO, CATEGORIAS_COSTO_VARIABLE,
   totalCosto, mensualEquivalente, labelPeriodicidad,
@@ -28,7 +29,7 @@ const btnSutil = 'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bord
 const fmt = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
 
 export default function PaginaEconometria() {
-  const [tab, setTab] = useState<'resumen' | 'costos' | 'insumos'>('resumen')
+  const [tab, setTab] = useState<'resumen' | 'costos' | 'insumos' | 'instalaciones'>('resumen')
   const [costos, setCostos] = useState<Costo[]>([])
   const [insumos, setInsumos] = useState<Insumo[]>([])
   const [plantasActivas, setPlantasActivas] = useState(0)
@@ -115,7 +116,7 @@ export default function PaginaEconometria() {
           )}
         </div>
         <div className="flex gap-1 px-3 sm:px-6 pt-2">
-          {([['resumen', 'Resumen', TrendingUp], ['costos', 'Costos', Landmark], ['insumos', 'Insumos', Boxes]] as const).map(([t, lbl, Ico]) => (
+          {([['resumen', 'Resumen', TrendingUp], ['costos', 'Costos', Landmark], ['insumos', 'Insumos', Boxes], ['instalaciones', 'Instalaciones', Wrench]] as const).map(([t, lbl, Ico]) => (
             <button key={t} onClick={() => setTab(t)}
               className={`px-3 py-2 text-[12px] font-medium border-b-2 -mb-px transition-colors flex items-center gap-1.5 ${tab === t ? 'border-[#a3e635] text-[#d9f99d]' : 'border-transparent text-[#5c5c6b] hover:text-[#a6a6b5]'}`}>
               <Ico className="w-3.5 h-3.5" /> {lbl}
@@ -169,6 +170,10 @@ export default function PaginaEconometria() {
         <div className="px-3 sm:px-6 py-4 pb-24 space-y-5">
           <ListaCostos titulo="Costos fijos" subtitulo="Se pagan igual produzcas o no (alquiler, luz de abono, internet)" icono={Landmark} color="#fbbf24" items={fijos} totalMensual={mensualFijos} mesesCiclo={mesesCiclo} onEdit={c => { setEdit(c); setModal(true) }} onBorrar={borrar} onNuevo={() => abrirNuevo('fijo')} />
           <ListaCostos titulo="Costos variables" subtitulo="Cambian según el cultivo (nutrientes, sustrato, agua, consumo de luz)" icono={TrendingUp} color="#ff8a7a" items={variables} totalMensual={mensualVariables} mesesCiclo={mesesCiclo} onEdit={c => { setEdit(c); setModal(true) }} onBorrar={borrar} onNuevo={() => abrirNuevo('variable')} />
+        </div>
+      ) : tab === 'instalaciones' ? (
+        <div className="px-3 sm:px-6 py-4 pb-24">
+          <Instalaciones />
         </div>
       ) : (
         <div className="px-3 sm:px-6 py-4 pb-24">
