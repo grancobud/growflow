@@ -560,7 +560,7 @@ function CalcTab(p: CalcTabProps) {
       </div>
 
       {/* Micros: 2 formas de armarlos (sueltos vs micromix + refuerzo Fe) */}
-      <PanelMicros2 perfil={perfil} salesTodas={salesTodas} litros={litros} resolucion={resolucion} />
+      <PanelMicros2 perfil={perfil} salesTodas={salesTodas} litros={litros} resolucion={resolucion} activas={activas} setActivas={setActivas} />
 
       {/* Solución stock: micros impesables → pesar grande + dosificar por mL */}
       {(() => {
@@ -1038,10 +1038,18 @@ function fmtG(n: number, litros: number, resolucion: number): string {
   const g = g0 * litros
   return g >= 0.01 ? g.toFixed(2) : g >= 0.001 ? g.toFixed(4) : g.toFixed(6)
 }
-function ColMicros({ titulo, sub, dosis, litros, resolucion, acento }: { titulo: string; sub: string; dosis: ResultadoSal[]; litros: number; resolucion: number; acento: string }) {
+function ColMicros({ titulo, sub, dosis, litros, resolucion, acento, elegida, onElegir }: { titulo: string; sub: string; dosis: ResultadoSal[]; litros: number; resolucion: number; acento: string; elegida?: boolean; onElegir?: () => void }) {
   return (
-    <div className="flex-1 min-w-0 rounded-lg bg-[#101016] border border-[#1f1f2b] p-3">
-      <p className="text-[11px] font-semibold mb-0.5" style={{ color: acento }}>{titulo}</p>
+    <div className={`flex-1 min-w-0 rounded-lg bg-[#101016] border p-3 ${elegida ? 'border-[#facc15]/60' : 'border-[#1f1f2b]'}`}>
+      <div className="flex items-center gap-2 mb-0.5">
+        <p className="text-[11px] font-semibold flex-1" style={{ color: acento }}>{titulo}</p>
+        {onElegir && (
+          <button onClick={onElegir} title="Usar esta forma en la receta"
+            className={`flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded border ${elegida ? 'bg-[#facc15]/15 border-[#facc15]/50 text-[#facc15]' : 'border-[#2a2a3a] text-[#8f8f9f] hover:text-[#facc15] hover:border-[#facc15]/40'}`}>
+            <Star className="w-3 h-3" fill={elegida ? '#facc15' : 'none'} strokeWidth={1.8} /> {elegida ? 'Elegida' : 'Usar esta'}
+          </button>
+        )}
+      </div>
       <p className="text-[10px] text-[#5c5c6b] mb-2">{sub}</p>
       {dosis.length === 0 ? (
         <p className="text-[10.5px] text-[#5c5c6b] py-2">Sin micros en este perfil.</p>
@@ -1058,10 +1066,21 @@ function ColMicros({ titulo, sub, dosis, litros, resolucion, acento }: { titulo:
     </div>
   )
 }
-function PanelMicros2({ perfil, salesTodas, litros, resolucion }: { perfil: Perfil; salesTodas: Sal[]; litros: number; resolucion: number }) {
+// ids de micros para intercambiar la forma en la receta (activas)
+const MICROS_SUELTOS_IDS = ['fehbed', 'mnedta', 'znedta', 'cuedta', 'boric', 'namolib']
+const MICROS_MIX_IDS = ['fetrilon_combi2', 'fehbed']
+const MICROS_LIMPIAR = ['feeddha', 'feedta', 'mnedta', 'znedta', 'cuedta', 'boric', 'namolib', 'fetrilon_combi2', 'afital_micromix', 'mnso4', 'znso4', 'cuso4', 'feso4']
+function PanelMicros2({ perfil, salesTodas, litros, resolucion, activas, setActivas }: { perfil: Perfil; salesTodas: Sal[]; litros: number; resolucion: number; activas: Set<string>; setActivas: SetSet }) {
   const cmp = useMemo(() => compararMicros(perfil, salesTodas), [perfil, salesTodas])
   const micros = MICRO_LABELS.filter(([k]) => (cmp.microPerfil[k] ?? 0) > 0)
   if (micros.length === 0) return null
+  const modo: 'mix' | 'sueltos' = activas.has('fetrilon_combi2') || activas.has('afital_micromix') ? 'mix' : 'sueltos'
+  const aplicar = (ids: string[]) => setActivas(prev => {
+    const n = new Set(prev)
+    MICROS_LIMPIAR.forEach(id => n.delete(id))
+    ids.forEach(id => { if (salesTodas.some(s => s.id === id)) n.add(id) })
+    return n
+  })
   const estado = (obj: number, log: number) => {
     const r = log / obj
     if (r < 0.85) return { c: '#f87171', t: 'falta' }
@@ -1073,11 +1092,13 @@ function PanelMicros2({ perfil, salesTodas, litros, resolucion }: { perfil: Perf
       <div className="flex items-center gap-2 mb-1">
         <FlaskRound className="w-4 h-4 text-[#a78bfa]" strokeWidth={1.8} />
         <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Micros: dos formas de armarlos</h3>
-        <Info><b className="text-[#d9f99d]">Mismo objetivo, dos caminos.</b> Sales sueltas = cada quelato por separado (clon exacto). Micromix = Fetrilon Combi 2 + Fe-HBED para reforzar el hierro.<br /><span className="text-[#a3e635]">El micromix es más práctico pero como sus ratios son fijos, mirá abajo qué micro queda corto o sobra.</span></Info>
+        <Info><b className="text-[#d9f99d]">Mismo objetivo, dos caminos.</b> Sales sueltas = cada quelato por separado (clon exacto). Micromix = Fetrilon Combi 2 + Fe-HBED para reforzar el hierro.<br /><span className="text-[#a3e635]">Tocá la ⭐ "Usar esta" para que la receta (y la solución madre) use esa forma.</span></Info>
       </div>
       <div className="flex flex-col sm:flex-row gap-2 mb-3">
-        <ColMicros titulo="A · Sales sueltas" sub="cada quelato individual — clon exacto" dosis={cmp.sueltos} litros={litros} resolucion={resolucion} acento="#a3e635" />
-        <ColMicros titulo="B · Micromix + refuerzo Fe" sub="Fetrilon Combi 2 + Fe-HBED (el hierro que falta)" dosis={cmp.micromix} litros={litros} resolucion={resolucion} acento="#7dd3fc" />
+        <ColMicros titulo="A · Sales sueltas" sub="cada quelato individual — clon exacto" dosis={cmp.sueltos} litros={litros} resolucion={resolucion} acento="#a3e635"
+          elegida={modo === 'sueltos'} onElegir={() => aplicar(MICROS_SUELTOS_IDS)} />
+        <ColMicros titulo="B · Micromix + refuerzo Fe" sub="Fetrilon Combi 2 + Fe-HBED (el hierro que falta)" dosis={cmp.micromix} litros={litros} resolucion={resolucion} acento="#7dd3fc"
+          elegida={modo === 'mix'} onElegir={() => aplicar(MICROS_MIX_IDS)} />
       </div>
       {/* Tabla ppm objetivo vs logrado en cada variante */}
       <div className="overflow-x-auto">
