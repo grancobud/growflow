@@ -251,7 +251,7 @@ export default function CreadorNutrientes() {
         <CompararTab guardados={guardados} />
       )}
       {sub === 'ratios' && (
-        <RatiosTab {...{ ratios, res, costo }} />
+        <RatiosTab {...{ ratios, res, costo, proveedores }} />
       )}
       {sub === 'conversor' && (
         <ConversorTab />
@@ -2299,7 +2299,24 @@ function AyudaTab({ irA }: { irA: (s: SubTab) => void }) {
   )
 }
 
-function RatiosTab({ ratios, res, costo }: { ratios: Ratios; res: Resultado; costo: CostoResultado }) {
+function RatiosTab({ ratios, res, costo, proveedores }: { ratios: Ratios; res: Resultado; costo: CostoResultado; proveedores: Proveedor[] }) {
+  // proveedores por sal con su $/kg → elegir con cuál presupuestar cada sal
+  const provPorSal = useMemo(() => {
+    const m: Record<string, { id: string; nombre: string; kg: number | null; star: boolean }[]> = {}
+    for (const p of proveedores) (m[p.sal_id] ??= []).push({ id: p.id, nombre: p.nombre_local, kg: precioPorKg(p.precio, p.unidad), star: !!p.elegido })
+    return m
+  }, [proveedores])
+  const [provElegido, setProvElegido] = useState<Record<string, string>>({})
+  const gPorL = (salId: string) => res.dosis.find(d => d.sal.id === salId)?.gramosPorL ?? 0
+  const detalleCosto = costo.detalle.map(d => {
+    const provs = provPorSal[d.sal.id] ?? []
+    const sel = provElegido[d.sal.id]
+    let kg = d.sal.costoKg ?? null
+    if (sel && sel !== 'ref') { const p = provs.find(x => x.id === sel); if (p && p.kg != null) kg = p.kg }
+    const cst = kg != null ? +(gPorL(d.sal.id) / 1000 * kg).toFixed(2) : d.costo
+    return { sal: d.sal, costo: cst, provs, sel: sel ?? 'ref' }
+  })
+  const totalCosto = +detalleCosto.reduce((a, b) => a + b.costo, 0).toFixed(2)
   const N = nTotal(res.ppmLogrado)
   const P = res.ppmLogrado.P ?? 0, K = res.ppmLogrado.K ?? 0
   const npk = P > 0 ? `${(N / P).toFixed(1)} : 1 : ${(K / P).toFixed(1)}` : '—'
@@ -2354,21 +2371,29 @@ function RatiosTab({ ratios, res, costo }: { ratios: Ratios; res: Resultado; cos
           <DollarSign className="w-4 h-4 text-[#bef264]" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Costo del lote</h3>
           <Info><b className="text-[#d9f99d]">Cuánto sale por litro</b> tu receta, sumando el precio de cada sal. Cargá los precios en Sustancias.<br /><span className="text-[#a3e635]">Ej: te dice que tu clon del Calcis sale ~$2.3/L.</span></Info>
-          <span className="ml-auto text-[12px] font-mono tabular-nums font-bold text-[#d9f99d]">${costo.porLitro}/L</span>
+          <span className="ml-auto text-[12px] font-mono tabular-nums font-bold text-[#d9f99d]">${totalCosto}/L</span>
         </div>
-        {costo.detalle.length === 0 ? (
+        {detalleCosto.length === 0 ? (
           <p className="text-[11px] text-[#5c5c6b]">Cargá costo/kg en cada sustancia para ver el costo.</p>
         ) : (
           <div className="space-y-1">
-            {costo.detalle.map(d => (
+            {detalleCosto.map(d => (
               <div key={d.sal.id} className="flex items-center gap-2 bg-[#15151d] border border-[#1f1f2b] rounded-md px-2.5 py-1.5">
                 <span className="text-[11.5px] text-[#d4d4dd] flex-1 min-w-0 truncate">{d.sal.nombre}</span>
-                <span className="text-[12px] font-mono tabular-nums text-[#a6a6b5]">${d.costo}/L</span>
+                {d.provs.length > 0 && (
+                  <select value={d.sel} onChange={e => setProvElegido(prev => ({ ...prev, [d.sal.id]: e.target.value }))}
+                    title="Elegí con qué proveedor presupuestar esta sal"
+                    className="bg-[#101016] border border-[#1f1f2b] rounded text-[10px] text-[#a6a6b5] px-1 py-0.5 max-w-[130px] focus:border-[#404d20] outline-none">
+                    <option value="ref">⭐ referencia</option>
+                    {d.provs.map(p => <option key={p.id} value={p.id}>{p.nombre}{p.kg != null ? ` ($${p.kg}/kg)` : ' (s/precio)'}</option>)}
+                  </select>
+                )}
+                <span className="text-[12px] font-mono tabular-nums text-[#a6a6b5] w-[64px] text-right">${d.costo}/L</span>
               </div>
             ))}
           </div>
         )}
-        <p className="text-[10px] text-[#5c5c6b] mt-2">El costo sale de "costo/kg" que cargues en cada sustancia (pestaña Sustancias).</p>
+        <p className="text-[10px] text-[#5c5c6b] mt-2">El costo usa el proveedor ⭐ de cada sal, pero podés elegir otro en el desplegable para presupuestar sin cambiar la referencia.</p>
       </div>
     </div>
 
