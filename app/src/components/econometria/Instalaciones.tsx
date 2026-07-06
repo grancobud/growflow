@@ -7,7 +7,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 import {
   Plus, X, Loader2, Trash2, Pencil, Boxes, Truck, FileText, ChevronLeft,
-  ExternalLink, Package,
+  ExternalLink, Package, Printer, BarChart3,
 } from 'lucide-react'
 import {
   instalacionesService, SISTEMAS, UNIDADES_INST, porSistema, totalLinea,
@@ -21,6 +21,45 @@ const btnPrimario = 'inline-flex items-center gap-1.5 px-3 py-2 rounded-lg borde
 const btnSutil = 'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] hover:border-[#404d20] transition-colors text-[11px] text-[#a6a6b5] hover:text-[#ececf1]'
 const fmt = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
 
+const escapeHtml = (s: string) => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!))
+
+// Presupuesto imprimible: HTML tema claro con branding, tabla por sistema y total.
+function imprimirPresupuesto(nombre: string, grupos: { sistema: string; items: PresupuestoItem[] }[], total: number) {
+  const filas = grupos.map(g => `
+    <tr class="sis"><td colspan="3">${escapeHtml(g.sistema)}</td><td class="r">${fmt(totalPresupuesto(g.items))}</td></tr>
+    ${g.items.map(l => `<tr>
+      <td>${escapeHtml(l.nombre)}</td>
+      <td class="mut">${l.proveedor ? escapeHtml(l.proveedor) : '—'}</td>
+      <td class="r mut">${l.cantidad} × ${fmt(l.precio_unit)}</td>
+      <td class="r">${fmt(totalLinea(l))}</td>
+    </tr>`).join('')}
+  `).join('')
+  const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${escapeHtml(nombre)}</title>
+  <style>
+    *{box-sizing:border-box} body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1a1a22;margin:0;padding:32px;max-width:800px}
+    h1{font-size:20px;margin:0 0 2px} .sub{color:#6b7280;font-size:12px;margin-bottom:20px}
+    .brand{display:flex;align-items:center;gap:8px;color:#4d7c0f;font-weight:700;font-size:13px;margin-bottom:16px}
+    table{width:100%;border-collapse:collapse;font-size:12.5px} th{text-align:left;color:#6b7280;font-weight:600;border-bottom:2px solid #e5e7eb;padding:6px 8px;font-size:10.5px;text-transform:uppercase;letter-spacing:.08em}
+    td{padding:6px 8px;border-bottom:1px solid #f0f0f3} .r{text-align:right} .mut{color:#6b7280}
+    tr.sis td{background:#f6f7f4;font-weight:700;color:#3f6212;border-top:1px solid #e5e7eb}
+    .total{margin-top:16px;display:flex;justify-content:space-between;align-items:center;padding:12px 8px;border-top:2px solid #1a1a22}
+    .total b{font-size:20px;color:#3f6212} .foot{margin-top:24px;color:#9ca3af;font-size:10px}
+    @media print{body{padding:0}}
+  </style></head><body>
+  <div class="brand">🌱 GrowFlow · Econometría</div>
+  <h1>${escapeHtml(nombre)}</h1>
+  <div class="sub">Presupuesto de instalación · ${new Date().toLocaleDateString('es-AR')}</div>
+  <table><thead><tr><th>Ítem</th><th>Proveedor</th><th class="r">Cant. × unit.</th><th class="r">Subtotal</th></tr></thead>
+  <tbody>${filas}</tbody></table>
+  <div class="total"><span>Total presupuesto</span><b>${fmt(total)}</b></div>
+  <div class="foot">Generado con GrowFlow · los precios son los guardados al armar el presupuesto (snapshot).</div>
+  </body></html>`
+  const w = window.open('', '_blank')
+  if (!w) { return }
+  w.document.write(html); w.document.close(); w.focus()
+  setTimeout(() => w.print(), 300)
+}
+
 type Vista = 'catalogo' | 'proveedores' | 'presupuestos'
 
 export default function Instalaciones() {
@@ -33,6 +72,7 @@ export default function Instalaciones() {
   const [modalItem, setModalItem] = useState<ItemInstalacion | 'nuevo' | null>(null)
   const [modalProv, setModalProv] = useState<ProveedorInstalacion | 'nuevo' | null>(null)
   const [presupSel, setPresupSel] = useState<Presupuesto | null>(null)
+  const [comparar, setComparar] = useState(false)
 
   const cargar = useCallback(async () => {
     try {
@@ -82,7 +122,16 @@ export default function Instalaciones() {
         <div className="flex-1" />
         {vista === 'catalogo' && <button onClick={() => setModalItem('nuevo')} className={btnPrimario}><Plus className="w-3.5 h-3.5" /> Ítem</button>}
         {vista === 'proveedores' && <button onClick={() => setModalProv('nuevo')} className={btnPrimario}><Plus className="w-3.5 h-3.5" /> Proveedor</button>}
-        {vista === 'presupuestos' && <NuevoPresupuestoBtn onCreado={cargar} onAbrir={setPresupSel} />}
+        {vista === 'presupuestos' && (
+          <>
+            {presupuestos.length > 1 && (
+              <button onClick={() => setComparar(v => !v)} className={comparar ? btnPrimario : btnSutil}>
+                <BarChart3 className="w-3.5 h-3.5" /> Comparar
+              </button>
+            )}
+            <NuevoPresupuestoBtn onCreado={cargar} onAbrir={setPresupSel} />
+          </>
+        )}
       </div>
 
       {cargando ? (
@@ -171,6 +220,8 @@ export default function Instalaciones() {
       ) : (
         presupuestos.length === 0 ? (
           <Vacio icono={FileText} titulo="Sin presupuestos" texto="Armá una cotización nombrada (ej: 'Setup 4×4 indoor') eligiendo ítems del catálogo. Se guarda el precio del momento." accion="Nuevo presupuesto" onAccion={() => {/* boton arriba */}} />
+        ) : comparar ? (
+          <CompararPresupuestos presupuestos={presupuestos} onAbrir={setPresupSel} />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {presupuestos.map(p => (
@@ -259,6 +310,7 @@ function DetallePresupuesto({ presupuesto, items, provPorId, onVolver }: {
         <div className="min-w-0 flex-1">
           <h2 className="font-display font-bold text-[15px] text-[#ececf1] truncate flex items-center gap-2"><FileText className="w-4 h-4 text-[#a78bfa]" /> {presupuesto.nombre}</h2>
         </div>
+        <button onClick={() => imprimirPresupuesto(presupuesto.nombre, grupos, total)} disabled={lineas.length === 0} className={btnSutil} title="Imprimir / PDF"><Printer className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Imprimir</span></button>
         <button onClick={() => setAgregando(true)} className={btnPrimario}><Plus className="w-3.5 h-3.5" /> Ítem</button>
       </div>
 
@@ -312,6 +364,82 @@ function DetallePresupuesto({ presupuesto, items, provPorId, onVolver }: {
 
       {agregando && <ModalAgregarLinea presupuestoId={presupuesto.id} catalogo={items} provPorId={provPorId}
         onCerrar={() => setAgregando(false)} onGuardado={() => { setAgregando(false); cargar() }} />}
+    </div>
+  )
+}
+
+// ---- Comparar presupuestos: total + desglose por sistema, barras relativas ----
+function CompararPresupuestos({ presupuestos, onAbrir }: { presupuestos: Presupuesto[]; onAbrir: (p: Presupuesto) => void }) {
+  const [datos, setDatos] = useState<{ p: Presupuesto; total: number; porSist: { sistema: string; total: number }[] }[]>([])
+  const [cargando, setCargando] = useState(true)
+
+  useEffect(() => {
+    let vivo = true
+    ;(async () => {
+      try {
+        const res = await Promise.all(presupuestos.map(async p => {
+          const lineas = await instalacionesService.getLineas(p.id)
+          return { p, total: totalPresupuesto(lineas), porSist: totalesPorSistema(lineas) }
+        }))
+        if (vivo) setDatos(res.sort((a, b) => b.total - a.total))
+      } catch (err) { toast.error(`Error: ${(err as Error).message}`) }
+      finally { if (vivo) setCargando(false) }
+    })()
+    return () => { vivo = false }
+  }, [presupuestos])
+
+  const max = useMemo(() => Math.max(1, ...datos.map(d => d.total)), [datos])
+  const sistemas = useMemo(() => {
+    const set = new Set<string>()
+    datos.forEach(d => d.porSist.forEach(s => set.add(s.sistema)))
+    return [...set]
+  }, [datos])
+
+  if (cargando) return <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] h-48 animate-pulse" />
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        {datos.map(d => (
+          <button key={d.p.id} onClick={() => onAbrir(d.p)} className="w-full text-left rounded-xl bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] transition-colors p-3">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[12.5px] text-[#ececf1] font-medium truncate">{d.p.nombre}</span>
+              <span className="font-display font-bold text-[13px] text-[#bef264] flex-shrink-0 ml-2">{fmt(d.total)}</span>
+            </div>
+            <div className="h-2 rounded-full bg-[#15151d] overflow-hidden">
+              <div className="h-full rounded-full bg-gradient-to-r from-[#4d7c0f] to-[#a3e635]" style={{ width: `${(d.total / max) * 100}%` }} />
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {sistemas.length > 0 && (
+        <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-x-auto">
+          <table className="w-full text-[11.5px] border-collapse">
+            <thead>
+              <tr className="text-[#5c5c6b]">
+                <th className="text-left font-medium px-3 py-2 sticky left-0 bg-[#101016]">Sistema</th>
+                {datos.map(d => <th key={d.p.id} className="text-right font-medium px-3 py-2 whitespace-nowrap max-w-[120px] truncate">{d.p.nombre}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {sistemas.map(sis => (
+                <tr key={sis} className="border-t border-[#1f1f2b]/60">
+                  <td className="text-left px-3 py-1.5 text-[#a6a6b5] sticky left-0 bg-[#101016]">{sis}</td>
+                  {datos.map(d => {
+                    const v = d.porSist.find(s => s.sistema === sis)?.total ?? 0
+                    return <td key={d.p.id} className={`text-right px-3 py-1.5 ${v ? 'text-[#ececf1]' : 'text-[#3a3a48]'}`}>{v ? fmt(v) : '—'}</td>
+                  })}
+                </tr>
+              ))}
+              <tr className="border-t border-[#1f1f2b] bg-[#0d0d12]">
+                <td className="text-left px-3 py-2 font-semibold text-[#d9f99d] sticky left-0 bg-[#0d0d12]">Total</td>
+                {datos.map(d => <td key={d.p.id} className="text-right px-3 py-2 font-semibold text-[#bef264]">{fmt(d.total)}</td>)}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }

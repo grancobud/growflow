@@ -18,6 +18,7 @@ import {
   type Costo, type TipoCosto, type Periodicidad,
 } from '../lib/econometria'
 import { stockService, type Insumo } from '../lib/stock'
+import { instalacionesService } from '../lib/instalaciones'
 import { cultivoService } from '../lib/cultivo'
 import { ModalInsumo, ModalVerInsumo } from './PaginaStockInsumos'
 
@@ -37,6 +38,8 @@ export default function PaginaEconometria() {
   const [nCosechas, setNCosechas] = useState(0)
   const [cargando, setCargando] = useState(true)
   const [mesesCiclo, setMesesCiclo] = useState(4)
+  const [capexInstalaciones, setCapexInstalaciones] = useState(0)
+  const [vidaUtilMeses, setVidaUtilMeses] = useState(36)
   const [modal, setModal] = useState(false)
   const [edit, setEdit] = useState<Costo | null>(null)
   const [tipoNuevo, setTipoNuevo] = useState<TipoCosto>('fijo')
@@ -45,13 +48,15 @@ export default function PaginaEconometria() {
 
   const cargar = useCallback(async () => {
     try {
-      const [cs, ins, plantas, cosechas] = await Promise.all([
+      const [cs, ins, plantas, cosechas, itemsInst] = await Promise.all([
         econometriaService.getCostos(),
         stockService.getInsumos(),
         cultivoService.getResumenPlantas(true),
         cultivoService.getCosechas(),
+        instalacionesService.getItems(),
       ])
       setCostos(cs); setInsumos(ins); setPlantasActivas(plantas.length)
+      setCapexInstalaciones(itemsInst.reduce((s, i) => s + (i.precio != null ? Number(i.precio) : 0), 0))
       setGramosSeco(cosechas.reduce((s, c) => s + (c.peso_seco_g != null ? Number(c.peso_seco_g) : 0), 0))
       setNCosechas(cosechas.filter(c => c.peso_seco_g != null && Number(c.peso_seco_g) > 0).length)
     } catch (err) { toast.error(`Error cargando econometría: ${(err as Error).message}`) }
@@ -82,6 +87,8 @@ export default function PaginaEconometria() {
   // $/gramo: costo del ciclo dividido los gramos secos cosechados. Aproximación
   // (asume que lo cosechado corresponde a ~un ciclo); útil como referencia.
   const costoPorGramo = gramosSeco > 0 ? costoPorCiclo / gramosSeco : 0
+  // Amortización de instalaciones: el capex del catálogo repartido en su vida útil.
+  const amortizInstalaciones = vidaUtilMeses > 0 ? capexInstalaciones / vidaUtilMeses : 0
 
   const borrar = async (c: Costo) => {
     if (!window.confirm(`¿Borrar el costo "${c.nombre}"?`)) return
@@ -141,6 +148,9 @@ export default function PaginaEconometria() {
             <Kpi icono={Sprout} color="#34d399" label="Costo por gramo"
               valor={gramosSeco > 0 ? fmt(costoPorGramo) + '/g' : '—'}
               sub={gramosSeco > 0 ? `${gramosSeco.toLocaleString('es-AR')}g secos · ${nCosechas} cosecha${nCosechas === 1 ? '' : 's'}` : 'cargá cosechas con peso seco'} />
+            <Kpi icono={Wrench} color="#f472b6" label="Instalaciones (capex)"
+              valor={capexInstalaciones > 0 ? fmt(capexInstalaciones) : '—'}
+              sub={capexInstalaciones > 0 ? `amortiza ${fmt(amortizInstalaciones)}/mes` : 'cargá el catálogo en Instalaciones'} />
           </div>
 
           <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4 flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -155,6 +165,18 @@ export default function PaginaEconometria() {
               <span className="text-[12px] text-[#5c5c6b]">meses</span>
             </div>
             <span className="text-[10.5px] text-[#5c5c6b]">Se usa para repartir los costos "por ciclo" en su equivalente mensual.</span>
+            <div className="w-full h-px bg-[#1f1f2b] my-1" />
+            <div className="flex items-center gap-2">
+              <Wrench className="w-4 h-4 text-[#f472b6]" />
+              <span className="text-[12px] text-[#a6a6b5]">Vida útil de las instalaciones</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <input type="number" min={1} max={240} value={vidaUtilMeses}
+                onChange={e => setVidaUtilMeses(Math.max(1, Math.min(240, Number(e.target.value) || 1)))}
+                className="w-20 px-2 py-1.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12.5px] text-[#ececf1] text-center focus:outline-none focus:border-[#a3e635]/60" />
+              <span className="text-[12px] text-[#5c5c6b]">meses</span>
+            </div>
+            <span className="text-[10.5px] text-[#5c5c6b]">Amortiza el capex del catálogo de Instalaciones (hoy {fmt(amortizInstalaciones)}/mes).</span>
           </div>
 
           {costos.length === 0 && (
