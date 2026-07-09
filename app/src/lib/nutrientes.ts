@@ -524,9 +524,9 @@ export function perfilDesdeProducto(sal: Sal, doseGL: number): Perfil {
 export interface PresetPerfil { id: string; nombre: string; desc: string; perfil: Perfil }
 
 export const PRESETS: PresetPerfil[] = [
-  { id: 'plantula', nombre: 'Plántula/clon', desc: 'EC ~0.6', perfil: { NO3: 70, NH4: 5, P: 30, K: 90, Ca: 80, Mg: 30, S: 40, Fe: 1.5, Mn: 0.3, Zn: 0.15, B: 0.3, Cu: 0.05, Mo: 0.05 } },
-  { id: 'veg', nombre: 'Vegetativo (coco)', desc: 'EC ~1.4', perfil: { NO3: 140, NH4: 15, P: 50, K: 180, Ca: 150, Mg: 50, S: 70, Fe: 2, Mn: 0.5, Zn: 0.2, B: 0.4, Cu: 0.08, Mo: 0.05 } },
-  { id: 'flora', nombre: 'Floración (coco)', desc: 'EC ~2.0', perfil: { NO3: 125, NH4: 15, P: 55, K: 200, Ca: 170, Mg: 55, S: 80, Fe: 2, Mn: 0.5, Zn: 0.2, B: 0.4, Cu: 0.08, Mo: 0.05 } },
+  { id: 'plantula', nombre: 'Plántula/clon', desc: 'EC ~0.6 · N 100% nítrico (sin amonio)', perfil: { NO3: 75, P: 30, K: 90, Ca: 80, Mg: 30, S: 40, Fe: 1.5, Mn: 0.3, Zn: 0.15, B: 0.3, Cu: 0.05, Mo: 0.05 } },
+  { id: 'veg', nombre: 'Vegetativo (coco)', desc: 'EC ~1.4 · N 100% nítrico (sin amonio)', perfil: { NO3: 155, P: 50, K: 180, Ca: 150, Mg: 50, S: 70, Fe: 2, Mn: 0.5, Zn: 0.2, B: 0.4, Cu: 0.08, Mo: 0.05 } },
+  { id: 'flora', nombre: 'Floración (coco)', desc: 'EC ~2.0 · N 100% nítrico (sin amonio)', perfil: { NO3: 140, P: 55, K: 200, Ca: 170, Mg: 55, S: 80, Fe: 2, Mn: 0.5, Zn: 0.2, B: 0.4, Cu: 0.08, Mo: 0.05 } },
   { id: 'finish', nombre: 'Finalización completa (sin N)', desc: 'PK + Ca + Mg + micros, cero N. Como Finis + Fade + micros juntos.',
     perfil: { P: 60, K: 187, Ca: 110, Mg: 45, S: 90, Fe: 1.5, Mn: 0.4, Zn: 0.15, B: 0.3, Cu: 0.05, Mo: 0.04 } },
   { id: 'fade', nombre: 'Fade Athena (Ca + micros)', desc: 'El aporte del Fade: calcio + micros sin N (se suma a un PK). Reemplaza al Pro Core en finish.',
@@ -537,7 +537,7 @@ export const PRESETS: PresetPerfil[] = [
 export type RangoPerfil = Partial<Record<ElementKey, { min: number; max: number }>>
 
 export const RANGOS_FLORA_COCO: RangoPerfil = {
-  NO3: { min: 100, max: 160 }, NH4: { min: 5, max: 25 }, P: { min: 40, max: 70 },
+  NO3: { min: 110, max: 170 }, NH4: { min: 0, max: 12 }, P: { min: 40, max: 70 },
   K: { min: 170, max: 240 }, Ca: { min: 140, max: 200 }, Mg: { min: 45, max: 70 },
   S: { min: 50, max: 120 }, Fe: { min: 1.5, max: 3 }, Mn: { min: 0.3, max: 0.8 },
   Zn: { min: 0.1, max: 0.3 }, B: { min: 0.2, max: 0.5 }, Cu: { min: 0.03, max: 0.1 }, Mo: { min: 0.02, max: 0.08 },
