@@ -541,7 +541,7 @@ function CalcTab(p: CalcTabProps) {
             <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Receta {litros === 1 ? '· g/L' : `· para ${litros} L`}</h3>
             <label className="flex items-center gap-1 text-[10.5px] text-[#a6a6b5]">
               <span className="text-[#5c5c6b]">prepará</span>
-              <input type="number" min={0.1} step={1} value={litros} onChange={e => setLitros(Math.max(0.1, +e.target.value))}
+              <NumField value={litros} onChange={setLitros} min={0.1}
                 className="w-16 bg-[#15151d] border border-[#1f1f2b] rounded px-1.5 py-0.5 text-[12px] text-[#ececf1] font-mono tabular-nums focus:border-[#404d20] outline-none" /> L
               <Info><b className="text-[#d9f99d]">Cuántos litros de riego vas a preparar</b>. Los gramos de la receta se multiplican por este número.<br /><span className="text-[#a3e635]">Ej: MKP 0.24 g/L × 10 L = 2.4 g a pesar.</span></Info>
             </label>
@@ -838,9 +838,9 @@ function FichaSal({ sal, onSaved, onDelete }: { sal: Sal; onSaved: () => void; o
         <p className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1.5">Mi inventario (editable)</p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <label className="text-[10px] text-[#8f8f9f]">Costo/kg (ARS)
-            <input type="number" min={0} value={costo} onChange={e => setCosto(+e.target.value)} className={`${inp} mt-0.5`} /></label>
+            <NumField value={costo} onChange={setCosto} min={0} className={`${inp} mt-0.5`} /></label>
           <label className="text-[10px] text-[#8f8f9f]">Stock que tengo
-            <input type="number" min={0} step={1} value={stock} onChange={e => setStock(+e.target.value)} className={`${inp} mt-0.5`} /></label>
+            <NumField value={stock} onChange={setStock} min={0} className={`${inp} mt-0.5`} /></label>
           <label className="text-[10px] text-[#8f8f9f]">Unidad
             <select value={unidad} onChange={e => setUnidad(e.target.value)} className={`${inp} mt-0.5`}>
               {['kg', 'g', 'L', 'mL', 'u'].map(u => <option key={u} value={u}>{u}</option>)}
@@ -923,15 +923,14 @@ function NuevaSustancia({ onClose, onSaved }: { onClose: () => void; onSaved: ()
           <input type="checkbox" checked={liquido} onChange={e => setLiquido(e.target.checked)} className="accent-[#a3e635]" /> Líquido
         </label>
         {liquido && <label className="flex items-center gap-1 text-[11px] text-[#a6a6b5]">Densidad
-          <input type="number" step={0.01} value={densidad} onChange={e => setDensidad(+e.target.value)} className={`${inp} w-20`} /> g/mL</label>}
+          <NumField value={densidad} onChange={setDensidad} className={`${inp} w-20`} /> g/mL</label>}
         <label className="flex items-center gap-1 text-[11px] text-[#a6a6b5]">Costo/kg
-          <input type="number" step={1} value={costoKg} onChange={e => setCostoKg(+e.target.value)} className={`${inp} w-24`} /> ARS</label>
+          <NumField value={costoKg} onChange={setCostoKg} min={0} className={`${inp} w-24`} /> ARS</label>
       </div>
       <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
         {ELEMENTOS.map(e => (
           <label key={e.key} className="block"><span className="text-[9.5px] text-[#8f8f9f]">{labelDe(e.key)} %</span>
-            <input type="number" min={0} step={1} value={comp[e.key] ?? ''} placeholder="0"
-              onChange={ev => setComp(prev => ({ ...prev, [e.key]: +ev.target.value }))}
+            <NumField value={comp[e.key] ?? 0} onChange={n => setComp(prev => ({ ...prev, [e.key]: n }))} min={0}
               className="w-full bg-[#101016] border border-[#1f1f2b] rounded px-1.5 py-1 text-[11px] text-[#ececf1] font-mono tabular-nums focus:border-[#404d20] outline-none" /></label>
         ))}
       </div>
@@ -1007,14 +1006,14 @@ function ConcentradosTab({ factor, setFactor, volBidon, setVolBidon, resolucion,
           <label className="text-[11px] text-[#a6a6b5]">Factor de concentración
             <Info><b className="text-[#d9f99d]">Cuántas veces concentrada</b> es la solución madre respecto al riego final. Pesás lo mismo pero en menos agua, y después diluís.<br /><span className="text-[#a3e635]">Ej: 100x = 1 L de concentrado rinde 100 L de riego (agregás 10 mL por litro).</span></Info>
             <div className="flex items-center gap-1 mt-1">
-              <input type="number" min={1} step={1} value={factor} onChange={e => setFactor(Math.max(1, +e.target.value))} className={`${inp} w-24`} />
+              <NumField value={factor} onChange={setFactor} min={1} className={`${inp} w-24`} />
               <span className="text-[#5c5c6b]">x</span>
             </div>
           </label>
           <label className="text-[11px] text-[#a6a6b5]">Volumen de cada bidón
             <Info><b className="text-[#d9f99d]">Litros de la botella</b> concentrada que vas a preparar. Define cuántos gramos totales pesás para llenarla.<br /><span className="text-[#a3e635]">Ej: bidón de 1 L a 100x → adentro va lo que rinde 100 L de riego.</span></Info>
             <div className="flex items-center gap-1 mt-1">
-              <input type="number" min={0.1} step={1} value={volBidon} onChange={e => setVolBidon(Math.max(0.1, +e.target.value))} className={`${inp} w-24`} />
+              <NumField value={volBidon} onChange={setVolBidon} min={0.1} className={`${inp} w-24`} />
               <span className="text-[#5c5c6b]">L</span>
             </div>
           </label>
@@ -1181,13 +1180,13 @@ function HoclDilucionCalc() {
       <div className="flex flex-wrap items-end gap-4 mb-3">
         <label className="text-[11px] text-[#a6a6b5]">Stock a preparar
           <div className="flex items-center gap-1 mt-1">
-            <input type="number" min={0.5} step={1} value={litrosStock} onChange={e => setLitrosStock(Math.max(0.5, +e.target.value))} className={`${inp} w-24`} />
+            <NumField value={litrosStock} onChange={setLitrosStock} min={0.5} className={`${inp} w-24`} />
             <span className="text-[#5c5c6b]">L</span>
           </div>
         </label>
         <label className="text-[11px] text-[#a6a6b5]">Dosis en el riego
           <div className="flex items-center gap-1 mt-1">
-            <input type="number" min={0.1} step={1} value={dosisMlL} onChange={e => setDosisMlL(Math.max(0.1, +e.target.value))} className={`${inp} w-24`} />
+            <NumField value={dosisMlL} onChange={setDosisMlL} min={0.1} className={`${inp} w-24`} />
             <span className="text-[#5c5c6b]">mL/L</span>
           </div>
         </label>
@@ -1265,7 +1264,7 @@ function EnraizadoTab() {
           <label className="text-[11px] text-[#a6a6b5]">Gel a preparar
             <Info><b className="text-[#d9f99d]">Gramos totales de gel</b> que querés hacer. Todo lo demás se calcula solo.<br /><span className="text-[#a3e635]">Ej: 100 g rinde ~350 clones. Empezá con un lote chico para calibrar la textura.</span></Info>
             <div className="flex items-center gap-1 mt-1">
-              <input type="number" min={10} step={10} value={lote} onChange={e => setLote(Math.max(10, +e.target.value))} className={`${inp} w-28`} />
+              <NumField value={lote} onChange={setLote} min={10} className={`${inp} w-28`} />
               <span className="text-[#5c5c6b]">g</span>
             </div>
           </label>
@@ -1381,7 +1380,7 @@ function ElicitorTab() {
           <label className="text-[11px] text-[#a6a6b5]">Spray a preparar
             <Info><b className="text-[#d9f99d]">Litros de spray foliar</b>. Las cantidades escalan solas.<br /><span className="text-[#a3e635]">Ej: 1 L rinde para varias plantas rociando hasta que gotee.</span></Info>
             <div className="flex items-center gap-1 mt-1">
-              <input type="number" min={0.25} step={1} value={litros} onChange={e => setLitros(Math.max(0.25, +e.target.value))} className={`${inp} w-28`} />
+              <NumField value={litros} onChange={setLitros} min={0.25} className={`${inp} w-28`} />
               <span className="text-[#5c5c6b]">L</span>
             </div>
           </label>
@@ -1550,7 +1549,7 @@ function SuperBioTab() {
         <div className="flex flex-wrap items-end gap-4 mb-3">
           <label className="text-[11px] text-[#a6a6b5]">Preparar
             <div className="flex items-center gap-1 mt-1">
-              <input type="number" min={0.25} step={1} value={litros} onChange={e => setLitros(Math.max(0.25, +e.target.value))} className={`${inp} w-24`} />
+              <NumField value={litros} onChange={setLitros} min={0.25} className={`${inp} w-24`} />
               <span className="text-[#5c5c6b]">L</span>
             </div>
           </label>
@@ -2005,7 +2004,7 @@ function ProveedoresTab({ salesTodas, recargarInventario, recargarProveedores }:
             <input value={form.presentacion} onChange={e => setForm(v => ({ ...v, presentacion: e.target.value }))} placeholder="ej. 25 kg / 1 kg" className={`${inp} mt-1`} />
           </label>
           <label className="text-[11px] text-[#a6a6b5]">Precio de la bolsa (ARS)
-            <input type="number" value={form.precio} onChange={e => setForm(v => ({ ...v, precio: e.target.value }))} placeholder="ej. 27596" className={`${inp} mt-1`} />
+            <input type="text" inputMode="decimal" value={form.precio} onChange={e => setForm(v => ({ ...v, precio: e.target.value.replace(',', '.') }))} placeholder="ej. 27596" className={`${inp} mt-1`} />
           </label>
           <label className="text-[11px] text-[#a6a6b5]">Presentación (tamaño)
             <select value={form.unidad} onChange={e => setForm(v => ({ ...v, unidad: e.target.value }))} className={`${inp} mt-1`}>
@@ -2129,7 +2128,7 @@ function ProveedoresTab({ salesTodas, recargarInventario, recargarProveedores }:
               <label className="text-[11px] text-[#a6a6b5]">Página / link
                 <input value={detalle.pagina ?? ''} onChange={e => setD('pagina', e.target.value)} className={`${inp} mt-1`} /></label>
               <label className="text-[11px] text-[#a6a6b5]">Precio de la bolsa (ARS)
-                <input type="number" value={detalle.precio ?? ''} onChange={e => setD('precio', e.target.value ? +e.target.value : null)} className={`${inp} mt-1`} /></label>
+                <NumField value={detalle.precio ?? 0} onChange={n => setD('precio', n || null)} min={0} className={`${inp} mt-1`} /></label>
               <label className="text-[11px] text-[#a6a6b5]">Presentación (tamaño)
                 <select value={detalle.unidad ?? '1kg'} onChange={e => setD('unidad', e.target.value)} className={`${inp} mt-1`}>
                   {UNIDADES_PROV.map(u => <option key={u.v} value={u.v}>{u.l}</option>)}</select>
@@ -2235,7 +2234,7 @@ function ConversorTab() {
       <div className={card}>
         <h4 className="text-[12px] font-semibold text-[#d9f99d] mb-2">Óxido → Elemental <span className="text-[10px] text-[#5c5c6b] font-normal">· leer etiquetas NPK</span></h4>
         <div className="flex flex-wrap items-end gap-2">
-          <label className="text-[10px] text-[#a6a6b5]">Valor (%)<input type="number" value={oxVal} onChange={e => setOxVal(e.target.value)} className={`${box} w-20 mt-0.5 block`} /></label>
+          <label className="text-[10px] text-[#a6a6b5]">Valor (%)<input type="text" inputMode="decimal" value={oxVal} onChange={e => setOxVal(e.target.value.replace(',', '.'))} className={`${box} w-20 mt-0.5 block`} /></label>
           <label className="text-[10px] text-[#a6a6b5]">Forma<select value={oxIdx} onChange={e => setOxIdx(+e.target.value)} className={`${box} mt-0.5 block`}>{CONV_OXIDO.map((o, i) => <option key={i} value={i}>{o.de} → {o.a}</option>)}</select></label>
           <span className="text-[#5c5c6b] pb-1.5">=</span>
           <div className="pb-1">{res(oxRes != null ? `${oxRes} % ${ox.a}` : '—')}</div>
@@ -2247,7 +2246,7 @@ function ConversorTab() {
       <div className={card}>
         <h4 className="text-[12px] font-semibold text-[#d9f99d] mb-2">Concentración <span className="text-[10px] text-[#5c5c6b] font-normal">· % ↔ g/L ↔ ppm</span></h4>
         <div className="flex flex-wrap items-end gap-2 mb-2">
-          <label className="text-[10px] text-[#a6a6b5]">Valor<input type="number" value={concVal} onChange={e => setConcVal(e.target.value)} className={`${box} w-24 mt-0.5 block`} /></label>
+          <label className="text-[10px] text-[#a6a6b5]">Valor<input type="text" inputMode="decimal" value={concVal} onChange={e => setConcVal(e.target.value.replace(',', '.'))} className={`${box} w-24 mt-0.5 block`} /></label>
           <label className="text-[10px] text-[#a6a6b5]">Unidad<select value={concUnit} onChange={e => setConcUnit(e.target.value as typeof concUnit)} className={`${box} mt-0.5 block`}><option value="pct">%  (w/v)</option><option value="gl">g/L</option><option value="ppm">ppm (mg/L)</option></select></label>
         </div>
         <div className="grid grid-cols-3 gap-2">
@@ -2262,7 +2261,7 @@ function ConversorTab() {
       <div className={card}>
         <h4 className="text-[12px] font-semibold text-[#d9f99d] mb-2">Iónico <span className="text-[10px] text-[#5c5c6b] font-normal">· ppm ↔ meq/L (análisis de agua)</span></h4>
         <div className="flex flex-wrap items-end gap-2">
-          <label className="text-[10px] text-[#a6a6b5]">Valor<input type="number" value={ionVal} onChange={e => setIonVal(e.target.value)} className={`${box} w-20 mt-0.5 block`} /></label>
+          <label className="text-[10px] text-[#a6a6b5]">Valor<input type="text" inputMode="decimal" value={ionVal} onChange={e => setIonVal(e.target.value.replace(',', '.'))} className={`${box} w-20 mt-0.5 block`} /></label>
           <label className="text-[10px] text-[#a6a6b5]">Dirección<select value={ionDir} onChange={e => setIonDir(e.target.value as typeof ionDir)} className={`${box} mt-0.5 block`}><option value="ppm2meq">ppm → meq/L</option><option value="meq2ppm">meq/L → ppm</option></select></label>
           <label className="text-[10px] text-[#a6a6b5]">Elemento<select value={ionElem} onChange={e => setIonElem(e.target.value)} className={`${box} mt-0.5 block`}>{Object.keys(PESO_EQ).map(k => <option key={k} value={k}>{k}</option>)}</select></label>
           <span className="text-[#5c5c6b] pb-1.5">=</span>
@@ -2276,12 +2275,12 @@ function ConversorTab() {
         <h4 className="text-[12px] font-semibold text-[#d9f99d] mb-2">Unidades <span className="text-[10px] text-[#5c5c6b] font-normal">· para productos importados</span></h4>
         <div className="grid sm:grid-cols-2 gap-3">
           <div className="flex items-end gap-2">
-            <label className="text-[10px] text-[#a6a6b5]">gramos<input type="number" value={g} onChange={e => setG(e.target.value)} className={`${box} w-20 mt-0.5 block`} /></label>
+            <label className="text-[10px] text-[#a6a6b5]">gramos<input type="text" inputMode="decimal" value={g} onChange={e => setG(e.target.value.replace(',', '.'))} className={`${box} w-20 mt-0.5 block`} /></label>
             <span className="text-[#5c5c6b] pb-1.5">=</span>
             <div className="pb-1">{res(g ? `${(+g / 28.3495).toFixed(2)} oz` : '—')}</div>
           </div>
           <div className="flex items-end gap-2">
-            <label className="text-[10px] text-[#a6a6b5]">mL por galón (US)<input type="number" value={ml} onChange={e => setMl(e.target.value)} className={`${box} w-20 mt-0.5 block`} /></label>
+            <label className="text-[10px] text-[#a6a6b5]">mL por galón (US)<input type="text" inputMode="decimal" value={ml} onChange={e => setMl(e.target.value.replace(',', '.'))} className={`${box} w-20 mt-0.5 block`} /></label>
             <span className="text-[#5c5c6b] pb-1.5">=</span>
             <div className="pb-1">{res(ml ? `${(+ml / 3.78541).toFixed(2)} mL/L` : '—')}</div>
           </div>
@@ -2578,7 +2577,7 @@ function ClonarTab({ productos, onUsar, irA }: { productos: Sal[]; onUsar: (p: P
           </label>
           <label className="text-[11px] text-[#a6a6b5]">Dosis ({prod?.liquido ? 'mL/L' : 'g/L'})
             {DOSIS_REC[id] != null && <span className="text-[#5c5c6b] ml-1">· recomendada de la marca: {DOSIS_REC[id]}{prod?.liquido ? ' mL/L' : ' g/L'} (podés cambiarla)</span>}
-            <input type="number" min={0} step={1} value={dosis} onChange={e => setDosis(+e.target.value)} className={`${inp} mt-1`} />
+            <NumField value={dosis} onChange={setDosis} min={0} className={`${inp} mt-1`} />
           </label>
         </div>
         {prod && (
@@ -2660,7 +2659,7 @@ function EstabilizantesTab({ dosis }: { dosis: ResultadoSal[] }) {
           <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Aditivos estabilizantes · cuánto poner</h3>
           <Info><b className="text-[#d9f99d]">Qué agregar y en qué dosis</b> para conservar el concentrado líquido.<br /><span className="text-[#a3e635]">Ej: benzoato de sodio 150–250 mg/L como conservante anti-hongo.</span></Info>
           <label className="ml-auto flex items-center gap-1 text-[11px] text-[#a6a6b5]">Volumen del bidón
-            <input type="number" min={0.1} step={1} value={volumen} onChange={e => setVolumen(Math.max(0.1, +e.target.value))} className={`${inp} w-20`} /> L
+            <NumField value={volumen} onChange={setVolumen} min={0.1} className={`${inp} w-20`} /> L
           </label>
         </div>
         <div className="space-y-1.5">
@@ -2726,11 +2725,11 @@ function PHTab({ agua }: { agua: Perfil }) {
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <label className="text-[11px] text-[#a6a6b5]">Alcalinidad actual (ppm CaCO₃)
-            <input type="number" min={0} value={alcActual} onChange={e => setAlcActual(+e.target.value)} className={`${inp} mt-1`} /></label>
+            <NumField value={alcActual} onChange={setAlcActual} min={0} className={`${inp} mt-1`} /></label>
           <label className="text-[11px] text-[#a6a6b5]">Alcalinidad objetivo
-            <input type="number" min={0} value={alcObjetivo} onChange={e => setAlcObjetivo(+e.target.value)} className={`${inp} mt-1`} /></label>
+            <NumField value={alcObjetivo} onChange={setAlcObjetivo} min={0} className={`${inp} mt-1`} /></label>
           <label className="text-[11px] text-[#a6a6b5]">Volumen (L)
-            <input type="number" min={0.1} step={1} value={volumen} onChange={e => setVolumen(+e.target.value)} className={`${inp} mt-1`} /></label>
+            <NumField value={volumen} onChange={setVolumen} min={0.1} className={`${inp} mt-1`} /></label>
           <label className="text-[11px] text-[#a6a6b5]">{subir ? 'Base' : 'Ácido'}
             <select value={ag?.id} onChange={e => setAgenteId(e.target.value)} className={`${inp} mt-1`}>
               {agentes.map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}

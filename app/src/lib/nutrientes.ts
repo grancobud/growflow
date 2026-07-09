@@ -870,13 +870,20 @@ export function bidonDeSal(sal: Sal, separar: boolean): Bidon {
 
 // Sales poco solubles: no se pueden hacer concentrado líquido → la receta es POLVO (1 envase).
 const SALES_POCO_SOLUBLES = new Set(['yeso', 'caco3', 'mgo'])
+// Una sal que en SU PROPIA fórmula tiene Ca junto con S o P (ej. Ryanodine Finis: Ca+P+K+S)
+// precipita sola en concentrado líquido → esa receta solo puede prepararse en POLVO (seco, todo junto).
+const _caYSPMismaSal = (s: Sal) => (s.comp.Ca ?? 0) > 0 && ((s.comp.S ?? 0) > 0 || (s.comp.P ?? 0) > 0)
 export function calcularConcentrados(dosis: ResultadoSal[], factor: number, volumenBidonL: number): BidonConcentrado[] {
-  const esPolvo = dosis.some(d => SALES_POCO_SOLUBLES.has(d.sal.id))
+  const salPrecipitante = dosis.find(d => _caYSPMismaSal(d.sal))
+  const esPolvo = dosis.some(d => SALES_POCO_SOLUBLES.has(d.sal.id)) || !!salPrecipitante
   const separar = !esPolvo && necesitaSepararAB(dosis) // polvo = todo junto; líquido = separa Ca/sulfato
+  const avisoPolvo = salPrecipitante
+    ? `${salPrecipitante.sal.nombre} trae calcio y sulfato/fosfato en la misma sal: en líquido precipita. Esta receta va en POLVO (seco, todo junto), no como concentrado líquido.`
+    : null
   const grupos: Partial<Record<Bidon, BidonConcentrado>> = {}
   for (const d of dosis) {
     const b = bidonDeSal(d.sal, separar)
-    if (!grupos[b]) grupos[b] = { bidon: b, volumenL: volumenBidonL, items: [], advertencia: null }
+    if (!grupos[b]) grupos[b] = { bidon: b, volumenL: volumenBidonL, items: [], advertencia: avisoPolvo }
     const gramos = d.gramosPorL * factor * volumenBidonL
     const item: { sal: Sal; gramos: number; mlSiLiquido?: number } = { sal: d.sal, gramos: +gramos.toFixed(1) }
     if (d.sal.liquido && d.sal.densidad) item.mlSiLiquido = +(gramos / d.sal.densidad).toFixed(1)
