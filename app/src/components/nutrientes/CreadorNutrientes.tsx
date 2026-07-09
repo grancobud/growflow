@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   FlaskConical, Beaker, Droplets, ChevronDown, Sparkles, AlertTriangle,
   Save, FolderOpen, Trash2, Calculator, FlaskRound, Layers, Scale, Plus, DollarSign,
@@ -11,7 +11,7 @@ import {
   redondearBalanza, AGENTES_PH, calcularAjustePH, oxidoAElemental, OXIDOS,
   recomendarEstabilizantes, esComercial, marcaDe, perfilDesdeProducto, categoriaSal, KITS_SALES, kitParaPerfil, opcionesDeMarca, DOSIS_REC, usosDeSal, compararMicros,
   CONV_OXIDO, PESO_EQ, ppmAmeq, meqAppm,
-  necesitaSepararAB, bidonDeSal,
+  necesitaSepararAB, bidonDeSal, detectarQuelatosRedundantes,
   perfilesNutrientesService, sustanciasService, inventarioService, aplicarInventario, proveedoresService, type Proveedor,
   compatibilidad, estadoRango, RANGOS_FLORA_COCO, rangosDesdePerfil,
   type ElementKey, type Perfil, type PerfilGuardado, type Sal, type Bidon,
@@ -99,6 +99,39 @@ const CLON_ADITIVO: Record<string, string> = {
 const card = 'rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4'
 const inp = 'w-full bg-[#15151d] border border-[#1f1f2b] rounded-md px-2 py-1 text-[12px] text-[#ececf1] font-mono tabular-nums focus:border-[#404d20] outline-none'
 
+/**
+ * Campo numérico que se escribe A MANO (no spinner, no cambia con la rueda del mouse).
+ * Usa input de texto con inputMode decimal: permite escribir libre (coma o punto,
+ * estados intermedios como "0." o vacío) y recién comitea el número parseado.
+ */
+function NumField({ value, onChange, className, placeholder, min }: {
+  value: number; onChange: (n: number) => void; className?: string; placeholder?: string; min?: number
+}) {
+  const [txt, setTxt] = useState<string>(value ? String(value) : '')
+  const editando = useRef(false)
+  useEffect(() => { if (!editando.current) setTxt(value ? String(value) : '') }, [value])
+  const commit = (s: string) => {
+    const norm = s.replace(',', '.')
+    if (norm === '' || norm === '.' ) { onChange(0); return }
+    const n = parseFloat(norm)
+    if (!isNaN(n)) onChange(min != null ? Math.max(min, n) : n)
+  }
+  return (
+    <input
+      type="text" inputMode="decimal"
+      value={txt}
+      placeholder={placeholder ?? '0'}
+      onFocus={() => { editando.current = true }}
+      onBlur={() => { editando.current = false; setTxt(value ? String(value) : '') }}
+      onChange={e => {
+        const s = e.target.value
+        if (s === '' || /^[0-9]*[.,]?[0-9]*$/.test(s)) { setTxt(s); commit(s) }
+      }}
+      className={className}
+    />
+  )
+}
+
 export default function CreadorNutrientes() {
   const [sub, setSub] = useState<SubTab>('calc')
 
@@ -108,7 +141,7 @@ export default function CreadorNutrientes() {
   const [agua, setAgua] = useState<Perfil>({})
   const [activas, setActivas] = useState<Set<string>>(new Set([
     'cano3_ag', 'kno3', 'mkp', 'k2so4', 'epsom', 'cagluc', 'yeso', 'khco3',
-    'feeddha', 'mnso4', 'znso4', 'cuso4', 'boric', 'namolib',
+    'fehbed', 'mnso4', 'znso4', 'cuso4', 'boric', 'namolib',
   ]))
   const [customs, setCustoms] = useState<Sal[]>([])
   const [inventario, setInventario] = useState<Record<string, InventarioItem>>({})
@@ -227,7 +260,7 @@ export default function CreadorNutrientes() {
         <AguaTab {...{ agua, setAgua, macros, micros, otros }} />
       )}
       {sub === 'concentrados' && (
-        <ConcentradosTab {...{ concentrados, factor, setFactor, volBidon, setVolBidon, resolucion, setResolucion, dosisCount: res.dosis.length, guardados, salesTodas, modoPrep }} />
+        <ConcentradosTab {...{ concentrados, factor, setFactor, volBidon, setVolBidon, resolucion, setResolucion, dosisCount: res.dosis.length, guardados, salesTodas, modoPrep, proveedores }} />
       )}
       {sub === 'clonar' && (
         <ClonarTab productos={salesTodas.filter(esComercial)} onUsar={(p, salId) => {
@@ -482,8 +515,7 @@ function CalcTab(p: CalcTabProps) {
             {macros.map((e: Elem) => (
               <label key={e.key} className="block">
                 <span className="text-[10px] text-[#8f8f9f]">{e.label}</span>
-                <input type="number" min={0} step={1} value={perfil[e.key] ?? 0}
-                  onChange={ev => setPpm(e.key, +ev.target.value)} className={inp} />
+                <NumField value={perfil[e.key] ?? 0} onChange={n => setPpm(e.key, n)} min={0} className={inp} />
               </label>
             ))}
           </div>
@@ -495,8 +527,7 @@ function CalcTab(p: CalcTabProps) {
               {micros.map((e: Elem) => (
                 <label key={e.key} className="block">
                   <span className="text-[10px] text-[#8f8f9f]">{e.key}</span>
-                  <input type="number" min={0} step={1} value={perfil[e.key] ?? 0}
-                    onChange={ev => setPpm(e.key, +ev.target.value)} className={inp} />
+                  <NumField value={perfil[e.key] ?? 0} onChange={n => setPpm(e.key, n)} min={0} className={inp} />
                 </label>
               ))}
             </div>
@@ -635,9 +666,9 @@ function CalcTab(p: CalcTabProps) {
                     <td className="px-3 py-1.5 font-mono tabular-nums text-[#a6a6b5]">
                       {editarRangos ? (
                         <span className="flex items-center gap-1">
-                          <input type="number" value={rg?.min ?? 0} onChange={ev => setRango(e.key, 'min', +ev.target.value)} className="w-14 bg-[#101016] border border-[#1f1f2b] rounded px-1 py-0.5 text-[10.5px] font-mono" />
+                          <NumField value={rg?.min ?? 0} onChange={n => setRango(e.key, 'min', n)} min={0} className="w-14 bg-[#101016] border border-[#1f1f2b] rounded px-1 py-0.5 text-[10.5px] font-mono" />
                           <span className="text-[#5c5c6b]">–</span>
-                          <input type="number" value={rg?.max ?? 0} onChange={ev => setRango(e.key, 'max', +ev.target.value)} className="w-14 bg-[#101016] border border-[#1f1f2b] rounded px-1 py-0.5 text-[10.5px] font-mono" />
+                          <NumField value={rg?.max ?? 0} onChange={n => setRango(e.key, 'max', n)} min={0} className="w-14 bg-[#101016] border border-[#1f1f2b] rounded px-1 py-0.5 text-[10.5px] font-mono" />
                         </span>
                       ) : (obj > 0 && rg) ? `${rg.min}–${rg.max}` : '—'}
                     </td>
@@ -921,7 +952,7 @@ function GrupoAgua({ titulo, items, agua, set }: { titulo: string; items: Elem[]
       <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
         {items.map(e => (
           <label key={e.key} className="block"><span className="text-[10px] text-[#8f8f9f]">{e.key}</span>
-            <input type="number" min={0} step={1} value={agua[e.key] ?? 0} onChange={ev => set(e.key, +ev.target.value)} className={inp} /></label>
+            <NumField value={agua[e.key] ?? 0} onChange={n => set(e.key, n)} min={0} className={inp} /></label>
         ))}
       </div>
     </div>
@@ -947,7 +978,9 @@ function AguaTab({ agua, setAgua, macros, micros, otros }: { agua: Perfil; setAg
 }
 
 // ===================== CONCENTRADOS =====================
-function ConcentradosTab({ factor, setFactor, volBidon, setVolBidon, resolucion, setResolucion, guardados, salesTodas }: { factor: number; setFactor: (n: number) => void; volBidon: number; setVolBidon: (n: number) => void; resolucion: number; setResolucion: (n: number) => void; guardados: PerfilGuardado[]; salesTodas: Sal[] }) {
+function ConcentradosTab({ factor, setFactor, volBidon, setVolBidon, resolucion, setResolucion, guardados, salesTodas, proveedores }: { factor: number; setFactor: (n: number) => void; volBidon: number; setVolBidon: (n: number) => void; resolucion: number; setResolucion: (n: number) => void; guardados: PerfilGuardado[]; salesTodas: Sal[]; proveedores: Proveedor[] }) {
+  // sal_ids que tienen al menos un proveedor cargado (para marcar las que faltan comprar)
+  const conProveedor = useMemo(() => new Set(proveedores.map(p => p.sal_id)), [proveedores])
   // botella madre de cada perfil/clon guardado
   const botellasGuardadas = guardados.map(g => {
     const salesDisp = salesTodas.filter(s => (g.sales ?? []).includes(s.id))
@@ -1013,7 +1046,7 @@ function ConcentradosTab({ factor, setFactor, volBidon, setVolBidon, resolucion,
             {botellasGuardadas.map((b, i) => (
               <div key={i} className={card}>
                 <p className="text-[12px] font-display font-semibold text-[#d9f99d] mb-2">🧴 {b.nombre}</p>
-                <BotellasGrid concentrados={b.concentrados} resolucion={resolucion} />
+                <BotellasGrid concentrados={b.concentrados} resolucion={resolucion} conProveedor={conProveedor} />
               </div>
             ))}
           </div>
@@ -1068,7 +1101,7 @@ function ColMicros({ titulo, sub, dosis, litros, resolucion, acento, elegida, on
 }
 // ids de micros para intercambiar la forma en la receta (activas)
 const MICROS_SUELTOS_IDS = ['fehbed', 'mnedta', 'znedta', 'cuedta', 'boric', 'namolib']
-const MICROS_MIX_IDS = ['fetrilon_combi2', 'fehbed']
+const MICROS_MIX_IDS = ['fetrilon_combi2', 'fehbed', 'mnedta', 'znedta', 'boric', 'namolib']
 const MICROS_LIMPIAR = ['feeddha', 'feedta', 'mnedta', 'znedta', 'cuedta', 'boric', 'namolib', 'fetrilon_combi2', 'afital_micromix', 'mnso4', 'znso4', 'cuso4', 'feso4']
 function PanelMicros2({ perfil, salesTodas, litros, resolucion, activas, setActivas }: { perfil: Perfil; salesTodas: Sal[]; litros: number; resolucion: number; activas: Set<string>; setActivas: SetSet }) {
   const cmp = useMemo(() => compararMicros(perfil, salesTodas), [perfil, salesTodas])
@@ -1092,12 +1125,12 @@ function PanelMicros2({ perfil, salesTodas, litros, resolucion, activas, setActi
       <div className="flex items-center gap-2 mb-1">
         <FlaskRound className="w-4 h-4 text-[#a78bfa]" strokeWidth={1.8} />
         <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Micros: dos formas de armarlos</h3>
-        <Info><b className="text-[#d9f99d]">Mismo objetivo, dos caminos.</b> Sales sueltas = cada quelato por separado (clon exacto). Micromix = Fetrilon Combi 2 + Fe-HBED para reforzar el hierro.<br /><span className="text-[#a3e635]">Tocá la ⭐ "Usar esta" para que la receta (y la solución madre) use esa forma.</span></Info>
+        <Info><b className="text-[#d9f99d]">Mismo objetivo, dos caminos.</b> Sales sueltas = cada quelato por separado (clon exacto). Micromix = Fetrilon Combi 2 + refuerzos (Fe-HBED, Mn-EDTA, ác. bórico, molibdato) para completar lo que el ratio fijo deja corto.<br /><span className="text-[#a3e635]">Tocá la ⭐ "Usar esta" para que la receta (y la solución madre) use esa forma.</span></Info>
       </div>
       <div className="flex flex-col sm:flex-row gap-2 mb-3">
         <ColMicros titulo="A · Sales sueltas" sub="cada quelato individual — clon exacto" dosis={cmp.sueltos} litros={litros} resolucion={resolucion} acento="#a3e635"
           elegida={modo === 'sueltos'} onElegir={() => aplicar(MICROS_SUELTOS_IDS)} />
-        <ColMicros titulo="B · Micromix + refuerzo Fe" sub="Fetrilon Combi 2 + Fe-HBED (el hierro que falta)" dosis={cmp.micromix} litros={litros} resolucion={resolucion} acento="#7dd3fc"
+        <ColMicros titulo="B · Micromix + refuerzos" sub="Fetrilon Combi 2 + Fe-HBED / Mn / B / Mo (completa lo que falta)" dosis={cmp.micromix} litros={litros} resolucion={resolucion} acento="#7dd3fc"
           elegida={modo === 'mix'} onElegir={() => aplicar(MICROS_MIX_IDS)} />
       </div>
       {/* Tabla ppm objetivo vs logrado en cada variante */}
@@ -1129,7 +1162,7 @@ function PanelMicros2({ perfil, salesTodas, litros, resolucion, activas, setActi
           </tbody>
         </table>
       </div>
-      <p className="text-[10px] text-[#5c5c6b] mt-2">La columna B usa el solver para repartir Fetrilon + Fe-HBED. Si un micro queda <span className="text-[#f87171]">falta</span>/<span className="text-[#facc15]">sobra</span>, es por los ratios fijos del micromix — el hierro se completa con Fe-HBED (el más estable, pH 3.5–12).</p>
+      <p className="text-[10px] text-[#5c5c6b] mt-2">La columna B usa el solver para repartir Fetrilon + refuerzos individuales (Fe-HBED, Mn-EDTA, ác. bórico, molibdato). El micromix da la base y cada refuerzo completa el micro que su ratio fijo deja corto (B y Mo son los que más faltan). El hierro es Fe-HBED (el más estable, pH 3.5–12). Si algún micro queda <span className="text-[#f87171]">falta</span>/<span className="text-[#facc15]">sobra</span> es por el tope del ratio del Fetrilon (ej. Cu suele sobrar).</p>
     </div>
   )
 }
@@ -1777,8 +1810,12 @@ function BotellaSVG({ color, letra, volumenL }: { color: string; letra: string; 
 }
 
 // Grilla de botellas (bidones) reutilizable
-function BotellasGrid({ concentrados, resolucion }: { concentrados: BidonConcentrado[]; resolucion: number }) {
+function BotellasGrid({ concentrados, resolucion, conProveedor }: { concentrados: BidonConcentrado[]; resolucion: number; conProveedor?: Set<string> }) {
   const unica = concentrados.length === 1
+  // sustancias de esta receta que todavía no tienen proveedor cargado (hay que comprarlas)
+  const faltantes = conProveedor
+    ? [...new Map(concentrados.flatMap(g => g.items).filter(it => !conProveedor.has(it.sal.id)).map(it => [it.sal.id, it.sal])).values()]
+    : []
   return (
     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
       {concentrados.map((g: BidonConcentrado) => (
@@ -1791,9 +1828,15 @@ function BotellasGrid({ concentrados, resolucion }: { concentrados: BidonConcent
             <div className="flex-1 min-w-0 space-y-1">
               {g.items.map(it => {
                 const gv = resolucion > 0 ? redondearBalanza(it.gramos, resolucion) : it.gramos
+                const falta = conProveedor ? !conProveedor.has(it.sal.id) : false
                 return (
                   <div key={it.sal.id} className="flex items-center gap-2 bg-[#15151d] border border-[#1f1f2b] rounded-md px-2.5 py-1.5">
+                    {conProveedor && (
+                      <span title={falta ? 'Sin proveedor cargado — hay que comprarla' : 'Tenés proveedor cargado'}
+                        className="flex-shrink-0 w-1.5 h-1.5 rounded-full" style={{ background: falta ? '#facc15' : '#4ade80' }} />
+                    )}
                     <span className="text-[11px] text-[#d4d4dd] flex-1 min-w-0 truncate">{it.sal.nombre}</span>
+                    {falta && <span className="flex-shrink-0 text-[8.5px] uppercase tracking-wide text-[#facc15] bg-[#facc15]/10 border border-[#facc15]/25 rounded px-1 py-px">falta</span>}
                     <span className="text-[12px] font-mono tabular-nums font-bold text-[#ececf1]">
                       {it.mlSiLiquido != null ? `${it.mlSiLiquido} mL` : `${gv} g`}
                     </span>
@@ -1803,6 +1846,12 @@ function BotellasGrid({ concentrados, resolucion }: { concentrados: BidonConcent
               <p className="text-[10px] text-[#5c5c6b] pt-1">+ agua hasta {g.volumenL} L</p>
             </div>
           </div>
+          {g.bidon === concentrados[0].bidon && faltantes.length > 0 && (
+            <div className="flex items-start gap-2 mt-2 rounded-lg bg-[#facc15]/[0.06] border border-[#facc15]/25 px-2.5 py-1.5">
+              <span className="text-[11px] mt-px">🛒</span>
+              <p className="text-[10px] text-[#d4c98f]"><b>{faltantes.length}</b> sin proveedor: {faltantes.map(s => s.nombre).join(', ')}. Cargalos en la pestaña Proveedores.</p>
+            </div>
+          )}
           {g.advertencia && (
             <div className="flex items-start gap-2 mt-2 rounded-lg bg-[#ff8a7a]/08 border border-[#ff8a7a]/25 px-3 py-2">
               <AlertTriangle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[#ff8a7a]" strokeWidth={1.8} />
@@ -2354,8 +2403,25 @@ function RatiosTab({ ratios, res, costo, proveedores }: { ratios: Ratios; res: R
     estable: { t: 'pH ESTABLE', c: '#a3e635', d: 'Relación NH₄:NO₃ equilibrada. Poca deriva.' },
     baja: { t: 'pH tiende a BAJAR', c: '#fca5a5', d: 'Mucho amonio (la planta libera H⁺). Ojo en coco, puede acidificar la rizósfera.' } }[bal.tendenciaPh]
   const catMax = Math.max(bal.cationesMeq, bal.anionesMeq, 0.001)
+  const redundancias = detectarQuelatosRedundantes(res.dosis)
   return (
     <div className="space-y-4">
+    {redundancias.length > 0 && (
+      <div className="rounded-lg border border-[#facc15]/40 bg-[#facc15]/[0.06] p-3">
+        <div className="flex items-center gap-2 mb-1.5">
+          <span className="text-[13px]">⚠️</span>
+          <h3 className="font-display font-semibold text-[13px] text-[#facc15]">Quelatos redundantes</h3>
+        </div>
+        <ul className="space-y-1.5">
+          {redundancias.map(r => (
+            <li key={r.elemento} className="text-[11.5px] text-[#d4d4dd]">
+              <b className="text-[#facc15]">{r.label}:</b> {r.sugerencia}
+              <span className="text-[#5c5c6b]"> ({r.fuentes.join(' + ')})</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
     <div className="grid lg:grid-cols-2 gap-4">
       <div className={card}>
         <div className="flex items-center gap-2 mb-3">

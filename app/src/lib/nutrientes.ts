@@ -415,18 +415,17 @@ export interface OpcionesKit {
 /** Opciones de sales según cómo formula cada marca (tipo de hierro y micros).
  * MÁXIMA CALIDAD: micros Mn/Zn/Cu quelatados EDTA (como las marcas premium de verdad),
  * más estables en concentrado líquido y a pH alto que los sulfatos. */
-export function opcionesDeMarca(salId: string): OpcionesKit {
-  if (salId.startsWith('athena_')) return { feChelate: 'fedtpa', microsQuelatados: true }   // Athena: Fe-DTPA + micros EDTA
-  if (salId.startsWith('an_sensi_')) return { feChelate: 'feeddha', microsQuelatados: true } // AN: Fe-EDDHA + micros EDTA
-  if (salId.startsWith('ryano_')) return { feChelate: 'feeddha', microsQuelatados: true }    // Ryanodine
-  return { feChelate: 'feeddha', microsQuelatados: true } // resto: Fe-EDDHA + micros EDTA (calidad)
+export function opcionesDeMarca(_salId: string): OpcionesKit {
+  // Hierro SIEMPRE Fe-HBED (Rexolin X60): el quelato más estable (pH 3.5–12),
+  // preferencia de Gastón. Micros Mn/Zn/Cu quelatados EDTA (calidad marca premium).
+  return { feChelate: 'fehbed', microsQuelatados: true }
 }
 
 export function kitParaPerfil(p: Perfil, opts: OpcionesKit = {}): string[] {
   const has = (k: ElementKey) => (p[k] ?? 0) > 0
   const N = nTotal(p)
   const kit = new Set<string>()
-  const fe = opts.feChelate ?? 'feeddha'
+  const fe = opts.feChelate ?? 'fehbed'
   const useQuel = opts.microsQuelatados ?? true // MÁXIMA CALIDAD por defecto: micros EDTA (no sulfatos)
   const mn = useQuel ? 'mnedta' : 'mnso4'
   const zn = useQuel ? 'znedta' : 'znso4'
@@ -469,7 +468,8 @@ export function kitParaPerfil(p: Perfil, opts: OpcionesKit = {}): string[] {
 
 /** Compara cómo cubrir los MICROS de un perfil de dos formas, con el mismo solver:
  *  1) sueltos: cada quelato individual (Fe-HBED + Mn/Zn/Cu-EDTA + ácido bórico + molibdato)
- *  2) micromix: Fetrilon Combi 2 + refuerzo de Fe-HBED (el solver reparte los gramos)
+ *  2) micromix: Fetrilon Combi 2 + refuerzos individuales (Fe-HBED, Mn-EDTA, ác. bórico y
+ *     molibdato) para completar lo que el ratio fijo del micromix deja corto. El solver reparte.
  *  Devuelve las dosis (g/L) y el ppm logrado de cada micro en cada variante. */
 export function compararMicros(perfil: Perfil, salesTodas: Sal[]): {
   microPerfil: Perfil
@@ -481,8 +481,35 @@ export function compararMicros(perfil: Perfil, salesTodas: Sal[]): {
   for (const k of MICROS) if ((perfil[k] ?? 0) > 0) microPerfil[k] = perfil[k]
   const pick = (ids: string[]) => ids.map(id => salesTodas.find(s => s.id === id)).filter(Boolean) as Sal[]
   const suel = calcularReceta(microPerfil, pick(['fehbed', 'mnedta', 'znedta', 'cuedta', 'boric', 'namolib']))
-  const mmx = calcularReceta(microPerfil, pick(['fetrilon_combi2', 'fehbed']))
+  // Micromix + refuerzos: el Fetrilon aporta la base, pero su ratio fijo deja corto B/Mn/Mo
+  // (y a veces Fe). Se agregan quelatos/sales individuales para que el solver complete cada micro.
+  const mmx = calcularReceta(microPerfil, pick(['fetrilon_combi2', 'fehbed', 'mnedta', 'znedta', 'boric', 'namolib']))
   return { microPerfil, sueltos: suel.dosis, ppmSueltos: suel.ppmLogrado, micromix: mmx.dosis, ppmMicromix: mmx.ppmLogrado }
+}
+
+/** Detecta quelatos/fuentes redundantes del MISMO elemento en una receta.
+ *  Ej: 3 fuentes de hierro (Fetrilon-EDTA + Fe-DTPA + Fe-HBED) → redundante, dejar una según pH.
+ *  Solo mira micros quelatados (Fe/Mn/Zn/Cu) donde tener 2+ fuentes no suma y encarece. */
+export interface RedundanciaQuelato { elemento: ElementKey; label: string; fuentes: string[]; sugerencia: string }
+export function detectarQuelatosRedundantes(dosis: ResultadoSal[]): RedundanciaQuelato[] {
+  const MICROS_QUEL: { key: ElementKey; label: string; mejor: string }[] = [
+    { key: 'Fe', label: 'Hierro', mejor: 'Fe-HBED (el más estable, pH 3.5–12)' },
+    { key: 'Mn', label: 'Manganeso', mejor: 'Mn-EDTA' },
+    { key: 'Zn', label: 'Zinc', mejor: 'Zn-EDTA' },
+    { key: 'Cu', label: 'Cobre', mejor: 'Cu-EDTA' },
+  ]
+  const out: RedundanciaQuelato[] = []
+  for (const m of MICROS_QUEL) {
+    const fuentes = dosis.filter(d => (d.sal.comp[m.key] ?? 0) > 0)
+    if (fuentes.length >= 2) {
+      out.push({
+        elemento: m.key, label: m.label,
+        fuentes: fuentes.map(d => d.sal.nombre),
+        sugerencia: `Tenés ${fuentes.length} fuentes de ${m.label.toLowerCase()}. No suma tener varias: dejá una (recomendado ${m.mejor}) y sacá el resto.`,
+      })
+    }
+  }
+  return out
 }
 
 /** Genera el perfil ppm objetivo de un producto a una dosis (g/L de producto). */
@@ -612,8 +639,8 @@ export function meqAppm(meq: number, elem: string): number | null {
 export interface KitSales { id: string; nombre: string; desc: string; sales: string[] }
 export const KITS_SALES: KitSales[] = [
   { id: 'limpio', nombre: 'Kit limpio (recomendado)',
-    desc: 'Calidad pro: 1 sal por nutriente, sin cloro, micros EDTA quelatados (estables). A=nitrato Ca · B=nitrato K+MKP+sulfato K+Epsom · C=micros EDDHA/EDTA.',
-    sales: ['cano3_ag', 'kno3', 'mkp', 'k2so4', 'epsom', 'feeddha', 'mnedta', 'znedta', 'cuedta', 'boric', 'namolib'] },
+    desc: 'Calidad pro: 1 sal por nutriente, sin cloro, micros EDTA quelatados (estables). A=nitrato Ca · B=nitrato K+MKP+sulfato K+Epsom · C=Fe-HBED + micros EDTA.',
+    sales: ['cano3_ag', 'kno3', 'mkp', 'k2so4', 'epsom', 'fehbed', 'mnedta', 'znedta', 'cuedta', 'boric', 'namolib'] },
   { id: 'finish', nombre: 'Kit finish (sin N)',
     desc: 'Finalización PK sin nitrógeno. El azufre sale de sulfato de K + yeso (no de micros, que ensucian). Ca limpio.',
     sales: ['mkp', 'k2so4', 'khco3', 'yeso', 'cagluc'] },
