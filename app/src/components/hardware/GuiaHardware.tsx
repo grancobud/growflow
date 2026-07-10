@@ -77,25 +77,39 @@ export default function GuiaHardware() {
           cols={['Componente', 'Función', 'Specs', 'Precio']}
           rows={[
             [<b>ESP32 DevKit WROOM-32</b>, 'Cerebro (corre ESPHome)', '240 MHz, WiFi/BT, 30+ GPIO, 3.3V lógica', 'USD 6-8'],
-            ['Placa 8 relés optoacoplada', '6 salidas 220V + 2 reserva', 'Optoacoplada, 10A/canal, trigger 3.3V', 'USD 8-10'],
-            ['Fuente 5V 3A', 'Alimentación lógica', '5V regulada, ≥3A', 'USD 8-12'],
-            ['Gabinete DIN + riel + borneras + fusible', 'Tablero seguro', 'IP54, riel DIN 35mm', 'USD 10-15'],
+            [<b>MCP23017 (expansor I²C)</b>, 'El ESP32 no tiene pines para tantos relés → +16 salidas por I²C. ESPHome nativo.', '16 GPIO extra, dirección 0x20', 'USD 2-3'],
+            [<b>Placa de relés 16 canales</b>, '1 salida por bobina de contactor + CO₂ + reserva (o 2× 8ch)', 'Optoacoplada, trigger 3.3V, VCC desde 5V', 'USD 12-18'],
+            ['Fuente 5V robusta (≥5A)', 'Alimentación lógica + 16 relés', '5V regulada, ≥5A', 'USD 10-15'],
+            ['Gabinete DIN grande + riel + borneras + ferrules', 'Tablero (instalación grande)', 'IP54, riel DIN 35mm', 'USD 20-35'],
           ]}
         />
+        <p className="text-[11px] text-[#5c5c6b] mt-2">Con ~10-12 canales de control no alcanzan 8 relés ni los pines del ESP32: el <b>MCP23017</b> te da 16 salidas por I²C y manejás una <b>placa de 16 relés</b>. Cada relé cierra la bobina de un contactor (o directo el CO₂).</p>
       </Seccion>
 
       {/* Contactores */}
-      <Seccion icon={Boxes} titulo="2 · Contactores y protección (alta potencia)" sub="El relé chico maneja la bobina; el contactor maneja la potencia">
+      <Seccion icon={Boxes} titulo="2 · Contactores y protección — dimensionado para TU sala" sub="El relé chico cierra la bobina; el contactor maneja la potencia. 9 contactores">
+        <div className="rounded-lg bg-[#e0685c]/[0.08] border border-[#e0685c]/30 p-3 mb-3">
+          <p className="text-[12px] text-[#f0a89f]"><b>⚠️ Instalación grande (~25 kW / ~110A):</b> NO va en monofásico → necesitás <b>trifásica (380V)</b> con las cargas repartidas entre fases, y <b>un electricista matriculado</b> para el lado de potencia. El ESP32 + relés los armás vos; el tablero de 25kW lo hace un matriculado.</p>
+        </div>
         <Tabla
-          cols={['Componente', 'Para qué', 'Specs', 'Precio']}
+          cols={['Canal', 'Cargas', 'Corriente', 'Contactor', 'Breaker']}
           rows={[
-            [<b>Contactor 40A bobina 220V</b>, 'AC (6300W ≈ 29A + arranque)', '3P, bobina 220VAC, 40A AC3', 'USD 20-35'],
-            ['Contactor 25A ×1-2 (opcional)', 'Luces / cargas medianas', 'bobina 220VAC, 25A', 'USD 12-20 c/u'],
-            ['Térmica + disyuntor', 'Protección del tablero', 'según carga total', 'USD 15-30'],
-            ['Cable 2.5-4mm², borneras, ferrules', 'Montaje', '—', 'USD 10-15'],
+            [<b>Luces grupo 1</b>, '~5×600W LED (3000W)', '~14A', '25A', 'C16'],
+            [<b>Luces grupo 2</b>, '4×600W (2400W)', '~11A', '25A', 'C16'],
+            [<b>Luces grupo 3</b>, '6 LEDs varios (~1600W)', '~8A', '25A', 'C10'],
+            [<b>Aire acond. 1</b>, '1 (~6300W)', '~29A', '40A', 'C32'],
+            [<b>Aire acond. 2</b>, '1 (~6300W)', '~29A', '40A', 'C32'],
+            [<b>Deshumidificadores</b>, '3 unidades', '~7-10A', '25A', 'C16'],
+            [<b>Ventiladores industriales</b>, '4', '~7-10A', '25A', 'C16'],
+            [<b>Coolers 220V</b>, '7', '~7-10A', '25A', 'C16'],
+            [<b>Bomba de riego</b>, '1', '~3-5A', '16A', 'C10'],
+            [<b>CO₂ (solenoide 220V)</b>, '1', '<1A', '— relé directo', '—'],
           ]}
         />
-        <p className="text-[11px] text-[#5c5c6b] mt-3"><b className="text-[#f0a35e]">Regla:</b> contactor = corriente de la carga × 1.5 (por el pico de arranque). Nunca enchufar el AC directo al relé de placa.</p>
+        <p className="text-[11px] text-[#5c5c6b] mt-2"><b>Total: 9 contactores</b> (2×40A + 6×25A + 1×16A) + breaker por grupo + general trifásico. El CO₂ (solenoide) va por relé directo, sin contactor.</p>
+        <div className="mt-2 rounded-lg bg-[#f0a35e]/[0.07] border border-[#f0a35e]/25 p-3">
+          <p className="text-[12px] text-[#e0b48a]"><b>Luces divididas en 3 grupos a propósito:</b> 15 drivers de LED prendiendo TODOS juntos generan un pico de arranque (inrush) que puede soldar los contactos de un solo contactor. Se dividen en grupos y se <b>escalonan</b> — el ESP32 los prende con 1-2 seg de diferencia (fácil con <span className="font-mono">delay</span> en ESPHome). Regla: contactor = corriente × 1.5. Nunca el AC/luces directo al relé.</p>
+        </div>
       </Seccion>
 
       {/* Sensor principal SCD41 */}
