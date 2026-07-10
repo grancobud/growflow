@@ -2,7 +2,7 @@
 // con ESP32 + ESPHome. Especificaciones, insumos y estrategia multi-sensor.
 // Basado en la ingeniería inversa del firmware/API de Growcast (ver growcast-diy/).
 
-import { Cpu, Thermometer, Zap, Boxes, Radio, Wrench, Wallet, FileCode, ChevronRight, Hammer, Monitor, ListChecks, Cable, Users, Rocket, Network, Droplets, ShieldAlert } from 'lucide-react'
+import { Cpu, Thermometer, Zap, Boxes, Radio, Wrench, Wallet, FileCode, ChevronRight, Hammer, Monitor, ListChecks, Cable, Users, Rocket, Network, Droplets, ShieldAlert, ToggleLeft } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 const card = 'rounded-xl bg-[#111119] border border-[#1f1f2b] p-4 sm:p-5'
@@ -588,6 +588,79 @@ climate:
         <div className="mt-3 rounded-lg bg-[#a3e635]/[0.06] border border-[#404d20] p-3">
           <p className="text-[12px] text-[#d4d4dd]"><b className="text-[#a3e635]">Estrategia software:</b> Firmware = ESPHome (no escribir propio). Automatizaciones = robarle a HAGR la lógica de VPD/CO₂ (ya probada). Plataforma visual = Home Assistant + OpenGrowBox (gratis, tu «app de Growcast») + growflow (trazabilidad + IA).</p>
         </div>
+      </Seccion>
+
+      {/* Cómo se prende y apaga — fácil */}
+      <Seccion icon={ToggleLeft} titulo="Cómo prende y apaga cada cosa (fácil)" sub="El relé es como un interruptor de luz que el ESP32 aprieta solo">
+        <p className="text-[12.5px] text-[#d4d4dd] mb-2">Cada salida es un «switch» en ESPHome. <b>Prender = el relé cierra = el equipo recibe corriente.</b> Se controla de 4 formas:</p>
+        <pre className="text-[10.5px] font-mono bg-[#0a0a0f] border border-[#1f1f2b] rounded-lg p-3 overflow-x-auto text-[#a3e635] leading-relaxed">{`# 1) Definir la salida (te crea un boton en el celu/growflow)
+switch:
+  - platform: gpio
+    pin: GPIO13
+    name: "Aire acondicionado"
+    id: rele_ac
+    inverted: true            # la placa de reles es activa en LOW
+
+# 2) POR TEMPERATURA (automatico)
+sensor:
+  - platform: scd4x
+    temperature:
+      on_value_range:
+        - above: 24.0
+          then: { switch.turn_on: rele_ac }    # >24 -> prende AC
+        - below: 23.0
+          then: { switch.turn_off: rele_ac }   # <23 -> apaga AC
+
+# 3) POR HORARIO (luces 7:00 ON / 3:00 OFF)
+time:
+  - platform: sntp
+    on_time:
+      - hours: 7
+        then: { switch.turn_on: rele_luces }
+      - hours: 3
+        then: { switch.turn_off: rele_luces }
+
+# 4) CICLADO (ventiladores 10 min si / 20 no) -- el "ciclador", sin timer fisico
+interval:
+  - interval: 30min
+    then:
+      - switch.turn_on: rele_vent
+      - delay: 10min
+      - switch.turn_off: rele_vent`}</pre>
+        <p className="text-[11px] text-[#5c5c6b] mt-2">A mano lo prendés desde el celu/growflow/Home Assistant (el botón que crea el <span className="font-mono">switch</span>). Los otros 3 son automáticos.</p>
+
+        <p className="text-[12px] text-[#d4d4dd] mt-4 mb-2 font-semibold">Riego por fases (crop steering P0/P1/P2) — como Growcast:</p>
+        <pre className="text-[10.5px] font-mono bg-[#0a0a0f] border border-[#1f1f2b] rounded-lg p-3 overflow-x-auto text-[#7dd3fc] leading-relaxed">{`switch:
+  - platform: gpio
+    pin: GPIO25
+    id: valvula_riego
+    name: "Riego"
+
+script:
+  - id: ciclo_riego
+    then:
+      - delay: 2h                 # P0: dryback (deja secar al prender luces)
+      - repeat:                   # P1: cargar el sustrato
+          count: 6
+          then:
+            - switch.turn_on: valvula_riego
+            - delay: 30s          # riego de 30 segundos
+            - switch.turn_off: valvula_riego
+            - delay: 15min        # espera 15 min entre shots
+      - repeat:                   # P2: mantenimiento
+          count: 4
+          then:
+            - switch.turn_on: valvula_riego
+            - delay: 30s
+            - switch.turn_off: valvula_riego
+            - delay: 2h
+
+time:
+  - platform: sntp
+    on_time:
+      - hours: 7                  # cuando prenden las luces...
+        then: { script.execute: ciclo_riego }   # ...arranca el riego del dia`}</pre>
+        <p className="text-[11px] text-[#5c5c6b] mt-2">Cambiás los números (2h, 30s, 6 veces…) y tenés tu crop steering. Para riego por humedad real (dryback), en vez de tiempos fijos leés el sensor de sustrato: «si bajó del 60% → regá».</p>
       </Seccion>
 
       <p className="text-[10.5px] text-[#5c5c6b] px-1 pb-4">
