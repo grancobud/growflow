@@ -214,6 +214,15 @@ export default function GuiaHardware() {
           <p className="text-[12px] text-[#e0b48a]"><b>Ojo con la cantidad de salidas:</b> con varias camas se te acaban las 6 salidas → necesitás <b>expansión</b>: más relés, o <b>nodos RS485 cerca de las camas</b> que manejen sus válvulas (como los módulos expansores de Growcast). Bomba y solenoides siempre por relé/MOSFET, no al GPIO.</p>
         </div>
         <p className="text-[11px] text-[#5c5c6b] mt-2">Growcast soporta sensores de sustrato METER (TEROS 12 = humedad + temp + EC del sustrato) — la referencia si querés riego por humedad de verdad, no solo por horario.</p>
+        <div className="mt-3 rounded-lg bg-[#a3e635]/[0.06] border border-[#404d20] p-3">
+          <p className="text-[12px] text-[#d4d4dd] mb-1.5"><b className="text-[#a3e635]">Cómo riega Growcast (de su código): CROP STEERING, no un timer.</b> Su sección de riego tiene 3 modos:</p>
+          <ul className="space-y-1 text-[12px] text-[#d4d4dd]">
+            <li>• <b>Irrigation (fases P0/P1/P2):</b> <b>P0</b> = dryback inicial (deja secar al prender las luces) → <b>P1</b> = shots frecuentes para cargar a capacidad de campo (On/Off/repeticiones) → <b>P2</b> = shots de mantenimiento. Sincronizado con el fotoperiodo (isLightSync).</li>
+            <li>• <b>Irrigation with sensor:</b> riega por <b>dryback</b> — define humedad objetivo (targetHumidity) y % de caída permitido; riega cuando el sustrato se secó ese %.</li>
+            <li>• <b>SuperCycle:</b> ciclo simple On/Off (el «ciclador» básico).</li>
+          </ul>
+          <p className="text-[11px] text-[#5c5c6b] mt-2">No hay timer físico: el ciclado está dentro de cada fase (On/Off/repeticiones), corriendo on-device. En ESPHome se replica con <span className="font-mono">script</span> + <span className="font-mono">interval</span> + la lectura del sensor de humedad.</p>
+        </div>
       </Seccion>
 
       {/* CO2 seguridad */}
