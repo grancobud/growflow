@@ -2,7 +2,7 @@
 // con ESP32 + ESPHome. Especificaciones, insumos y estrategia multi-sensor.
 // Basado en la ingeniería inversa del firmware/API de Growcast (ver growcast-diy/).
 
-import { Cpu, Thermometer, Zap, Boxes, Radio, Wrench, Wallet, FileCode, ChevronRight, Hammer, Monitor, ListChecks } from 'lucide-react'
+import { Cpu, Thermometer, Zap, Boxes, Radio, Wrench, Wallet, FileCode, ChevronRight, Hammer, Monitor, ListChecks, Cable } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 const card = 'rounded-xl bg-[#111119] border border-[#1f1f2b] p-4 sm:p-5'
@@ -267,6 +267,152 @@ climate: ...`}</pre>
             </div>
           ))}
         </div>
+      </Seccion>
+
+      {/* Esquema de conexión */}
+      <Seccion icon={Cable} titulo="Esquema de conexión (pinout + tablero)" sub="Pines elegidos evitando los conflictivos del ESP32 (flash 6-11, strapping 0/2/12/15, solo-entrada 34-39)">
+        <p className="text-[11.5px] text-[#a6a6b5] mb-2 font-semibold">Mapa de pines del ESP32</p>
+        <Tabla
+          cols={['GPIO', 'Va a', 'Notas']}
+          rows={[
+            ['21 / 22', 'Bus I²C (SDA / SCL)', 'SCD41 (0x62), RTC DS3231 (0x68), TCA9548A (0x70)'],
+            ['4', 'Bus 1-Wire (DS18B20 ×9)', 'resistencia pull-up 4.7kΩ a 3.3V'],
+            ['14', 'Emisor IR (AC)', 'remote_transmitter'],
+            ['13', 'Relé 1 → Contactor AC', 'activa en LOW (inverted)'],
+            ['18', 'Relé 2 → Luces', ''],
+            ['19', 'Relé 3 → Extractores', ''],
+            ['23', 'Relé 4 → Ventiladores', ''],
+            ['25', 'Relé 5 → Deshumidificador', ''],
+            ['26', 'Relé 6 → CO₂ (solenoide)', ''],
+            ['27', 'Relé 7 → Humidificador / reserva', ''],
+            ['32', 'Relé 8 → reserva', ''],
+            ['5V / GND', 'Alimentación ESP32 + placa relés', 'desde la fuente 5V'],
+          ]}
+        />
+        <p className="text-[11px] text-[#5c5c6b] mt-2">Todos los pines de relé son salidas seguras (no strapping, no solo-entrada). La placa de relés es activa en LOW → en ESPHome van con <span className="font-mono">inverted: true</span> y <span className="font-mono">restore_mode: ALWAYS_OFF</span>.</p>
+
+        <p className="text-[11.5px] text-[#a6a6b5] mt-4 mb-2 font-semibold">Tablero 220V (⚠️ con la llave general BAJA)</p>
+        <pre className="text-[10.5px] font-mono bg-[#0a0a0f] border border-[#1f1f2b] rounded-lg p-3 overflow-x-auto text-[#d4a89f] leading-relaxed">{`RED 220V ── [Térmica + Disyuntor] ──┬── [Fuente 5V] ── 5V/GND → ESP32 + placa relés
+                                    │
+                                    ├── Fase (L) ─────┐
+                                    └── Neutro (N) ───┼──────────────┐
+                                                      │              │
+Relé K1 (GPIO13) ── bobina A1/A2 → [CONTACTOR 40A] ──┘   Fase→ ❄️AC ←N
+Relé K2 (GPIO18) ── (contactor 25A o directo) ─────────────→ 💡Luces
+Relé K3..K6 (19/23/25/26) ── directo (cargas <10A) ────────→ Extractor/Ventilador/Deshumi/CO₂
+
+TIERRA (PE) ── gabinete + chasis de cada equipo
+Snubber/varistor en paralelo a las cargas inductivas (AC, extractores)`}</pre>
+        <p className="text-[11px] text-[#5c5c6b] mt-2">El relé chico solo cierra la <b>bobina</b> del contactor; la potencia (29A del AC) pasa por el contactor. Multímetro ANTES de energizar: continuidad, sin cortos, tierra OK.</p>
+      </Seccion>
+
+      {/* ESPHome completo */}
+      <Seccion icon={FileCode} titulo="Configuración ESPHome completa" sub="Lista para flashear. Ajustá WiFi, addresses de DS18B20 y la marca del AC.">
+        <pre className="text-[10.5px] font-mono bg-[#0a0a0f] border border-[#1f1f2b] rounded-lg p-3 overflow-x-auto text-[#a3e635] leading-relaxed">{`esphome:
+  name: growcast-diy
+
+esp32:
+  board: esp32dev
+  framework: { type: arduino }
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+logger:
+api:
+ota:
+  - platform: esphome
+
+# ---------- Buses ----------
+i2c:
+  sda: GPIO21
+  scl: GPIO22
+  scan: true
+  frequency: 50kHz
+
+one_wire:
+  - platform: gpio
+    pin: GPIO4
+
+# ---------- Reloj (horarios offline) ----------
+time:
+  - platform: ds1307      # el driver ds1307 sirve para el DS3231
+    id: reloj
+  - platform: sntp        # sincroniza cuando hay internet
+
+# ---------- Sensores ----------
+sensor:
+  - platform: scd4x
+    co2: { name: "CO2", id: co2 }
+    temperature: { name: "Temp aire", id: temp_aire }
+    humidity: { name: "Humedad", id: hr_aire }
+    update_interval: 30s
+    temperature_offset: 4.0     # corregir auto-calentamiento (calibrar)
+    altitude_compensation: 25m
+    automatic_self_calibration: false   # enriquecés CO2 → calibrar manual (FRC)
+
+  # DS18B20 de la grilla (una entrada por cada address del scan)
+  - platform: dallas_temp
+    address: 0x1c00000000000028   # ← reemplazar por el real de cada sonda
+    name: "Temp punto 1"
+  # ... repetir por cada DS18B20 con su address
+
+  # VPD real calculado
+  - platform: template
+    name: "VPD"
+    unit_of_measurement: "kPa"
+    update_interval: 30s
+    lambda: |-
+      float t = id(temp_aire).state;
+      float rh = id(hr_aire).state;
+      float svp = 0.6108 * expf(17.27 * t / (t + 237.3));
+      return svp * (1.0 - rh / 100.0);
+
+# ---------- Salidas (relés activos en LOW) ----------
+switch:
+  - platform: gpio
+    pin: GPIO13
+    name: "Aire acondicionado"
+    inverted: true
+    restore_mode: ALWAYS_OFF
+  - platform: gpio
+    pin: GPIO18
+    name: "Luces"
+    inverted: true
+    restore_mode: ALWAYS_OFF
+  - platform: gpio
+    pin: GPIO19
+    name: "Extractores"
+    inverted: true
+    restore_mode: ALWAYS_OFF
+  - platform: gpio
+    pin: GPIO23
+    name: "Ventiladores"
+    inverted: true
+    restore_mode: ALWAYS_OFF
+  - platform: gpio
+    pin: GPIO25
+    name: "Deshumidificador"
+    inverted: true
+    restore_mode: ALWAYS_OFF
+  - platform: gpio
+    pin: GPIO26
+    name: "Inyeccion CO2"
+    inverted: true
+    restore_mode: ALWAYS_OFF
+
+# ---------- AC por infrarrojo ----------
+remote_transmitter:
+  pin: GPIO14
+  carrier_duty_percent: 50%
+climate:
+  - platform: coolix      # ← cambiar por la marca de tu mini-split
+    name: "AC (IR)"
+
+# ---------- Ejemplos de automatización on-device ----------
+# Luces 7:00 ON / 3:00 OFF, y AC si Temp > 24° — se hacen con
+# 'on_time:' (time) y 'on_value_range:' (sensor). Ver doc ESPHome.`}</pre>
+        <p className="text-[11px] text-[#5c5c6b] mt-2">⚠️ La sintaxis de ESPHome evoluciona (ej. <span className="font-mono">one_wire</span>/<span className="font-mono">dallas_temp</span>). Validá con <span className="font-mono">esphome config</span> antes de flashear. Los <span className="font-mono">address</span> de los DS18B20 salen del log del primer arranque (I²C/1-Wire scan).</p>
       </Seccion>
 
       <p className="text-[10.5px] text-[#5c5c6b] px-1 pb-4">
