@@ -2,7 +2,7 @@
 // con ESP32 + ESPHome. Especificaciones, insumos y estrategia multi-sensor.
 // Basado en la ingeniería inversa del firmware/API de Growcast (ver growcast-diy/).
 
-import { Cpu, Thermometer, Zap, Boxes, Radio, Wrench, Wallet, FileCode, ChevronRight } from 'lucide-react'
+import { Cpu, Thermometer, Zap, Boxes, Radio, Wrench, Wallet, FileCode, ChevronRight, Hammer, Monitor, ListChecks } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 const card = 'rounded-xl bg-[#111119] border border-[#1f1f2b] p-4 sm:p-5'
@@ -197,6 +197,75 @@ climate: ...`}</pre>
         <div className="mt-3 flex items-start gap-2 text-[12px] text-[#d4d4dd]">
           <ChevronRight className="w-4 h-4 text-[#a3e635] mt-0.5 flex-shrink-0" />
           <span>Próximo paso: el <b>esquema de conexión</b> (pines del ESP32 ↔ sensores/relés/RTC) y el <b>diagrama del tablero 220V</b> con los contactores.</span>
+        </div>
+      </Seccion>
+
+      {/* Herramientas y consumibles */}
+      <Seccion icon={Hammer} titulo="7 · Herramientas y consumibles" sub="No van soldados, pero los necesitás para armarlo">
+        <Tabla
+          cols={['Ítem', 'Para qué']}
+          rows={[
+            ['Soldador + estaño + flux', 'Uniones firmes en el protoboard/PCB'],
+            [<b>Multímetro</b>, 'Probar continuidad, tensión y tierra ANTES de energizar (imprescindible)'],
+            ['Pinza pela-cables + crimpadora de ferrules', 'Terminales tubulares para borneras'],
+            ['Termocontraíble + pistola de calor/encendedor', 'Aislar uniones'],
+            ['Cables Dupont (M-M y M-H)', 'Conexiones del protoboard'],
+            ['Destornilladores, precintos, cinta, rotulador', 'Montaje y rotulado'],
+          ]}
+        />
+      </Seccion>
+
+      {/* Host plataforma visual */}
+      <Seccion icon={Monitor} titulo="8 · «Cerebro visual» (opcional)" sub="Para el dashboard tipo app de Growcast, offline">
+        <p className="text-[12.5px] text-[#d4d4dd] leading-relaxed mb-2">
+          El ESP32 corre las automatizaciones <b>solo</b> — no necesita nada más. Esto es solo si querés el <b>panel visual local</b> (dashboard + histórico + control desde el celu), que es el equivalente a la nube/app de Growcast.
+        </p>
+        <Tabla
+          cols={['Opción', 'Corre', 'Precio']}
+          rows={[
+            ['Raspberry Pi 4 + microSD', 'Home Assistant (dashboard, histórico, app)', 'USD 40-60'],
+            ['PC vieja / mini-PC siempre encendida', 'Home Assistant', 'lo que tengas'],
+            [<b>growflow (nube)</b>, 'Tu UI + trazabilidad — ya la tenés', '$0'],
+          ]}
+        />
+        <p className="text-[11px] text-[#5c5c6b] mt-2">Recomendación: arrancá sin Pi (ESP32 + growflow). Sumá Home Assistant en una Pi si después querés el panel local completo.</p>
+      </Seccion>
+
+      {/* Ensamblaje paso a paso */}
+      <Seccion icon={ListChecks} titulo="Ensamblaje paso a paso" sub="⚠️ Regla de oro: probá SIEMPRE la lógica primero, las cargas de 220V después">
+        <div className="space-y-3">
+          {[
+            { f: 'Fase 1 — Banco de pruebas (sin 220V)', pasos: [
+              'Flasheá el ESP32 con ESPHome por USB. Verificá que prende y se conecta al WiFi.',
+              'Armá los sensores en protoboard (SCD41 + RTC en I²C, DS18B20 en su bus, TCA9548A si va). Corré un I²C scan: SCD41=0x62, RTC=0x68, mux=0x70.',
+              'Probá cada sensor en ESPHome. Calibrá el SCD41 (offset de temperatura + FRC de CO₂).',
+            ]},
+            { f: 'Fase 2 — Tablero de baja tensión', pasos: [
+              'Montá en el gabinete: ESP32, placa de relés, RTC, borneras de sensores (todo 5V/3.3V).',
+              'Probá que cada relé CLICKEA desde ESPHome, todavía SIN cargas conectadas.',
+            ]},
+            { f: 'Fase 3 — Lado 220V (⚠️ con la llave general BAJA)', pasos: [
+              'Entrada de red → térmica → fuente 5V + bobinas de los contactores.',
+              'Los relés manejan las bobinas de los contactores (AC y cargas grandes) o directo las cargas chicas. Puesta a tierra del gabinete.',
+              'Con el multímetro: chequeá continuidad, que no haya cortos y la tierra. Energizá PRIMERO la lógica (sin cargas), después conectá cada equipo de a uno y probá.',
+            ]},
+            { f: 'Fase 4 — Instalación en la sala', pasos: [
+              'Repartí los sensores (grilla DS18B20 + SHT31 para el mapa de calor). Apuntá el IR al mini-split.',
+              'Cargá las automatizaciones (luces por horario, AC por temp, CO₂ a pulsos). Conectá a growflow / Home Assistant.',
+            ]},
+          ].map((fase, i) => (
+            <div key={i} className="rounded-lg bg-[#101016] border border-[#1f1f2b] p-3">
+              <p className="font-display font-semibold text-[12px] text-[#d9f99d] mb-2">{fase.f}</p>
+              <ol className="space-y-1.5">
+                {fase.pasos.map((p, j) => (
+                  <li key={j} className="flex gap-2 text-[12px] text-[#d4d4dd]">
+                    <span className="flex-shrink-0 w-4 h-4 rounded bg-[#a3e635]/15 text-[#a3e635] text-[10px] font-bold flex items-center justify-center mt-px">{j + 1}</span>
+                    <span>{p}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ))}
         </div>
       </Seccion>
 
