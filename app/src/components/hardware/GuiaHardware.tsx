@@ -2,7 +2,7 @@
 // con ESP32 + ESPHome. Especificaciones, insumos y estrategia multi-sensor.
 // Basado en la ingeniería inversa del firmware/API de Growcast (ver growcast-diy/).
 
-import { Cpu, Thermometer, Zap, Boxes, Radio, Wrench, Wallet, FileCode, ChevronRight, Hammer, Monitor, ListChecks, Cable, Users, Rocket } from 'lucide-react'
+import { Cpu, Thermometer, Zap, Boxes, Radio, Wrench, Wallet, FileCode, ChevronRight, Hammer, Monitor, ListChecks, Cable, Users, Rocket, Network } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 const card = 'rounded-xl bg-[#111119] border border-[#1f1f2b] p-4 sm:p-5'
@@ -147,6 +147,39 @@ export default function GuiaHardware() {
             <li>• <b>Humedad</b> en 1-2 puntos con SHT31 (cable corto) — o nodos RS485 si querés varios puntos lejos.</li>
             <li>• ¿Querés ser 100% fiel a Growcast (todo lejos por cable)? → <b>RS485/Modbus</b> con nodos remotos (ESPHome lo soporta).</li>
           </ul>
+        </div>
+      </Seccion>
+
+      {/* Versión fiel a Growcast — RS485 */}
+      <Seccion icon={Network} titulo="4b · Versión FIEL a Growcast — bus RS485 (sensores por cable, varios)" sub="La arquitectura probada de Growcast: sensor(es) remotos por cable en un bus, hasta cientos de metros">
+        <pre className="text-[10.5px] font-mono bg-[#0a0a0f] border border-[#1f1f2b] rounded-lg p-3 overflow-x-auto text-[#7dd3fc] leading-relaxed">{`[ESP32 CONTROLADOR + MAX485]              [MAX485 + micro + SCD41]  ← nodo sensor 1
+  relés/contactores  ── A/B/GND (par trenzado, cientos de m) ──→  [nodo sensor 2]
+  (en el tablero)                                            ──→  [nodo sensor 3] ...`}</pre>
+        <ul className="space-y-1 text-[12.5px] text-[#d4d4dd] mt-3">
+          <li>• <b>Placa principal (controlador):</b> ESP32 + módulo <b>MAX485</b> + relés/contactores. Va en el tablero.</li>
+          <li>• <b>Módulo sensor remoto (por cable):</b> un micro chico + <b>SCD41</b> (lee I²C ahí mismo, cortito) + otro <b>MAX485</b>. Este va lejos, en la sala.</li>
+          <li>• <b>El bus:</b> par trenzado (UTP/Cat5) — A + B + GND — hasta cientos de metros.</li>
+          <li>• <b>Varios sensores:</b> colgás varios nodos en el mismo cable, cada uno con su dirección (como Growcast). Agregás nodos sin tocar el principal.</li>
+        </ul>
+        <Tabla
+          cols={['Componente', 'Para qué', 'Precio']}
+          rows={[
+            [<b>MAX485 / MAX3485 ×2+</b>, 'Convertir TTL↔RS485 (1 en controlador + 1 por nodo)', 'USD 1-2 c/u'],
+            ['Micro por nodo (ESP32/ESP8266/Nano)', 'Leer el SCD41 en el nodo remoto', 'USD 3-5 c/u'],
+            ['Par trenzado (UTP/Cat5)', 'El bus de datos', 'USD 5-10'],
+            ['Resistencias 120Ω ×2', 'Terminación del bus (en las puntas)', 'centavos'],
+            ['Gabinete chico por nodo', 'Proteger el sensor remoto', 'USD 2-4'],
+          ]}
+        />
+        <div className="mt-3 rounded-lg bg-[#7dd3fc]/[0.06] border border-[#7dd3fc]/25 p-3">
+          <p className="text-[12px] text-[#d4d4dd] mb-1.5"><b className="text-[#7dd3fc]">Firmware (2 opciones, las dos funcionan por cable):</b></p>
+          <ul className="space-y-1 text-[12px] text-[#d4d4dd]">
+            <li>• <b>Modbus (100% fiel):</b> el nodo expone el SCD41 por Modbus; el ESP32 principal lo lee con ESPHome (<span className="font-mono">modbus_controller</span>).</li>
+            <li>• <b>Nodo ESPHome:</b> el nodo también corre ESPHome. Más simple de configurar.</li>
+          </ul>
+        </div>
+        <div className="mt-3 rounded-lg bg-[#a3e635]/[0.06] border border-[#404d20] p-3">
+          <p className="text-[12px] text-[#d4d4dd]"><b className="text-[#a3e635]">Para probar que funciona:</b> armá <b>UN nodo sensor + el controlador</b> por un tramo de cable y comprobá que el SCD41 remoto se lee en el principal. Si ese enlace RS485 anda, agregar los demás es enchufarlos al mismo cable.</p>
         </div>
       </Seccion>
 
