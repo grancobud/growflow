@@ -2,7 +2,7 @@
 // con ESP32 + ESPHome. Especificaciones, insumos y estrategia multi-sensor.
 // Basado en la ingeniería inversa del firmware/API de Growcast (ver growcast-diy/).
 
-import { Cpu, Thermometer, Zap, Boxes, Radio, Wrench, Wallet, FileCode, ChevronRight, Hammer, Monitor, ListChecks, Cable, Users, Rocket, Network } from 'lucide-react'
+import { Cpu, Thermometer, Zap, Boxes, Radio, Wrench, Wallet, FileCode, ChevronRight, Hammer, Monitor, ListChecks, Cable, Users, Rocket, Network, Droplets, ShieldAlert } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 const card = 'rounded-xl bg-[#111119] border border-[#1f1f2b] p-4 sm:p-5'
@@ -196,6 +196,44 @@ export default function GuiaHardware() {
         <p className="text-[11px] text-[#5c5c6b] mt-2">El override manual va en serie con la salida (o con un toggle de 3 posiciones ON–AUTO–OFF entre el relé/contactor y la carga). Es la seguridad de poder operar la sala aunque falle la electrónica.</p>
       </Seccion>
 
+      {/* Riego multi-cama */}
+      <Seccion icon={Droplets} titulo="5b · Riego de varias camas (fertirriego)" sub="Un subsistema propio: válvulas por cama, bomba, nivel y humedad">
+        <Tabla
+          cols={['Componente', 'Función', 'Nota', 'Precio']}
+          rows={[
+            [<b>Electroválvula (solenoide) ×cama</b>, 'Abrir/cerrar el riego de cada cama por separado', '12/24V DC — vía relé/MOSFET, nunca al GPIO', 'USD 4-8 c/u'],
+            ['Relé para la bomba principal', 'Presurizar el riego', 'una bomba alimenta todas las válvulas', 'incluido'],
+            [<b>Nivel de tanque (flotante)</b>, 'Interlock: la bomba NO arranca en seco', 'digital, 1 pin', 'USD 2-4'],
+            ['Sensor humedad de sustrato ×cama (capacitivo)', 'Riego por humedad real de cada cama', 'analógico → ADS1115 (ESP32 tiene pocos ADC)', 'USD 2-4 c/u'],
+            ['Caudalímetro (opcional)', 'Confirmar que efectivamente regó', 'pulsos', 'USD 3-6'],
+            ['Bomba dosificadora (peristáltica) + EC/pH inline', 'Fertirriego automático (futuro)', 'mezcla nutrientes en línea', 'USD 15-30 c/u'],
+            ['Fuente 12/24V + drivers', 'Alimentar los solenoides', 'separada de la lógica 5V', 'USD 8-15'],
+          ]}
+        />
+        <div className="mt-3 rounded-lg bg-[#f0a35e]/[0.07] border border-[#f0a35e]/25 p-3">
+          <p className="text-[12px] text-[#e0b48a]"><b>Ojo con la cantidad de salidas:</b> con varias camas se te acaban las 6 salidas → necesitás <b>expansión</b>: más relés, o <b>nodos RS485 cerca de las camas</b> que manejen sus válvulas (como los módulos expansores de Growcast). Bomba y solenoides siempre por relé/MOSFET, no al GPIO.</p>
+        </div>
+        <p className="text-[11px] text-[#5c5c6b] mt-2">Growcast soporta sensores de sustrato METER (TEROS 12 = humedad + temp + EC del sustrato) — la referencia si querés riego por humedad de verdad, no solo por horario.</p>
+      </Seccion>
+
+      {/* CO2 seguridad */}
+      <Seccion icon={ShieldAlert} titulo="5c · CO₂ — inyección y SEGURIDAD" sub="El CO₂ mal manejado es peligroso (asfixiante) y se desperdicia. Reglas clave">
+        <div className="rounded-lg bg-[#e0685c]/[0.08] border border-[#e0685c]/30 p-3 mb-3">
+          <p className="text-[12px] text-[#f0a89f]"><b>🚨 Interlock obligatorio:</b> el CO₂ NUNCA se inyecta con el extractor prendido. El relé de CO₂ y el de extracción no pueden estar activos a la vez (bloqueo en la lógica de ESPHome).</p>
+        </div>
+        <Tabla
+          cols={['Detalle', 'Regla']}
+          rows={[
+            ['Fuente de CO₂', 'Tanque + regulador + solenoide (por relé), o generador/quemador'],
+            ['Circuito cerrado', 'Sala sellada + extracción solo on-demand (cuando temp/HR/CO₂ pasan umbral). Extraer continuo tira el CO₂ al pedo.'],
+            ['Día/noche', 'Nada de CO₂ de noche (la planta no lo usa en oscuridad). Tu schedule ya lo hace.'],
+            ['Override de alto límite', 'Si CO₂/temp se disparan → forzar extracción sí o sí (seguridad).'],
+            ['Sensor de control vs seguridad', 'SCD41 a la altura del canopy (control). Para vida humana: monitor de CO₂ cerca del piso + alarma (el CO₂ se acumula abajo).'],
+            ['Antes de entrar', 'Cortar CO₂, ventilar y esperar 10-15 min antes de entrar a la sala enriquecida.'],
+          ]}
+        />
+      </Seccion>
+
       {/* Misceláneos */}
       <Seccion icon={Boxes} titulo="6 · Misceláneos necesarios" sub="Lo chico que hace falta sí o sí">
         <Tabla
@@ -208,6 +246,8 @@ export default function GuiaHardware() {
             ['Buzzer + LEDs de estado', 'Alarma sonora + señalización local', 'USD 2-3'],
             ['Snubber / varistor por carga inductiva', 'Proteger relés del pico del AC/extractores', 'USD 3-5'],
             ['Protoboard / perfboard (o PCB)', 'Montaje prolijo', 'USD 3-8'],
+            [<b>Sensor de fuga de agua</b>, 'Detectar inundación (riego/tanque) → alarma + corte de bomba', 'USD 2-4'],
+            ['Detector de humo (opcional)', 'Seguridad — alarma ante incendio (Growcast/TrolMaster lo tienen)', 'USD 3-6'],
           ]}
         />
       </Seccion>
