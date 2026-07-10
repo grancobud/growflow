@@ -122,21 +122,31 @@ export default function GuiaHardware() {
       </Seccion>
 
       {/* Multi-sensor */}
-      <Seccion icon={Radio} titulo="4 · Varios sensores (multi-punto / mapa de calor)" sub="El desafío: sensores I²C que comparten dirección. Tres soluciones combinables">
+      <Seccion icon={Radio} titulo="4 · Varios sensores POR CABLE (multi-punto / mapa de calor)" sub="Growcast lleva el sensor por cable y lejos (bus hasta 500m). Clave: el I²C NO viaja lejos — elegí el bus según la distancia">
+        <div className="rounded-lg bg-[#f0a35e]/[0.07] border border-[#f0a35e]/25 p-3 mb-3">
+          <p className="text-[12px] text-[#e0b48a]"><b>Regla de distancia:</b> <b>I²C</b> (SCD41/SHT31/BH1750) anda solo <b>dentro de la caja / &lt;1-2m</b>, NO sirve para tirar el sensor lejos. Para lejos por cable: <b>1-Wire</b> (DS18B20, decenas de metros) o <b>RS485</b> (nodos remotos, cientos de metros — lo que usa Growcast).</p>
+        </div>
         <Tabla
-          cols={['Componente', 'Resuelve', 'Cómo', 'Precio']}
+          cols={['Bus / componente', 'Resuelve', 'Distancia', 'Precio']}
           rows={[
-            [<b>TCA9548A (mux I²C 8 canales)</b>, 'Varios sensores I²C iguales', 'Hasta 8 SCD41/SHT31/BH1750 en canales separados. ESPHome nativo.', 'USD 2-4'],
-            ['DS18B20 ×9-15 (bus 1-Wire)', 'Grilla de temperatura (mapa de calor)', 'Todos en 1 cable, cada uno con ID único (no chocan)', 'USD 2-3 c/u'],
-            ['SHT31 ×3', 'Humedad/VPD en puntos clave', 'I²C (0x44/0x45), o vía el TCA9548A', 'USD 4-6 c/u'],
-            ['BH1750', 'Luz / PPFD aproximado', 'I²C', 'USD 2-4'],
-            ['MLX90614 (opcional)', 'Temp de HOJA → VPD REAL', 'IR sin contacto, I²C', 'USD 6-9'],
-            ['Nodos ESP32 (ESP-NOW)', 'Sensores lejanos / inalámbricos', '1 ESP32 + sensor por punto, manda por radio', 'USD 6/nodo'],
-            [<b>ADS1115</b>, 'Sensores ANALÓGICOS (EC, pH — futuro)', 'El ESP32 tiene ~7 ADC usables; el ADS1115 (I²C) expande. Recomendado en foros.', 'USD 3'],
+            [<b>DS18B20 ×9-15 (1-Wire)</b>, 'Grilla de TEMPERATURA por cable (mapa de calor)', 'decenas de m, muchos en 1 cable', 'USD 2-3 c/u'],
+            [<b>SCD41 (I²C) — UNO solo</b>, 'CO₂ (el gas se difunde parejo, no hace falta multi-punto)', 'cerca de la caja / cable corto', '$52.829 AR'],
+            ['SHT31 (I²C)', 'Humedad en 1-2 puntos clave', 'pocos metros (cable corto)', 'USD 4-6 c/u'],
+            [<b>Nodos RS485 / Modbus</b>, 'CO₂/HR en varios puntos LEJOS (fiel a Growcast)', 'cientos de m', 'USD 6-10/nodo'],
+            ['Extensor I²C (P82B715 / Cat5)', 'Estirar el I²C a distancias medianas', '~10-20 m', 'USD 3-6'],
+            ['TCA9548A (mux I²C)', 'Varios sensores I²C iguales EN la caja', 'dentro de la caja', 'USD 2-4'],
+            ['MLX90614 (opcional)', 'Temp de HOJA → VPD REAL', 'I²C, cable corto', 'USD 6-9'],
+            [<b>ADS1115</b>, 'Sensores analógicos (EC/pH — futuro)', 'I²C', 'USD 3'],
           ]}
         />
         <div className="mt-3 rounded-lg bg-[#a78bfa]/[0.06] border border-[#a78bfa]/25 p-3">
-          <p className="text-[12px] text-[#d4d4dd]"><b className="text-[#c4b5fd]">Estrategia mapa de calor:</b> grilla 3×3 de <b>DS18B20</b> (temperatura, 1 cable) + 3 <b>SHT31</b> (humedad) → el software interpola y pinta las zonas calientes/frías. Ni Growcast ni TrolMaster miden multi-punto.</p>
+          <p className="text-[12px] text-[#d4d4dd] mb-1.5"><b className="text-[#c4b5fd]">Recomendación para tu sala:</b></p>
+          <ul className="space-y-1 text-[12px] text-[#d4d4dd]">
+            <li>• <b>Mapa de calor</b> = grilla de <b>DS18B20 por cable</b> (temperatura en muchos puntos, todos en un cable) → hecho para esto.</li>
+            <li>• <b>CO₂</b> = <b>un solo SCD41</b> (el CO₂ es uniforme en el aire; medirlo en 5 puntos da lo mismo).</li>
+            <li>• <b>Humedad</b> en 1-2 puntos con SHT31 (cable corto) — o nodos RS485 si querés varios puntos lejos.</li>
+            <li>• ¿Querés ser 100% fiel a Growcast (todo lejos por cable)? → <b>RS485/Modbus</b> con nodos remotos (ESPHome lo soporta).</li>
+          </ul>
         </div>
       </Seccion>
 
