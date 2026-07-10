@@ -2,7 +2,7 @@
 // con ESP32 + ESPHome. Especificaciones, insumos y estrategia multi-sensor.
 // Basado en la ingeniería inversa del firmware/API de Growcast (ver growcast-diy/).
 
-import { Cpu, Thermometer, Zap, Boxes, Radio, Wrench, Wallet, FileCode, ChevronRight, Hammer, Monitor, ListChecks, Cable } from 'lucide-react'
+import { Cpu, Thermometer, Zap, Boxes, Radio, Wrench, Wallet, FileCode, ChevronRight, Hammer, Monitor, ListChecks, Cable, Users, Rocket } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 const card = 'rounded-xl bg-[#111119] border border-[#1f1f2b] p-4 sm:p-5'
@@ -422,6 +422,80 @@ climate:
 # Luces 7:00 ON / 3:00 OFF, y AC si Temp > 24° — se hacen con
 # 'on_time:' (time) y 'on_value_range:' (sensor). Ver doc ESPHome.`}</pre>
         <p className="text-[11px] text-[#5c5c6b] mt-2">⚠️ La sintaxis de ESPHome evoluciona (ej. <span className="font-mono">one_wire</span>/<span className="font-mono">dallas_temp</span>). Validá con <span className="font-mono">esphome config</span> antes de flashear. Los <span className="font-mono">address</span> de los DS18B20 salen del log del primer arranque (I²C/1-Wire scan).</p>
+      </Seccion>
+
+      {/* Otros builds de la comunidad */}
+      <Seccion icon={Users} titulo="Otros diseños de usuarios (foros) + validación" sub="Builds reales, de hobby a pro — y cómo se compara este diseño">
+        <Tabla
+          cols={['Proyecto', 'Qué usa', 'Nivel']}
+          rows={[
+            ['Build Overgrow (usuario)', 'ESP32 WROOM-32D + SHT31 + 2 relés (SK4412) + OLED. Sin CO₂.', 'Hobby'],
+            ['Minigrowl (GitHub)', 'ESP32 WiFi+LoRa + BME280 + DHT22 + 4 relés (luces/extract/intract/heater) + OLED + NTP', 'Hobby'],
+            ['HAGR (GitHub) ⭐', 'ESPHome + HA. VPD aire Y hoja (MLX90614), CO₂ día/noche, crop steering 4 fases, dosif. tanque', 'Pro'],
+            ['OpenGrowBox (GitHub) ⭐', 'HA, salas ilimitadas, offline, VPD/CO₂/luces/riego, ESPHome/Tasmota/MQTT', 'Pro'],
+            ['Mycodo / Growduino', 'Mycodo = controlador ambiental en Raspberry Pi (Python); Growduino = base Arduino', 'Establecido'],
+          ]}
+        />
+        <div className="mt-3 overflow-x-auto">
+          <table className="w-full border-collapse min-w-[520px]">
+            <thead><tr>{['', 'Hobby típico', 'Pro (HAGR/OGB)', 'Tu diseño'].map((c, i) => <th key={i} className={th}>{c}</th>)}</tr></thead>
+            <tbody>
+              {[
+                ['CO₂', 'casi ninguno', 'SCD30/41', 'SCD41 ✓'],
+                ['Salidas 220V', '2-4 relés directos', 'relés', '6 + contactores ✓'],
+                ['VPD', 'por aire (algunos)', 'aire + hoja', 'aire + hoja ✓'],
+                ['Mapa de calor', '❌', 'raro', 'DS18B20 + TCA9548A ✓'],
+                ['Override manual', '❌', '❌', '✓ (del Growcast real)'],
+              ].map((r, i) => (
+                <tr key={i}>
+                  <td className={td + ' font-semibold text-[#a6a6b5]'}>{r[0]}</td>
+                  <td className={td}>{r[1]}</td>
+                  <td className={td}>{r[2]}</td>
+                  <td className={td + ' text-[#d9f99d]'}>{r[3]}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="mt-3 rounded-lg bg-[#7dd3fc]/[0.06] border border-[#7dd3fc]/25 p-3">
+          <p className="text-[12px] text-[#d4d4dd]"><b className="text-[#7dd3fc]">Conclusión:</b> este diseño está por encima del build hobby promedio (ESP32 + 1 sensor + 2 relés directos) y a la altura de los pro (HAGR/OpenGrowBox), con dos cosas que casi nadie tiene: <b>contactores de verdad para 220V</b> y <b>mapa de calor multipunto</b>. Validado por firmware + foros + el Growcast físico real.</p>
+        </div>
+      </Seccion>
+
+      {/* Plan por fases / recomendación */}
+      <Seccion icon={Rocket} titulo="Plan recomendado — arrancá chico, crecé por capas" sub="No armes el monstruo completo de una: fasealo">
+        <div className="space-y-3">
+          {[
+            { v: 'v1 — Réplica de tu sala (empezá acá)', c: '#a3e635', items: [
+              'SCD41 + 6 salidas (relés + contactor para el AC) + tus 3 automatizaciones actuales (luces, AC, CO₂).',
+              'Objetivo: cortar con Growcast sin perder nada. Piso funcional.',
+            ]},
+            { v: 'v2 — Multipunto / mapa de calor', c: '#7dd3fc', items: [
+              'Grilla DS18B20 + TCA9548A + SHT31. Acá le pasás el trapo a Growcast y TrolMaster.',
+            ]},
+            { v: 'v3 — Fino', c: '#a78bfa', items: [
+              'VPD de hoja (MLX90614) + IR para el AC + override manual + (futuro) EC/pH con ADS1115.',
+            ]},
+          ].map((f, i) => (
+            <div key={i} className="rounded-lg bg-[#101016] border border-[#1f1f2b] p-3">
+              <p className="font-display font-semibold text-[12px] mb-1.5" style={{ color: f.c }}>{f.v}</p>
+              <ul className="space-y-1">
+                {f.items.map((it, j) => <li key={j} className="text-[12px] text-[#d4d4dd] pl-2">• {it}</li>)}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 rounded-lg bg-[#f0a35e]/[0.07] border border-[#f0a35e]/25 p-3">
+          <p className="text-[12px] text-[#e0b48a] font-semibold mb-1">Método (importante):</p>
+          <ul className="space-y-1 text-[12px] text-[#d4d4dd]">
+            <li>• <b>Prototipá en el banco ANTES de tocar 220V</b> — ESP32 + SCD41 en protoboard por USB, leyendo en ESPHome.</li>
+            <li>• <b>Comprá en 2 tandas:</b> primero lo barato/seguro (ESP32, SCD41, DS18B20, RTC, TCA9548A); el tablero de potencia (contactores, disyuntor, gabinete) cuando la lógica ya ande.</li>
+            <li>• <b>Dejá tu Growcast puesto</b> hasta que el clon corra un ciclo entero. No lo saques antes.</li>
+          </ul>
+        </div>
+        <div className="mt-3 rounded-lg bg-[#a3e635]/[0.06] border border-[#404d20] p-3">
+          <p className="text-[12px] text-[#d4d4dd]"><b className="text-[#a3e635]">Estrategia software:</b> Firmware = ESPHome (no escribir propio). Automatizaciones = robarle a HAGR la lógica de VPD/CO₂ (ya probada). Plataforma visual = Home Assistant + OpenGrowBox (gratis, tu «app de Growcast») + growflow (trazabilidad + IA).</p>
+        </div>
       </Seccion>
 
       <p className="text-[10.5px] text-[#5c5c6b] px-1 pb-4">
