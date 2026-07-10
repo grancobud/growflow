@@ -54,6 +54,9 @@ export default function GuiaHardware() {
         <div className="flex flex-wrap gap-1.5 mt-3">
           {chip('ESP32')}{chip('ESPHome')}{chip('I²C + 1-Wire')}{chip('220V con contactores', '#f0a35e')}{chip('sin cloud AWS', '#7dd3fc')}{chip('VPD real', '#a78bfa')}
         </div>
+        <p className="text-[11px] text-[#7dd3fc] mt-3 border-t border-[#1f1f2b] pt-2.5">
+          ✓ <b>Diseño validado en foros</b> (Home Assistant, espboards): la arquitectura ESP32 clásico + ESPHome + relés/contactores + SCD41 es el estándar de la comunidad que hace esto. Los detalles de la comunidad (relés a 5V, SCD41 a 3.3V, derate 50%) están incorporados abajo.
+        </p>
       </div>
 
       {/* Cómo es Growcast (del firmware) */}
@@ -110,8 +113,8 @@ export default function GuiaHardware() {
               ['Bus', 'I²C (dirección 0x62)'],
               ['Rango CO₂', '400 – 5000 ppm (SCD40 topa en 2000 → por eso el 41)'],
               ['Precisión CO₂', '±(50 ppm + 5%)'],
-              ['Alimentación', '3.3–5V'],
-              ['Tipo', 'Fotoacústico NDIR, con autocalibración (ABC)'],
+              ['Alimentación', <span><b className="text-[#f0a35e]">3.3V</b> — el chip es 3.3V; alimentar a 3V3 aunque el módulo diga «5V tolerant» (validado en foros)</span>],
+              ['Tipo', 'Fotoacústico, con autocalibración (ABC)'],
             ]}
           />
         </div>
@@ -129,6 +132,7 @@ export default function GuiaHardware() {
             ['BH1750', 'Luz / PPFD aproximado', 'I²C', 'USD 2-4'],
             ['MLX90614 (opcional)', 'Temp de HOJA → VPD REAL', 'IR sin contacto, I²C', 'USD 6-9'],
             ['Nodos ESP32 (ESP-NOW)', 'Sensores lejanos / inalámbricos', '1 ESP32 + sensor por punto, manda por radio', 'USD 6/nodo'],
+            [<b>ADS1115</b>, 'Sensores ANALÓGICOS (EC, pH — futuro)', 'El ESP32 tiene ~7 ADC usables; el ADS1115 (I²C) expande. Recomendado en foros.', 'USD 3'],
           ]}
         />
         <div className="mt-3 rounded-lg bg-[#a78bfa]/[0.06] border border-[#a78bfa]/25 p-3">
@@ -290,6 +294,9 @@ climate: ...`}</pre>
           ]}
         />
         <p className="text-[11px] text-[#5c5c6b] mt-2">Todos los pines de relé son salidas seguras (no strapping, no solo-entrada). La placa de relés es activa en LOW → en ESPHome van con <span className="font-mono">inverted: true</span> y <span className="font-mono">restore_mode: ALWAYS_OFF</span>.</p>
+        <div className="mt-2 rounded-lg bg-[#f0a35e]/[0.07] border border-[#f0a35e]/25 p-2.5">
+          <p className="text-[11px] text-[#e0b48a]"><b>Recomendaciones de la comunidad (foros):</b> alimentá el <b>VCC de la placa de relés desde los 5V</b> (no del 3.3V del ESP32, no da corriente). Verificá que el módulo dispare con <b>3.3V</b> (marcado «3.3V compatible») o usá level shifter. <b>Derateá 50%</b>: un relé «10A» no lo corras a 10A continuo — por eso el AC va por contactor. No corras señales 3.3V al lado de los 220V.</p>
+        </div>
 
         <p className="text-[11.5px] text-[#a6a6b5] mt-4 mb-2 font-semibold">Tablero 220V (⚠️ con la llave general BAJA)</p>
         <pre className="text-[10.5px] font-mono bg-[#0a0a0f] border border-[#1f1f2b] rounded-lg p-3 overflow-x-auto text-[#d4a89f] leading-relaxed">{`RED 220V ── [Térmica + Disyuntor] ──┬── [Fuente 5V] ── 5V/GND → ESP32 + placa relés
