@@ -146,9 +146,11 @@ export default function GuiaHardware() {
           cols={['Componente', 'Función', 'Precio']}
           rows={[
             ['Emisor IR (LED IR + transistor)', 'Setearle la temperatura al mini-split AC (como el ARS-1). ESPHome climate/IR.', 'USD 2-4'],
+            [<b>Interruptores manuales (toggle) ×6</b>, 'Override por salida ON–AUTO–OFF: forzar cada equipo a mano si el ESP32 se cuelga o para probar. El Growcast real los tiene en el frente.', 'USD 1-2 c/u'],
             ['Sonda EC + pH (opcional, v2)', 'Solución hidropónica', 'USD 25-45'],
           ]}
         />
+        <p className="text-[11px] text-[#5c5c6b] mt-2">El override manual va en serie con la salida (o con un toggle de 3 posiciones ON–AUTO–OFF entre el relé/contactor y la carga). Es la seguridad de poder operar la sala aunque falle la electrónica.</p>
       </Seccion>
 
       {/* Misceláneos */}
