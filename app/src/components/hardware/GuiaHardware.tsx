@@ -1,0 +1,209 @@
+// Guía de hardware: cómo clonar (y mejorar) el controlador de ambiente Growcast
+// con ESP32 + ESPHome. Especificaciones, insumos y estrategia multi-sensor.
+// Basado en la ingeniería inversa del firmware/API de Growcast (ver growcast-diy/).
+
+import { Cpu, Thermometer, Zap, Boxes, Radio, Wrench, Wallet, FileCode, ChevronRight } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+
+const card = 'rounded-xl bg-[#111119] border border-[#1f1f2b] p-4 sm:p-5'
+const th = 'text-left font-medium py-1.5 px-2 text-[10px] uppercase tracking-[0.08em] text-[#5c5c6b] border-b border-[#1f1f2b]'
+const td = 'py-1.5 px-2 text-[12px] text-[#d4d4dd] border-b border-[#17171f] align-top'
+
+function Seccion({ icon: Icon, titulo, sub, children }: { icon: LucideIcon; titulo: string; sub?: string; children: React.ReactNode }) {
+  return (
+    <section className={card}>
+      <div className="flex items-center gap-2.5 mb-3">
+        <div className="w-8 h-8 rounded-lg bg-[#a3e635]/10 border border-[#404d20] flex items-center justify-center flex-shrink-0">
+          <Icon className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
+        </div>
+        <div>
+          <h2 className="font-display font-semibold text-[14px] text-[#ececf1]">{titulo}</h2>
+          {sub && <p className="text-[11px] text-[#5c5c6b] mt-0.5">{sub}</p>}
+        </div>
+      </div>
+      {children}
+    </section>
+  )
+}
+
+function Tabla({ cols, rows }: { cols: string[]; rows: (React.ReactNode)[][] }) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse min-w-[520px]">
+        <thead><tr>{cols.map((c, i) => <th key={i} className={th}>{c}</th>)}</tr></thead>
+        <tbody>{rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j} className={td}>{c}</td>)}</tr>)}</tbody>
+      </table>
+    </div>
+  )
+}
+
+const chip = (t: string, color = '#a3e635') => (
+  <span className="inline-block text-[10px] font-mono px-1.5 py-0.5 rounded border" style={{ color, borderColor: color + '55', background: color + '11' }}>{t}</span>
+)
+
+export default function GuiaHardware() {
+  return (
+    <div className="space-y-4 max-w-[1100px]">
+      {/* Intro */}
+      <div className={card}>
+        <p className="text-[13px] text-[#d4d4dd] leading-relaxed">
+          Guía para armar tu <b className="text-[#d9f99d]">propio controlador de ambiente</b> — un clon (y mejora) del Growcast —
+          sobre <b className="text-[#a3e635]">ESP32 + ESPHome</b>. Corre la lógica <b>on-device</b> (sobrevive caídas de internet),
+          es open-source, sin suscripción, y con más puntos de medición que el original.
+        </p>
+        <div className="flex flex-wrap gap-1.5 mt-3">
+          {chip('ESP32')}{chip('ESPHome')}{chip('I²C + 1-Wire')}{chip('220V con contactores', '#f0a35e')}{chip('sin cloud AWS', '#7dd3fc')}{chip('VPD real', '#a78bfa')}
+        </div>
+      </div>
+
+      {/* Cómo es Growcast (del firmware) */}
+      <Seccion icon={Cpu} titulo="Cómo está hecho el Growcast (ingeniería inversa)" sub="Confirmado bajando y analizando su firmware + API tRPC">
+        <ul className="space-y-1.5 text-[12.5px] text-[#d4d4dd]">
+          <li>• <b>Cerebro:</b> ESP32 (imagen ESP-IDF / Arduino). El mismo que vas a usar.</li>
+          <li>• <b>Sensor por I²C:</b> el módulo THC lee un único chip <b>Sensirion SCD</b> (CO₂ + Temp + Humedad en uno), VPD lo calcula el firmware.</li>
+          <li>• <b>Arquitectura distribuida:</b> placa principal (WiFi + AWS IoT + bus a módulos) + módulos de sensado/salidas.</li>
+          <li>• <b>Salidas:</b> relés 220V on/off. <b>Automatizaciones:</b> motor de reglas (horario, comparador, oscilador) que corre en el device.</li>
+          <li>• <b>Driver de sensor propio</b> (sin librería) → por eso el modelo exacto no figura, pero es la familia SCD.</li>
+        </ul>
+        <p className="text-[11px] text-[#5c5c6b] mt-3">Firmware descargable: <span className="font-mono text-[#7dd3fc]">firmware.growcast.io?id=&lt;id&gt;</span> · THC = id 2.</p>
+      </Seccion>
+
+      {/* Cerebro y potencia */}
+      <Seccion icon={Zap} titulo="1 · Cerebro y potencia" sub="El controlador y su alimentación">
+        <Tabla
+          cols={['Componente', 'Función', 'Specs', 'Precio']}
+          rows={[
+            [<b>ESP32 DevKit WROOM-32</b>, 'Cerebro (corre ESPHome)', '240 MHz, WiFi/BT, 30+ GPIO, 3.3V lógica', 'USD 6-8'],
+            ['Placa 8 relés optoacoplada', '6 salidas 220V + 2 reserva', 'Optoacoplada, 10A/canal, trigger 3.3V', 'USD 8-10'],
+            ['Fuente 5V 3A', 'Alimentación lógica', '5V regulada, ≥3A', 'USD 8-12'],
+            ['Gabinete DIN + riel + borneras + fusible', 'Tablero seguro', 'IP54, riel DIN 35mm', 'USD 10-15'],
+          ]}
+        />
+      </Seccion>
+
+      {/* Contactores */}
+      <Seccion icon={Boxes} titulo="2 · Contactores y protección (alta potencia)" sub="El relé chico maneja la bobina; el contactor maneja la potencia">
+        <Tabla
+          cols={['Componente', 'Para qué', 'Specs', 'Precio']}
+          rows={[
+            [<b>Contactor 40A bobina 220V</b>, 'AC (6300W ≈ 29A + arranque)', '3P, bobina 220VAC, 40A AC3', 'USD 20-35'],
+            ['Contactor 25A ×1-2 (opcional)', 'Luces / cargas medianas', 'bobina 220VAC, 25A', 'USD 12-20 c/u'],
+            ['Térmica + disyuntor', 'Protección del tablero', 'según carga total', 'USD 15-30'],
+            ['Cable 2.5-4mm², borneras, ferrules', 'Montaje', '—', 'USD 10-15'],
+          ]}
+        />
+        <p className="text-[11px] text-[#5c5c6b] mt-3"><b className="text-[#f0a35e]">Regla:</b> contactor = corriente de la carga × 1.5 (por el pico de arranque). Nunca enchufar el AC directo al relé de placa.</p>
+      </Seccion>
+
+      {/* Sensor principal SCD41 */}
+      <Seccion icon={Thermometer} titulo="3 · Sensor principal — el «THC» de Growcast" sub="Un solo chip = CO₂ + Temperatura + Humedad + VPD">
+        <div className="rounded-lg bg-[#101016] border border-[#404d20] p-3 mb-3">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="font-display font-semibold text-[13px] text-[#d9f99d]">Sensirion SCD41</span>
+            {chip('elegido')}
+          </div>
+          <p className="text-[12px] text-[#d4d4dd] mb-2">Módulo <b>Starware «SCD41 CO2 IIC»</b> (MercadoLibre AR, nacional) ≈ <b>$52.829</b>. Es el mismo tipo de chip que usa el THC de Growcast.</p>
+          <Tabla
+            cols={['Spec', 'Valor']}
+            rows={[
+              ['Mide', 'CO₂ + Temperatura + Humedad (VPD se calcula)'],
+              ['Bus', 'I²C (dirección 0x62)'],
+              ['Rango CO₂', '400 – 5000 ppm (SCD40 topa en 2000 → por eso el 41)'],
+              ['Precisión CO₂', '±(50 ppm + 5%)'],
+              ['Alimentación', '3.3–5V'],
+              ['Tipo', 'Fotoacústico NDIR, con autocalibración (ABC)'],
+            ]}
+          />
+        </div>
+        <p className="text-[11px] text-[#5c5c6b]">⚠️ Algunos módulos rotulan «41» pero traen SCD40. Al conectarlo, ESPHome reporta el chip y su rango — verificar ahí.</p>
+      </Seccion>
+
+      {/* Multi-sensor */}
+      <Seccion icon={Radio} titulo="4 · Varios sensores (multi-punto / mapa de calor)" sub="El desafío: sensores I²C que comparten dirección. Tres soluciones combinables">
+        <Tabla
+          cols={['Componente', 'Resuelve', 'Cómo', 'Precio']}
+          rows={[
+            [<b>TCA9548A (mux I²C 8 canales)</b>, 'Varios sensores I²C iguales', 'Hasta 8 SCD41/SHT31/BH1750 en canales separados. ESPHome nativo.', 'USD 2-4'],
+            ['DS18B20 ×9-15 (bus 1-Wire)', 'Grilla de temperatura (mapa de calor)', 'Todos en 1 cable, cada uno con ID único (no chocan)', 'USD 2-3 c/u'],
+            ['SHT31 ×3', 'Humedad/VPD en puntos clave', 'I²C (0x44/0x45), o vía el TCA9548A', 'USD 4-6 c/u'],
+            ['BH1750', 'Luz / PPFD aproximado', 'I²C', 'USD 2-4'],
+            ['MLX90614 (opcional)', 'Temp de HOJA → VPD REAL', 'IR sin contacto, I²C', 'USD 6-9'],
+            ['Nodos ESP32 (ESP-NOW)', 'Sensores lejanos / inalámbricos', '1 ESP32 + sensor por punto, manda por radio', 'USD 6/nodo'],
+          ]}
+        />
+        <div className="mt-3 rounded-lg bg-[#a78bfa]/[0.06] border border-[#a78bfa]/25 p-3">
+          <p className="text-[12px] text-[#d4d4dd]"><b className="text-[#c4b5fd]">Estrategia mapa de calor:</b> grilla 3×3 de <b>DS18B20</b> (temperatura, 1 cable) + 3 <b>SHT31</b> (humedad) → el software interpola y pinta las zonas calientes/frías. Ni Growcast ni TrolMaster miden multi-punto.</p>
+        </div>
+      </Seccion>
+
+      {/* Control avanzado */}
+      <Seccion icon={Wrench} titulo="5 · Control avanzado (features tipo TrolMaster)" sub="Lo que Growcast NO tiene">
+        <Tabla
+          cols={['Componente', 'Función', 'Precio']}
+          rows={[
+            ['Emisor IR (LED IR + transistor)', 'Setearle la temperatura al mini-split AC (como el ARS-1). ESPHome climate/IR.', 'USD 2-4'],
+            ['Sonda EC + pH (opcional, v2)', 'Solución hidropónica', 'USD 25-45'],
+          ]}
+        />
+      </Seccion>
+
+      {/* Misceláneos */}
+      <Seccion icon={Boxes} titulo="6 · Misceláneos necesarios" sub="Lo chico que hace falta sí o sí">
+        <Tabla
+          cols={['Componente', 'Función', 'Precio']}
+          rows={[
+            [<b>RTC DS3231</b>, 'Reloj para automatizaciones por horario OFFLINE (Growcast usa uno)', 'USD 2-4'],
+            ['Resistencias 4.7kΩ', 'Pull-ups del bus DS18B20 (1-Wire) e I²C', 'centavos'],
+            ['Conectores JST / borneras', 'Enchufar sensores sin soldar', 'USD 3-5'],
+            ['Cable apantallado / UTP CAT5', 'Tirar sensores lejos sin ruido (I²C sensible)', 'USD 5-10'],
+            ['Buzzer + LEDs de estado', 'Alarma sonora + señalización local', 'USD 2-3'],
+            ['Snubber / varistor por carga inductiva', 'Proteger relés del pico del AC/extractores', 'USD 3-5'],
+            ['Protoboard / perfboard (o PCB)', 'Montaje prolijo', 'USD 3-8'],
+          ]}
+        />
+      </Seccion>
+
+      {/* Presupuesto */}
+      <Seccion icon={Wallet} titulo="Presupuesto estimado" sub="Contra TrolMaster US$600-1000 · Growcast equipo + suscripción">
+        <Tabla
+          cols={['Versión', 'Qué incluye', 'Total (USD equiv.)']}
+          rows={[
+            ['Núcleo funcional', 'ESP32 + relés + fuente/caja + SCD41 + contactor AC + protecciones', '~130-170'],
+            ['+ Multipunto / mapa de calor', 'DS18B20 ×9 + SHT31 ×3 + BH1750 + TCA9548A', '~40-55'],
+            ['+ IR AC + VPD real (MLX90614) + RTC', 'control fino + fail-safe horario', '~15-25'],
+            [<b>Completa</b>, 'todo lo anterior (sin cámara térmica ni EC/pH)', <b className="text-[#d9f99d]">~185-250</b>],
+          ]}
+        />
+      </Seccion>
+
+      {/* Software / próximos pasos */}
+      <Seccion icon={FileCode} titulo="Software — ESPHome" sub="El firmware ya hecho, gratis y editable (reemplaza el de Growcast)">
+        <p className="text-[12.5px] text-[#d4d4dd] leading-relaxed mb-2">
+          En vez de escribir firmware desde cero, usás <b className="text-[#a3e635]">ESPHome</b>: definís sensores y reglas en un archivo YAML simple, corre on-device, y se integra con Home Assistant y growflow. Ejemplo de una regla de ambiente:
+        </p>
+        <pre className="text-[11px] font-mono bg-[#0a0a0f] border border-[#1f1f2b] rounded-lg p-3 overflow-x-auto text-[#a3e635]">{`sensor:
+  - platform: scd4x        # CO2 + temp + humedad (1 chip)
+    co2:  { name: "CO2 sala" }
+    temperature: { name: "Temp sala" }
+    humidity: { name: "HR sala" }
+
+switch:
+  - platform: gpio
+    pin: GPIO23
+    id: rele_ac
+
+# Si la temp pasa de 24° → prende el AC (bang-bang con anti-rebote)
+climate: ...`}</pre>
+        <div className="mt-3 flex items-start gap-2 text-[12px] text-[#d4d4dd]">
+          <ChevronRight className="w-4 h-4 text-[#a3e635] mt-0.5 flex-shrink-0" />
+          <span>Próximo paso: el <b>esquema de conexión</b> (pines del ESP32 ↔ sensores/relés/RTC) y el <b>diagrama del tablero 220V</b> con los contactores.</span>
+        </div>
+      </Seccion>
+
+      <p className="text-[10.5px] text-[#5c5c6b] px-1 pb-4">
+        Documentación completa y actualizada en el repo: <span className="font-mono">growcast-diy/</span> (BOM, reverse-engineering, motor de automatizaciones).
+        Esta guía es para el proyecto propio de Gastón; el hardware se compra en Argentina (MercadoLibre / casas de electrónica).
+      </p>
+    </div>
+  )
+}
