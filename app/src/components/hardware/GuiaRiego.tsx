@@ -2,7 +2,7 @@
 // Estructura inicial (válvulas, bomba, sensores, crop steering, ESPHome).
 // Se va completando con las indicaciones de Gastón.
 
-import { Droplets, Boxes, Gauge, FileCode, ListChecks } from 'lucide-react'
+import { Boxes, Gauge, FileCode, ListChecks } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 const card = 'rounded-xl bg-[#111119] border border-[#1f1f2b] p-4 sm:p-5'
