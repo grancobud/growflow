@@ -58,6 +58,12 @@ export default function InsumosRiego() {
   }
   useEffect(() => { cargar() }, [])
 
+  async function toggleFav(it: ItemInstalacion) {
+    setItems(xs => xs.map(x => x.id === it.id ? { ...x, favorito: !x.favorito } : x))
+    try { await instalacionesService.actualizarItem(it.id, { favorito: !it.favorito }) }
+    catch (e) { toast.error(String(e)); cargar() }
+  }
+
   async function toggle(id: string) {
     if (abierto === id) { setAbierto(null); return }
     setAbierto(id)
@@ -85,14 +91,19 @@ export default function InsumosRiego() {
 
       {items.map(it => (
         <div key={it.id} className={card}>
-          <button onClick={() => toggle(it.id)} className="w-full flex items-center gap-3 text-left">
-            <div className="min-w-0 flex-1">
-              <p className="text-[13px] font-display font-semibold text-[#ececf1] truncate">{it.nombre}</p>
-              <p className="text-[10.5px] text-[#5c5c6b]">{[it.marca, it.modelo, it.specs].filter(Boolean).join(' · ') || 'Sin datos'}</p>
-            </div>
-            <span className="text-[13px] font-mono font-bold text-[#d9f99d]">{fmt(it.precio)}{it.unidad ? <span className="text-[10px] text-[#5c5c6b]"> /{it.unidad}</span> : null}</span>
-            <ChevronDown className={`w-4 h-4 text-[#5c5c6b] transition-transform ${abierto === it.id ? 'rotate-180' : ''}`} />
-          </button>
+          <div className="w-full flex items-center gap-2.5">
+            <button title={it.favorito ? 'Quitar de elegidos' : 'Marcar como elegido'} onClick={() => toggleFav(it)} className="flex-shrink-0">
+              <Star className="w-4 h-4" fill={it.favorito ? '#facc15' : 'none'} stroke={it.favorito ? '#facc15' : '#5c5c6b'} />
+            </button>
+            <button onClick={() => toggle(it.id)} className="flex-1 flex items-center gap-3 text-left min-w-0">
+              <div className="min-w-0 flex-1">
+                <p className="text-[13px] font-display font-semibold text-[#ececf1] truncate">{it.nombre}</p>
+                <p className="text-[10.5px] text-[#5c5c6b]">{[it.marca, it.modelo, it.specs].filter(Boolean).join(' · ') || 'Sin datos'}</p>
+              </div>
+              <span className="text-[13px] font-mono font-bold text-[#d9f99d]">{fmt(it.precio)}{it.unidad ? <span className="text-[10px] text-[#5c5c6b]"> /{it.unidad}</span> : null}</span>
+              <ChevronDown className={`w-4 h-4 text-[#5c5c6b] transition-transform ${abierto === it.id ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
 
           {abierto === it.id && (
             <div className="mt-3 pt-3 border-t border-[#1f1f2b] space-y-2">

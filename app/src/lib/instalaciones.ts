@@ -37,6 +37,7 @@ export interface ItemInstalacion {
   specs: string | null
   url: string | null
   notas: string | null
+  favorito: boolean          // marcado con estrella por el usuario (lo que decidió comprar)
   creado_en: string
   actualizado_en: string
 }

@@ -2,12 +2,14 @@
 // Estructura inicial (válvulas, bomba, sensores, crop steering, ESPHome).
 // Se va completando con las indicaciones de Gastón.
 
-import { Boxes, Gauge, FileCode, ListChecks } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Boxes, Gauge, FileCode, ListChecks, Star } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { instalacionesService, type ItemInstalacion } from '../../lib/instalaciones'
+
+const fmt = (n: number | null | undefined) => n != null ? '$' + Number(n).toLocaleString('es-AR') : '—'
 
 const card = 'rounded-xl bg-[#111119] border border-[#1f1f2b] p-4 sm:p-5'
-const th = 'text-left font-medium py-1.5 px-2 text-[10px] uppercase tracking-[0.08em] text-[#5c5c6b] border-b border-[#1f1f2b]'
-const td = 'py-1.5 px-2 text-[12px] text-[#d4d4dd] border-b border-[#17171f] align-top'
 
 function Seccion({ icon: Icon, titulo, sub, children }: { icon: LucideIcon; titulo: string; sub?: string; children: React.ReactNode }) {
   return (
@@ -26,14 +28,64 @@ function Seccion({ icon: Icon, titulo, sub, children }: { icon: LucideIcon; titu
   )
 }
 
-function Tabla({ cols, rows }: { cols: string[]; rows: (React.ReactNode)[][] }) {
+// Lista dinámica: solo los insumos que Gastón cargó en la pestaña "Insumos"
+// (sistema Riego), con su descripción y precio. La estrella marca lo elegido
+// para comprar (favorito), igual que la estrella de proveedores.
+function ComponentesReales() {
+  const [items, setItems] = useState<ItemInstalacion[]>([])
+  const [cargando, setCargando] = useState(true)
+
+  async function cargar() {
+    try {
+      const its = await instalacionesService.getItems()
+      setItems(its.filter(i => i.sistema === 'Riego'))
+    } catch { /* demo/offline: queda vacío */ }
+    finally { setCargando(false) }
+  }
+  useEffect(() => { cargar() }, [])
+
+  async function toggleFav(it: ItemInstalacion) {
+    setItems(xs => xs.map(x => x.id === it.id ? { ...x, favorito: !x.favorito } : x))
+    try { await instalacionesService.actualizarItem(it.id, { favorito: !it.favorito }) }
+    catch { cargar() }
+  }
+
+  // favoritos primero, después por nombre
+  const ordenados = [...items].sort((a, b) =>
+    (Number(b.favorito) - Number(a.favorito)) || a.nombre.localeCompare(b.nombre))
+
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-collapse min-w-[520px]">
-        <thead><tr>{cols.map((c, i) => <th key={i} className={th}>{c}</th>)}</tr></thead>
-        <tbody>{rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j} className={td}>{c}</td>)}</tr>)}</tbody>
-      </table>
-    </div>
+    <Seccion icon={Boxes} titulo="Componentes del riego" sub="Los insumos que cargaste en la pestaña Insumos">
+      {cargando ? (
+        <p className="text-[12px] text-[#5c5c6b] py-3">Cargando…</p>
+      ) : ordenados.length === 0 ? (
+        <p className="text-[12px] text-[#5c5c6b] py-3">
+          Todavía no cargaste insumos. Andá a la pestaña <b className="text-[#7dd3fc]">Insumos</b> y agregá los tuyos:
+          ahí aparecen acá con su descripción y precio, y los marcás con la estrella.
+        </p>
+      ) : (
+        <div className="space-y-1.5">
+          {ordenados.map(it => {
+            const desc = [it.marca, it.modelo, it.specs].filter(Boolean).join(' · ')
+            return (
+              <div key={it.id} className="flex items-center gap-3 bg-[#15151d] border border-[#1f1f2b] rounded-lg px-3 py-2">
+                <button title={it.favorito ? 'Quitar de elegidos' : 'Marcar como elegido'} onClick={() => toggleFav(it)} className="flex-shrink-0">
+                  <Star className="w-4 h-4" fill={it.favorito ? '#facc15' : 'none'} stroke={it.favorito ? '#facc15' : '#5c5c6b'} />
+                </button>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[12.5px] font-medium text-[#ececf1] truncate">{it.nombre}</p>
+                  {desc && <p className="text-[10.5px] text-[#5c5c6b] truncate">{desc}</p>}
+                </div>
+                <span className="text-[12px] font-mono font-bold text-[#d9f99d] flex-shrink-0">
+                  {fmt(it.precio)}{it.unidad ? <span className="text-[10px] text-[#5c5c6b]"> /{it.unidad}</span> : null}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      )}
+      <p className="text-[11px] text-[#5c5c6b] mt-2">Válvulas 220V = relé directo; la bomba = contactor (ver Hardware DIY). La estrella marca lo que ya elegiste comprar.</p>
+    </Seccion>
   )
 }
 
@@ -49,23 +101,8 @@ export default function GuiaRiego() {
         <p className="text-[11px] text-[#5c5c6b] mt-2 border-t border-[#1f1f2b] pt-2">🚧 Estructura inicial — se va completando con el detalle real de tu instalación.</p>
       </div>
 
-      {/* Componentes */}
-      <Seccion icon={Boxes} titulo="Componentes del riego" sub="Qué comprar para el sistema de varias camas">
-        <Tabla
-          cols={['Componente', 'Función', 'Nota', 'Precio']}
-          rows={[
-            [<b>Electroválvula NC 220V × cama</b>, 'Abrir/cerrar el riego de cada cama', 'Diafragma (RPE 220V, con bomba) — NC = fail-safe. Manejo por relé directo, sin contactor', 'USD 4-10 c/u'],
-            ['Válvula a bolilla motorizada 220V (alt.)', 'Paso total / presión baja / agua sucia', 'Full bore, abre a 0 bar, más cara y lenta', 'USD 20-40 c/u'],
-            [<b>Bomba de presión + contactor</b>, 'Presurizar el riego', 'La bomba SÍ va por contactor (motor)', 'según bomba'],
-            [<b>Nivel de tanque (flotante)</b>, 'Interlock: la bomba NO arranca en seco', 'digital, 1 entrada', 'USD 2-4'],
-            ['Sensor humedad sustrato × cama (capacitivo)', 'Riego por dryback real de cada cama', 'analógico → ADS1115', 'USD 2-4 c/u'],
-            ['Caudalímetro (opcional)', 'Confirmar que efectivamente regó', 'pulsos', 'USD 3-6'],
-            ['Dosificadoras (peristálticas) + EC/pH inline', 'Fertirriego automático (futuro)', 'mezcla nutrientes en línea', 'USD 15-30 c/u'],
-            ['Fuente 12/24V (si las válvulas no son 220V)', 'Alimentar solenoides de bajo voltaje', 'separada de la lógica', 'USD 8-15'],
-          ]}
-        />
-        <p className="text-[11px] text-[#5c5c6b] mt-2">Con varias camas se suman muchos canales → el MCP23017 + placa de relés (ver Hardware DIY) también maneja las válvulas. Válvulas 220V = relé directo; la bomba = contactor.</p>
-      </Seccion>
+      {/* Componentes reales cargados en Insumos */}
+      <ComponentesReales />
 
       {/* Crop steering */}
       <Seccion icon={Gauge} titulo="Cómo riega — crop steering (P0/P1/P2)" sub="El método de Growcast: por fases, no un timer">
