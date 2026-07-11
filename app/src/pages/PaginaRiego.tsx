@@ -1,7 +1,14 @@
-import { Droplets } from 'lucide-react'
+import { useState } from 'react'
+import { Droplets, Boxes, BookOpen } from 'lucide-react'
 import GuiaRiego from '../components/hardware/GuiaRiego'
+import InsumosRiego from '../components/hardware/InsumosRiego'
 
 export default function PaginaRiego() {
+  const [tab, setTab] = useState<'insumos' | 'guia'>('insumos')
+  const tabBtn = (activo: boolean) =>
+    `flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-md border transition-colors ${activo
+      ? 'bg-[#7dd3fc]/15 border-[#7dd3fc]/40 text-[#7dd3fc]'
+      : 'bg-transparent border-[#1f1f2b] text-[#8f8f9f] hover:text-[#d4d4dd]'}`
   return (
     <div className="flex-1 overflow-y-auto overflow-x-hidden bg-[#0a0a0f] text-[#d4d4dd] font-sans ct-page-scroll">
       {/* TopBar */}
@@ -13,16 +20,20 @@ export default function PaginaRiego() {
               Riego — Clon de Growcast
             </h1>
             <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
-              Válvulas, bomba, sensores y crop steering
+              Insumos, válvulas, bomba y crop steering
               <span className="hidden sm:inline"><span className="text-[#30303e] mx-1">│</span>P0/P1/P2 · ESP32 + ESPHome</span>
             </div>
           </div>
           <div className="flex-1" />
         </div>
+        <div className="flex items-center gap-2 px-3 sm:px-6 pb-2 max-w-[1200px] mx-auto w-full">
+          <button className={tabBtn(tab === 'insumos')} onClick={() => setTab('insumos')}><Boxes className="w-3.5 h-3.5" /> Insumos</button>
+          <button className={tabBtn(tab === 'guia')} onClick={() => setTab('guia')}><BookOpen className="w-3.5 h-3.5" /> Guía</button>
+        </div>
       </div>
 
       <div className="px-3 sm:px-6 py-4 sm:py-5 pb-20 max-w-[1200px] mx-auto w-full">
-        <GuiaRiego />
+        {tab === 'insumos' ? <InsumosRiego /> : <GuiaRiego />}
       </div>
     </div>
   )
