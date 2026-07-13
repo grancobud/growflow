@@ -89,7 +89,7 @@ export default function GuiaHardware() {
       {/* Contactores */}
       <Seccion icon={Boxes} titulo="2 · Contactores y protección — dimensionado para TU sala" sub="El relé chico cierra la bobina; el contactor maneja la potencia. ~7 contactores">
         <div className="rounded-lg bg-[#e0685c]/[0.08] border border-[#e0685c]/30 p-3 mb-3">
-          <p className="text-[12px] text-[#f0a89f]"><b>⚠️ Con el AC de 6.500W conviene TRIFÁSICA (380V).</b> Total ≈ <b>13,8 kW (~63A)</b>: luces 4,84 kW + AC 6,5 (~30A) + deshumi + 2 vent + 2 bombas ½HP. En monofásico serían ~63A (cable grueso 16mm²+ y la distribuidora te empuja a trifásica arriba de ~10 kW). En <b>trifásica repartís</b>: AC en una fase, luces en otra, resto en la tercera → ~21-30A por fase, mucho más sano. El <b>lado de potencia lo hace un electricista matriculado</b>; el ESP32 + relés los armás vos.</p>
+          <p className="text-[12px] text-[#f0a89f]"><b>⚡ Instalación MONOFÁSICA (lo que hay).</b> Total ≈ <b>13,8 kW (~63A)</b>: luces 4,84 kW + AC 6,5 (~30A) + deshumi + 2 vent + 2 bombas ½HP. Todo el equipo es monofásico (bombas ½HP y AC incluidos), así que <b>entra en una línea</b>, pero es carga alta → hay que dimensionarla: <b>cable de acometida 16 mm²+, térmica general ~63A, y contratar la potencia con la distribuidora.</b> Clave: <b>escalonar</b> el encendido desde el ESP32 (no arrancar AC + todas las luces + bombas al mismo tiempo) para no clavar el pico. El matriculado tiene que <b>verificar que la acometida/medidor aguanten ~63A</b>; si la distribuidora no te da esa potencia en monofásico, hay que bajar simultaneidad (no correr todo junto) o evaluar trifásica más adelante.</p>
         </div>
         <Tabla
           cols={['Canal', 'Cargas', 'Corriente', 'Contactor', 'Breaker']}
@@ -103,7 +103,7 @@ export default function GuiaHardware() {
             [<b>CO₂ (solenoide chica 220V)</b>, '1', '<1A', '— relé directo', '—'],
           ]}
         />
-        <p className="text-[11px] text-[#5c5c6b] mt-2"><b>Total: ~7 contactores</b> (2 luces 25A + AC 40A + deshumi 16A + vent 16A + 2 bombas 16A) + breaker por grupo + general. Los solenoides van por relé directo. <b>Total sala ≈ 13,8 kW (~63A) → conviene TRIFÁSICA (380V)</b> por el AC de 6.500W.</p>
+        <p className="text-[11px] text-[#5c5c6b] mt-2"><b>Total: ~7 contactores</b> (2 luces 25A + AC 40A + deshumi 16A + vent 16A + 2 bombas 16A) + breaker por grupo + general. El CO₂ va por relé directo. <b>Total sala ≈ 13,8 kW (~63A) en MONOFÁSICO</b> — cable 16 mm²+, térmica general ~63A y cargas escalonadas desde el ESP32.</p>
         <div className="mt-2 rounded-lg bg-[#f0a35e]/[0.07] border border-[#f0a35e]/25 p-3">
           <p className="text-[12px] text-[#e0b48a]"><b>Luces divididas en 2 grupos a propósito:</b> los 12 drivers de LED prendiendo TODOS juntos generan un pico de arranque (inrush) que puede soldar los contactos de un solo contactor. Se dividen en grupos y se <b>escalonan</b> — el ESP32 los prende con 1-2 seg de diferencia (fácil con <span className="font-mono">delay</span> en ESPHome). Regla: contactor = corriente × 1.5. Nunca el AC/luces directo al relé.</p>
         </div>
