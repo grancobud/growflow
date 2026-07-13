@@ -89,7 +89,7 @@ export default function GuiaHardware() {
       {/* Contactores */}
       <Seccion icon={Boxes} titulo="2 · Contactores y protección — dimensionado para TU sala" sub="El relé chico cierra la bobina; el contactor maneja la potencia. 8 contactores">
         <div className="rounded-lg bg-[#e0685c]/[0.08] border border-[#e0685c]/30 p-3 mb-3">
-          <p className="text-[12px] text-[#f0a89f]"><b>⚠️ El AC decide monofásico vs trifásico.</b> Luces reales = <b>4,84 kW</b> (~22A). Lo que empuja el total son los <b>2 aires</b>: con AC medianos el total ronda ~15-18 kW y podés ir monofásico reforzado; con AC grandes te vas a >20 kW y conviene <b>trifásica (380V)</b> repartiendo cargas entre fases. En cualquier caso, el <b>lado de potencia lo hace un electricista matriculado</b>; el ESP32 + relés los armás vos. (Pasame los W/frigorías de cada AC y lo cierro.)</p>
+          <p className="text-[12px] text-[#f0a89f]"><b>⚠️ El AC decide monofásico vs trifásico.</b> Luces reales = <b>4,84 kW</b> (~22A). Lo que empuja el total son los <b>2 aires</b>: con AC medianos el total ronda ~15-18 kW y podés ir monofásico reforzado; con AC grandes te vas a más de 20 kW y conviene <b>trifásica (380V)</b> repartiendo cargas entre fases. En cualquier caso, el <b>lado de potencia lo hace un electricista matriculado</b>; el ESP32 + relés los armás vos. (Pasame los W/frigorías de cada AC y lo cierro.)</p>
         </div>
         <Tabla
           cols={['Canal', 'Cargas', 'Corriente', 'Contactor', 'Breaker']}
