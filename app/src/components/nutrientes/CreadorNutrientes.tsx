@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   FlaskConical, Beaker, Droplets, ChevronDown, Sparkles, AlertTriangle,
   Save, FolderOpen, Trash2, Calculator, FlaskRound, Layers, Scale, Plus, DollarSign,
-  Droplet, GitCompare, Package, ShieldCheck, Copy, HelpCircle, BookOpen, Lightbulb, Printer, Store, Phone, Globe, Upload, Star, X, Mail, MapPin, Repeat, Sprout,
+  Droplet, GitCompare, Package, ShieldCheck, Copy, HelpCircle, BookOpen, Lightbulb, Printer, Store, Phone, Globe, Upload, Star, X, Mail, MapPin, Repeat, Sprout, FileText,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -834,6 +834,19 @@ function FichaSal({ sal, onSaved, onDelete }: { sal: Sal; onSaved: () => void; o
         <p className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1">Composición</p>
         <p className="text-[11px] text-[#a6a6b5] font-mono">{comp || '—'} <span className="text-[#5c5c6b]">· bidón {sal.bidon}{sal.liquido ? ' · líquido' : ''}</span></p>
       </div>
+      {sal.docs && sal.docs.length > 0 && (
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1.5">Fichas técnicas / PDF</p>
+          <div className="space-y-1.5">
+            {sal.docs.map(d => (
+              <a key={d.archivo} href={`${import.meta.env.BASE_URL}docs/${d.archivo}`} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2 text-[11px] text-[#7dd3fc] hover:underline">
+                <FileText className="w-3.5 h-3.5 flex-shrink-0" /> {d.nombre}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
       <div>
         <p className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1.5">Mi inventario (editable)</p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
