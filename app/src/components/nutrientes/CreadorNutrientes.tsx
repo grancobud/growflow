@@ -1361,7 +1361,7 @@ function EnraizadoTab() {
   )
 }
 
-// ===================== HIPOCLOROSO DIY (clon de Athena Cleanse / Ryanodine) =====================
+// ===================== HIPOCLOROSO DIY (clon de Athena Cleanse) =====================
 // HOCl a base de polvo (Binal BioMax). Factor del fabricante: 0,7 g/L = 100 ppm cloro activo
 // (→ 142,86 ppm por g/L). Athena Cleanse = 0,028 % HOCl = 280 ppm (SDS). Dosis tipo Cleanse: 1 mL/L.
 function HipoclorosoTab() {
@@ -1383,7 +1383,7 @@ function HipoclorosoTab() {
       <div className={card}>
         <div className="flex items-center gap-2 mb-1">
           <ShieldCheck className="w-4 h-4 text-[#7dd3fc]" strokeWidth={1.8} />
-          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Hipocloroso DIY — clon de Athena Cleanse / Ryanodine</h3>
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Hipocloroso DIY — clon de Athena Cleanse</h3>
           <Info><b className="text-[#7dd3fc]">Sanitizante de reservorio (HOCl).</b> El Cleanse es ácido hipocloroso al <b>0,028 %</b> (280 ppm, dato del SDS). Lo clonás con un generador de HOCl en polvo (Binal BioMax): estable +2 años, mientras que el HOCl líquido se degrada rápido.</Info>
         </div>
         <p className="text-[11px] text-[#a6a6b5]">
