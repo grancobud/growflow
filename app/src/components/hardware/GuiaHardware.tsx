@@ -87,25 +87,23 @@ export default function GuiaHardware() {
       </Seccion>
 
       {/* Contactores */}
-      <Seccion icon={Boxes} titulo="2 · Contactores y protección — dimensionado para TU sala" sub="El relé chico cierra la bobina; el contactor maneja la potencia. 8 contactores">
+      <Seccion icon={Boxes} titulo="2 · Contactores y protección — dimensionado para TU sala" sub="El relé chico cierra la bobina; el contactor maneja la potencia. ~7 contactores">
         <div className="rounded-lg bg-[#e0685c]/[0.08] border border-[#e0685c]/30 p-3 mb-3">
-          <p className="text-[12px] text-[#f0a89f]"><b>⚠️ El AC decide monofásico vs trifásico.</b> Luces reales = <b>4,84 kW</b> (~22A). Lo que empuja el total son los <b>2 aires</b>: con AC medianos el total ronda ~15-18 kW y podés ir monofásico reforzado; con AC grandes te vas a más de 20 kW y conviene <b>trifásica (380V)</b> repartiendo cargas entre fases. En cualquier caso, el <b>lado de potencia lo hace un electricista matriculado</b>; el ESP32 + relés los armás vos. (Pasame los W/frigorías de cada AC y lo cierro.)</p>
+          <p className="text-[12px] text-[#f0a89f]"><b>✓ Con TU instalación real alcanza MONOFÁSICO.</b> Total ≈ <b>9,5-10 kW (~45A)</b>: luces 4,84 kW + 1 AC (~2,5) + 1 deshumi + 2 vent + 2 bombas ½HP. Va en <b>monofásico reforzado</b> (contratar ~10 kW, cable/térmica acorde). <b>Trifásica (380V) solo la necesitás si:</b> superás ~10 kW contratados, sumás otro AC grande, o la distribuidora te la exige por potencia. El <b>lado de potencia lo hace un electricista matriculado</b>; el ESP32 + relés los armás vos.</p>
         </div>
         <Tabla
           cols={['Canal', 'Cargas', 'Corriente', 'Contactor', 'Breaker']}
           rows={[
             [<b>Luces grupo 1 (propias)</b>, '3× Insativa 440 + 1× Growtech 400 (1.720W)', '~8A', '25A', 'C16'],
             [<b>Luces grupo 2 (prestadas)</b>, 'Growtech 400 + panel 400 + 3× COB 300 + parrillas 600/340/480 (3.120W)', '~14A', '25A', 'C16'],
-            [<b>Aire acond. 1</b>, '1 (~6300W)', '~29A', '40A', 'C32'],
-            [<b>Aire acond. 2</b>, '1 (~6300W)', '~29A', '40A', 'C32'],
-            [<b>Deshumidificadores</b>, '3 unidades', '~7-10A', '25A', 'C16'],
-            [<b>Ventiladores industriales</b>, '4', '~7-10A', '25A', 'C16'],
-            [<b>Coolers 220V</b>, '7', '~7-10A', '25A', 'C16'],
-            [<b>Bomba de riego</b>, '1', '~3-5A', '16A', 'C10'],
-            [<b>CO₂ (solenoide 220V)</b>, '1', '<1A', '— relé directo', '—'],
+            [<b>Aire acondicionado</b>, '1 (~2,5kW estimado)', '~11A', '25A', 'C16'],
+            [<b>Deshumidificador</b>, '1', '~3-5A', '16A', 'C10'],
+            [<b>Ventiladores industriales</b>, '2', '~4A', '16A', 'C10'],
+            [<b>Bombas ½ HP</b>, '2 (1 contactor c/u para control indep.)', '~3A c/u', '2× 16A', 'C10'],
+            [<b>Solenoides / CO₂ (220V)</b>, 'varios', '<1A', '— relé directo', '—'],
           ]}
         />
-        <p className="text-[11px] text-[#5c5c6b] mt-2"><b>Total: 8 contactores</b> (2×40A + 5×25A + 1×16A) + breaker por grupo + general. El CO₂ (solenoide) va por relé directo, sin contactor. <b>Luces reales: 12 equipos = 4.840 W</b> (~22A).</p>
+        <p className="text-[11px] text-[#5c5c6b] mt-2"><b>Total: ~7 contactores</b> (2 luces + AC + deshumi + vent + 2 bombas, todos ≤25A) + breaker por grupo + general. Los solenoides van por relé directo. <b>Total sala ≈ 9,5-10 kW (~45A) → entra en MONOFÁSICO reforzado</b>, no hace falta trifásica.</p>
         <div className="mt-2 rounded-lg bg-[#f0a35e]/[0.07] border border-[#f0a35e]/25 p-3">
           <p className="text-[12px] text-[#e0b48a]"><b>Luces divididas en 2 grupos a propósito:</b> los 12 drivers de LED prendiendo TODOS juntos generan un pico de arranque (inrush) que puede soldar los contactos de un solo contactor. Se dividen en grupos y se <b>escalonan</b> — el ESP32 los prende con 1-2 seg de diferencia (fácil con <span className="font-mono">delay</span> en ESPHome). Regla: contactor = corriente × 1.5. Nunca el AC/luces directo al relé.</p>
         </div>
