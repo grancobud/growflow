@@ -100,7 +100,7 @@ export default function GuiaHardware() {
             [<b>Deshumidificador</b>, '1', '~3-5A', '16A', 'C10'],
             [<b>Ventiladores industriales</b>, '2', '~4A', '16A', 'C10'],
             [<b>Bombas ½ HP</b>, '2 (1 contactor c/u para control indep.)', '~3A c/u', '2× 16A', 'C10'],
-            [<b>Solenoides / CO₂ (220V)</b>, 'varios', '<1A', '— relé directo', '—'],
+            [<b>CO₂ (solenoide chica 220V)</b>, '1', '<1A', '— relé directo', '—'],
           ]}
         />
         <p className="text-[11px] text-[#5c5c6b] mt-2"><b>Total: ~7 contactores</b> (2 luces 25A + AC 40A + deshumi 16A + vent 16A + 2 bombas 16A) + breaker por grupo + general. Los solenoides van por relé directo. <b>Total sala ≈ 13,8 kW (~63A) → conviene TRIFÁSICA (380V)</b> por el AC de 6.500W.</p>
