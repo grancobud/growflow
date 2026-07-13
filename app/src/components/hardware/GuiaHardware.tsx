@@ -378,6 +378,110 @@ climate: ...`}</pre>
         </div>
       </Seccion>
 
+      {/* Diagramas visuales */}
+      <Seccion icon={Boxes} titulo="Diagramas para armarlo (visual)" sub="La idea en dibujos: cómo prende una carga y cómo se ordena el tablero por dentro">
+
+        {/* Fig 1 — cadena de control */}
+        <p className="text-[11.5px] text-[#a6a6b5] mb-1 font-semibold">1 · La cadena de control — cómo el ESP32 prende un equipo de 220V</p>
+        <div className="overflow-x-auto rounded-lg bg-[#0a0a0f] border border-[#1f1f2b] p-3 mb-1">
+          <svg viewBox="0 0 920 210" className="w-full min-w-[660px]" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arA" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#8f8f9f" /></marker>
+            </defs>
+            {/* boxes */}
+            <rect x="30" y="46" width="160" height="70" rx="8" fill="#15151d" stroke="#7dd3fc" strokeWidth="1.5" />
+            <text x="110" y="78" textAnchor="middle" fill="#7dd3fc" fontSize="15" fontWeight="bold">ESP32</text>
+            <text x="110" y="98" textAnchor="middle" fill="#8f8f9f" fontSize="10">el cerebro (lógica)</text>
+
+            <rect x="270" y="46" width="160" height="70" rx="8" fill="#15151d" stroke="#a3e635" strokeWidth="1.5" />
+            <text x="350" y="78" textAnchor="middle" fill="#a3e635" fontSize="14" fontWeight="bold">Placa de relés</text>
+            <text x="350" y="98" textAnchor="middle" fill="#8f8f9f" fontSize="10">8 canales, 5V</text>
+
+            <rect x="510" y="46" width="160" height="70" rx="8" fill="#15151d" stroke="#f0a35e" strokeWidth="1.5" />
+            <text x="590" y="78" textAnchor="middle" fill="#f0a35e" fontSize="14" fontWeight="bold">Contactor</text>
+            <text x="590" y="98" textAnchor="middle" fill="#8f8f9f" fontSize="10">maneja la potencia</text>
+
+            <rect x="750" y="46" width="150" height="70" rx="8" fill="#15151d" stroke="#e0685c" strokeWidth="1.5" />
+            <text x="825" y="78" textAnchor="middle" fill="#e0685c" fontSize="14" fontWeight="bold">Carga 220V</text>
+            <text x="825" y="98" textAnchor="middle" fill="#8f8f9f" fontSize="10">AC · luz · bomba</text>
+
+            {/* arrows */}
+            <line x1="190" y1="81" x2="266" y2="81" stroke="#8f8f9f" strokeWidth="1.5" markerEnd="url(#arA)" />
+            <text x="228" y="73" textAnchor="middle" fill="#a6a6b5" fontSize="9">señal 3.3V</text>
+            <line x1="430" y1="81" x2="506" y2="81" stroke="#8f8f9f" strokeWidth="1.5" markerEnd="url(#arA)" />
+            <text x="468" y="73" textAnchor="middle" fill="#a6a6b5" fontSize="9">cierra bobina</text>
+            <line x1="670" y1="81" x2="746" y2="81" stroke="#8f8f9f" strokeWidth="1.5" markerEnd="url(#arA)" />
+            <text x="708" y="73" textAnchor="middle" fill="#a6a6b5" fontSize="9">pasa 220V</text>
+
+            {/* brackets */}
+            <line x1="30" y1="140" x2="430" y2="140" stroke="#a3e635" strokeWidth="1.5" />
+            <text x="230" y="162" textAnchor="middle" fill="#a3e635" fontSize="11" fontWeight="bold">① LADO LÓGICO — bajo voltaje, seguro, lo armás vos</text>
+            <line x1="510" y1="140" x2="900" y2="140" stroke="#e0685c" strokeWidth="1.5" />
+            <text x="705" y="162" textAnchor="middle" fill="#e0685c" fontSize="11" fontWeight="bold">② LADO POTENCIA — 220V, lo hace un matriculado</text>
+          </svg>
+        </div>
+        <p className="text-[11px] text-[#5c5c6b] mb-4">El relé chico (que dispara el ESP32) <b>solo cierra la bobina</b> del contactor. La corriente pesada (AC, luces, bomba) pasa por el <b>contactor</b>, nunca por el relé. Así el ESP32 nunca ve los 220V.</p>
+
+        {/* Fig 2 — tablero por dentro */}
+        <p className="text-[11.5px] text-[#a6a6b5] mb-1 font-semibold">2 · El tablero por dentro — cómo ordenar el gabinete</p>
+        <div className="overflow-x-auto rounded-lg bg-[#0a0a0f] border border-[#1f1f2b] p-3 mb-1">
+          <svg viewBox="0 0 740 560" className="w-full min-w-[560px]" xmlns="http://www.w3.org/2000/svg">
+            {/* gabinete */}
+            <rect x="8" y="8" width="724" height="544" rx="12" fill="#0d0d13" stroke="#5c5c6b" strokeWidth="1.5" />
+            <text x="370" y="30" textAnchor="middle" fill="#d4d4dd" fontSize="12" fontWeight="bold">GABINETE / TABLERO (caja IP65 con tapa)</text>
+
+            {/* riel 1 breakers */}
+            <rect x="26" y="44" width="688" height="86" rx="8" fill="#101016" stroke="#7dd3fc" strokeWidth="1.2" />
+            <text x="38" y="62" fill="#7dd3fc" fontSize="10" fontWeight="bold">Riel DIN 1 · Térmica general 63A + breaker por grupo</text>
+            {['63A','C32','C25','C25','C16','C16','C16'].map((b, i) => (
+              <g key={i}>
+                <rect x={40 + i * 96} y="76" width="82" height="42" rx="4" fill="#15151d" stroke="#3a4a55" strokeWidth="1" />
+                <text x={81 + i * 96} y="93" textAnchor="middle" fill="#d4d4dd" fontSize="11" fontWeight="bold">{b}</text>
+                <text x={81 + i * 96} y="109" textAnchor="middle" fill="#5c5c6b" fontSize="8">{['GRAL','AC','Luz1','Luz2','Deshu','Vent','Bomba'][i]}</text>
+              </g>
+            ))}
+
+            {/* zona logica */}
+            <rect x="26" y="146" width="340" height="150" rx="8" fill="#101016" stroke="#a3e635" strokeWidth="1.2" />
+            <text x="38" y="164" fill="#a3e635" fontSize="10" fontWeight="bold">Zona lógica (bajo voltaje)</text>
+            <rect x="42" y="176" width="150" height="44" rx="4" fill="#15151d" stroke="#3a4a55" /><text x="117" y="203" textAnchor="middle" fill="#d4d4dd" fontSize="11">Fuente 5V</text>
+            <rect x="204" y="176" width="148" height="44" rx="4" fill="#15151d" stroke="#7dd3fc" /><text x="278" y="203" textAnchor="middle" fill="#7dd3fc" fontSize="11" fontWeight="bold">ESP32</text>
+            <rect x="42" y="232" width="310" height="50" rx="4" fill="#15151d" stroke="#a3e635" /><text x="197" y="262" textAnchor="middle" fill="#a3e635" fontSize="11" fontWeight="bold">Placa de 8 relés (activa en LOW)</text>
+
+            {/* zona sensores */}
+            <rect x="374" y="146" width="340" height="150" rx="8" fill="#101016" stroke="#a78bfa" strokeWidth="1.2" />
+            <text x="386" y="164" fill="#a78bfa" fontSize="10" fontWeight="bold">Zona sensores (I²C / 1-Wire)</text>
+            {[['SCD41 — CO₂ / temp / HR','0x62'],['RTC DS3231 — reloj','0x68'],['TCA9548A — hub I²C','0x70'],['DS18B20 ×9 — temp por cable','1-Wire']].map((s, i) => (
+              <g key={i}>
+                <rect x="386" y={176 + i * 28} width="316" height="24" rx="4" fill="#15151d" stroke="#3a3550" />
+                <text x="396" y={192 + i * 28} fill="#c4c4d0" fontSize="10">{s[0]}</text>
+                <text x="694" y={192 + i * 28} textAnchor="end" fill="#6b6b7b" fontSize="9">{s[1]}</text>
+              </g>
+            ))}
+
+            {/* riel contactores */}
+            <rect x="26" y="312" width="688" height="110" rx="8" fill="#101016" stroke="#f0a35e" strokeWidth="1.2" />
+            <text x="38" y="330" fill="#f0a35e" fontSize="10" fontWeight="bold">Riel DIN 2 · Contactores (potencia 220V)</text>
+            {[['AC','40A'],['Luz1','25A'],['Luz2','25A'],['Deshu','16A'],['Vent','16A'],['Bomba','16A']].map((c, i) => (
+              <g key={i}>
+                <rect x={40 + i * 112} y="344" width="102" height="60" rx="4" fill="#1a1510" stroke="#7a5a30" />
+                <text x={91 + i * 112} y="372" textAnchor="middle" fill="#f0a35e" fontSize="12" fontWeight="bold">{c[0]}</text>
+                <text x={91 + i * 112} y="390" textAnchor="middle" fill="#8f8f9f" fontSize="10">{c[1]}</text>
+              </g>
+            ))}
+
+            {/* bornera */}
+            <rect x="26" y="438" width="688" height="52" rx="8" fill="#101016" stroke="#d4d4dd" strokeWidth="1.2" />
+            <text x="370" y="460" textAnchor="middle" fill="#d4d4dd" fontSize="11" fontWeight="bold">Bornera de conexión + barra de TIERRA (PE)</text>
+            <text x="370" y="477" textAnchor="middle" fill="#6b6b7b" fontSize="9">todo el chasis y el gabinete van a tierra</text>
+
+            <text x="370" y="518" textAnchor="middle" fill="#e0b48a" fontSize="10">⚡ Regla: la zona lógica (5V, verde) separada de la potencia (220V, naranja). No cruces los cables.</text>
+            <text x="370" y="536" textAnchor="middle" fill="#6b6b7b" fontSize="9">Electroválvula riego y CO₂ salen directo de 2 relés (no llevan contactor, son &lt;1A).</text>
+          </svg>
+        </div>
+        <p className="text-[11px] text-[#5c5c6b] mb-1">De arriba a abajo: <b className="text-[#7dd3fc]">breakers</b> → <b className="text-[#a3e635]">lógica (ESP32 + relés)</b> y <b className="text-[#a78bfa]">sensores</b> → <b className="text-[#f0a35e]">contactores</b> → <b>bornera + tierra</b>. Cada relé de la placa verde cierra la bobina del contactor naranja de abajo.</p>
+      </Seccion>
+
       {/* Esquema de conexión */}
       <Seccion icon={Cable} titulo="Esquema de conexión (pinout + tablero)" sub="Pines elegidos evitando los conflictivos del ESP32 (flash 6-11, strapping 0/2/12/15, solo-entrada 34-39)">
         <p className="text-[11.5px] text-[#a6a6b5] mb-2 font-semibold">Mapa de pines del ESP32</p>
@@ -387,14 +491,14 @@ climate: ...`}</pre>
             ['21 / 22', 'Bus I²C (SDA / SCL)', 'SCD41 (0x62), RTC DS3231 (0x68), TCA9548A (0x70)'],
             ['4', 'Bus 1-Wire (DS18B20 ×9)', 'resistencia pull-up 4.7kΩ a 3.3V'],
             ['14', 'Emisor IR (AC)', 'remote_transmitter'],
-            ['13', 'Relé 1 → Contactor AC', 'activa en LOW (inverted)'],
-            ['18', 'Relé 2 → Luces', ''],
-            ['19', 'Relé 3 → Extractores', ''],
-            ['23', 'Relé 4 → Ventiladores', ''],
-            ['25', 'Relé 5 → Deshumidificador', ''],
-            ['26', 'Relé 6 → CO₂ (solenoide)', ''],
-            ['27', 'Relé 7 → Humidificador / reserva', ''],
-            ['32', 'Relé 8 → reserva', ''],
+            ['13', 'Relé K1 → Contactor AC (40A)', 'activa en LOW (inverted)'],
+            ['18', 'Relé K2 → Contactor Luces grupo 1 (propias, 25A)', 'escalonar 1-2s'],
+            ['19', 'Relé K3 → Contactor Luces grupo 2 (prestadas, 25A)', 'escalonar 1-2s'],
+            ['23', 'Relé K4 → Contactor Deshumidificador (16A)', ''],
+            ['25', 'Relé K5 → Contactor Ventiladores ×2 (16A)', ''],
+            ['26', 'Relé K6 → Contactor Bomba de riego (16A)', 'interlock flotante'],
+            ['27', 'Relé K7 → Electroválvula riego 220V', 'directo (solenoide <1A)'],
+            ['32', 'Relé K8 → CO₂ solenoide 220V', 'directo · interlock extractor'],
             ['5V / GND', 'Alimentación ESP32 + placa relés', 'desde la fuente 5V'],
           ]}
         />
@@ -404,17 +508,22 @@ climate: ...`}</pre>
         </div>
 
         <p className="text-[11.5px] text-[#a6a6b5] mt-4 mb-2 font-semibold">Tablero 220V (⚠️ con la llave general BAJA)</p>
-        <pre className="text-[10.5px] font-mono bg-[#0a0a0f] border border-[#1f1f2b] rounded-lg p-3 overflow-x-auto text-[#d4a89f] leading-relaxed">{`RED 220V ── [Térmica + Disyuntor] ──┬── [Fuente 5V] ── 5V/GND → ESP32 + placa relés
-                                    │
-                                    ├── Fase (L) ─────┐
-                                    └── Neutro (N) ───┼──────────────┐
-                                                      │              │
-Relé K1 (GPIO13) ── bobina A1/A2 → [CONTACTOR 40A] ──┘   Fase→ ❄️AC ←N
-Relé K2 (GPIO18) ── (contactor 25A o directo) ─────────────→ 💡Luces
-Relé K3..K6 (19/23/25/26) ── directo (cargas <10A) ────────→ Extractor/Ventilador/Deshumi/CO₂
+        <pre className="text-[10.5px] font-mono bg-[#0a0a0f] border border-[#1f1f2b] rounded-lg p-3 overflow-x-auto text-[#d4a89f] leading-relaxed">{`RED 220V MONOFÁSICA ── [Térmica gral 63A + Disyuntor] ──┬── [Fuente 5V] → ESP32 + placa relés
+                                                        │
+                                                        ├── Fase (L) ──┐
+                                                        └── Neutro (N) ─┼──────────┐
+                                                                        │          │
+Relé K1 (13) → bobina [CONTACTOR AC 40A] ───────────────────────→ Fase→ ❄️AC ←N
+Relé K2 (18) → bobina [CONTACTOR Luces1 25A] ───────────────────→ 💡Luces propias
+Relé K3 (19) → bobina [CONTACTOR Luces2 25A] ───────────────────→ 💡Luces prestadas
+Relé K4 (23) → bobina [CONTACTOR Deshumi 16A] ──────────────────→ 💧Deshumidificador
+Relé K5 (25) → bobina [CONTACTOR Vent 16A] ─────────────────────→ 🌀Ventiladores ×2
+Relé K6 (26) → bobina [CONTACTOR Bomba 16A] ────────────────────→ 🚰Bomba riego
+Relé K7 (27) → directo (220V, <1A) ─────────────────────────────→ 🚿Electroválvula riego
+Relé K8 (32) → directo (220V, <1A) ─────────────────────────────→ 🫧CO₂ solenoide
 
 TIERRA (PE) ── gabinete + chasis de cada equipo
-Snubber/varistor en paralelo a las cargas inductivas (AC, extractores)`}</pre>
+Snubber/varistor en paralelo a las cargas inductivas (AC, bomba)`}</pre>
         <p className="text-[11px] text-[#5c5c6b] mt-2">El relé chico solo cierra la <b>bobina</b> del contactor; la potencia (29A del AC) pasa por el contactor. Multímetro ANTES de energizar: continuidad, sin cortos, tierra OK.</p>
       </Seccion>
 
