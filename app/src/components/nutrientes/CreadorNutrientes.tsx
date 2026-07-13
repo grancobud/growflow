@@ -30,7 +30,7 @@ interface CalcTabProps {
 }
 type CostoResultado = { porLitro: number; detalle: { sal: Sal; costo: number }[] }
 
-type SubTab = 'calc' | 'clonar' | 'sustancias' | 'proveedores' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar' | 'conversor' | 'enraizado' | 'elicitor' | 'bioestim' | 'ayuda'
+type SubTab = 'calc' | 'clonar' | 'sustancias' | 'proveedores' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar' | 'conversor' | 'enraizado' | 'elicitor' | 'bioestim' | 'hocl' | 'ayuda'
 
 const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
   { id: 'calc', label: 'Calculadora', icon: Calculator },
@@ -47,6 +47,7 @@ const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
   { id: 'enraizado', label: 'Gel de enraizado', icon: Sprout },
   { id: 'elicitor', label: 'Elicitor DIY', icon: Sparkles },
   { id: 'bioestim', label: 'Bioestimulantes DIY', icon: Sparkles },
+  { id: 'hocl', label: 'Hipocloroso DIY', icon: ShieldCheck },
   { id: 'ayuda', label: 'Ayuda / Guía', icon: HelpCircle },
 ]
 
@@ -300,6 +301,9 @@ export default function CreadorNutrientes() {
           <SuperBioTab />
           <BioestimulantesTab />
         </div>
+      )}
+      {sub === 'hocl' && (
+        <HipoclorosoTab />
       )}
       {sub === 'ayuda' && (
         <AyudaTab irA={setSub} />
@@ -1352,6 +1356,133 @@ function EnraizadoTab() {
           ))}
         </ul>
         <p className="text-[10px] text-[#5c5c6b] mt-3">Fuentes: MSDS Clonex (HEC 1,2 % / IBA 0,3 %), foros Rollitup y THCFarmer, literatura de propagación (rango óptimo 1.000–3.000 ppm IBA).</p>
+      </div>
+    </div>
+  )
+}
+
+// ===================== HIPOCLOROSO DIY (clon de Athena Cleanse / Ryanodine) =====================
+// HOCl a base de polvo (Binal BioMax). Factor del fabricante: 0,7 g/L = 100 ppm cloro activo
+// (→ 142,86 ppm por g/L). Athena Cleanse = 0,028 % HOCl = 280 ppm (SDS). Dosis tipo Cleanse: 1 mL/L.
+function HipoclorosoTab() {
+  const PPM_CLEANSE = 280        // Athena Cleanse SDS: 0,028 % HOCl
+  const PPM_POR_GL = 142.86      // Binal: 0,7 g/L = 100 ppm cloro activo
+  const [litros, setLitros] = useState(5)      // litros de stock a preparar
+  const [ppm, setPpm] = useState(PPM_CLEANSE)  // concentración objetivo del stock
+  const [dosis, setDosis] = useState(1)        // mL de stock por litro de riego
+
+  const gramos = +(ppm / PPM_POR_GL * litros).toFixed(1)     // g de Binal para el stock
+  const gPorL = +(gramos / litros).toFixed(3)
+  const litrosRiego = Math.round(litros * 1000 / Math.max(dosis, 0.01))  // rinde (1 mL/L = 1:1000)
+  const num = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 3 })
+  const base = import.meta.env.BASE_URL
+
+  return (
+    <div className="space-y-4">
+      {/* Intro */}
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-1">
+          <ShieldCheck className="w-4 h-4 text-[#7dd3fc]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Hipocloroso DIY — clon de Athena Cleanse / Ryanodine</h3>
+          <Info><b className="text-[#7dd3fc]">Sanitizante de reservorio (HOCl).</b> El Cleanse es ácido hipocloroso al <b>0,028 %</b> (280 ppm, dato del SDS). Lo clonás con un generador de HOCl en polvo (Binal BioMax): estable +2 años, mientras que el HOCl líquido se degrada rápido.</Info>
+        </div>
+        <p className="text-[11px] text-[#a6a6b5]">
+          Limpia raíces y sistema de riego, previene biofilm/algas y evita que se tapen los goteros. <b className="text-[#7dd3fc]">NO es nutriente</b> (el solver lo ignora).
+          Materia prima: <b className="text-[#d9f99d]">Binal BioMax</b> de Axel Química (SKU 1022, bidón 6 kg $79.200 + IVA).
+        </p>
+      </div>
+
+      {/* Calculadora */}
+      <div className={card}>
+        <div className="flex flex-wrap items-end gap-4 mb-3">
+          <label className="text-[11px] text-[#a6a6b5]">Stock a preparar
+            <div className="flex items-center gap-1 mt-1">
+              <NumField value={litros} onChange={setLitros} min={0.5} className={`${inp} w-24`} />
+              <span className="text-[#5c5c6b]">L</span>
+            </div>
+          </label>
+          <label className="text-[11px] text-[#a6a6b5]">Concentración objetivo
+            <Info>280 ppm = igual que el Athena Cleanse (0,028 %). Si querés igualar el poder oxidante exacto (Cl₂-equivalente) usá ~378 ppm.</Info>
+            <div className="flex items-center gap-1 mt-1">
+              <NumField value={ppm} onChange={setPpm} min={10} className={`${inp} w-24`} />
+              <span className="text-[#5c5c6b]">ppm</span>
+            </div>
+          </label>
+          <label className="text-[11px] text-[#a6a6b5]">Dosis de riego
+            <div className="flex items-center gap-1 mt-1">
+              <NumField value={dosis} onChange={setDosis} min={0.1} className={`${inp} w-24`} />
+              <span className="text-[#5c5c6b]">mL/L</span>
+            </div>
+          </label>
+          <div className="flex gap-1.5 self-end">
+            <button onClick={() => setPpm(PPM_CLEANSE)} className={`px-2 py-1 rounded-md text-[10px] border ${ppm === PPM_CLEANSE ? 'bg-[#7dd3fc]/15 border-[#7dd3fc]/40 text-[#7dd3fc]' : 'border-[#1f1f2b] text-[#8f8f9f]'}`}>= Cleanse (280)</button>
+            <button onClick={() => setPpm(378)} className={`px-2 py-1 rounded-md text-[10px] border ${ppm === 378 ? 'bg-[#7dd3fc]/15 border-[#7dd3fc]/40 text-[#7dd3fc]' : 'border-[#1f1f2b] text-[#8f8f9f]'}`}>Cl₂-equiv. (378)</button>
+          </div>
+        </div>
+
+        <div className="rounded-lg bg-[#101016] border border-[#7dd3fc]/20 p-3 mb-2">
+          <p className="text-[11px] text-[#a6a6b5]">Poné en {num(litros)} L de agua:</p>
+          <p className="text-[22px] font-mono font-bold text-[#7dd3fc] mt-0.5">{num(gramos)} g <span className="text-[13px] text-[#5c5c6b]">de Binal BioMax</span></p>
+          <p className="text-[10.5px] text-[#5c5c6b] mt-0.5">= {num(gPorL)} g/L → ~{num(ppm)} ppm de HOCl</p>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-2">
+          <FilaIngrediente nombre="Dosis en el riego" cant={num(dosis)} unidad="mL/L" nota="mL de stock por litro de agua de riego (igual que el Cleanse)" />
+          <FilaIngrediente nombre="Rinde (agua de riego tratada)" cant={num(litrosRiego)} unidad="L" nota={`con ${num(litros)} L de stock a ${num(dosis)} mL/L`} />
+        </div>
+      </div>
+
+      {/* Paso a paso */}
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-3">
+          <BookOpen className="w-4 h-4 text-[#7dd3fc]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Cómo prepararlo y usarlo</h3>
+        </div>
+        <ol className="space-y-2.5">
+          {[
+            { t: 'Protección primero', d: 'Al abrir el balde y pesar el polvo: máscara para polvo + antiparras. El polvo seco irrita; disuelto en agua es suave (pH ~ piel).' },
+            { t: `Pesá ${num(gramos)} g de Binal BioMax`, d: `Para tu stock de ${num(litros)} L. Con balanza de 0,1 g alcanza.` },
+            { t: 'Disolvé en el agua con agitación', d: `Agregá los ${num(gramos)} g a los ${num(litros)} L de agua (potable o destilada) y revolvé hasta disolver. El fuerte olor a cloro se va al diluir.` },
+            { t: 'Guardá el stock', d: 'En bidón tapado, al reparo de la luz solar. La solución madre es estable +4 meses (mucho más que el HOCl líquido comercial).' },
+            { t: `Dosificá ${num(dosis)} mL por litro de riego`, d: `Igual que el Cleanse. En el reservorio, mantené el HOCl residual para agua limpia y goteros sin biofilm.` },
+          ].map((p, i) => (
+            <li key={i} className="flex gap-3">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0e2029] border border-[#22485a] text-[#7dd3fc] text-[11px] font-bold flex items-center justify-center tabular-nums">{i + 1}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[12px] font-medium text-[#ececf1]">{p.t}</p>
+                <p className="text-[11px] text-[#a6a6b5] leading-relaxed">{p.d}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      {/* Fichas PDF + datos */}
+      <div className={card}>
+        <div className="flex items-center gap-2 mb-3">
+          <FileText className="w-4 h-4 text-[#7dd3fc]" strokeWidth={1.8} />
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Fichas técnicas y datos</h3>
+        </div>
+        <div className="space-y-1.5 mb-3">
+          <a href={`${base}docs/binal-biomax-ficha-tecnica.pdf`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[11px] text-[#7dd3fc] hover:underline">
+            <FileText className="w-3.5 h-3.5" /> Binal BioMax — ficha técnica (Axel Química)
+          </a>
+          <a href={`${base}docs/athena-cleanse-sds.pdf`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[11px] text-[#7dd3fc] hover:underline">
+            <FileText className="w-3.5 h-3.5" /> Athena Cleanse — SDS (0,028 % HOCl)
+          </a>
+        </div>
+        <ul className="space-y-1.5 text-[11px] text-[#a6a6b5]">
+          {[
+            ['Costo irrisorio', 'A $13.200/kg, tratar 1.000 L de riego sale ~$0,03. Un bidón de 6 kg ≈ 3 millones de L. El gasto real es cero.'],
+            ['No mezclar con nutrientes concentrados', 'El HOCl es oxidante: va en el agua de riego final, no en el bidón de fertilizante concentrado. Puede degradar quelatos si se junta.'],
+            ['Con bioestimulantes: días alternos', 'Si sanitizás con HOCl, aplicá bioestimulantes/microbiología otro día (el HOCl mata microorganismos, incluidos los buenos).'],
+            ['Proveedor', 'Axel Química (Avellaneda). WApp (011) 3554-7885. Retiro en planta. No publica precio online.'],
+          ].map(([t, d], i) => (
+            <li key={i} className="flex gap-2">
+              <span className="text-[#7dd3fc] flex-shrink-0">•</span>
+              <span><b className="text-[#d9f99d]">{t}:</b> {d}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   )
