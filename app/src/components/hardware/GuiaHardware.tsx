@@ -87,16 +87,15 @@ export default function GuiaHardware() {
       </Seccion>
 
       {/* Contactores */}
-      <Seccion icon={Boxes} titulo="2 · Contactores y protección — dimensionado para TU sala" sub="El relé chico cierra la bobina; el contactor maneja la potencia. 9 contactores">
+      <Seccion icon={Boxes} titulo="2 · Contactores y protección — dimensionado para TU sala" sub="El relé chico cierra la bobina; el contactor maneja la potencia. 8 contactores">
         <div className="rounded-lg bg-[#e0685c]/[0.08] border border-[#e0685c]/30 p-3 mb-3">
-          <p className="text-[12px] text-[#f0a89f]"><b>⚠️ Instalación grande (~25 kW / ~110A):</b> NO va en monofásico → necesitás <b>trifásica (380V)</b> con las cargas repartidas entre fases, y <b>un electricista matriculado</b> para el lado de potencia. El ESP32 + relés los armás vos; el tablero de 25kW lo hace un matriculado.</p>
+          <p className="text-[12px] text-[#f0a89f]"><b>⚠️ El AC decide monofásico vs trifásico.</b> Luces reales = <b>4,84 kW</b> (~22A). Lo que empuja el total son los <b>2 aires</b>: con AC medianos el total ronda ~15-18 kW y podés ir monofásico reforzado; con AC grandes te vas a >20 kW y conviene <b>trifásica (380V)</b> repartiendo cargas entre fases. En cualquier caso, el <b>lado de potencia lo hace un electricista matriculado</b>; el ESP32 + relés los armás vos. (Pasame los W/frigorías de cada AC y lo cierro.)</p>
         </div>
         <Tabla
           cols={['Canal', 'Cargas', 'Corriente', 'Contactor', 'Breaker']}
           rows={[
-            [<b>Luces grupo 1</b>, '~5×600W LED (3000W)', '~14A', '25A', 'C16'],
-            [<b>Luces grupo 2</b>, '4×600W (2400W)', '~11A', '25A', 'C16'],
-            [<b>Luces grupo 3</b>, '6 LEDs varios (~1600W)', '~8A', '25A', 'C10'],
+            [<b>Luces grupo 1 (propias)</b>, '3× Insativa 440 + 1× Growtech 400 (1.720W)', '~8A', '25A', 'C16'],
+            [<b>Luces grupo 2 (prestadas)</b>, 'Growtech 400 + panel 400 + 3× COB 300 + parrillas 600/340/480 (3.120W)', '~14A', '25A', 'C16'],
             [<b>Aire acond. 1</b>, '1 (~6300W)', '~29A', '40A', 'C32'],
             [<b>Aire acond. 2</b>, '1 (~6300W)', '~29A', '40A', 'C32'],
             [<b>Deshumidificadores</b>, '3 unidades', '~7-10A', '25A', 'C16'],
@@ -106,9 +105,9 @@ export default function GuiaHardware() {
             [<b>CO₂ (solenoide 220V)</b>, '1', '<1A', '— relé directo', '—'],
           ]}
         />
-        <p className="text-[11px] text-[#5c5c6b] mt-2"><b>Total: 9 contactores</b> (2×40A + 6×25A + 1×16A) + breaker por grupo + general trifásico. El CO₂ (solenoide) va por relé directo, sin contactor.</p>
+        <p className="text-[11px] text-[#5c5c6b] mt-2"><b>Total: 8 contactores</b> (2×40A + 5×25A + 1×16A) + breaker por grupo + general. El CO₂ (solenoide) va por relé directo, sin contactor. <b>Luces reales: 12 equipos = 4.840 W</b> (~22A).</p>
         <div className="mt-2 rounded-lg bg-[#f0a35e]/[0.07] border border-[#f0a35e]/25 p-3">
-          <p className="text-[12px] text-[#e0b48a]"><b>Luces divididas en 3 grupos a propósito:</b> 15 drivers de LED prendiendo TODOS juntos generan un pico de arranque (inrush) que puede soldar los contactos de un solo contactor. Se dividen en grupos y se <b>escalonan</b> — el ESP32 los prende con 1-2 seg de diferencia (fácil con <span className="font-mono">delay</span> en ESPHome). Regla: contactor = corriente × 1.5. Nunca el AC/luces directo al relé.</p>
+          <p className="text-[12px] text-[#e0b48a]"><b>Luces divididas en 2 grupos a propósito:</b> los 12 drivers de LED prendiendo TODOS juntos generan un pico de arranque (inrush) que puede soldar los contactos de un solo contactor. Se dividen en grupos y se <b>escalonan</b> — el ESP32 los prende con 1-2 seg de diferencia (fácil con <span className="font-mono">delay</span> en ESPHome). Regla: contactor = corriente × 1.5. Nunca el AC/luces directo al relé.</p>
         </div>
       </Seccion>
 
