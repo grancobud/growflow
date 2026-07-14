@@ -74,22 +74,27 @@ export default function GuiaHardware() {
       {/* Cerebro y potencia */}
       <Seccion icon={Zap} titulo="1 · Cerebro y potencia" sub="El controlador y su alimentación">
         <Tabla
-          cols={['Componente', 'Función', 'Specs', 'Precio']}
+          cols={['Componente', 'Función', 'Specs', 'Precio (ARS jul 2026)']}
           rows={[
-            [<b>ESP32 DevKit WROOM-32</b>, 'Cerebro (corre ESPHome)', '240 MHz, WiFi/BT, 30+ GPIO, 3.3V lógica', 'USD 6-8'],
-            [<b>MCP23017 (expansor I²C)</b>, 'El ESP32 no tiene pines para tantos relés → +16 salidas por I²C. ESPHome nativo.', '16 GPIO extra, dirección 0x20', 'USD 2-3'],
-            [<b>Placa de relés 16 canales</b>, '1 salida por bobina de contactor + CO₂ + reserva (o 2× 8ch)', 'Optoacoplada, trigger 3.3V, VCC desde 5V', 'USD 12-18'],
-            ['Fuente 5V robusta (≥5A)', 'Alimentación lógica + 16 relés', '5V regulada, ≥5A', 'USD 10-15'],
-            ['Gabinete DIN grande + riel + borneras + ferrules', 'Tablero (instalación grande)', 'IP54, riel DIN 35mm', 'USD 20-35'],
+            [<b>ESP32 DevKit WROOM-32</b>, 'Cerebro (corre ESPHome)', '240 MHz, WiFi/BT, 30+ GPIO, 3.3V lógica', '$10.400-13.000 (Candy-HO)'],
+            [<b>Placa de relés 8 canales optoacoplada</b>, 'Lo que usa el pinout de esta sala: K1-K8 directo del ESP32', 'Optoacoplada, jumper JD-VCC, activa en LOW', '≈$13.000-16.000 (ML)'],
+            ['Placa 16 canales (upgrade)', 'Solo si sumás más salidas (riego multi-válvula, más equipos) → requiere el MCP23017', 'Candy-HO SKU 1207', '$26.803 (Candy-HO)'],
+            ['MCP23017 (expansor I²C)', 'SOLO con la placa de 16: el ESP32 no tiene 16 pines libres → +16 GPIO por I²C. ESPHome nativo.', '16 GPIO extra, dirección 0x20', '≈$8.000-12.000 (ML)'],
+            ['Fuente 5V robusta (≥5A)', 'Lógica + bobinas de los relés (separadas vía JD-VCC)', '5V regulada ≥5A, switching metálica', '≈$15.000-25.000 (ML)'],
+            ['Gabinete estanco + riel DIN + borneras + ferrules', 'El tablero', 'IP54+, riel DIN 35mm', '≈$40.000-70.000 (ML)'],
           ]}
         />
-        <p className="text-[11px] text-[#5c5c6b] mt-2">Con ~10-12 canales de control no alcanzan 8 relés ni los pines del ESP32: el <b>MCP23017</b> te da 16 salidas por I²C y manejás una <b>placa de 16 relés</b>. Cada relé cierra la bobina de un contactor (o directo el CO₂).</p>
+        <p className="text-[11px] text-[#5c5c6b] mt-2"><b>¿8 o 16 relés?</b> Esta sala usa exactamente <b>8 canales</b> (K1-K8, ver pinout) → la placa de 8 directo del ESP32 alcanza y es más simple (menos componentes = menos puntos de falla). La de 16 + MCP23017 es el upgrade cuando sumes válvulas de riego por cama o más equipos. Cada relé cierra la bobina de un contactor (o directo el CO₂/electroválvula, que son &lt;1A).</p>
+        <div className="mt-2 rounded-lg bg-[#7dd3fc]/[0.06] border border-[#7dd3fc]/25 p-2.5">
+          <p className="text-[11px] text-[#d4d4dd]"><b className="text-[#7dd3fc]">Truco de foros — jumper JD-VCC:</b> las placas optoacopladas traen un jumper que une la alimentación de las bobinas (JD-VCC) con la de la lógica (VCC). <b>Sacalo</b>: JD-VCC a los 5V de la fuente, VCC al 3.3V del ESP32, GND separados. Así el optoacoplador aísla <i>de verdad</i>: los picos que meten las bobinas al conmutar no llegan al micro (causa #1 de ESP32 que se reinician o GPIOs quemados en estos builds). De paso el LED del opto se enciende bien con lógica 3.3V.</p>
+        </div>
+        <p className="text-[10.5px] text-[#5c5c6b] mt-2">Precios relevados jul 2026: Candy-HO (Villa Martelli, candy-ho.com) y MercadoLibre. Los «≈» son rangos de mercado — verificar antes de comprar.</p>
       </Seccion>
 
       {/* Contactores */}
       <Seccion icon={Boxes} titulo="2 · Contactores y protección — dimensionado para TU sala" sub="El relé chico cierra la bobina; el contactor maneja la potencia. 6 contactores">
         <div className="rounded-lg bg-[#e0685c]/[0.08] border border-[#e0685c]/30 p-3 mb-3">
-          <p className="text-[12px] text-[#f0a89f]"><b>⚡ Instalación MONOFÁSICA (lo que hay).</b> Total ≈ <b>13,8 kW (~63A)</b>: luces 4,84 kW + AC 6,5 (~30A) + deshumi + 2 vent + 2 bombas ½HP. Todo el equipo es monofásico (bombas ½HP y AC incluidos), así que <b>entra en una línea</b>, pero es carga alta → hay que dimensionarla: <b>cable de acometida 16 mm²+, térmica general ~63A, y contratar la potencia con la distribuidora.</b> Clave: <b>escalonar</b> el encendido desde el ESP32 (no arrancar AC + todas las luces + bombas al mismo tiempo) para no clavar el pico. El matriculado tiene que <b>verificar que la acometida/medidor aguanten ~63A</b>; si la distribuidora no te da esa potencia en monofásico, hay que bajar simultaneidad (no correr todo junto) o evaluar trifásica más adelante.</p>
+          <p className="text-[12px] text-[#f0a89f]"><b>⚡ Instalación MONOFÁSICA (lo que hay).</b> Total ≈ <b>13,8 kW (~63A)</b>: luces 4,84 kW + AC 6,5 (~30A) + deshumi + 2 vent + 2 bombas ½HP. Todo el equipo es monofásico (bombas ½HP y AC incluidos), así que <b>entra en una línea</b>, pero es carga alta → hay que dimensionarla: <b>cable de acometida 16 mm²+, térmica general ~63A + disyuntor diferencial 30mA, y contratar la potencia con la distribuidora.</b> Clave: <b>escalonar</b> el encendido desde el ESP32 (no arrancar AC + todas las luces + bombas al mismo tiempo) para no clavar el pico. El matriculado tiene que <b>verificar que la acometida/medidor aguanten ~63A</b>; si la distribuidora no te da esa potencia en monofásico, hay que bajar simultaneidad (no correr todo junto) o evaluar trifásica más adelante.</p>
         </div>
         <Tabla
           cols={['Canal', 'Cargas', 'Corriente', 'Contactor', 'Breaker']}
@@ -103,7 +108,11 @@ export default function GuiaHardware() {
             [<b>CO₂ (solenoide chica 220V)</b>, '1', '<1A', '— relé directo', '—'],
           ]}
         />
-        <p className="text-[11px] text-[#5c5c6b] mt-2"><b>Total: 6 contactores</b> (2 luces 25A + AC 40A + deshumi 16A + vent 16A + bomba riego 16A) + breaker por grupo + general. El CO₂ va por relé directo. <b>Total sala ≈ 13,8 kW (~63A) en MONOFÁSICO</b> — cable 16 mm²+, térmica general ~63A y cargas escalonadas desde el ESP32.</p>
+        <p className="text-[11px] text-[#5c5c6b] mt-2"><b>Total: 6 contactores</b> (2 luces 25A + AC 40A + deshumi 16A + vent 16A + bomba riego 16A) + breaker por grupo + general. El CO₂ va por relé directo. <b>Total sala ≈ 13,8 kW (~63A) en MONOFÁSICO</b> — cable 16 mm²+, térmica general ~63A y cargas escalonadas desde el ESP32. La <b>2ª bomba ½HP</b> del total no tiene canal en el tablero: si la querés controlada, es un 7º contactor 16A colgado de un relé libre; si es manual, no suma nada acá.</p>
+        <div className="mt-2 rounded-lg bg-[#e0685c]/[0.08] border border-[#e0685c]/30 p-2.5">
+          <p className="text-[11px] text-[#f0a89f]"><b>Disyuntor diferencial 30mA = obligatorio, no opcional.</b> Sala de cultivo = agua + humedad + 220V. La térmica te protege el cable (sobrecarga/corto); el diferencial te protege <b>a vos</b>: corta en milisegundos ante una fuga a tierra (un equipo con carcasa electrificada, un cable pelado en el riego). BAW/Sica 2x63A 30mA ≈ <b>$23.000-32.000</b> — es lo más barato del tablero y lo más importante.</p>
+        </div>
+        <p className="text-[10.5px] text-[#5c5c6b] mt-2">Precios de referencia (jul 2026): contactor 25A (Chint/BAW/Sica) ≈$25.000-40.000 · contactor 40A ≈$40.000-60.000 · térmica 2x63A ≈$20.000-35.000 · breakers de grupo (C10/C16/C32) ≈$8.000-15.000 c/u. Todo en ML / casas de electricidad; el matriculado suele conseguirlos mejor.</p>
         <div className="mt-2 rounded-lg bg-[#f0a35e]/[0.07] border border-[#f0a35e]/25 p-3">
           <p className="text-[12px] text-[#e0b48a]"><b>Luces divididas en 2 grupos a propósito:</b> los 12 drivers de LED prendiendo TODOS juntos generan un pico de arranque (inrush) que puede soldar los contactos de un solo contactor. Se dividen en grupos y se <b>escalonan</b> — el ESP32 los prende con 1-2 seg de diferencia (fácil con <span className="font-mono">delay</span> en ESPHome). Regla: contactor = corriente × 1.5. Nunca el AC/luces directo al relé.</p>
         </div>
@@ -125,9 +134,12 @@ export default function GuiaHardware() {
               ['Rango CO₂', '400 – 5000 ppm (SCD40 topa en 2000 → por eso el 41)'],
               ['Precisión CO₂', '±(50 ppm + 5%)'],
               ['Alimentación', <span><b className="text-[#f0a35e]">3.3V</b> — el chip es 3.3V; alimentar a 3V3 aunque el módulo diga «5V tolerant» (validado en foros)</span>],
-              ['Tipo', 'Fotoacústico, con autocalibración (ABC)'],
+              ['Tipo', <span>Fotoacústico. <b className="text-[#f0a35e]">Apagar la autocalibración (ASC)</b> — ver abajo</span>],
             ]}
           />
+        </div>
+        <div className="rounded-lg bg-[#f0a35e]/[0.07] border border-[#f0a35e]/25 p-3 mb-2">
+          <p className="text-[12px] text-[#e0b48a]"><b>Por qué apagar la autocalibración (ASC):</b> el algoritmo asume que el punto MÁS BAJO de CO₂ que vio en 7 días es «aire exterior» (400 ppm) y se recalibra contra eso. En una sala enriquecida nunca bajás a 400 → el sensor se corre solo y te miente cada semana. En ESPHome: <span className="font-mono">automatic_self_calibration: false</span>. A cambio, calibrás a mano 1-2 veces al año con <b>FRC</b> (forced recalibration): sensor 3+ minutos al aire libre (CO₂ estable ≈420 ppm) y forzás la recalibración a ese valor desde ESPHome. El <span className="font-mono">temperature_offset</span> de fábrica es 4°C (autocalentamiento del chip) — ajustalo comparando contra un termómetro de referencia pegado al sensor.</p>
         </div>
         <p className="text-[11px] text-[#5c5c6b]">⚠️ Algunos módulos rotulan «41» pero traen SCD40. Al conectarlo, ESPHome reporta el chip y su rango — verificar ahí.</p>
       </Seccion>
@@ -140,14 +152,14 @@ export default function GuiaHardware() {
         <Tabla
           cols={['Bus / componente', 'Resuelve', 'Distancia', 'Precio']}
           rows={[
-            [<b>DS18B20 ×9-15 (1-Wire)</b>, 'Grilla de TEMPERATURA por cable (mapa de calor)', 'decenas de m, muchos en 1 cable', 'USD 2-3 c/u'],
-            [<b>SCD41 (I²C) — UNO solo</b>, 'CO₂ (el gas se difunde parejo, no hace falta multi-punto)', 'cerca de la caja / cable corto', '$52.829 AR'],
-            ['SHT31 (I²C)', 'Humedad en 1-2 puntos clave', 'pocos metros (cable corto)', 'USD 4-6 c/u'],
-            [<b>Nodos RS485 / Modbus</b>, 'CO₂/HR en varios puntos LEJOS (fiel a Growcast)', 'cientos de m', 'USD 6-10/nodo'],
-            ['Extensor I²C (P82B715 / Cat5)', 'Estirar el I²C a distancias medianas', '~10-20 m', 'USD 3-6'],
-            ['TCA9548A (mux I²C)', 'Varios sensores I²C iguales EN la caja', 'dentro de la caja', 'USD 2-4'],
-            ['MLX90614 (opcional)', 'Temp de HOJA → VPD REAL', 'I²C, cable corto', 'USD 6-9'],
-            [<b>ADS1115</b>, 'Sensores analógicos (EC/pH — futuro)', 'I²C', 'USD 3'],
+            [<b>DS18B20 ×9-15 (1-Wire)</b>, 'Grilla de TEMPERATURA por cable (mapa de calor)', 'decenas de m, muchos en 1 cable', '$3.465 c/u sonda sumergible (Candy-HO)'],
+            [<b>SCD41 (I²C) — UNO solo</b>, 'CO₂ (el gas se difunde parejo, no hace falta multi-punto)', 'cerca de la caja / cable corto', '$52.829 (Starware, ML)'],
+            ['SHT31 (I²C)', 'Humedad en 1-2 puntos clave', 'pocos metros (cable corto)', '$9.311 (Candy-HO)'],
+            [<b>Nodos RS485 / Modbus</b>, 'CO₂/HR en varios puntos LEJOS (fiel a Growcast)', 'cientos de m', '≈$15.000-20.000/nodo'],
+            ['Extensor I²C (P82B715 / Cat5)', 'Estirar el I²C a distancias medianas', '~10-20 m', '≈$5.000-8.000 (ML)'],
+            ['TCA9548A (mux I²C)', 'Varios sensores I²C iguales EN la caja', 'dentro de la caja', '≈$5.000-8.000 (ML, poco stock local)'],
+            ['MLX90614 (opcional)', 'Temp de HOJA → VPD REAL', 'I²C, cable corto', '≈$20.000-30.000 (ML)'],
+            [<b>ADS1115</b>, 'Sensores analógicos (EC/pH — futuro)', 'I²C', '≈$8.000-10.000 (ML)'],
           ]}
         />
         <div className="mt-3 rounded-lg bg-[#a78bfa]/[0.06] border border-[#a78bfa]/25 p-3">
@@ -175,11 +187,11 @@ export default function GuiaHardware() {
         <Tabla
           cols={['Componente', 'Para qué', 'Precio']}
           rows={[
-            [<b>MAX485 / MAX3485 ×2+</b>, 'Convertir TTL↔RS485 (1 en controlador + 1 por nodo)', 'USD 1-2 c/u'],
-            ['Micro por nodo (ESP32/ESP8266/Nano)', 'Leer el SCD41 en el nodo remoto', 'USD 3-5 c/u'],
-            ['Par trenzado (UTP/Cat5)', 'El bus de datos', 'USD 5-10'],
+            [<b>MAX485 / MAX3485 ×2+</b>, 'Convertir TTL↔RS485 (1 en controlador + 1 por nodo)', '$1.638 c/u (Candy-HO)'],
+            ['Micro por nodo (ESP32/ESP8266/Nano)', 'Leer el SCD41 en el nodo remoto', '≈$10.400-13.000 (ESP32, Candy-HO)'],
+            ['Par trenzado (UTP/Cat5)', 'El bus de datos', '≈$500-800/m (ML)'],
             ['Resistencias 120Ω ×2', 'Terminación del bus (en las puntas)', 'centavos'],
-            ['Gabinete chico por nodo', 'Proteger el sensor remoto', 'USD 2-4'],
+            ['Gabinete chico por nodo', 'Proteger el sensor remoto', '≈$4.000-8.000'],
           ]}
         />
         <div className="mt-3 rounded-lg bg-[#7dd3fc]/[0.06] border border-[#7dd3fc]/25 p-3">
@@ -199,9 +211,9 @@ export default function GuiaHardware() {
         <Tabla
           cols={['Componente', 'Función', 'Precio']}
           rows={[
-            ['Emisor IR (LED IR + transistor)', 'Setearle la temperatura al mini-split AC (como el ARS-1). ESPHome climate/IR.', 'USD 2-4'],
-            [<b>Interruptores manuales (toggle) ×6</b>, 'Override por salida ON–AUTO–OFF: forzar cada equipo a mano si el ESP32 se cuelga o para probar. El Growcast real los tiene en el frente.', 'USD 1-2 c/u'],
-            ['Sonda EC + pH (opcional, v2)', 'Solución hidropónica', 'USD 25-45'],
+            ['Emisor IR (LED IR + transistor)', 'Setearle la temperatura al mini-split AC (como el ARS-1). ESPHome climate/IR.', '≈$3.000-5.000'],
+            [<b>Interruptores manuales (toggle) ×6</b>, 'Override por salida ON–AUTO–OFF: forzar cada equipo a mano si el ESP32 se cuelga o para probar. El Growcast real los tiene en el frente.', '≈$2.500-4.000 c/u (3 posiciones)'],
+            ['Sonda EC + pH (opcional, v2)', 'Solución hidropónica', '≈$40.000-80.000 (ML)'],
           ]}
         />
         <p className="text-[11px] text-[#5c5c6b] mt-2">El override manual va en serie con la salida (o con un toggle de 3 posiciones ON–AUTO–OFF entre el relé/contactor y la carga). Es la seguridad de poder operar la sala aunque falle la electrónica.</p>
@@ -212,13 +224,13 @@ export default function GuiaHardware() {
         <Tabla
           cols={['Componente', 'Función', 'Nota', 'Precio']}
           rows={[
-            [<b>Electroválvula (solenoide) ×cama</b>, 'Abrir/cerrar el riego de cada cama por separado', '12/24V DC — vía relé/MOSFET, nunca al GPIO', 'USD 4-8 c/u'],
+            [<b>Electroválvula (solenoide) ×cama</b>, 'Abrir/cerrar el riego de cada cama por separado', 'La tuya ya está: RPE 1" NC 220V ($96.337), relé directo. Alternativa por cama: 12/24V DC chinas', '≈$10.000-20.000 c/u (12V)'],
             ['Relé para la bomba principal', 'Presurizar el riego', 'una bomba alimenta todas las válvulas', 'incluido'],
-            [<b>Nivel de tanque (flotante)</b>, 'Interlock: la bomba NO arranca en seco', 'digital, 1 pin', 'USD 2-4'],
-            ['Sensor humedad de sustrato ×cama (capacitivo)', 'Riego por humedad real de cada cama', 'analógico → ADS1115 (ESP32 tiene pocos ADC)', 'USD 2-4 c/u'],
-            ['Caudalímetro (opcional)', 'Confirmar que efectivamente regó', 'pulsos', 'USD 3-6'],
-            ['Bomba dosificadora (peristáltica) + EC/pH inline', 'Fertirriego automático (futuro)', 'mezcla nutrientes en línea', 'USD 15-30 c/u'],
-            ['Fuente 12/24V + drivers', 'Alimentar los solenoides', 'separada de la lógica 5V', 'USD 8-15'],
+            [<b>Nivel de tanque (flotante)</b>, 'Interlock: la bomba NO arranca en seco', 'digital, 1 pin', '≈$8.000-15.000'],
+            ['Sensor humedad de sustrato ×cama (capacitivo)', 'Riego por humedad real de cada cama', 'analógico → ADS1115 (ESP32 tiene pocos ADC)', '≈$3.000-5.000 c/u'],
+            ['Caudalímetro (opcional)', 'Confirmar que efectivamente regó', 'pulsos', '≈$8.000-12.000'],
+            ['Bomba dosificadora (peristáltica) + EC/pH inline', 'Fertirriego automático (futuro)', 'mezcla nutrientes en línea', '≈$15.000-30.000 c/u'],
+            ['Fuente 12/24V + drivers', 'Alimentar los solenoides (solo si vas a válvulas DC)', 'separada de la lógica 5V', '≈$12.000-20.000'],
           ]}
         />
         <div className="mt-3 rounded-lg bg-[#f0a35e]/[0.07] border border-[#f0a35e]/25 p-3">
@@ -239,7 +251,7 @@ export default function GuiaHardware() {
       {/* CO2 seguridad */}
       <Seccion icon={ShieldAlert} titulo="5c · CO₂ — inyección y SEGURIDAD" sub="El CO₂ mal manejado es peligroso (asfixiante) y se desperdicia. Reglas clave">
         <div className="rounded-lg bg-[#e0685c]/[0.08] border border-[#e0685c]/30 p-3 mb-3">
-          <p className="text-[12px] text-[#f0a89f]"><b>🚨 Interlock obligatorio:</b> el CO₂ NUNCA se inyecta con el extractor prendido. El relé de CO₂ y el de extracción no pueden estar activos a la vez (bloqueo en la lógica de ESPHome).</p>
+          <p className="text-[12px] text-[#f0a89f]"><b>🚨 Interlock obligatorio:</b> el CO₂ NUNCA se inyecta con el extractor prendido — es tirar el gas (y la plata) afuera. ESPHome lo resuelve nativo con <span className="font-mono">interlock:</span> entre los dos switches. <b>Ojo:</b> tu tablero actual NO tiene canal de extractor (sala sellada + AC); la regla aplica el día que sumes extracción — dejala anotada.</p>
         </div>
         <Tabla
           cols={['Detalle', 'Regla']}
@@ -259,30 +271,33 @@ export default function GuiaHardware() {
         <Tabla
           cols={['Componente', 'Función', 'Precio']}
           rows={[
-            [<b>RTC DS3231</b>, 'Reloj para automatizaciones por horario OFFLINE (Growcast usa uno)', 'USD 2-4'],
+            [<b>RTC DS3231</b>, 'Reloj para automatizaciones por horario OFFLINE (Growcast usa uno)', '$4.883 (Candy-HO)'],
             ['Resistencias 4.7kΩ', 'Pull-ups del bus DS18B20 (1-Wire) e I²C', 'centavos'],
-            ['Conectores JST / borneras', 'Enchufar sensores sin soldar', 'USD 3-5'],
-            ['Cable apantallado / UTP CAT5', 'Tirar sensores lejos sin ruido (I²C sensible)', 'USD 5-10'],
-            ['Buzzer + LEDs de estado', 'Alarma sonora + señalización local', 'USD 2-3'],
-            ['Snubber / varistor por carga inductiva', 'Proteger relés del pico del AC/extractores', 'USD 3-5'],
-            ['Protoboard / perfboard (o PCB)', 'Montaje prolijo', 'USD 3-8'],
-            [<b>Sensor de fuga de agua</b>, 'Detectar inundación (riego/tanque) → alarma + corte de bomba', 'USD 2-4'],
-            ['Detector de humo (opcional)', 'Seguridad — alarma ante incendio (Growcast/TrolMaster lo tienen)', 'USD 3-6'],
+            ['Conectores JST / borneras', 'Enchufar sensores sin soldar', '≈$4.000-6.000'],
+            ['Cable apantallado / UTP CAT5', 'Tirar sensores lejos sin ruido (I²C sensible)', '≈$500-800/m'],
+            ['Buzzer + LEDs de estado', 'Alarma sonora + señalización local', '≈$1.500-3.000'],
+            [<b>Capacitor 1000µF (electrolítico)</b>, 'Entre 5V y GND al lado del ESP32: los picos de TX del WiFi provocan brownout/reseteos con fuentes flojas', '≈$1.000'],
+            ['Snubber RC / varistor', 'En las BOBINAS de contactores y cargas inductivas: el kickback de la bobina suelda los contactos del relé chico (falla más reportada en foros)', '≈$3.000-5.000 c/u'],
+            ['Protoboard / perfboard (o PCB)', 'Montaje prolijo', '≈$5.000-10.000'],
+            [<b>Sensor de fuga de agua</b>, 'Detectar inundación (riego/tanque) → alarma + corte de bomba', '≈$4.000-7.000'],
+            ['Detector de humo (opcional)', 'Seguridad — alarma ante incendio (Growcast/TrolMaster lo tienen)', '≈$8.000-15.000'],
           ]}
         />
       </Seccion>
 
       {/* Presupuesto */}
-      <Seccion icon={Wallet} titulo="Presupuesto estimado" sub="Contra TrolMaster US$600-1000 · Growcast equipo + suscripción">
+      <Seccion icon={Wallet} titulo="Presupuesto estimado (ARS jul 2026)" sub="Contra TrolMaster ≈US$600-1000 o Growcast equipo + suscripción. Fuentes: Candy-HO + MercadoLibre">
         <Tabla
-          cols={['Versión', 'Qué incluye', 'Total (USD equiv.)']}
+          cols={['Bloque', 'Qué incluye', 'Total ARS']}
           rows={[
-            ['Núcleo funcional', 'ESP32 + relés + fuente/caja + SCD41 + contactor AC + protecciones', '~130-170'],
-            ['+ Multipunto / mapa de calor', 'DS18B20 ×9 + SHT31 ×3 + BH1750 + TCA9548A', '~40-55'],
-            ['+ IR AC + VPD real (MLX90614) + RTC', 'control fino + fail-safe horario', '~15-25'],
-            [<b>Completa</b>, 'todo lo anterior (sin cámara térmica ni EC/pH)', <b className="text-[#d9f99d]">~185-250</b>],
+            ['Electrónica (lógica)', 'ESP32 + placa 8 relés + fuente 5V + SCD41 + RTC + capacitor + misceláneos', '≈$110.000-150.000'],
+            ['Tablero de potencia', '6 contactores + térmica 63A + disyuntor dif. 30mA + breakers + gabinete + borneras/cable (lo compra/instala el matriculado)', '≈$280.000-400.000'],
+            ['+ Multipunto / mapa de calor', 'DS18B20 ×9 + SHT31 ×2 + TCA9548A/extensor', '≈$60.000-90.000'],
+            ['+ Fino', 'IR para el AC + MLX90614 (VPD hoja) + toggles override + ADS1115', '≈$40.000-70.000'],
+            [<b>Completa</b>, 'todo lo anterior (sin cámara térmica ni EC/pH)', <b className="text-[#d9f99d]">≈$490.000-710.000</b>],
           ]}
         />
+        <p className="text-[11px] text-[#5c5c6b] mt-2">La electrónica sola (lo que reemplaza al cerebro de Growcast) es ~$110-150 mil. El grueso es el tablero de potencia — que con CUALQUIER controlador (Growcast, TrolMaster o este) lo necesitás igual: no es costo del clon, es costo de tener 13,8 kW instalados de forma segura.</p>
       </Seccion>
 
       {/* Software / próximos pasos */}
@@ -432,12 +447,12 @@ climate: ...`}</pre>
 
             {/* riel 1 breakers */}
             <rect x="26" y="44" width="688" height="86" rx="8" fill="#101016" stroke="#7dd3fc" strokeWidth="1.2" />
-            <text x="38" y="62" fill="#7dd3fc" fontSize="10" fontWeight="bold">Riel DIN 1 · Térmica general 63A + breaker por grupo</text>
-            {['63A','C32','C25','C25','C16','C16','C16'].map((b, i) => (
+            <text x="38" y="62" fill="#7dd3fc" fontSize="10" fontWeight="bold">Riel DIN 1 · Térmica general 63A + disyuntor dif. 30mA + breaker por grupo</text>
+            {['63A','30mA','C32','C16','C16','C10','C10','C10'].map((b, i) => (
               <g key={i}>
-                <rect x={40 + i * 96} y="76" width="82" height="42" rx="4" fill="#15151d" stroke="#3a4a55" strokeWidth="1" />
-                <text x={81 + i * 96} y="93" textAnchor="middle" fill="#d4d4dd" fontSize="11" fontWeight="bold">{b}</text>
-                <text x={81 + i * 96} y="109" textAnchor="middle" fill="#5c5c6b" fontSize="8">{['GRAL','AC','Luz1','Luz2','Deshu','Vent','Bomba'][i]}</text>
+                <rect x={40 + i * 84} y="76" width="74" height="42" rx="4" fill="#15151d" stroke="#3a4a55" strokeWidth="1" />
+                <text x={77 + i * 84} y="93" textAnchor="middle" fill="#d4d4dd" fontSize="11" fontWeight="bold">{b}</text>
+                <text x={77 + i * 84} y="109" textAnchor="middle" fill="#5c5c6b" fontSize="8">{['GRAL','DIF','AC','Luz1','Luz2','Deshu','Vent','Bomba'][i]}</text>
               </g>
             ))}
 
@@ -504,7 +519,15 @@ climate: ...`}</pre>
         />
         <p className="text-[11px] text-[#5c5c6b] mt-2">Todos los pines de relé son salidas seguras (no strapping, no solo-entrada). La placa de relés es activa en LOW → en ESPHome van con <span className="font-mono">inverted: true</span> y <span className="font-mono">restore_mode: ALWAYS_OFF</span>.</p>
         <div className="mt-2 rounded-lg bg-[#f0a35e]/[0.07] border border-[#f0a35e]/25 p-2.5">
-          <p className="text-[11px] text-[#e0b48a]"><b>Recomendaciones de la comunidad (foros):</b> alimentá el <b>VCC de la placa de relés desde los 5V</b> (no del 3.3V del ESP32, no da corriente). Verificá que el módulo dispare con <b>3.3V</b> (marcado «3.3V compatible») o usá level shifter. <b>Derateá 50%</b>: un relé «10A» no lo corras a 10A continuo — por eso el AC va por contactor. No corras señales 3.3V al lado de los 220V.</p>
+          <p className="text-[11px] text-[#e0b48a] font-semibold mb-1.5">Recomendaciones de la comunidad (foros HA / Random Nerd / DroneBot) — y el porqué:</p>
+          <ul className="space-y-1 text-[11px] text-[#e0b48a]">
+            <li>• <b>Jumper JD-VCC afuera</b>: bobinas de relé a los 5V de la fuente, lógica al 3.3V del ESP32 → el opto aísla de verdad y los picos de conmutación no resetean el micro (ver sección 1).</li>
+            <li>• <b>Verificá trigger 3.3V</b>: que el módulo dispare con 3.3V (marcado «3.3V compatible»); si no, level shifter o cambiar R del opto (1kΩ→220Ω).</li>
+            <li>• <b>Derate 50%</b>: un relé «10A» no lo corras a 10A continuo — por eso todo lo grande va por contactor.</li>
+            <li>• <b>DS18B20 en modo alimentado (3 cables), NO parásito</b>: con 9 sondas y metros de cable el modo parásito (2 cables) se vuelve inestable; llevá VCC+GND+DATA y el pull-up de 4.7kΩ (bajalo a 2.2kΩ si el bus es muy largo).</li>
+            <li>• <b>Capacitor 1000µF en los 5V del ESP32</b>: el pico de corriente del TX WiFi causa brownout/reseteos aleatorios con fuentes justas — el clásico «se reinicia cada tanto y no sé por qué».</li>
+            <li>• <b>Señales 3.3V lejos de los 220V</b>: bandeja/canal separado dentro del gabinete; sensores por cable apantallado o UTP.</li>
+          </ul>
         </div>
 
         <p className="text-[11.5px] text-[#a6a6b5] mt-4 mb-2 font-semibold">Tablero 220V (⚠️ con la llave general BAJA)</p>
@@ -539,8 +562,14 @@ esp32:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
+  ap:                       # hotspot de emergencia: si se cae tu WiFi,
+    ssid: "GrowcastDIY"     # el ESP32 levanta su propia red para entrar
+captive_portal:
 logger:
 api:
+  reboot_timeout: 0s   # ¡CLAVE! Sin esto, si no hay Home Assistant
+                       # conectado el ESP32 SE REINICIA SOLO cada 15 min
+                       # (default de ESPHome pensado para HA, no standalone)
 ota:
   - platform: esphome
 
@@ -590,37 +619,73 @@ sensor:
       return svp * (1.0 - rh / 100.0);
 
 # ---------- Salidas (relés activos en LOW) ----------
+# MISMO ORDEN QUE EL PINOUT DE ARRIBA: K1..K8.
+# restore_mode ALWAYS_OFF = tras un corte de luz TODO arranca apagado
+# hasta que la lógica decida (nunca una carga "pegada" al volver la luz).
 switch:
-  - platform: gpio
+  - platform: gpio          # K1
     pin: GPIO13
     name: "Aire acondicionado"
+    id: rele_ac
     inverted: true
     restore_mode: ALWAYS_OFF
-  - platform: gpio
+  - platform: gpio          # K2
     pin: GPIO18
-    name: "Luces"
+    name: "Luces grupo 1 (propias)"
+    id: rele_luces_1
     inverted: true
     restore_mode: ALWAYS_OFF
-  - platform: gpio
+  - platform: gpio          # K3
     pin: GPIO19
-    name: "Extractores"
+    name: "Luces grupo 2 (prestadas)"
+    id: rele_luces_2
     inverted: true
     restore_mode: ALWAYS_OFF
-  - platform: gpio
+  - platform: gpio          # K4
     pin: GPIO23
-    name: "Ventiladores"
-    inverted: true
-    restore_mode: ALWAYS_OFF
-  - platform: gpio
-    pin: GPIO25
     name: "Deshumidificador"
+    id: rele_deshumi
     inverted: true
     restore_mode: ALWAYS_OFF
-  - platform: gpio
+  - platform: gpio          # K5
+    pin: GPIO25
+    name: "Ventiladores"
+    id: rele_vent
+    inverted: true
+    restore_mode: ALWAYS_OFF
+  - platform: gpio          # K6
     pin: GPIO26
-    name: "Inyeccion CO2"
+    name: "Bomba de riego"
+    id: rele_bomba
     inverted: true
     restore_mode: ALWAYS_OFF
+  - platform: gpio          # K7
+    pin: GPIO27
+    name: "Electrovalvula riego"
+    id: rele_valvula
+    inverted: true
+    restore_mode: ALWAYS_OFF
+  - platform: gpio          # K8
+    pin: GPIO32
+    name: "Inyeccion CO2"
+    id: rele_co2
+    inverted: true
+    restore_mode: ALWAYS_OFF
+    # interlock: [rele_extractor]   # si sumás extractor: ESPHome tiene
+    # interlock NATIVO — CO2 y extracción jamás prendidos a la vez
+
+# Luces escalonadas (anti-inrush): grupo 1, y 2 seg después el grupo 2.
+# Los 12 drivers LED prendiendo juntos clavan un pico que suelda contactos.
+script:
+  - id: prender_luces
+    then:
+      - switch.turn_on: rele_luces_1
+      - delay: 2s
+      - switch.turn_on: rele_luces_2
+  - id: apagar_luces
+    then:
+      - switch.turn_off: rele_luces_1
+      - switch.turn_off: rele_luces_2
 
 # ---------- AC por infrarrojo ----------
 remote_transmitter:
@@ -631,9 +696,12 @@ climate:
     name: "AC (IR)"
 
 # ---------- Ejemplos de automatización on-device ----------
-# Luces 7:00 ON / 3:00 OFF, y AC si Temp > 24° — se hacen con
-# 'on_time:' (time) y 'on_value_range:' (sensor). Ver doc ESPHome.`}</pre>
+# Luces 7:00 ON / 3:00 OFF (script.execute: prender_luces), AC si
+# Temp > 24° — con 'on_time:' (time) y 'on_value_range:' (sensor).`}</pre>
         <p className="text-[11px] text-[#5c5c6b] mt-2">⚠️ La sintaxis de ESPHome evoluciona (ej. <span className="font-mono">one_wire</span>/<span className="font-mono">dallas_temp</span>). Validá con <span className="font-mono">esphome config</span> antes de flashear. Los <span className="font-mono">address</span> de los DS18B20 salen del log del primer arranque (I²C/1-Wire scan).</p>
+        <div className="mt-2 rounded-lg bg-[#7dd3fc]/[0.06] border border-[#7dd3fc]/25 p-2.5">
+          <p className="text-[11px] text-[#d4d4dd]"><b className="text-[#7dd3fc]">Por qué cada línea rara:</b> <span className="font-mono">reboot_timeout: 0s</span> — el default de ESPHome reinicia el ESP32 si pasa 15 min sin cliente API conectado (está pensado para vivir pegado a Home Assistant); acá corre solo, así que se apaga esa lógica. <span className="font-mono">ap:</span> + <span className="font-mono">captive_portal:</span> — si tu WiFi muere, el ESP32 levanta su propia red y entrás igual, sin escalera ni reflasheo. <span className="font-mono">restore_mode: ALWAYS_OFF</span> — después de un corte de luz nada arranca solo; la automatización re-evalúa y prende lo que corresponda.</p>
+        </div>
       </Seccion>
 
       {/* Otros builds de la comunidad */}
@@ -731,14 +799,14 @@ sensor:
         - below: 23.0
           then: { switch.turn_off: rele_ac }   # <23 -> apaga AC
 
-# 3) POR HORARIO (luces 7:00 ON / 3:00 OFF)
+# 3) POR HORARIO (luces 7:00 ON / 3:00 OFF, escalonadas anti-inrush)
 time:
   - platform: sntp
     on_time:
       - hours: 7
-        then: { switch.turn_on: rele_luces }
+        then: { script.execute: prender_luces }   # grupo 1 + 2s + grupo 2
       - hours: 3
-        then: { switch.turn_off: rele_luces }
+        then: { script.execute: apagar_luces }
 
 # 4) CICLADO (ventiladores 10 min si / 20 no) -- el "ciclador", sin timer fisico
 interval:
@@ -752,9 +820,11 @@ interval:
         <p className="text-[12px] text-[#d4d4dd] mt-4 mb-2 font-semibold">Riego por fases (crop steering P0/P1/P2) — como Growcast:</p>
         <pre className="text-[10.5px] font-mono bg-[#0a0a0f] border border-[#1f1f2b] rounded-lg p-3 overflow-x-auto text-[#7dd3fc] leading-relaxed">{`switch:
   - platform: gpio
-    pin: GPIO25
+    pin: GPIO27              # K7 del pinout (electrovalvula riego)
     id: valvula_riego
     name: "Riego"
+    inverted: true
+    restore_mode: ALWAYS_OFF
 
 script:
   - id: ciclo_riego
