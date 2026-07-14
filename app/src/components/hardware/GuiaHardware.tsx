@@ -220,12 +220,16 @@ export default function GuiaHardware() {
       </Seccion>
 
       {/* Riego multi-cama */}
-      <Seccion icon={Droplets} titulo="5b · Riego de varias camas (fertirriego)" sub="Un subsistema propio: válvulas por cama, bomba, nivel y humedad">
+      <Seccion icon={Droplets} titulo="5b · Riego de las 3 camas (fertirriego)" sub="Tu esquema: UNA electroválvula para las 3 camas en paralelo + bomba. Válvula por cama = upgrade opcional">
+        <div className="rounded-lg bg-[#a3e635]/[0.06] border border-[#404d20] p-3 mb-3">
+          <p className="text-[12px] text-[#d4d4dd]"><b className="text-[#a3e635]">Tu diseño (cerrado):</b> <b>UNA sola electroválvula</b> RPE 1" NC 220V para todo el riego — abre y las <b>3 camas riegan EN PARALELO</b> al mismo tiempo. El manifold reparte <i>después</i> de la válvula; las llaves manuales por cama son solo para balancear caudal. Total riego = <b>2 canales</b>: K6 (bomba, contactor) + K7 (válvula, relé directo). Simple y suficiente: mismas plantas, mismo sustrato, misma receta → no hay motivo para regar las camas por separado.</p>
+        </div>
         <Tabla
           cols={['Componente', 'Función', 'Nota', 'Precio']}
           rows={[
-            [<b>Electroválvula (solenoide) ×cama</b>, 'Abrir/cerrar el riego de cada cama por separado', 'La tuya ya está: RPE 1" NC 220V ($96.337), relé directo. Alternativa por cama: 12/24V DC chinas', '≈$10.000-20.000 c/u (12V)'],
-            ['Relé para la bomba principal', 'Presurizar el riego', 'una bomba alimenta todas las válvulas', 'incluido'],
+            [<b>Electroválvula ÚNICA (tu diseño)</b>, 'Abre → riegan las 3 camas a la vez', 'RPE 1" NC 220V, relé directo (K7). Ya elegida', '$96.337 (ML)'],
+            ['Electroválvula ×cama (upgrade opcional)', 'Riego independiente por cama — solo si un día corrés recetas/tiempos distintos por cama', '12/24V DC vía relé/MOSFET, nunca al GPIO. Requiere más salidas', '≈$10.000-20.000 c/u (12V)'],
+            ['Relé para la bomba principal', 'Presurizar el riego', 'una bomba alimenta todo (contactor K6)', 'incluido'],
             [<b>Nivel de tanque (flotante)</b>, 'Interlock: la bomba NO arranca en seco', 'digital, 1 pin', '≈$8.000-15.000'],
             ['Sensor humedad de sustrato ×cama (capacitivo)', 'Riego por humedad real de cada cama', 'analógico → ADS1115 (ESP32 tiene pocos ADC)', '≈$3.000-5.000 c/u'],
             ['Caudalímetro (opcional)', 'Confirmar que efectivamente regó', 'pulsos', '≈$8.000-12.000'],
@@ -234,7 +238,7 @@ export default function GuiaHardware() {
           ]}
         />
         <div className="mt-3 rounded-lg bg-[#f0a35e]/[0.07] border border-[#f0a35e]/25 p-3">
-          <p className="text-[12px] text-[#e0b48a]"><b>Ojo con la cantidad de salidas:</b> con varias camas se te acaban las 6 salidas → necesitás <b>expansión</b>: más relés, o <b>nodos RS485 cerca de las camas</b> que manejen sus válvulas (como los módulos expansores de Growcast). Bomba y solenoides siempre por relé/MOSFET, no al GPIO.</p>
+          <p className="text-[12px] text-[#e0b48a]"><b>Ojo con la cantidad de salidas (solo si migrás a válvula por cama):</b> con TU esquema de 1 válvula sobran salidas — riego completo = 2 canales. Pero si un día vas a válvula independiente por cama, ahí sí se acaban los 8 relés → <b>expansión</b>: placa de 16 + MCP23017, o <b>nodos RS485 cerca de las camas</b> (como los módulos expansores de Growcast). Bomba y solenoides siempre por relé/MOSFET, no al GPIO.</p>
         </div>
         <p className="text-[11px] text-[#5c5c6b] mt-2">Growcast soporta sensores de sustrato METER (TEROS 12 = humedad + temp + EC del sustrato) — la referencia si querés riego por humedad de verdad, no solo por horario.</p>
         <div className="mt-3 rounded-lg bg-[#a3e635]/[0.06] border border-[#404d20] p-3">
