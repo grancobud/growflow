@@ -108,7 +108,7 @@ export default function GuiaHardware() {
             [<b>CO₂ (solenoide chica 220V)</b>, '1', '<1A', '— relé directo', '—'],
           ]}
         />
-        <p className="text-[11px] text-[#5c5c6b] mt-2"><b>Total: 6 contactores</b> (2 luces 25A + AC 40A + deshumi 16A + vent 16A + bomba riego 16A) + breaker por grupo + general. El CO₂ va por relé directo. <b>Total sala ≈ 13,8 kW (~63A) en MONOFÁSICO</b> — cable 16 mm²+, térmica general ~63A y cargas escalonadas desde el ESP32. La <b>2ª bomba ½HP</b> del total no tiene canal en el tablero: si la querés controlada, es un 7º contactor 16A colgado de un relé libre; si es manual, no suma nada acá.</p>
+        <p className="text-[11px] text-[#5c5c6b] mt-2"><b>Total: 6 contactores</b> (2 luces 25A + AC 40A + deshumi 16A + vent 16A + bomba riego 16A) + breaker por grupo + general. El CO₂ va por relé directo. <b>Total sala ≈ 13,8 kW (~63A) en MONOFÁSICO</b> — cable 16 mm²+, térmica general ~63A y cargas escalonadas desde el ESP32. La <b>2ª bomba ½HP</b> (recirculación de la cisterna) va <b>manual, NO al tablero</b> — suma a los 13,8 kW totales de la instalación pero no ocupa canal ni contactor.</p>
         <div className="mt-2 rounded-lg bg-[#e0685c]/[0.08] border border-[#e0685c]/30 p-2.5">
           <p className="text-[11px] text-[#f0a89f]"><b>Disyuntor diferencial 30mA = obligatorio, no opcional.</b> Sala de cultivo = agua + humedad + 220V. La térmica te protege el cable (sobrecarga/corto); el diferencial te protege <b>a vos</b>: corta en milisegundos ante una fuga a tierra (un equipo con carcasa electrificada, un cable pelado en el riego). BAW/Sica 2x63A 30mA ≈ <b>$23.000-32.000</b> — es lo más barato del tablero y lo más importante.</p>
         </div>
@@ -251,7 +251,7 @@ export default function GuiaHardware() {
       {/* CO2 seguridad */}
       <Seccion icon={ShieldAlert} titulo="5c · CO₂ — inyección y SEGURIDAD" sub="El CO₂ mal manejado es peligroso (asfixiante) y se desperdicia. Reglas clave">
         <div className="rounded-lg bg-[#e0685c]/[0.08] border border-[#e0685c]/30 p-3 mb-3">
-          <p className="text-[12px] text-[#f0a89f]"><b>🚨 Interlock obligatorio:</b> el CO₂ NUNCA se inyecta con el extractor prendido — es tirar el gas (y la plata) afuera. ESPHome lo resuelve nativo con <span className="font-mono">interlock:</span> entre los dos switches. <b>Ojo:</b> tu tablero actual NO tiene canal de extractor (sala sellada + AC); la regla aplica el día que sumes extracción — dejala anotada.</p>
+          <p className="text-[12px] text-[#f0a89f]"><b>🚨 Interlock obligatorio:</b> el CO₂ NUNCA se inyecta con el extractor prendido — es tirar el gas (y la plata) afuera. ESPHome lo resuelve nativo con <span className="font-mono">interlock:</span> entre los dos switches. <b>Tu caso:</b> sala SELLADA con AC, sin extractor (confirmado) → el interlock hoy no aplica; queda anotado para el día que sumes extracción. En sala sellada el CO₂ rinde al máximo: no se escapa nada.</p>
         </div>
         <Tabla
           cols={['Detalle', 'Regla']}
