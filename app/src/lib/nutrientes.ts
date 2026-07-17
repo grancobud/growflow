@@ -207,7 +207,8 @@ export const SALES_DEFECTO: Sal[] = [
   { id: 'amolib', nombre: 'Molibdato de amonio', formula: '(NH₄)₆Mo₇O₂₄', bidon: 'C',
     comp: { Mo: 0.54, NH4: 0.057 } },
   { id: 'ksilic', nombre: 'Silicato de potasio', formula: 'K₂SiO₃', bidon: 'C',
-    comp: { Si: 0.18, K: 0.20 }, nota: 'Aporta Si. Sube pH; va en bidón aparte.' },
+    comp: { Si: 0.18, K: 0.20 }, nota: 'Aporta Si. Sube pH; va en bidón aparte.',
+    descripcion: 'Silicio + potasio: engrosa paredes celulares y da resistencia. ⚠️ REPOSO DE pH: es alcalino (sube el pH) y NO reacciona al instante. Va SIEMPRE primero al agua, revolver y ESPERAR 15-20 min antes de ajustar el pH final; si medís enseguida, el pH "rebota" hacia arriba después (en el bidón y en el sustrato) y la escorrentía te sube ~1 punto. Dosis moderada (0.5-1 ml/L o g/L): más silicato = más rebote. En coco apuntá la entrada a pH 5.8 para compensar. Va en bidón aparte (nunca concentrado con calcio ni sulfatos).' },
 
   // --- Micromix (todos los micros en un producto) ---
   { id: 'fetrilon_combi2', nombre: 'Fetrilon Combi 2 (micromix EDTA)', bidon: 'C',
@@ -286,7 +287,7 @@ export const SALES_DEFECTO: Sal[] = [
     descripcion: 'Comercial Athena: finalizador SIN nitrógeno que aporta calcio + micros quelatados completos (cloruro de calcio + Fe/Mn/Zn/Cu-EDTA + B + Mo). Reemplaza al Pro Core en las últimas 3 semanas, junto a un PK (Pro Bloom). OJO: mete cloro (Cl ~7%). Para un finish completo: Fade + base PK + Mg.' },
   { id: 'athena_balance', nombre: 'Athena Balance (0-0-2)', bidon: 'C', liquido: true, densidad: 1.2,
     comp: { K: 0.0166, Si: 0.01 },
-    descripcion: 'Comercial Athena: aporta silicio (silicato de potasio) para estructura/resistencia y ayuda a balancear pH. Va aparte (sube pH). NPK 0-0-2.' },
+    descripcion: 'Comercial Athena: aporta silicio (silicato de potasio) para estructura/resistencia y ayuda a balancear pH. Va aparte (sube pH). NPK 0-0-2. ⚠️ REPOSO DE pH: químicamente es lo mismo que el silicato de potasio suelto (Kawsay) — TAMBIÉN sube el pH. "Balancea" solo porque en agua RO le da cuerpo/buffer y se usa PRIMERO, y las sales ácidas (Core/Bloom) lo bajan después. No es un bajador de pH. Metelo primero, revolvé y esperá 15-20 min antes del ajuste final para que no rebote la escorrentía.' },
   { id: 'athena_cleanse', nombre: 'Athena Cleanse (limpieza)', formula: 'HOCl', bidon: 'C', aditivo: true, liquido: true, densidad: 1.0, comp: {},
     descripcion: 'Comercial Athena: NO es nutriente. Ácido hipocloroso (HOCl) derivado de sal, limpia raíces/sistema de riego y previene acumulación mineral/biofilm. Es un sanitizante, no aporta nada nutritivo.' },
   { id: 'hocl', nombre: 'Ácido hipocloroso (generador en polvo)', formula: 'HOCl', bidon: 'C', aditivo: true, comp: {},
