@@ -20,6 +20,7 @@ const PaginaConocimiento = lazyWithRetry(() => import('./pages/PaginaConocimient
 const PaginaTablas = lazyWithRetry(() => import('./pages/PaginaTablas'), 'PaginaTablas')
 const PaginaSala = lazyWithRetry(() => import('./pages/PaginaSala'), 'PaginaSala')
 const PaginaEstadisticas = lazyWithRetry(() => import('./pages/PaginaEstadisticas'), 'PaginaEstadisticas')
+const PaginaCosecha = lazyWithRetry(() => import('./pages/PaginaCosecha'), 'PaginaCosecha')
 const PaginaPacientes = lazyWithRetry(() => import('./pages/PaginaPacientes'), 'PaginaPacientes')
 const PaginaGeneticas = lazyWithRetry(() => import('./pages/PaginaGeneticas'), 'PaginaGeneticas')
 const PaginaAsistencia = lazyWithRetry(() => import('./pages/PaginaAsistencia'), 'PaginaAsistencia')
@@ -89,6 +90,9 @@ function App() {
           } />
           <Route path="sala" element={
             <Suspense fallback={null}><PaginaSala /></Suspense>
+          } />
+          <Route path="cosecha" element={
+            <Suspense fallback={null}><PaginaCosecha /></Suspense>
           } />
           <Route path="stats" element={
             <Suspense fallback={null}><PaginaEstadisticas /></Suspense>
