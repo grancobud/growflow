@@ -181,7 +181,13 @@ export default function PaginaPlantas() {
     (!fUbicacion || p.ubicacion === fUbicacion) &&
     (!fPaciente || p.paciente_id === fPaciente) &&
     (!soloRiego || tieneRiegoPendiente(p))
-  ), [plantas, q, fGenetica, fFase, fUbicacion, fPaciente, soloRiego])
+  ).sort((a, b) => {
+    // Agrupar por variedad (genética) y, dentro, por número de planta.
+    const ga = a.genetica ?? '￿', gb = b.genetica ?? '￿'
+    const g = ga.localeCompare(gb, 'es')
+    if (g !== 0) return g
+    return a.nombre.localeCompare(b.nombre, 'es', { numeric: true })
+  }), [plantas, q, fGenetica, fFase, fUbicacion, fPaciente, soloRiego])
   const riegoPendienteCount = useMemo(() => plantas.filter(tieneRiegoPendiente).length, [plantas])
   const hayFiltros = !!(q || fGenetica || fFase || fUbicacion || fPaciente || soloRiego)
   const limpiarFiltros = () => { setBusqueda(''); setFGenetica(''); setFFase(''); setFUbicacion(''); setFPaciente(''); setSoloRiego(false) }
