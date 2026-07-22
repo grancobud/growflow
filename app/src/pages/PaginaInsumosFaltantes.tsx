@@ -8,8 +8,8 @@ import {
   ShoppingCart, Plus, Trash2, Check, Loader2, RefreshCw, PackageX,
 } from 'lucide-react'
 import {
-  SALES_DEFECTO, sustanciasService, faltantesService,
-  type Sal, type InsumoFaltante, type Prioridad,
+  faltantesService,
+  type InsumoFaltante, type Prioridad,
 } from '../lib/nutrientes'
 
 const inputCls = 'w-full px-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
@@ -27,11 +27,10 @@ const ORDEN_PRIORIDAD: Record<Prioridad, number> = { alta: 0, media: 1, baja: 2 
 
 export default function PaginaInsumosFaltantes() {
   const [faltantes, setFaltantes] = useState<InsumoFaltante[]>([])
-  const [sales, setSales] = useState<Sal[]>(SALES_DEFECTO)
   const [cargando, setCargando] = useState(true)
 
   // form
-  const [salId, setSalId] = useState('')
+  const [nombre, setNombre] = useState('')
   const [cantidad, setCantidad] = useState('')
   const [unidad, setUnidad] = useState<string>('kg')
   const [prioridad, setPrioridad] = useState<Prioridad>('media')
@@ -41,12 +40,7 @@ export default function PaginaInsumosFaltantes() {
   const cargar = useCallback(async () => {
     setCargando(true)
     try {
-      const [fs, customs] = await Promise.all([
-        faltantesService.list(),
-        sustanciasService.list().catch(() => [] as Sal[]),
-      ])
-      setFaltantes(fs)
-      setSales([...SALES_DEFECTO, ...customs])
+      setFaltantes(await faltantesService.list())
     } catch (err) {
       toast.error(`Error cargando faltantes: ${(err as Error).message}`)
     } finally {
@@ -56,22 +50,18 @@ export default function PaginaInsumosFaltantes() {
 
   useEffect(() => { cargar() }, [cargar])
 
-  const salesOrdenadas = useMemo(
-    () => [...sales].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')),
-    [sales])
-
   const guardar = async () => {
-    const sal = sales.find(s => s.id === salId)
-    if (!sal) { toast.error('Elegí el insumo'); return }
+    const nom = nombre.trim()
+    if (!nom) { toast.error('Escribí el nombre del insumo'); return }
     setGuardando(true)
     try {
       await faltantesService.crear({
-        sal_id: sal.id, nombre: sal.nombre,
+        sal_id: null, nombre: nom,
         cantidad: cantidad.trim() === '' ? null : parseFloat(cantidad.replace(',', '.')),
         unidad, prioridad, nota: nota.trim() || null, comprado: false,
       })
-      toast.success(`"${sal.nombre}" agregado a la lista`)
-      setSalId(''); setCantidad(''); setNota(''); setPrioridad('media'); setUnidad('kg')
+      toast.success(`"${nom}" agregado a la lista`)
+      setNombre(''); setCantidad(''); setNota(''); setPrioridad('media'); setUnidad('kg')
       cargar()
     } catch (err) { toast.error(`Error: ${(err as Error).message}`); setGuardando(false) }
   }
@@ -118,11 +108,10 @@ export default function PaginaInsumosFaltantes() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="sm:col-span-2">
-              <label className={labelCls}>Insumo / sal *</label>
-              <select className={inputCls} value={salId} onChange={e => setSalId(e.target.value)}>
-                <option value="">— elegí el insumo —</option>
-                {salesOrdenadas.map(s => <option key={s.id} value={s.id}>{s.nombre}</option>)}
-              </select>
+              <label className={labelCls}>Nombre del insumo *</label>
+              <input className={inputCls} placeholder="ej. maceta 11L, cinta de riego, guantes, malla…" value={nombre}
+                onChange={e => setNombre(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') guardar() }} />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div><label className={labelCls}>Cantidad</label><input type="number" inputMode="decimal" className={inputCls} placeholder="5" value={cantidad} onChange={e => setCantidad(e.target.value)} /></div>
