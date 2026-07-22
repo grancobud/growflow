@@ -197,7 +197,6 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
   // --- estado modo total ---
   const [fecha, setFecha] = useState(hoy())
   const [seco, setSeco] = useState('')
-  const [humedo, setHumedo] = useState('')
   const [valoracion, setValoracion] = useState(0)
   const [sabor, setSabor] = useState('')
   const [curado, setCurado] = useState('')
@@ -214,7 +213,7 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
 
   const guardarTotal = async () => {
     const pesoSeco = num(seco)
-    if (pesoSeco == null && num(humedo) == null) { toast.error('Cargá al menos el peso seco'); return }
+    if (pesoSeco == null) { toast.error('Cargá el peso seco'); return }
     // Se registra en una planta representativa de la variedad (la primera).
     const rep = fila.plantas[0]
     if (!rep) { toast.error('Esta variedad no tiene plantas'); return }
@@ -222,7 +221,7 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
     try {
       await cultivoService.crearCosecha({
         planta_id: rep.id, fecha,
-        peso_seco_g: pesoSeco, peso_humedo_g: num(humedo),
+        peso_seco_g: pesoSeco, peso_humedo_g: null,
         valoracion: valoracion || null,
         notas_sabor: sabor.trim() || null,
         notas_curado: [curado.trim() || null, `Total de variedad (${fila.plantas.length} pl.)`].filter(Boolean).join(' · '),
@@ -233,14 +232,14 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
   }
 
   const guardarPorPlanta = async () => {
-    const entradas = Object.entries(porPlanta).filter(([, v]) => num(v.seco) != null || num(v.humedo) != null)
+    const entradas = Object.entries(porPlanta).filter(([, v]) => num(v.seco) != null)
     if (entradas.length === 0) { toast.error('Cargá el peso de al menos una planta'); return }
     setGuardando(true)
     try {
       for (const [plantaId, v] of entradas) {
         await cultivoService.crearCosecha({
           planta_id: plantaId, fecha,
-          peso_seco_g: num(v.seco), peso_humedo_g: num(v.humedo),
+          peso_seco_g: num(v.seco), peso_humedo_g: null,
           valoracion: v.val || null,
         })
       }
@@ -280,9 +279,9 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
 
           {modo === 'total' ? (
             <>
-              <div className="grid grid-cols-2 gap-3">
-                <div><label className={labelCls}>Peso seco (g)</label><input type="number" inputMode="decimal" className={inputCls} placeholder="480" value={seco} onChange={e => setSeco(e.target.value)} autoFocus /></div>
-                <div><label className={labelCls}>Peso húmedo (g)</label><input type="number" inputMode="decimal" className={inputCls} placeholder="2100" value={humedo} onChange={e => setHumedo(e.target.value)} /></div>
+              <div>
+                <label className={labelCls}>Peso seco (g)</label>
+                <input type="number" inputMode="decimal" className={inputCls} placeholder="480" value={seco} onChange={e => setSeco(e.target.value)} autoFocus />
               </div>
               <p className="text-[10.5px] text-[#757584] -mt-2">Se registra el total de las {fila.plantas.length} plantas de {fila.genetica}.</p>
               <div>
@@ -305,10 +304,9 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
                       <div className="text-[11.5px] font-medium text-[#ececf1] truncate mb-2">
                         {p.codigo || p.nombre || 'Planta'} <span className="text-[#5c5c6b] font-normal">· {p.fase}</span>
                       </div>
-                      <div className="grid grid-cols-3 gap-2 items-end">
+                      <div className="grid grid-cols-2 gap-2 items-end">
                         <div><label className="block text-[9px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1">Seco g</label><input type="number" inputMode="decimal" className={inputCls} placeholder="120" value={v?.seco ?? ''} onChange={e => setPP(p.id, 'seco', e.target.value)} /></div>
-                        <div><label className="block text-[9px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1">Húmedo g</label><input type="number" inputMode="decimal" className={inputCls} placeholder="530" value={v?.humedo ?? ''} onChange={e => setPP(p.id, 'humedo', e.target.value)} /></div>
-                        <div><label className="block text-[9px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1">★</label>
+                        <div><label className="block text-[9px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1">Valoración ★</label>
                           <select className={inputCls} value={v?.val ?? 0} onChange={e => setPP(p.id, 'val', Number(e.target.value))}>
                             <option value={0}>—</option>
                             {Array.from({ length: 10 }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n}</option>)}
