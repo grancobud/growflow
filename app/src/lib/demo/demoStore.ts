@@ -6,7 +6,7 @@
 // ============================================================================
 
 const PREFIJO = 'growflow_demo:'
-const VERSION_SEED = 'v9'
+const VERSION_SEED = 'v10'
 
 export type Fila = Record<string, any>
 
