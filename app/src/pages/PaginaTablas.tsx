@@ -184,6 +184,17 @@ const TABLAS: DefTabla[] = [
     ],
   },
   {
+    id: 'insumos_faltantes', nombre: 'Insumos faltantes', orden: 'creado_en',
+    cols: [
+      { campo: 'nombre', titulo: 'Insumo', tipo: 'text', ancho: 'min-w-[160px]' },
+      { campo: 'cantidad', titulo: 'Cantidad', tipo: 'number' },
+      { campo: 'unidad', titulo: 'Unidad', tipo: { select: ['kg', 'g', 'L', 'mL', 'u'] } },
+      { campo: 'prioridad', titulo: 'Prioridad', tipo: { select: ['alta', 'media', 'baja'] } },
+      { campo: 'comprado', titulo: 'Comprado', tipo: 'bool' },
+      { campo: 'nota', titulo: 'Nota', tipo: 'text', ancho: 'min-w-[200px]' },
+    ],
+  },
+  {
     id: 'proveedores_instalacion', nombre: 'Proveedores (instalación)', orden: 'nombre',
     cols: [
       { campo: 'nombre', titulo: 'Nombre', tipo: 'text', ancho: 'min-w-[160px]' },

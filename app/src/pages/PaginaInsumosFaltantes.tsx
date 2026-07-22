@@ -1,0 +1,194 @@
+// PaginaInsumosFaltantes — lista de compras de sales/insumos que hay que reponer.
+// Carga tipo Proveedores (dropdown de sal del catálogo) + cantidad, prioridad, nota.
+// Persiste en Supabase (tabla insumos_faltantes vía faltantesService).
+
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { toast } from 'sonner'
+import {
+  ShoppingCart, Plus, Trash2, Check, Loader2, RefreshCw, PackageX,
+} from 'lucide-react'
+import {
+  SALES_DEFECTO, sustanciasService, faltantesService,
+  type Sal, type InsumoFaltante, type Prioridad,
+} from '../lib/nutrientes'
+
+const inputCls = 'w-full px-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
+const btnPrimario = 'inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[12px] font-medium text-[#d9f99d] disabled:opacity-50'
+
+const UNIDADES = ['kg', 'g', 'L', 'mL', 'u'] as const
+
+const COLOR_PRIORIDAD: Record<Prioridad, { label: string; text: string; bg: string; border: string }> = {
+  alta:  { label: 'ALTA',  text: '#ff8a7a', bg: 'rgba(122,40,32,0.18)', border: '#7a2820' },
+  media: { label: 'MEDIA', text: '#fbbf24', bg: 'rgba(245,158,11,0.12)', border: '#5a4a20' },
+  baja:  { label: 'BAJA',  text: '#8f8f9f', bg: 'rgba(180,180,200,0.06)', border: '#2a2a3a' },
+}
+const ORDEN_PRIORIDAD: Record<Prioridad, number> = { alta: 0, media: 1, baja: 2 }
+
+export default function PaginaInsumosFaltantes() {
+  const [faltantes, setFaltantes] = useState<InsumoFaltante[]>([])
+  const [sales, setSales] = useState<Sal[]>(SALES_DEFECTO)
+  const [cargando, setCargando] = useState(true)
+
+  // form
+  const [salId, setSalId] = useState('')
+  const [cantidad, setCantidad] = useState('')
+  const [unidad, setUnidad] = useState<string>('kg')
+  const [prioridad, setPrioridad] = useState<Prioridad>('media')
+  const [nota, setNota] = useState('')
+  const [guardando, setGuardando] = useState(false)
+
+  const cargar = useCallback(async () => {
+    setCargando(true)
+    try {
+      const [fs, customs] = await Promise.all([
+        faltantesService.list(),
+        sustanciasService.list().catch(() => [] as Sal[]),
+      ])
+      setFaltantes(fs)
+      setSales([...SALES_DEFECTO, ...customs])
+    } catch (err) {
+      toast.error(`Error cargando faltantes: ${(err as Error).message}`)
+    } finally {
+      setCargando(false)
+    }
+  }, [])
+
+  useEffect(() => { cargar() }, [cargar])
+
+  const salesOrdenadas = useMemo(
+    () => [...sales].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')),
+    [sales])
+
+  const guardar = async () => {
+    const sal = sales.find(s => s.id === salId)
+    if (!sal) { toast.error('Elegí el insumo'); return }
+    setGuardando(true)
+    try {
+      await faltantesService.crear({
+        sal_id: sal.id, nombre: sal.nombre,
+        cantidad: cantidad.trim() === '' ? null : parseFloat(cantidad.replace(',', '.')),
+        unidad, prioridad, nota: nota.trim() || null, comprado: false,
+      })
+      toast.success(`"${sal.nombre}" agregado a la lista`)
+      setSalId(''); setCantidad(''); setNota(''); setPrioridad('media'); setUnidad('kg')
+      cargar()
+    } catch (err) { toast.error(`Error: ${(err as Error).message}`); setGuardando(false) }
+  }
+
+  const toggleComprado = async (f: InsumoFaltante) => {
+    try { await faltantesService.actualizar(f.id, { comprado: !f.comprado }); cargar() }
+    catch (err) { toast.error(`Error: ${(err as Error).message}`) }
+  }
+  const borrar = async (f: InsumoFaltante) => {
+    try { await faltantesService.eliminar(f.id); toast.success('Insumo quitado'); cargar() }
+    catch (err) { toast.error(`Error: ${(err as Error).message}`) }
+  }
+
+  const ordenados = useMemo(() => [...faltantes].sort((a, b) => {
+    if (!!a.comprado !== !!b.comprado) return a.comprado ? 1 : -1 // pendientes primero
+    const p = ORDEN_PRIORIDAD[a.prioridad] - ORDEN_PRIORIDAD[b.prioridad]
+    if (p !== 0) return p
+    return (b.creado_en ?? '').localeCompare(a.creado_en ?? '')
+  }), [faltantes])
+
+  const pendientes = faltantes.filter(f => !f.comprado).length
+
+  return (
+    <div className="flex-1 overflow-y-auto bg-[#0a0a0f] text-[#d4d4dd] font-sans">
+      <div className="sticky top-0 z-40 bg-[#0a0a0f]/95 backdrop-blur-[2px] border-b border-[#1f1f2b]">
+        <div className="flex items-center gap-2 sm:gap-4 px-3 sm:px-6 py-3">
+          <div className="min-w-0">
+            <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Insumos faltantes</h1>
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">Lista de compras · {pendientes} pendiente{pendientes !== 1 ? 's' : ''}</div>
+          </div>
+          <div className="flex-1" />
+          <button onClick={cargar} className="p-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] transition-colors text-[#a6a6b5]" title="Refrescar">
+            <RefreshCw className={`w-3.5 h-3.5 ${cargando ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
+      </div>
+
+      <div className="px-3 sm:px-6 py-4 sm:py-5 pb-20 space-y-4 max-w-3xl mx-auto">
+        {/* Form de alta */}
+        <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4 sm:p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <ShoppingCart className="w-3.5 h-3.5 text-[#bef264]" />
+            <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Agregar insumo faltante</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="sm:col-span-2">
+              <label className={labelCls}>Insumo / sal *</label>
+              <select className={inputCls} value={salId} onChange={e => setSalId(e.target.value)}>
+                <option value="">— elegí el insumo —</option>
+                {salesOrdenadas.map(s => <option key={s.id} value={s.id}>{s.nombre}</option>)}
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div><label className={labelCls}>Cantidad</label><input type="number" inputMode="decimal" className={inputCls} placeholder="5" value={cantidad} onChange={e => setCantidad(e.target.value)} /></div>
+              <div><label className={labelCls}>Unidad</label>
+                <select className={inputCls} value={unidad} onChange={e => setUnidad(e.target.value)}>
+                  {UNIDADES.map(u => <option key={u} value={u}>{u}</option>)}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className={labelCls}>Prioridad</label>
+              <select className={inputCls} value={prioridad} onChange={e => setPrioridad(e.target.value as Prioridad)}>
+                <option value="alta">Alta</option>
+                <option value="media">Media</option>
+                <option value="baja">Baja</option>
+              </select>
+            </div>
+            <div className="sm:col-span-2">
+              <label className={labelCls}>Nota</label>
+              <input className={inputCls} placeholder="ej. conseguir en Pura Química, mínimo 5 kg…" value={nota} onChange={e => setNota(e.target.value)} />
+            </div>
+          </div>
+          <button onClick={guardar} disabled={guardando} className={`${btnPrimario} mt-3 w-full sm:w-auto justify-center`}>
+            {guardando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />} Agregar a la lista
+          </button>
+        </div>
+
+        {/* Lista */}
+        {cargando ? (
+          <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-14 bg-[#101016] border border-[#1f1f2b] rounded-xl animate-pulse" />)}</div>
+        ) : ordenados.length === 0 ? (
+          <div className="py-16 text-center">
+            <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><PackageX className="w-5 h-5 text-[#5c5c6b]" /></div>
+            <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">Sin insumos faltantes</div>
+            <div className="mt-1 text-[11.5px] text-[#5c5c6b]">Cargá lo que necesites reponer y te queda la lista de compras.</div>
+          </div>
+        ) : (
+          <ul className="space-y-2">
+            {ordenados.map(f => {
+              const cp = COLOR_PRIORIDAD[f.prioridad]
+              return (
+                <li key={f.id} className={`rounded-xl border px-4 py-3 flex items-center gap-3 transition-colors ${f.comprado ? 'bg-[#0d0d12] border-[#1a1a24] opacity-60' : 'bg-[#101016] border-[#1f1f2b] hover:border-[#404d20]'}`}>
+                  <button onClick={() => toggleComprado(f)}
+                    className={`w-5 h-5 rounded-md border flex items-center justify-center flex-shrink-0 transition-colors ${f.comprado ? 'bg-[#a3e635]/20 border-[#404d20] text-[#bef264]' : 'border-[#2a2a3a] text-transparent hover:border-[#404d20]'}`}
+                    title={f.comprado ? 'Marcar como pendiente' : 'Marcar como comprado'}>
+                    <Check className="w-3.5 h-3.5" />
+                  </button>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[13px] font-medium truncate ${f.comprado ? 'line-through text-[#5c5c6b]' : 'text-[#ececf1]'}`}>{f.nombre}</span>
+                      <span className="text-[9px] font-semibold tracking-wide rounded px-1.5 py-0.5 border flex-shrink-0" style={{ color: cp.text, background: cp.bg, borderColor: cp.border }}>{cp.label}</span>
+                    </div>
+                    <div className="text-[10.5px] text-[#757584] mt-0.5 tabular-nums">
+                      {f.cantidad != null && <span>{f.cantidad.toLocaleString('es-AR')} {f.unidad ?? ''}</span>}
+                      {f.nota && <span>{f.cantidad != null ? ' · ' : ''}{f.nota}</span>}
+                    </div>
+                  </div>
+                  <button onClick={() => borrar(f)} className="p-1.5 text-[#46464f] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors flex-shrink-0" title="Quitar">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </div>
+    </div>
+  )
+}

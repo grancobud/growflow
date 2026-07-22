@@ -53,7 +53,7 @@ export const TABLAS_CONOCIDAS = [
   'geneticas', 'plantas', 'eventos', 'cosechas',
   'riegos', 'aplicaciones', 'perfiles_usuario', 'pacientes',
   'cultivadores', 'jornadas', 'asistencias', 'actividades',
-  'perfiles_nutrientes', 'sustancias_nutrientes', 'inventario_nutrientes', 'proveedores_nutrientes',
+  'perfiles_nutrientes', 'sustancias_nutrientes', 'inventario_nutrientes', 'proveedores_nutrientes', 'insumos_faltantes',
   'proveedores_instalacion', 'instalaciones_items', 'presupuestos_instalacion', 'presupuesto_instalacion_items',
   'ofertas_instalacion',
 ]

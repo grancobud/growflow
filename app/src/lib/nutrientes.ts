@@ -1182,3 +1182,38 @@ export const proveedoresService = {
     if (error) throw error
   },
 }
+
+// --- Insumos faltantes: lista de compras (sal/insumo, cantidad, prioridad, nota) ---
+export type Prioridad = 'alta' | 'media' | 'baja'
+export interface InsumoFaltante {
+  id: string
+  sal_id?: string | null       // id de la sal del catálogo (null si insumo libre)
+  nombre: string               // nombre del insumo (snapshot o libre)
+  cantidad?: number | null
+  unidad?: string | null       // kg | g | L | mL | u
+  prioridad: Prioridad
+  nota?: string | null
+  comprado?: boolean
+  creado_en?: string
+}
+export const faltantesService = {
+  async list(): Promise<InsumoFaltante[]> {
+    const { data, error } = await supabase
+      .from('insumos_faltantes').select('*').order('creado_en', { ascending: false })
+    if (error) throw error
+    return (data ?? []) as unknown as InsumoFaltante[]
+  },
+  async crear(f: Omit<InsumoFaltante, 'id' | 'creado_en'>): Promise<void> {
+    const { data: u } = await supabase.auth.getUser()
+    const { error } = await supabase.from('insumos_faltantes').insert({ ...f, user_id: u?.user?.id ?? null })
+    if (error) throw error
+  },
+  async actualizar(id: string, patch: Partial<Omit<InsumoFaltante, 'id' | 'creado_en'>>): Promise<void> {
+    const { error } = await supabase.from('insumos_faltantes').update(patch).eq('id', id)
+    if (error) throw error
+  },
+  async eliminar(id: string): Promise<void> {
+    const { error } = await supabase.from('insumos_faltantes').delete().eq('id', id)
+    if (error) throw error
+  },
+}
