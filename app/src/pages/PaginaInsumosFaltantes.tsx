@@ -5,7 +5,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 import {
-  ShoppingCart, Plus, Trash2, Check, Loader2, RefreshCw, PackageX, Upload, ExternalLink, Pencil, Wallet,
+  ShoppingCart, Plus, Trash2, Check, Loader2, RefreshCw, PackageX, Upload, ExternalLink, Pencil, Wallet, X as XIcon,
 } from 'lucide-react'
 import {
   faltantesService,
@@ -28,10 +28,7 @@ const ORDEN_PRIORIDAD: Record<Prioridad, number> = { alta: 0, media: 1, baja: 2 
 export default function PaginaInsumosFaltantes() {
   const [faltantes, setFaltantes] = useState<InsumoFaltante[]>([])
   const [cargando, setCargando] = useState(true)
-  const [expandido, setExpandido] = useState<Set<string>>(new Set())
-  const toggleExpandir = (id: string) => setExpandido(s => {
-    const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n
-  })
+  const [detalle, setDetalle] = useState<InsumoFaltante | null>(null)
 
   // form
   const [nombre, setNombre] = useState('')
@@ -269,11 +266,11 @@ export default function PaginaInsumosFaltantes() {
                     title={f.comprado ? 'Marcar como pendiente' : 'Marcar como comprado'}>
                     <Check className="w-3.5 h-3.5" />
                   </button>
-                  {f.imagen && <img src={f.imagen} alt="" className="w-11 h-11 rounded object-cover border border-[#1f1f2b] flex-shrink-0 self-start" />}
+                  {f.imagen && <img src={f.imagen} alt="" onClick={() => setDetalle(f)} className="w-11 h-11 rounded object-cover border border-[#1f1f2b] flex-shrink-0 self-start cursor-pointer hover:border-[#404d20]" title="Ver ficha" />}
                   <div className="min-w-0 flex-1">
                     {/* Línea 1: nombre + prioridad */}
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`text-[13px] font-semibold truncate ${f.comprado ? 'line-through text-[#5c5c6b]' : 'text-[#ececf1]'}`}>{f.nombre}</span>
+                      <button onClick={() => setDetalle(f)} className={`text-[13px] font-semibold truncate text-left hover:text-[#bef264] transition-colors ${f.comprado ? 'line-through text-[#5c5c6b]' : 'text-[#ececf1]'}`} title="Ver ficha">{f.nombre}</button>
                       <span className="text-[9px] font-semibold tracking-wide rounded px-1.5 py-0.5 border flex-shrink-0" style={{ color: cp.text, background: cp.bg, borderColor: cp.border }}>{cp.label}</span>
                     </div>
                     {/* Línea 2 (RESALTADA): cantidad · precio · link */}
@@ -295,15 +292,11 @@ export default function PaginaInsumosFaltantes() {
                         </a>
                       )}
                     </div>
-                    {/* Descripción (segundo plano, resumida + expandible) */}
+                    {/* Descripción (segundo plano, resumida — ficha completa en el modal) */}
                     {f.nota && (
                       <div className="mt-1">
-                        <p className={`text-[10.5px] text-[#6a6a78] leading-snug ${expandido.has(f.id) ? '' : 'line-clamp-2'}`}>{f.nota}</p>
-                        {f.nota.length > 90 && (
-                          <button onClick={() => toggleExpandir(f.id)} className="text-[10px] text-[#5c5c6b] hover:text-[#a6a6b5] mt-0.5">
-                            {expandido.has(f.id) ? 'ver menos' : 'ver más'}
-                          </button>
-                        )}
+                        <p className="text-[10.5px] text-[#6a6a78] leading-snug line-clamp-2">{f.nota}</p>
+                        <button onClick={() => setDetalle(f)} className="text-[10px] text-[#38bdf8] hover:text-[#7dd3fc] mt-0.5">ver ficha</button>
                       </div>
                     )}
                   </div>
@@ -321,6 +314,46 @@ export default function PaginaInsumosFaltantes() {
           </ul>
         )}
       </div>
+
+      {detalle && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/70" onClick={() => setDetalle(null)} />
+          <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl bg-[#101016] border border-[#2a2a3a] shadow-2xl">
+            <div className="sticky top-0 bg-[#101016] flex items-center justify-between px-5 py-3.5 border-b border-[#1f1f2b]">
+              <h2 className="font-display font-semibold text-[14px] text-[#ececf1] truncate pr-2">{detalle.nombre}</h2>
+              <button onClick={() => setDetalle(null)} className="p-1 text-[#5c5c6b] hover:text-[#ececf1] flex-shrink-0" aria-label="Cerrar"><XIcon className="w-4 h-4" /></button>
+            </div>
+            <div className="p-5 space-y-4">
+              {detalle.imagen && (
+                <img src={detalle.imagen} alt="" className="w-full max-h-72 object-contain rounded-lg border border-[#1f1f2b] bg-[#0a0a0f]" />
+              )}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[9px] font-semibold tracking-wide rounded px-1.5 py-0.5 border" style={{ color: COLOR_PRIORIDAD[detalle.prioridad].text, background: COLOR_PRIORIDAD[detalle.prioridad].bg, borderColor: COLOR_PRIORIDAD[detalle.prioridad].border }}>{COLOR_PRIORIDAD[detalle.prioridad].label}</span>
+                {detalle.cantidad != null && <span className="text-[11px] font-medium text-[#c4b5fd] bg-[#8b5cf6]/10 border border-[#463a66] rounded px-1.5 py-0.5 tabular-nums">{detalle.cantidad.toLocaleString('es-AR')} {detalle.unidad ?? ''}</span>}
+                {detalle.precio != null && <span className="text-[13px] font-bold text-[#d9f99d] bg-[#a3e635]/10 border border-[#404d20] rounded px-2 py-0.5 tabular-nums">${detalle.precio.toLocaleString('es-AR')}</span>}
+              </div>
+              {detalle.link && (
+                <a href={/^https?:\/\//.test(detalle.link) ? detalle.link : `https://${detalle.link}`} target="_blank" rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#38bdf8] hover:text-[#7dd3fc] bg-[#38bdf8]/10 border border-[#1e3a4a] rounded-lg px-3 py-1.5">
+                  <ExternalLink className="w-3.5 h-3.5" /> Ir a comprar
+                </a>
+              )}
+              {detalle.nota && (
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] mb-1">Descripción / ficha</div>
+                  <p className="text-[12px] text-[#c9c9d4] leading-relaxed whitespace-pre-wrap">{detalle.nota}</p>
+                </div>
+              )}
+              <div className="flex gap-2 pt-1">
+                <button onClick={() => { const f = detalle; setDetalle(null); editar(f) }} className={`${btnPrimario} flex-1 justify-center`}>
+                  <Pencil className="w-3.5 h-3.5" /> Editar
+                </button>
+                <button onClick={() => setDetalle(null)} className="flex-1 justify-center inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] transition-colors text-[12px] text-[#a6a6b5]">Cerrar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
