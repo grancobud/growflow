@@ -28,6 +28,10 @@ const ORDEN_PRIORIDAD: Record<Prioridad, number> = { alta: 0, media: 1, baja: 2 
 export default function PaginaInsumosFaltantes() {
   const [faltantes, setFaltantes] = useState<InsumoFaltante[]>([])
   const [cargando, setCargando] = useState(true)
+  const [expandido, setExpandido] = useState<Set<string>>(new Set())
+  const toggleExpandir = (id: string) => setExpandido(s => {
+    const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n
+  })
 
   // form
   const [nombre, setNombre] = useState('')
@@ -74,8 +78,9 @@ export default function PaginaInsumosFaltantes() {
       toast.success(`"${nom}" agregado a la lista`)
       setNombre(''); setCantidad(''); setNota(''); setPrioridad('media'); setUnidad('kg')
       setPrecio(''); setLink(''); setImagen('')
-      cargar()
-    } catch (err) { toast.error(`Error: ${(err as Error).message}`); setGuardando(false) }
+      await cargar()
+    } catch (err) { toast.error(`Error: ${(err as Error).message}`) }
+    finally { setGuardando(false) }
   }
 
   const toggleComprado = async (f: InsumoFaltante) => {
@@ -184,24 +189,49 @@ export default function PaginaInsumosFaltantes() {
             {ordenados.map(f => {
               const cp = COLOR_PRIORIDAD[f.prioridad]
               return (
-                <li key={f.id} className={`rounded-xl border px-4 py-3 flex items-center gap-3 transition-colors ${f.comprado ? 'bg-[#0d0d12] border-[#1a1a24] opacity-60' : 'bg-[#101016] border-[#1f1f2b] hover:border-[#404d20]'}`}>
+                <li key={f.id} className={`rounded-xl border px-4 py-3 flex items-start gap-3 transition-colors ${f.comprado ? 'bg-[#0d0d12] border-[#1a1a24] opacity-60' : 'bg-[#101016] border-[#1f1f2b] hover:border-[#404d20]'}`}>
                   <button onClick={() => toggleComprado(f)}
-                    className={`w-5 h-5 rounded-md border flex items-center justify-center flex-shrink-0 transition-colors ${f.comprado ? 'bg-[#a3e635]/20 border-[#404d20] text-[#bef264]' : 'border-[#2a2a3a] text-transparent hover:border-[#404d20]'}`}
+                    className={`w-5 h-5 mt-0.5 rounded-md border flex items-center justify-center flex-shrink-0 transition-colors ${f.comprado ? 'bg-[#a3e635]/20 border-[#404d20] text-[#bef264]' : 'border-[#2a2a3a] text-transparent hover:border-[#404d20]'}`}
                     title={f.comprado ? 'Marcar como pendiente' : 'Marcar como comprado'}>
                     <Check className="w-3.5 h-3.5" />
                   </button>
-                  {f.imagen && <img src={f.imagen} alt="" className="w-10 h-10 rounded object-cover border border-[#1f1f2b] flex-shrink-0" />}
+                  {f.imagen && <img src={f.imagen} alt="" className="w-11 h-11 rounded object-cover border border-[#1f1f2b] flex-shrink-0 self-start" />}
                   <div className="min-w-0 flex-1">
+                    {/* Línea 1: nombre + prioridad */}
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`text-[13px] font-medium truncate ${f.comprado ? 'line-through text-[#5c5c6b]' : 'text-[#ececf1]'}`}>{f.nombre}</span>
+                      <span className={`text-[13px] font-semibold truncate ${f.comprado ? 'line-through text-[#5c5c6b]' : 'text-[#ececf1]'}`}>{f.nombre}</span>
                       <span className="text-[9px] font-semibold tracking-wide rounded px-1.5 py-0.5 border flex-shrink-0" style={{ color: cp.text, background: cp.bg, borderColor: cp.border }}>{cp.label}</span>
-                      {f.precio != null && <span className="text-[11px] font-semibold text-[#d9f99d] tabular-nums">${f.precio.toLocaleString('es-AR')}</span>}
-                      {f.link && <a href={/^https?:\/\//.test(f.link) ? f.link : `https://${f.link}`} target="_blank" rel="noreferrer" className="text-[#38bdf8] hover:text-[#7dd3fc]" title="Abrir link"><ExternalLink className="w-3.5 h-3.5" /></a>}
                     </div>
-                    <div className="text-[10.5px] text-[#757584] mt-0.5 tabular-nums">
-                      {f.cantidad != null && <span>{f.cantidad.toLocaleString('es-AR')} {f.unidad ?? ''}</span>}
-                      {f.nota && <span>{f.cantidad != null ? ' · ' : ''}{f.nota}</span>}
+                    {/* Línea 2 (RESALTADA): cantidad · precio · link */}
+                    <div className="flex items-center gap-2 flex-wrap mt-1">
+                      {f.cantidad != null && (
+                        <span className="text-[10.5px] font-medium text-[#c4b5fd] bg-[#8b5cf6]/10 border border-[#463a66] rounded px-1.5 py-0.5 tabular-nums">
+                          {f.cantidad.toLocaleString('es-AR')} {f.unidad ?? ''}
+                        </span>
+                      )}
+                      {f.precio != null && (
+                        <span className="text-[11.5px] font-bold text-[#d9f99d] bg-[#a3e635]/10 border border-[#404d20] rounded px-1.5 py-0.5 tabular-nums">
+                          ${f.precio.toLocaleString('es-AR')}
+                        </span>
+                      )}
+                      {f.link && (
+                        <a href={/^https?:\/\//.test(f.link) ? f.link : `https://${f.link}`} target="_blank" rel="noreferrer"
+                          className="inline-flex items-center gap-1 text-[10.5px] font-medium text-[#38bdf8] hover:text-[#7dd3fc] bg-[#38bdf8]/10 border border-[#1e3a4a] rounded px-1.5 py-0.5">
+                          <ExternalLink className="w-3 h-3" /> Comprar
+                        </a>
+                      )}
                     </div>
+                    {/* Descripción (segundo plano, resumida + expandible) */}
+                    {f.nota && (
+                      <div className="mt-1">
+                        <p className={`text-[10.5px] text-[#6a6a78] leading-snug ${expandido.has(f.id) ? '' : 'line-clamp-2'}`}>{f.nota}</p>
+                        {f.nota.length > 90 && (
+                          <button onClick={() => toggleExpandir(f.id)} className="text-[10px] text-[#5c5c6b] hover:text-[#a6a6b5] mt-0.5">
+                            {expandido.has(f.id) ? 'ver menos' : 'ver más'}
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <button onClick={() => borrar(f)} className="p-1.5 text-[#46464f] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors flex-shrink-0" title="Quitar">
                     <Trash2 className="w-3.5 h-3.5" />
