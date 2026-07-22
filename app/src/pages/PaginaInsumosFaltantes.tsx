@@ -154,6 +154,42 @@ export default function PaginaInsumosFaltantes() {
       </div>
 
       <div className="px-3 sm:px-6 py-4 sm:py-5 pb-20 space-y-4 max-w-3xl mx-auto">
+        {/* Desglose del presupuesto — % que representa cada insumo del total */}
+        {totalPendiente > 0 && (
+          <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden">
+            <div className="px-4 sm:px-5 py-3 border-b border-[#1f1f2b] flex items-center gap-2">
+              <Wallet className="w-3.5 h-3.5 text-[#bef264]" />
+              <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Desglose del presupuesto</h3>
+              <span className="ml-auto text-[12px] font-bold text-[#d9f99d] tabular-nums">${totalPendiente.toLocaleString('es-AR')}</span>
+            </div>
+            <ul className="divide-y divide-[#1a1a24]">
+              {faltantes.filter(f => !f.comprado && subtotal(f) > 0)
+                .sort((a, b) => subtotal(b) - subtotal(a))
+                .map(f => {
+                  const st = subtotal(f)
+                  const pct = (st / totalPendiente) * 100
+                  return (
+                    <li key={f.id} className="px-4 sm:px-5 py-2.5">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-[12px] text-[#ececf1] truncate flex-1">{f.nombre}</span>
+                        <span className="text-[12px] font-semibold text-[#d9f99d] tabular-nums flex-shrink-0">${st.toLocaleString('es-AR')}</span>
+                        <span className="text-[11px] font-medium text-[#c4b5fd] tabular-nums w-11 text-right flex-shrink-0">{pct.toFixed(1)}%</span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-[#1c1c27] overflow-hidden mt-1.5">
+                        <div className="h-full rounded-full bg-gradient-to-r from-[#4d7c0f] to-[#a3e635]" style={{ width: `${pct}%` }} />
+                      </div>
+                      {(f.cantidad != null && f.precio != null) && (
+                        <div className="text-[9.5px] text-[#5c5c6b] mt-0.5 tabular-nums">
+                          {f.cantidad.toLocaleString('es-AR')} {f.unidad ?? ''} × ${f.precio.toLocaleString('es-AR')}
+                        </div>
+                      )}
+                    </li>
+                  )
+                })}
+            </ul>
+          </div>
+        )}
+
         {/* Form de alta */}
         <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4 sm:p-5">
           <div className="flex items-center gap-2 mb-3">
