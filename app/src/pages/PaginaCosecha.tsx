@@ -6,7 +6,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 import {
-  Scale, Scissors, Trophy, X, Loader2, Plus, Star, Layers, Sprout, RefreshCw,
+  Scale, Scissors, Trophy, X, Loader2, Plus, Star, Layers, Sprout, RefreshCw, Pencil, Trash2,
 } from 'lucide-react'
 import { cultivoService, type ResumenPlanta, type Cosecha } from '../lib/cultivo'
 
@@ -40,6 +40,7 @@ interface FilaVariedad {
   pesoHumedo: number
   nCosechas: number
   valoraciones: number[]
+  cosechas: Cosecha[]
 }
 
 const hoy = () => new Date().toISOString().slice(0, 10)
@@ -75,7 +76,7 @@ export default function PaginaCosecha() {
     for (const p of plantas) {
       const g = p.genetica ?? SIN_GEN
       let f = porGen.get(g)
-      if (!f) { f = { genetica: g, plantas: [], pesoSeco: 0, pesoHumedo: 0, nCosechas: 0, valoraciones: [] }; porGen.set(g, f) }
+      if (!f) { f = { genetica: g, plantas: [], pesoSeco: 0, pesoHumedo: 0, nCosechas: 0, valoraciones: [], cosechas: [] }; porGen.set(g, f) }
       f.plantas.push(p)
     }
     const plantaGen = new Map(plantas.map(p => [p.id, p.genetica ?? SIN_GEN]))
@@ -87,6 +88,7 @@ export default function PaginaCosecha() {
       f.pesoSeco += c.peso_seco_g ?? 0
       f.pesoHumedo += c.peso_humedo_g ?? 0
       if (c.valoracion != null) f.valoraciones.push(c.valoracion)
+      f.cosechas.push(c)
     }
     return [...porGen.values()].sort((a, b) => b.pesoSeco - a.pesoSeco)
   }, [plantas, cosechas])
@@ -213,6 +215,7 @@ export default function PaginaCosecha() {
 function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerrar: () => void; onGuardado: () => void }) {
   const [modo, setModo] = useState<'total' | 'planta'>(fila.plantas.length > 1 ? 'total' : 'planta')
   const [guardando, setGuardando] = useState(false)
+  const [editId, setEditId] = useState<string | null>(null) // id de la cosecha en edición
 
   // --- estado modo total ---
   const [fecha, setFecha] = useState(hoy())
@@ -220,6 +223,21 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
   const [valoracion, setValoracion] = useState(0)
   const [sabor, setSabor] = useState('')
   const [curado, setCurado] = useState('')
+
+  const resetForm = () => { setEditId(null); setSeco(''); setValoracion(0); setSabor(''); setCurado(''); setFecha(hoy()) }
+  const editar = (c: Cosecha) => {
+    setEditId(c.id); setModo('total')
+    setFecha(c.fecha)
+    setSeco(c.peso_seco_g?.toString() ?? '')
+    setValoracion(c.valoracion ?? 0)
+    setSabor(c.notas_sabor ?? '')
+    setCurado((c.notas_curado ?? '').replace(/\s*·?\s*Total de variedad \([^)]*\)/, '').trim())
+  }
+  const borrar = async (c: Cosecha) => {
+    if (!window.confirm('¿Borrar esta cosecha? No se puede deshacer.')) return
+    try { await cultivoService.eliminarCosecha(c.id); toast.success('Cosecha borrada'); onGuardado() }
+    catch (err) { toast.error(`Error: ${(err as Error).message}`) }
+  }
 
   // --- estado modo por planta (map plantaId -> {seco, humedo, val}) ---
   const [porPlanta, setPorPlanta] = useState<Record<string, { seco: string; humedo: string; val: number }>>({})
@@ -234,19 +252,30 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
   const guardarTotal = async () => {
     const pesoSeco = num(seco)
     if (pesoSeco == null) { toast.error('Cargá el peso seco'); return }
-    // Se registra en una planta representativa de la variedad (la primera).
-    const rep = fila.plantas[0]
-    if (!rep) { toast.error('Esta variedad no tiene plantas'); return }
     setGuardando(true)
     try {
-      await cultivoService.crearCosecha({
-        planta_id: rep.id, fecha,
-        peso_seco_g: pesoSeco, peso_humedo_g: null,
-        valoracion: valoracion || null,
-        notas_sabor: sabor.trim() || null,
-        notas_curado: [curado.trim() || null, `Total de variedad (${fila.plantas.length} pl.)`].filter(Boolean).join(' · '),
-      })
-      toast.success(`Cosecha de ${fila.genetica} registrada`)
+      if (editId) {
+        // Editar una cosecha existente.
+        await cultivoService.actualizarCosecha(editId, {
+          fecha, peso_seco_g: pesoSeco,
+          valoracion: valoracion || null,
+          notas_sabor: sabor.trim() || null,
+          notas_curado: curado.trim() || null,
+        })
+        toast.success('Cosecha actualizada')
+      } else {
+        // Nueva: se registra en una planta representativa de la variedad (la primera).
+        const rep = fila.plantas[0]
+        if (!rep) { toast.error('Esta variedad no tiene plantas'); setGuardando(false); return }
+        await cultivoService.crearCosecha({
+          planta_id: rep.id, fecha,
+          peso_seco_g: pesoSeco, peso_humedo_g: null,
+          valoracion: valoracion || null,
+          notas_sabor: sabor.trim() || null,
+          notas_curado: [curado.trim() || null, `Total de variedad (${fila.plantas.length} pl.)`].filter(Boolean).join(' · '),
+        })
+        toast.success(`Cosecha de ${fila.genetica} registrada`)
+      }
       onGuardado()
     } catch (err) { toast.error(`Error: ${(err as Error).message}`); setGuardando(false) }
   }
@@ -280,8 +309,35 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
         </div>
 
         <div className="p-5 space-y-4">
+          {/* Cosechas ya cargadas (editar / borrar) */}
+          {fila.cosechas.length > 0 && (
+            <div className="rounded-lg bg-[#15151d] border border-[#2a2a3a] overflow-hidden">
+              <div className="px-3 py-2 text-[9.5px] uppercase tracking-[0.14em] text-[#5c5c6b] border-b border-[#2a2a3a]">Cosechas cargadas</div>
+              <ul className="divide-y divide-[#20202c]">
+                {fila.cosechas.map(c => (
+                  <li key={c.id} className={`flex items-center gap-2 px-3 py-2 ${editId === c.id ? 'bg-[#a3e635]/8' : ''}`}>
+                    <div className="min-w-0 flex-1 text-[11px] text-[#d4d4dd] truncate tabular-nums">
+                      <span className="font-semibold text-[#d9f99d]">{(c.peso_seco_g ?? 0).toLocaleString('es-AR')} g</span>
+                      <span className="text-[#5c5c6b]"> · {c.fecha}</span>
+                      {c.valoracion != null && <span className="text-[#c4b5fd]"> · ★{c.valoracion}</span>}
+                    </div>
+                    <button onClick={() => editar(c)} className="p-1 text-[#5c5c6b] hover:text-[#bef264] transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => borrar(c)} className="p-1 text-[#5c5c6b] hover:text-[#ff8a7a] transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {editId && (
+            <div className="flex items-center justify-between rounded-lg bg-[#a3e635]/10 border border-[#404d20] px-3 py-2">
+              <span className="text-[11px] text-[#d9f99d]">Editando una cosecha cargada</span>
+              <button onClick={resetForm} className="text-[10.5px] text-[#a6a6b5] hover:text-[#ececf1] underline">Cancelar</button>
+            </div>
+          )}
+
           {/* Selector de modo */}
-          {fila.plantas.length > 1 && (
+          {!editId && fila.plantas.length > 1 && (
             <div className="flex gap-1.5 p-1 rounded-lg bg-[#15151d] border border-[#2a2a3a]">
               {(['total', 'planta'] as const).map(m => (
                 <button key={m} onClick={() => setModo(m)}
@@ -303,7 +359,7 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
                 <label className={labelCls}>Peso seco (g)</label>
                 <input type="number" inputMode="decimal" className={inputCls} placeholder="480" value={seco} onChange={e => setSeco(e.target.value)} autoFocus />
               </div>
-              <p className="text-[10.5px] text-[#757584] -mt-2">Se registra el total de las {fila.plantas.length} plantas de {fila.genetica}.</p>
+              {!editId && <p className="text-[10.5px] text-[#757584] -mt-2">Se registra el total de las {fila.plantas.length} plantas de {fila.genetica}.</p>}
               <div>
                 <label className={labelCls}>Valoración</label>
                 <Estrellas valor={valoracion} onChange={setValoracion} />
@@ -311,7 +367,7 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
               <div><label className={labelCls}>Notas de sabor / cata</label><input className={inputCls} placeholder="Cítrico, terroso, efecto relajante..." value={sabor} onChange={e => setSabor(e.target.value)} /></div>
               <div><label className={labelCls}>Notas de curado</label><input className={inputCls} placeholder="3 semanas en frascos, 62% HR..." value={curado} onChange={e => setCurado(e.target.value)} /></div>
               <button onClick={guardarTotal} disabled={guardando} className={`${btnPrimario} w-full justify-center`}>
-                {guardando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Scale className="w-3.5 h-3.5" />} Guardar cosecha
+                {guardando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Scale className="w-3.5 h-3.5" />} {editId ? 'Guardar cambios' : 'Guardar cosecha'}
               </button>
             </>
           ) : (

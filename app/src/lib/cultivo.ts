@@ -311,6 +311,16 @@ export const cultivoService = {
     return data as Cosecha
   },
 
+  async actualizarCosecha(id: string, c: Partial<Cosecha>): Promise<void> {
+    const { error } = await supabase.from('cosechas').update(c).eq('id', id)
+    lanzar(error)
+  },
+
+  async eliminarCosecha(id: string): Promise<void> {
+    const { error } = await supabase.from('cosechas').delete().eq('id', id)
+    lanzar(error)
+  },
+
   // --- fotos ---
   async subirFoto(file: File): Promise<string> {
     const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
