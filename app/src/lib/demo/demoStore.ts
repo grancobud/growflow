@@ -133,6 +133,14 @@ function sembrar(): void {
     { apodo: '#45', slot: 's1-5', genetica: 'Ultra 4K', riegos: [] },
     { apodo: '#30', slot: 'c3-8', genetica: 'Ultra 4K', riegos: [] },
     { apodo: '#15', slot: 'c2-5', genetica: 'Ultra 4K', riegos: [] },
+    // 5ta planta de cada automática (Guanabana, Avocad Punch, Frozen Derrosh,
+    // Gorila Zikttlez, Ultra 4K). Ultra 4K tenía 3, se le suman 2 para llegar a 5.
+    { apodo: '#60', slot: null, genetica: 'Guanabana', riegos: [] },
+    { apodo: '#61', slot: null, genetica: 'Avocad Punch', riegos: [] },
+    { apodo: '#62', slot: null, genetica: 'Frozen Derrosh', riegos: [] },
+    { apodo: '#63', slot: null, genetica: 'Gorila Zikttlez', riegos: [] },
+    { apodo: '#64', slot: null, genetica: 'Ultra 4K', riegos: [] },
+    { apodo: '#65', slot: null, genetica: 'Ultra 4K', riegos: [] },
   ]
 
   // geneticas: una fila por nombre, con ficha enriquecida si la tenemos
