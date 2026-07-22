@@ -16,6 +16,23 @@ const btnPrimario = 'inline-flex items-center gap-1.5 px-3 py-2 rounded-lg borde
 
 const SIN_GEN = 'Sin genética'
 
+// Chip de tipo de genética (Auto/Fem/…) — color + abreviatura.
+const COLOR_TIPO: Record<string, { label: string; text: string; bg: string; border: string }> = {
+  Automatica:  { label: 'AUTO', text: '#fbbf24', bg: 'rgba(245,158,11,0.12)', border: '#5a4a20' },
+  Feminizada:  { label: 'FEM',  text: '#c4b5fd', bg: 'rgba(139,92,246,0.12)', border: '#463a66' },
+  Regular:     { label: 'REG',  text: '#38bdf8', bg: 'rgba(56,189,248,0.10)', border: '#1e3a4a' },
+  Esqueje:     { label: 'ESQ',  text: '#bef264', bg: 'rgba(163,230,53,0.12)', border: '#404d20' },
+  Desconocido: { label: '¿?',   text: '#8f8f9f', bg: 'rgba(180,180,200,0.06)', border: '#2a2a3a' },
+}
+function ChipTipo({ tipo }: { tipo?: string | null }) {
+  if (!tipo) return null
+  const c = COLOR_TIPO[tipo] ?? COLOR_TIPO.Desconocido
+  return (
+    <span className="text-[9px] font-semibold tracking-wide rounded px-1.5 py-0.5 border flex-shrink-0" title={tipo}
+      style={{ color: c.text, background: c.bg, borderColor: c.border }}>{c.label}</span>
+  )
+}
+
 interface FilaVariedad {
   genetica: string
   plantas: ResumenPlanta[]
@@ -167,7 +184,10 @@ export default function PaginaCosecha() {
               {filas.map(f => (
                 <div key={f.genetica} className="rounded-xl bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] transition-colors px-4 py-3 flex items-center gap-3">
                   <div className="min-w-0 flex-1">
-                    <div className="text-[13px] font-medium text-[#ececf1] truncate">{f.genetica}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[13px] font-medium text-[#ececf1] truncate">{f.genetica}</span>
+                      <ChipTipo tipo={f.plantas[0]?.tipo} />
+                    </div>
                     <div className="text-[10.5px] text-[#757584] mt-0.5 tabular-nums">
                       {f.plantas.length} planta{f.plantas.length !== 1 ? 's' : ''}
                       {f.pesoSeco > 0 && <span className="text-[#a3e635]"> · {f.pesoSeco.toLocaleString('es-AR')} g cargados</span>}

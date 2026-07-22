@@ -25,6 +25,23 @@ const COLOR_FASE: Record<FasePlanta, { text: string; bg: string; border: string 
   Muerta:      { text: '#ff8a7a', bg: 'rgba(122,40,32,0.15)', border: '#7a2820' },
 }
 
+// Chip de tipo de genética (Auto/Fem/…) — color + abreviatura.
+const COLOR_TIPO: Record<string, { label: string; text: string; bg: string; border: string }> = {
+  Automatica:  { label: 'AUTO', text: '#fbbf24', bg: 'rgba(245,158,11,0.12)', border: '#5a4a20' },
+  Feminizada:  { label: 'FEM',  text: '#c4b5fd', bg: 'rgba(139,92,246,0.12)', border: '#463a66' },
+  Regular:     { label: 'REG',  text: '#38bdf8', bg: 'rgba(56,189,248,0.10)', border: '#1e3a4a' },
+  Esqueje:     { label: 'ESQ',  text: '#bef264', bg: 'rgba(163,230,53,0.12)', border: '#404d20' },
+  Desconocido: { label: '¿?',   text: '#8f8f9f', bg: 'rgba(180,180,200,0.06)', border: '#2a2a3a' },
+}
+function ChipTipo({ tipo }: { tipo?: string | null }) {
+  if (!tipo) return null
+  const c = COLOR_TIPO[tipo] ?? COLOR_TIPO.Desconocido
+  return (
+    <span className="text-[9.5px] font-semibold tracking-wide rounded px-1.5 py-0.5 border" title={tipo}
+      style={{ color: c.text, background: c.bg, borderColor: c.border }}>{c.label}</span>
+  )
+}
+
 const inputCls = 'w-full px-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
 const btnPrimario = 'inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[12px] font-medium text-[#d9f99d] disabled:opacity-50'
@@ -270,9 +287,10 @@ export default function PaginaPlantas() {
                           className="font-display font-semibold text-[14px] text-[#ececf1] truncate hover:text-[#bef264] transition-colors text-left"
                           title="Ver línea de tiempo">{p.nombre}</button>
                         <p className="text-[11px] text-[#757584] truncate mt-0.5">
-                          {p.genetica ?? 'Sin genética'}{p.banco ? ` · ${p.banco}` : ''}{p.tipo ? ` · ${p.tipo}` : ''}
+                          {p.genetica ?? 'Sin genética'}{p.banco ? ` · ${p.banco}` : ''}
                         </p>
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          <ChipTipo tipo={p.tipo} />
                           {p.codigo && <span className="font-mono text-[9.5px] text-[#5c5c6b] bg-[#15151d] border border-[#20202c] rounded px-1.5 py-0.5">{p.codigo}</span>}
                           {p.paciente_nombre && <span className="text-[9.5px] text-[#a78bfa] inline-flex items-center gap-0.5">· {p.paciente_nombre}</span>}
                         </div>

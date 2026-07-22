@@ -137,10 +137,12 @@ function sembrar(): void {
 
   // geneticas: una fila por nombre, con ficha enriquecida si la tenemos
   const genId = new Map<string, string>()
+  // 5 genéticas automáticas en la demo; el resto feminizadas (para mostrar el chip Auto/Fem).
+  const AUTOS = new Set(['Guanabana', 'Avocad Punch', 'Frozen Derrosh', 'Gorila Zikttlez', 'Ultra 4K'])
   const geneticas: Fila[] = GENETICAS_REALES.map((nombre, i) => {
     const id = uuid(); genId.set(nombre, id)
     return {
-      id, nombre, banco: null, tipo: 'Desconocido',
+      id, nombre, banco: null, tipo: AUTOS.has(nombre) ? 'Automatica' : 'Feminizada',
       thc_estimado: null, cbd_estimado: null, tiempo_flora_dias: null, notas: null,
       creado_en: isoMenos(120 - i),
     }
