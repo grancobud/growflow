@@ -5,7 +5,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 import {
-  ShoppingCart, Plus, Trash2, Check, Loader2, RefreshCw, PackageX, Upload, ExternalLink,
+  ShoppingCart, Plus, Trash2, Check, Loader2, RefreshCw, PackageX, Upload, ExternalLink, Pencil, Wallet,
 } from 'lucide-react'
 import {
   faltantesService,
@@ -43,6 +43,7 @@ export default function PaginaInsumosFaltantes() {
   const [link, setLink] = useState('')
   const [imagen, setImagen] = useState('')
   const [guardando, setGuardando] = useState(false)
+  const [editId, setEditId] = useState<string | null>(null)
 
   const onImagen = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]; if (!f) return
@@ -63,21 +64,44 @@ export default function PaginaInsumosFaltantes() {
 
   useEffect(() => { cargar() }, [cargar])
 
+  const resetForm = () => {
+    setEditId(null)
+    setNombre(''); setCantidad(''); setNota(''); setPrioridad('media'); setUnidad('kg')
+    setPrecio(''); setLink(''); setImagen('')
+  }
+  const editar = (f: InsumoFaltante) => {
+    setEditId(f.id)
+    setNombre(f.nombre)
+    setCantidad(f.cantidad != null ? String(f.cantidad) : '')
+    setUnidad(f.unidad ?? 'kg')
+    setPrioridad(f.prioridad)
+    setNota(f.nota ?? '')
+    setPrecio(f.precio != null ? String(f.precio) : '')
+    setLink(f.link ?? '')
+    setImagen(f.imagen ?? '')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   const guardar = async () => {
     const nom = nombre.trim()
     if (!nom) { toast.error('Escribí el nombre del insumo'); return }
     setGuardando(true)
+    const payload = {
+      nombre: nom,
+      cantidad: cantidad.trim() === '' ? null : parseFloat(cantidad.replace(',', '.')),
+      unidad, prioridad, nota: nota.trim() || null,
+      precio: precio.trim() === '' ? null : parseFloat(precio.replace(',', '.')),
+      link: link.trim() || null, imagen: imagen || null,
+    }
     try {
-      await faltantesService.crear({
-        sal_id: null, nombre: nom,
-        cantidad: cantidad.trim() === '' ? null : parseFloat(cantidad.replace(',', '.')),
-        unidad, prioridad, nota: nota.trim() || null,
-        precio: precio.trim() === '' ? null : parseFloat(precio.replace(',', '.')),
-        link: link.trim() || null, imagen: imagen || null, comprado: false,
-      })
-      toast.success(`"${nom}" agregado a la lista`)
-      setNombre(''); setCantidad(''); setNota(''); setPrioridad('media'); setUnidad('kg')
-      setPrecio(''); setLink(''); setImagen('')
+      if (editId) {
+        await faltantesService.actualizar(editId, payload)
+        toast.success('Insumo actualizado')
+      } else {
+        await faltantesService.crear({ sal_id: null, comprado: false, ...payload })
+        toast.success(`"${nom}" agregado a la lista`)
+      }
+      resetForm()
       await cargar()
     } catch (err) { toast.error(`Error: ${(err as Error).message}`) }
     finally { setGuardando(false) }
@@ -100,6 +124,9 @@ export default function PaginaInsumosFaltantes() {
   }), [faltantes])
 
   const pendientes = faltantes.filter(f => !f.comprado).length
+  const subtotal = (f: InsumoFaltante) => (f.precio ?? 0) * (f.cantidad ?? 1)
+  const totalPendiente = faltantes.filter(f => !f.comprado).reduce((a, f) => a + subtotal(f), 0)
+  const totalComprado = faltantes.filter(f => f.comprado).reduce((a, f) => a + subtotal(f), 0)
 
   return (
     <div className="flex-1 overflow-y-auto bg-[#0a0a0f] text-[#d4d4dd] font-sans">
@@ -107,9 +134,19 @@ export default function PaginaInsumosFaltantes() {
         <div className="flex items-center gap-2 sm:gap-4 px-3 sm:px-6 py-3">
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Insumos faltantes</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">Lista de compras · {pendientes} pendiente{pendientes !== 1 ? 's' : ''}</div>
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+              {pendientes} pendiente{pendientes !== 1 ? 's' : ''}
+              {totalComprado > 0 && <span className="text-[#5c5c6b]"> · comprado ${totalComprado.toLocaleString('es-AR')}</span>}
+            </div>
           </div>
           <div className="flex-1" />
+          <div className="flex items-center gap-2 rounded-lg border border-[#404d20] bg-[#a3e635]/10 px-3 py-1.5" title="Presupuesto de lo que falta comprar (precio × cantidad)">
+            <Wallet className="w-4 h-4 text-[#bef264] flex-shrink-0" />
+            <div className="leading-none text-right">
+              <div className="text-[8.5px] uppercase tracking-[0.14em] text-[#5c5c6b]">Presupuesto</div>
+              <div className="text-[14px] sm:text-[15px] font-display font-bold text-[#d9f99d] tabular-nums mt-0.5">${totalPendiente.toLocaleString('es-AR')}</div>
+            </div>
+          </div>
           <button onClick={cargar} className="p-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] transition-colors text-[#a6a6b5]" title="Refrescar">
             <RefreshCw className={`w-3.5 h-3.5 ${cargando ? 'animate-spin' : ''}`} />
           </button>
@@ -120,8 +157,9 @@ export default function PaginaInsumosFaltantes() {
         {/* Form de alta */}
         <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4 sm:p-5">
           <div className="flex items-center gap-2 mb-3">
-            <ShoppingCart className="w-3.5 h-3.5 text-[#bef264]" />
-            <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Agregar insumo faltante</h3>
+            {editId ? <Pencil className="w-3.5 h-3.5 text-[#bef264]" /> : <ShoppingCart className="w-3.5 h-3.5 text-[#bef264]" />}
+            <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">{editId ? 'Editar insumo' : 'Agregar insumo faltante'}</h3>
+            {editId && <button onClick={resetForm} className="ml-auto text-[10.5px] text-[#a6a6b5] hover:text-[#ececf1] underline">Cancelar</button>}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="sm:col-span-2">
@@ -171,7 +209,7 @@ export default function PaginaInsumosFaltantes() {
             </div>
           </div>
           <button onClick={guardar} disabled={guardando} className={`${btnPrimario} mt-3 w-full sm:w-auto justify-center`}>
-            {guardando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />} Agregar a la lista
+            {guardando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : editId ? <Check className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />} {editId ? 'Guardar cambios' : 'Agregar a la lista'}
           </button>
         </div>
 
@@ -233,9 +271,14 @@ export default function PaginaInsumosFaltantes() {
                       </div>
                     )}
                   </div>
-                  <button onClick={() => borrar(f)} className="p-1.5 text-[#46464f] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors flex-shrink-0" title="Quitar">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex flex-col gap-1 flex-shrink-0">
+                    <button onClick={() => editar(f)} className="p-1.5 text-[#5c5c6b] hover:text-[#bef264] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar">
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={() => borrar(f)} className="p-1.5 text-[#46464f] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Quitar">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </li>
               )
             })}
