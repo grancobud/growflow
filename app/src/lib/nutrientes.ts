@@ -1193,6 +1193,9 @@ export interface InsumoFaltante {
   unidad?: string | null       // kg | g | L | mL | u
   prioridad: Prioridad
   nota?: string | null
+  precio?: number | null       // precio estimado (ARS)
+  link?: string | null         // link de compra / referencia
+  imagen?: string | null       // data URL base64 (como Proveedores)
   comprado?: boolean
   creado_en?: string
 }

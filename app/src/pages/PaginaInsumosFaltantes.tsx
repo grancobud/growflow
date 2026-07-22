@@ -5,7 +5,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 import {
-  ShoppingCart, Plus, Trash2, Check, Loader2, RefreshCw, PackageX,
+  ShoppingCart, Plus, Trash2, Check, Loader2, RefreshCw, PackageX, Upload, ExternalLink,
 } from 'lucide-react'
 import {
   faltantesService,
@@ -35,7 +35,16 @@ export default function PaginaInsumosFaltantes() {
   const [unidad, setUnidad] = useState<string>('kg')
   const [prioridad, setPrioridad] = useState<Prioridad>('media')
   const [nota, setNota] = useState('')
+  const [precio, setPrecio] = useState('')
+  const [link, setLink] = useState('')
+  const [imagen, setImagen] = useState('')
   const [guardando, setGuardando] = useState(false)
+
+  const onImagen = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0]; if (!f) return
+    if (f.size > 3_000_000) { toast.error('Imagen muy grande (máx 3 MB)'); return }
+    const r = new FileReader(); r.onload = () => setImagen(String(r.result)); r.readAsDataURL(f)
+  }
 
   const cargar = useCallback(async () => {
     setCargando(true)
@@ -58,10 +67,13 @@ export default function PaginaInsumosFaltantes() {
       await faltantesService.crear({
         sal_id: null, nombre: nom,
         cantidad: cantidad.trim() === '' ? null : parseFloat(cantidad.replace(',', '.')),
-        unidad, prioridad, nota: nota.trim() || null, comprado: false,
+        unidad, prioridad, nota: nota.trim() || null,
+        precio: precio.trim() === '' ? null : parseFloat(precio.replace(',', '.')),
+        link: link.trim() || null, imagen: imagen || null, comprado: false,
       })
       toast.success(`"${nom}" agregado a la lista`)
       setNombre(''); setCantidad(''); setNota(''); setPrioridad('media'); setUnidad('kg')
+      setPrecio(''); setLink(''); setImagen('')
       cargar()
     } catch (err) { toast.error(`Error: ${(err as Error).message}`); setGuardando(false) }
   }
@@ -129,9 +141,28 @@ export default function PaginaInsumosFaltantes() {
                 <option value="baja">Baja</option>
               </select>
             </div>
+            <div>
+              <label className={labelCls}>Precio estimado (ARS)</label>
+              <input type="number" inputMode="decimal" className={inputCls} placeholder="ej. 27596" value={precio} onChange={e => setPrecio(e.target.value)} />
+            </div>
+            <div>
+              <label className={labelCls}>Link de compra</label>
+              <input className={inputCls} placeholder="ej. mercadolibre.com.ar/…" value={link} onChange={e => setLink(e.target.value)} />
+            </div>
             <div className="sm:col-span-2">
               <label className={labelCls}>Nota</label>
               <input className={inputCls} placeholder="ej. conseguir en Pura Química, mínimo 5 kg…" value={nota} onChange={e => setNota(e.target.value)} />
+            </div>
+            <div className="sm:col-span-2">
+              <label className={labelCls}>Foto (etiqueta / precio)</label>
+              <div className="flex items-center gap-3">
+                <label className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] hover:border-[#404d20] transition-colors text-[11px] text-[#a6a6b5] hover:text-[#ececf1] cursor-pointer">
+                  <Upload className="w-3.5 h-3.5" /> {imagen ? 'Cambiar foto' : 'Subir'}
+                  <input type="file" accept="image/*" onChange={onImagen} className="hidden" />
+                </label>
+                {imagen && <img src={imagen} alt="" className="w-9 h-9 rounded object-cover border border-[#1f1f2b]" />}
+                {imagen && <button type="button" onClick={() => setImagen('')} className="text-[10.5px] text-[#5c5c6b] hover:text-[#ff8a7a] underline">quitar</button>}
+              </div>
             </div>
           </div>
           <button onClick={guardar} disabled={guardando} className={`${btnPrimario} mt-3 w-full sm:w-auto justify-center`}>
@@ -159,10 +190,13 @@ export default function PaginaInsumosFaltantes() {
                     title={f.comprado ? 'Marcar como pendiente' : 'Marcar como comprado'}>
                     <Check className="w-3.5 h-3.5" />
                   </button>
+                  {f.imagen && <img src={f.imagen} alt="" className="w-10 h-10 rounded object-cover border border-[#1f1f2b] flex-shrink-0" />}
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className={`text-[13px] font-medium truncate ${f.comprado ? 'line-through text-[#5c5c6b]' : 'text-[#ececf1]'}`}>{f.nombre}</span>
                       <span className="text-[9px] font-semibold tracking-wide rounded px-1.5 py-0.5 border flex-shrink-0" style={{ color: cp.text, background: cp.bg, borderColor: cp.border }}>{cp.label}</span>
+                      {f.precio != null && <span className="text-[11px] font-semibold text-[#d9f99d] tabular-nums">${f.precio.toLocaleString('es-AR')}</span>}
+                      {f.link && <a href={/^https?:\/\//.test(f.link) ? f.link : `https://${f.link}`} target="_blank" rel="noreferrer" className="text-[#38bdf8] hover:text-[#7dd3fc]" title="Abrir link"><ExternalLink className="w-3.5 h-3.5" /></a>}
                     </div>
                     <div className="text-[10.5px] text-[#757584] mt-0.5 tabular-nums">
                       {f.cantidad != null && <span>{f.cantidad.toLocaleString('es-AR')} {f.unidad ?? ''}</span>}
