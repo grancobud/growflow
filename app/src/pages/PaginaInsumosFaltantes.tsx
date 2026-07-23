@@ -220,7 +220,7 @@ export default function PaginaInsumosFaltantes() {
 
         {/* Desglose del presupuesto — % que representa cada insumo del total */}
         {totalPendiente > 0 && (
-          <div className="order-2 lg:order-1 lg:sticky lg:top-20 rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
+          <div className="ct-page-scroll order-2 lg:order-1 lg:sticky lg:top-20 rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
             <div className="sticky top-0 bg-[#101016] px-4 py-3 border-b border-[#1f1f2b] flex items-center gap-2">
               <Wallet className="w-3.5 h-3.5 text-[#bef264]" />
               <h3 className="font-display font-semibold text-[12.5px] text-[#ececf1]">Desglose</h3>

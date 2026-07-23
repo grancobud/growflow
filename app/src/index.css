@@ -255,6 +255,7 @@ body {
 .ct-dash-wrap .tremor-DonutChart-root tspan { fill: #d4d4dd !important; font-family: 'JetBrains Mono', monospace !important; }
 
 /* Scrollbar fino para wrapper scrollable */
+.ct-page-scroll { scrollbar-width: thin; scrollbar-color: #1f1f2b transparent; }
 .ct-page-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
 .ct-page-scroll::-webkit-scrollbar-track { background: transparent; }
 .ct-page-scroll::-webkit-scrollbar-thumb { background: #1f1f2b; border-radius: 3px; }
