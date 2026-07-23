@@ -125,6 +125,23 @@ export default function PaginaPlantas() {
     }
   }
 
+  const registrarCosecha = async (plantaId: string, pesoSeco: number, valoracion?: number) => {
+    try {
+      await cultivoService.crearCosecha({
+        planta_id: plantaId,
+        fecha: new Date().toISOString().slice(0, 10),
+        peso_seco_g: pesoSeco,
+        valoracion: valoracion || null,
+      })
+      // Pasa la planta a fase Cosechada
+      await cultivoService.crearEvento({ planta_id: plantaId, tipo: 'CambioFase', detalle: 'Cosechada' })
+      toast.success(`Cosecha registrada: ${pesoSeco} g`)
+      cargar()
+    } catch (err) {
+      toast.error(`No se pudo registrar la cosecha: ${(err as Error).message}`)
+    }
+  }
+
   const eliminarPlanta = async (p: ResumenPlanta) => {
     if (!window.confirm(`¿Borrar "${p.nombre}" y todos sus eventos? No se puede deshacer.`)) return
     try {
@@ -332,6 +349,7 @@ export default function PaginaPlantas() {
                         <Scissors className="w-3.5 h-3.5 text-[#c4b5fd]" /> Poda
                       </button>
                       <NotaRapida onGuardar={(txt) => registrarEvento(p.id, 'Nota', txt)} />
+                      <CosechaRapida onGuardar={(peso, val) => registrarCosecha(p.id, peso, val)} />
                       <select
                         value={p.fase}
                         onChange={e => cambiarFase(p.id, e.target.value as FasePlanta)}
@@ -417,6 +435,37 @@ function NotaRapida({ onGuardar }: { onGuardar: (txt: string) => void }) {
       <button onClick={() => { setTexto(''); setAbierto(false) }} className="p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a]">
         <X className="w-3.5 h-3.5" />
       </button>
+    </div>
+  )
+}
+
+function CosechaRapida({ onGuardar }: { onGuardar: (pesoSeco: number, valoracion?: number) => void }) {
+  const [abierto, setAbierto] = useState(false)
+  const [peso, setPeso] = useState('')
+  const [val, setVal] = useState(0)
+  const guardar = () => {
+    const p = parseFloat(peso.replace(',', '.'))
+    if (!p || p <= 0) { toast.error('Cargá el peso seco (g)'); return }
+    onGuardar(p, val || undefined); setPeso(''); setVal(0); setAbierto(false)
+  }
+  if (!abierto) {
+    return (
+      <button onClick={() => setAbierto(true)} className={`${btnSutil} border-[#404d20] text-[#d9f99d]`} title="Registrar cosecha (peso seco)">
+        <Scissors className="w-3.5 h-3.5 text-[#bef264]" /> Cosecha
+      </button>
+    )
+  }
+  return (
+    <div className="flex items-center gap-1.5 w-full">
+      <input autoFocus type="number" inputMode="decimal" value={peso} onChange={e => setPeso(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter') guardar(); if (e.key === 'Escape') { setPeso(''); setAbierto(false) } }}
+        placeholder="Peso seco (g)" className={inputCls} />
+      <select value={val} onChange={e => setVal(Number(e.target.value))} className={inputCls} title="Valoración" style={{ width: 70 }}>
+        <option value={0}>★</option>
+        {Array.from({ length: 10 }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n}</option>)}
+      </select>
+      <button onClick={guardar} className="p-1.5 text-[#bef264] hover:text-[#d9f99d]" title="Guardar cosecha"><Scissors className="w-3.5 h-3.5" /></button>
+      <button onClick={() => { setPeso(''); setAbierto(false) }} className="p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a]"><X className="w-3.5 h-3.5" /></button>
     </div>
   )
 }
