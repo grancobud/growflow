@@ -488,15 +488,15 @@ export default function PaginaSala() {
 
       <div className="px-3 sm:px-6 py-5 pb-20">
         {/* Sala: apilada en mobile, en L en desktop */}
-        <div className="flex flex-col items-center gap-4 lg:grid lg:justify-center lg:items-end"
+        <div className="flex flex-col items-center gap-4 lg:grid lg:justify-center lg:items-start"
           style={{ gridTemplateAreas: '"c3 c2 c4" "s1 s1 c1"' }}>
           {CARPAS.map(carpa => {
             const orden: Record<string, string> = { c1: 'order-1', c2: 'order-2', c3: 'order-3', c4: 'order-4', s1: 'order-5' }
             return (
             <div key={carpa.id} style={{ gridArea: carpa.area, maxWidth: carpa.cols * 57 + 20 }}
               className={`w-full lg:w-auto ${orden[carpa.id]} lg:order-none rounded-xl bg-[#101016] border-2 p-2.5 ${carpa.id === 's1' ? 'border-dashed border-[#2a2a3a]' : 'border-[#1f1f2b]'}`}>
-              <h2 className="flex items-center justify-between gap-3 text-[11px] font-semibold text-[#757584] mb-2">
-                <span>{carpa.nombre} <span className="font-normal text-[#5c5c6b]">{carpa.medida}</span></span>
+              <h2 className="flex items-center justify-between gap-2 text-[11px] font-semibold text-[#757584] mb-2 whitespace-nowrap">
+                <span className="truncate min-w-0">{carpa.nombre} <span className="font-normal text-[#5c5c6b]">{carpa.medida}</span></span>
                 {modo === 'regar' && (
                   <button onClick={() => regarCarpa(carpa)}
                     className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-[#1d3a5a] bg-[#38bdf8]/10 hover:bg-[#38bdf8]/20 text-[9.5px] text-[#38bdf8] transition-colors"
