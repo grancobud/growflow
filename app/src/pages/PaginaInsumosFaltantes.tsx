@@ -216,7 +216,7 @@ export default function PaginaInsumosFaltantes() {
         </div>
 
         {/* Dos columnas: desglose al costado + lista */}
-        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)] gap-4 items-start">
 
         {/* Desglose del presupuesto — % que representa cada insumo del total */}
         {totalPendiente > 0 && (
@@ -255,7 +255,7 @@ export default function PaginaInsumosFaltantes() {
         )}
 
         {/* Lista */}
-        <div className={`order-1 lg:order-2 ${totalPendiente > 0 ? '' : 'lg:col-span-2'}`}>
+        <div className={`order-1 lg:order-2 min-w-0 ${totalPendiente > 0 ? '' : 'lg:col-span-2'}`}>
         {cargando ? (
           <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-14 bg-[#101016] border border-[#1f1f2b] rounded-xl animate-pulse" />)}</div>
         ) : ordenados.length === 0 ? (
