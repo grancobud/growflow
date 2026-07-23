@@ -113,15 +113,20 @@ export default function PaginaInsumosFaltantes() {
     catch (err) { toast.error(`Error: ${(err as Error).message}`) }
   }
 
+  const subtotal = (f: InsumoFaltante) => (f.precio ?? 0) * (f.cantidad ?? 1)
+
+  // Mismo criterio que el desglose: pendientes primero y por costo (mayor arriba),
+  // así la lista y el desglose van en el mismo orden.
   const ordenados = useMemo(() => [...faltantes].sort((a, b) => {
     if (!!a.comprado !== !!b.comprado) return a.comprado ? 1 : -1 // pendientes primero
+    const s = subtotal(b) - subtotal(a)
+    if (s !== 0) return s
     const p = ORDEN_PRIORIDAD[a.prioridad] - ORDEN_PRIORIDAD[b.prioridad]
     if (p !== 0) return p
     return (b.creado_en ?? '').localeCompare(a.creado_en ?? '')
   }), [faltantes])
 
   const pendientes = faltantes.filter(f => !f.comprado).length
-  const subtotal = (f: InsumoFaltante) => (f.precio ?? 0) * (f.cantidad ?? 1)
   const totalPendiente = faltantes.filter(f => !f.comprado).reduce((a, f) => a + subtotal(f), 0)
   const totalComprado = faltantes.filter(f => f.comprado).reduce((a, f) => a + subtotal(f), 0)
 
@@ -264,7 +269,7 @@ export default function PaginaInsumosFaltantes() {
             {ordenados.map(f => {
               const cp = COLOR_PRIORIDAD[f.prioridad]
               return (
-                <li key={f.id} className={`rounded-xl border px-4 py-3 flex items-start gap-3 transition-colors ${f.comprado ? 'bg-[#0d0d12] border-[#1a1a24] opacity-60' : 'bg-[#101016] border-[#1f1f2b] hover:border-[#404d20]'}`}>
+                <li key={f.id} className={`rounded-xl border px-4 py-3 flex items-start gap-3 transition-colors min-h-[130px] ${f.comprado ? 'bg-[#0d0d12] border-[#1a1a24] opacity-60' : 'bg-[#101016] border-[#1f1f2b] hover:border-[#404d20]'}`}>
                   <button onClick={() => toggleComprado(f)}
                     className={`w-5 h-5 mt-0.5 rounded-md border flex items-center justify-center flex-shrink-0 transition-colors ${f.comprado ? 'bg-[#a3e635]/20 border-[#404d20] text-[#bef264]' : 'border-[#2a2a3a] text-transparent hover:border-[#404d20]'}`}
                     title={f.comprado ? 'Marcar como pendiente' : 'Marcar como comprado'}>
@@ -273,8 +278,8 @@ export default function PaginaInsumosFaltantes() {
                   {f.imagen && <img src={f.imagen} alt="" onClick={() => setDetalle(f)} className="w-11 h-11 rounded object-cover border border-[#1f1f2b] flex-shrink-0 self-start cursor-pointer hover:border-[#404d20]" title="Ver ficha" />}
                   <div className="min-w-0 flex-1">
                     {/* Línea 1: nombre + prioridad */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <button onClick={() => setDetalle(f)} className={`text-[13px] font-semibold truncate text-left hover:text-[#bef264] transition-colors ${f.comprado ? 'line-through text-[#5c5c6b]' : 'text-[#ececf1]'}`} title="Ver ficha">{f.nombre}</button>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <button onClick={() => setDetalle(f)} className={`text-[13px] font-semibold truncate text-left min-w-0 hover:text-[#bef264] transition-colors ${f.comprado ? 'line-through text-[#5c5c6b]' : 'text-[#ececf1]'}`} title="Ver ficha">{f.nombre}</button>
                       <span className="text-[9px] font-semibold tracking-wide rounded px-1.5 py-0.5 border flex-shrink-0" style={{ color: cp.text, background: cp.bg, borderColor: cp.border }}>{cp.label}</span>
                     </div>
                     {/* Línea 2 (RESALTADA): cantidad · precio · link */}
