@@ -60,7 +60,7 @@ export function corrienteNominal(c: Pick<Circuito, 'corriente_a' | 'potencia_w'>
 }
 
 // Térmica sugerida: primer valor normalizado >= corriente nominal (con 25% de margen).
-const TERMICAS = [6, 10, 16, 20, 25, 32, 40, 50, 63]
+const TERMICAS = [6, 10, 13, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125]
 export function termicaSugerida(inom: number | null): number | null {
   if (inom == null) return null
   const objetivo = inom * 1.25
@@ -82,11 +82,20 @@ export function cableSugerido(inom: number | null): number | null {
   return CABLES.find(c => inom <= c.hasta)?.mm2 ?? 25
 }
 
-// ¿La carga necesita contactor? Inductivas > ~10A (arranque) sí.
-export function necesitaContactor(c: Pick<Circuito, 'tipo'> & { inom: number | null }): boolean {
+// Texto del campo contactor que significa "va sin contactor" (relé/interruptor directo).
+const SIN_CONTACTOR = /no requiere|sin contactor|rel[eé] directo|directo/i
+
+// ¿La carga necesita contactor? Lo cargado a mano manda; si no, se estima.
+// Los motores van con contactor aunque su corriente nominal sea baja: el arranque
+// es 5-7x la nominal y soldaría los contactos de un relé.
+export function necesitaContactor(
+  c: { tipo: TipoCircuito; contactor?: string | null; inom: number | null }
+): boolean {
+  const txt = (c.contactor ?? '').trim()
+  if (txt) return !SIN_CONTACTOR.test(txt)
   const info = TIPOS_CIRCUITO.find(t => t.valor === c.tipo)
   if (!info?.inductiva) return false
-  return (c.inom ?? 0) >= 3 // motores: contactor casi siempre
+  return (c.inom ?? 0) >= 1.5
 }
 
 export interface ResumenTablero {

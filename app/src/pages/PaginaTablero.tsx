@@ -206,7 +206,7 @@ function DocTab(p: any) {
                 const inom = corrienteNominal(c)
                 const termSug = termicaSugerida(inom)
                 const cabSug = cableSugerido(inom)
-                const contactor = necesitaContactor({ tipo: c.tipo, inom })
+                const contactor = necesitaContactor({ tipo: c.tipo, contactor: c.contactor, inom })
                 const info = TIPOS_CIRCUITO.find(t => t.valor === c.tipo)
                 return (
                   <div key={c.id} className="bg-[#101016] border border-[#1f1f2b] rounded-xl p-3">
@@ -282,7 +282,7 @@ function UnifilarTab({ sel, circuitos, resumen }: { sel: Tablero | null; circuit
           const inom = corrienteNominal(c)
           const term = c.proteccion || (termicaSugerida(inom) ? `${termicaSugerida(inom)}A` : '—')
           const cab = c.seccion_cable_mm2 ? `${c.seccion_cable_mm2}mm²` : (cableSugerido(inom) ? `${cableSugerido(inom)}mm²` : '')
-          const contactor = necesitaContactor({ tipo: c.tipo, inom })
+          const contactor = necesitaContactor({ tipo: c.tipo, contactor: c.contactor, inom })
           const col = COLOR_TIPO[c.tipo]
           return (
             <g key={c.id}>
