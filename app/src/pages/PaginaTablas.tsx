@@ -248,6 +248,32 @@ const TABLAS: DefTabla[] = [
       { campo: 'nota', titulo: 'Nota', tipo: 'text', ancho: 'min-w-[160px]' },
     ],
   },
+  {
+    id: 'tableros', nombre: 'Tableros eléctricos', orden: 'creado_en',
+    cols: [
+      { campo: 'nombre', titulo: 'Nombre', tipo: 'text', ancho: 'min-w-[180px]' },
+      { campo: 'ubicacion', titulo: 'Ubicación', tipo: 'text' },
+      { campo: 'tension', titulo: 'Tensión', tipo: { select: ['mono', 'tri'] } },
+      { campo: 'acometida_a', titulo: 'Acometida (A)', tipo: 'number' },
+      { campo: 'proteccion_general', titulo: 'Protección gral.', tipo: 'text', ancho: 'min-w-[180px]' },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[160px]' },
+    ],
+  },
+  {
+    id: 'tableros_circuitos', nombre: 'Tablero · circuitos', orden: 'orden',
+    cols: [
+      { campo: 'tablero_id', titulo: 'Tablero (id)', tipo: 'text', ancho: 'min-w-[160px]' },
+      { campo: 'nombre', titulo: 'Carga', tipo: 'text', ancho: 'min-w-[160px]' },
+      { campo: 'tipo', titulo: 'Tipo', tipo: { select: ['luz', 'ac', 'deshumi', 'ventilacion', 'extraccion', 'bomba', 'co2', 'osmosis', 'otro'] } },
+      { campo: 'potencia_w', titulo: 'Potencia (W)', tipo: 'number' },
+      { campo: 'corriente_a', titulo: 'Corriente (A)', tipo: 'number' },
+      { campo: 'proteccion', titulo: 'Térmica', tipo: 'text' },
+      { campo: 'contactor', titulo: 'Contactor', tipo: 'text', ancho: 'min-w-[160px]' },
+      { campo: 'seccion_cable_mm2', titulo: 'Cable (mm²)', tipo: 'number' },
+      { campo: 'sala', titulo: 'Sala', tipo: 'text' },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[160px]' },
+    ],
+  },
 ]
 
 // Tablas que referencian una planta: mostramos la columna con nombre legible
