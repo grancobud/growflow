@@ -31,20 +31,21 @@ interface CalcTabProps {
 }
 type CostoResultado = { porLitro: number; detalle: { sal: Sal; costo: number }[] }
 
-type SubTab = 'calc' | 'clonar' | 'sustancias' | 'proveedores' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar' | 'conversor' | 'enraizado' | 'elicitor' | 'bioestim' | 'hocl' | 'ayuda'
+type SubTab = 'calc' | 'clonar' | 'sustancias' | 'proveedores' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar' | 'enraizado' | 'elicitor' | 'bioestim' | 'hocl' | 'ayuda'
 
 const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
   { id: 'calc', label: 'Calculadora', icon: Calculator },
   { id: 'clonar', label: 'Clonar marca', icon: Copy },
   { id: 'sustancias', label: 'Sustancias', icon: FlaskRound },
   { id: 'proveedores', label: 'Proveedores', icon: Store },
-  { id: 'agua', label: 'Agua', icon: Droplets },
+  // Agua y Conversor iban separadas, pero las dos hacen lo mismo: traducir un
+  // dato externo (análisis del agua, etiqueta de una bolsa) a ppm elemental.
+  { id: 'agua', label: 'Agua y unidades', icon: Droplets },
   { id: 'concentrados', label: 'Soluciones madre', icon: Layers },
   { id: 'estab', label: 'Estabilizantes', icon: ShieldCheck },
   { id: 'ph', label: 'Ajuste de pH', icon: Droplet },
   { id: 'comparar', label: 'Comparar', icon: GitCompare },
   { id: 'ratios', label: 'Ratios y costo', icon: Scale },
-  { id: 'conversor', label: 'Conversor', icon: Repeat },
   { id: 'enraizado', label: 'Gel de enraizado', icon: Sprout },
   { id: 'elicitor', label: 'Elicitor DIY', icon: Sparkles },
   { id: 'bioestim', label: 'Bioestimulantes DIY', icon: Sparkles },
@@ -56,7 +57,7 @@ const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
 // uso diario y el resto pasa a un desplegable agrupado por tema.
 const TABS_FIJAS: SubTab[] = ['calc', 'sustancias', 'proveedores', 'ratios']
 const GRUPOS_TABS: { grupo: string; ids: SubTab[] }[] = [
-  { grupo: 'Formular', ids: ['clonar', 'comparar', 'conversor'] },
+  { grupo: 'Formular', ids: ['clonar', 'comparar'] },
   { grupo: 'Agua y mezcla', ids: ['agua', 'concentrados', 'estab', 'ph'] },
   { grupo: 'Recetas DIY', ids: ['enraizado', 'elicitor', 'bioestim', 'hocl'] },
   { grupo: 'Ayuda', ids: ['ayuda'] },
@@ -365,7 +366,22 @@ export default function CreadorNutrientes() {
         <ProveedoresTab salesTodas={salesTodas} recargarInventario={recargarInventario} recargarProveedores={recargarProveedores} />
       )}
       {sub === 'agua' && (
-        <AguaTab {...{ agua, setAgua, macros, micros, otros }} />
+        <div className="space-y-4">
+          {/* Las dos herramientas resuelven lo mismo: pasar un dato de afuera
+              (análisis del agua, etiqueta de una bolsa) a ppm elemental. */}
+          <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] px-3 sm:px-4 py-3">
+            <p className="text-[11.5px] text-[#8a8a9a] leading-relaxed">
+              <b className="text-[#d4d4dd]">Para qué es esta pestaña.</b> La calculadora trabaja en <b className="text-[#d9f99d]">ppm elemental</b>,
+              pero los análisis de agua y las etiquetas de los fertilizantes vienen en otras unidades. Acá se traducen:
+            </p>
+            <ul className="mt-2 space-y-1 text-[11px] text-[#8a8a9a]">
+              <li>• <b className="text-[#a6a6b5]">Tu agua</b> — lo que ya trae antes de agregar sales. Se descuenta del objetivo para no pasarte. Con ósmosis va todo en 0.</li>
+              <li>• <b className="text-[#a6a6b5]">Conversor</b> — óxidos a elemental (una bolsa "0-52-34" no tiene 52 de P real), ppm ↔ % ↔ g/L y ppm ↔ meq/L.</li>
+            </ul>
+          </div>
+          <AguaTab {...{ agua, setAgua, macros, micros, otros }} />
+          <ConversorTab />
+        </div>
       )}
       {sub === 'concentrados' && (
         <ConcentradosTab {...{ concentrados, factor, setFactor, volBidon, setVolBidon, resolucion, setResolucion, dosisCount: res.dosis.length, guardados, salesTodas, modoPrep, proveedores }} />
@@ -389,13 +405,10 @@ export default function CreadorNutrientes() {
         <PHTab agua={agua} />
       )}
       {sub === 'comparar' && (
-        <CompararTab guardados={guardados} />
+        <CompararTab guardados={guardados} perfilActual={perfil} comerciales={salesTodas.filter(esComercial)} />
       )}
       {sub === 'ratios' && (
         <RatiosTab {...{ ratios, res, costo, proveedores }} />
-      )}
-      {sub === 'conversor' && (
-        <ConversorTab />
       )}
       {sub === 'enraizado' && (
         <EnraizadoTab />
@@ -2536,7 +2549,7 @@ function ConversorTab() {
   // 4) unidades
   const [g, setG] = useState('100'); const [ml, setMl] = useState('4')
 
-  const box = 'bg-[#15151d] border border-[#1f1f2b] rounded-md px-2.5 py-1.5 text-[12px] text-[#ececf1] font-mono tabular-nums'
+  const box = 'bg-[#15151d] border border-[#1f1f2b] rounded-md px-2.5 py-2 sm:py-1.5 min-h-[40px] sm:min-h-0 text-[16px] sm:text-[12px] text-[#ececf1] font-mono tabular-nums'
   const res = (v: React.ReactNode) => <span className="text-[14px] font-mono tabular-nums font-bold text-[#d9f99d]">{v}</span>
 
   return (
@@ -3078,68 +3091,161 @@ function PHTab({ agua }: { agua: Perfil }) {
 }
 
 // ===================== COMPARAR =====================
-function CompararTab({ guardados }: { guardados: PerfilGuardado[] }) {
-  const [a, setA] = useState('')
+function CompararTab({ guardados, perfilActual, comerciales }: {
+  guardados: PerfilGuardado[]
+  perfilActual: Perfil
+  comerciales: Sal[]
+}) {
+  // Lo que se compara casi siempre es "mi receta contra el producto de marca",
+  // así que el lado A arranca en el perfil que está cargado en la calculadora.
+  const [a, setA] = useState('__actual__')
   const [b, setB] = useState('')
-  const pa = guardados.find(g => g.id === a)
-  const pb = guardados.find(g => g.id === b)
-  const ecOf = (p?: PerfilGuardado) => p ? ecAprox(p.perfil as Record<ElementKey, number>) : 0
+  const [dosis, setDosis] = useState(4)
 
-  if (guardados.length < 2) {
-    return <div className={card}><p className="text-[12px] text-[#5c5c6b] py-6 text-center">Guardá al menos 2 perfiles (pestaña Calculadora) para compararlos.</p></div>
+  const perfilDeOpcion = (id: string): { nombre: string; perfil: Perfil } | null => {
+    if (!id) return null
+    if (id === '__actual__') return { nombre: 'Mi receta (calculadora)', perfil: perfilActual }
+    if (id.startsWith('c:')) {
+      const prod = comerciales.find(s => s.id === id.slice(2))
+      return prod ? { nombre: `${prod.nombre} · ${dosis} mL/L`, perfil: perfilDesdeProducto(prod, dosis) } : null
+    }
+    const g = guardados.find(x => x.id === id)
+    return g ? { nombre: g.nombre, perfil: g.perfil as Perfil } : null
   }
+
+  const pa = perfilDeOpcion(a)
+  const pb = perfilDeOpcion(b)
+  const hayComercial = b.startsWith('c:') || a.startsWith('c:')
+  const ecOf = (p?: Perfil) => p ? ecAprox(p as Record<ElementKey, number>) : 0
+
+  const Opciones = () => (
+    <>
+      <option value="__actual__">Mi receta (calculadora)</option>
+      {comerciales.length > 0 && (
+        <optgroup label="Productos comerciales">
+          {comerciales.map(s => <option key={s.id} value={`c:${s.id}`}>{s.nombre}</option>)}
+        </optgroup>
+      )}
+      {guardados.length > 0 && (
+        <optgroup label="Mis perfiles guardados">
+          {guardados.map(g => <option key={g.id} value={g.id}>{g.nombre}</option>)}
+        </optgroup>
+      )}
+    </>
+  )
+
+  // Qué tan cerca está el clon del original (solo con los que aportan algo).
+  const elementos = ELEMENTOS.filter(e => (pa?.perfil[e.key] ?? 0) > 0 || (pb?.perfil[e.key] ?? 0) > 0)
+  const desvios = pa && pb ? elementos.map(e => {
+    const va = pa.perfil[e.key] ?? 0, vb = pb.perfil[e.key] ?? 0
+    return vb > 0 ? Math.abs(va - vb) / vb * 100 : (va > 0 ? 100 : 0)
+  }) : []
+  const desvioMedio = desvios.length ? desvios.reduce((s, d) => s + d, 0) / desvios.length : null
+
   return (
     <div className="space-y-4">
       <div className={card}>
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-2 mb-1">
           <GitCompare className="w-4 h-4 text-[#a78bfa]" strokeWidth={1.8} />
-          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Comparar dos perfiles</h3>
-          <Info><b className="text-[#d9f99d]">Dos recetas lado a lado</b> para ver en qué se diferencian nutriente por nutriente.<br /><span className="text-[#a3e635]">Ej: comparás tu clon casero contra el objetivo de la marca.</span></Info>
+          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Comparar recetas</h3>
+          <Info><b className="text-[#d9f99d]">Dos recetas lado a lado</b> para ver en qué se diferencian nutriente por nutriente.<br /><span className="text-[#a3e635]">Lo típico: tu receta contra el producto de marca que estás clonando.</span></Info>
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <select value={a} onChange={e => setA(e.target.value)} className={inp}>
-            <option value="">— Perfil A —</option>
-            {guardados.map(g => <option key={g.id} value={g.id}>{g.nombre}</option>)}
-          </select>
-          <select value={b} onChange={e => setB(e.target.value)} className={inp}>
-            <option value="">— Perfil B —</option>
-            {guardados.map(g => <option key={g.id} value={g.id}>{g.nombre}</option>)}
-          </select>
+        <p className="text-[11px] text-[#757584] mb-3">
+          Por defecto compara <b className="text-[#a6a6b5]">lo que tenés cargado en la calculadora</b> contra lo que elijas.
+        </p>
+
+        <div className="grid gap-2.5 sm:grid-cols-2">
+          <label className="block">
+            <span className="text-[10px] uppercase tracking-[0.12em] text-[#a78bfa] font-medium">A · Referencia</span>
+            <select value={a} onChange={e => setA(e.target.value)} className={`${inp} mt-1`}>
+              <Opciones />
+            </select>
+          </label>
+          <label className="block">
+            <span className="text-[10px] uppercase tracking-[0.12em] text-[#a3e635] font-medium">B · Comparar contra</span>
+            <select value={b} onChange={e => setB(e.target.value)} className={`${inp} mt-1`}>
+              <option value="">— Elegí una receta —</option>
+              <Opciones />
+            </select>
+          </label>
         </div>
+
+        {hayComercial && (
+          <label className="flex flex-wrap items-center gap-2 mt-3">
+            <span className="text-[11px] text-[#a6a6b5]">Dosis del producto comercial</span>
+            <NumField value={dosis} onChange={setDosis} min={0} className={`${inp} w-24`} />
+            <span className="text-[11px] text-[#5c5c6b]">mL/L (o g/L) — la etiqueta suele decir 4</span>
+          </label>
+        )}
       </div>
 
       {pa && pb && (
-        <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden">
-          <table className="w-full text-[11px]">
-            <thead><tr className="border-b border-[#1f1f2b]">
-              <th className="px-3 py-2 text-left text-[10px] uppercase tracking-[0.1em] text-[#5c5c6b] font-medium">Elemento</th>
-              <th className="px-3 py-2 text-left text-[10px] uppercase tracking-[0.1em] text-[#a78bfa] font-medium truncate">{pa.nombre}</th>
-              <th className="px-3 py-2 text-left text-[10px] uppercase tracking-[0.1em] text-[#a3e635] font-medium truncate">{pb.nombre}</th>
-              <th className="px-3 py-2 text-left text-[10px] uppercase tracking-[0.1em] text-[#5c5c6b] font-medium">Δ</th>
-            </tr></thead>
-            <tbody>
-              <tr className="border-b border-[#1f1f2b] bg-[#15151d]">
-                <td className="px-3 py-1.5 font-medium text-[#d4d4dd]">EC aprox</td>
-                <td className="px-3 py-1.5 font-mono tabular-nums text-[#c4b5fd]">{ecOf(pa)}</td>
-                <td className="px-3 py-1.5 font-mono tabular-nums text-[#d9f99d]">{ecOf(pb)}</td>
-                <td className="px-3 py-1.5 font-mono tabular-nums text-[#757584]">{(ecOf(pb) - ecOf(pa)).toFixed(2)}</td>
-              </tr>
-              {ELEMENTOS.filter(e => (pa.perfil[e.key] ?? 0) > 0 || (pb.perfil[e.key] ?? 0) > 0).map(e => {
-                const va = pa.perfil[e.key] ?? 0, vb = pb.perfil[e.key] ?? 0
-                const d = vb - va
-                return (
-                  <tr key={e.key} className="border-b border-[#1f1f2b] last:border-0">
-                    <td className="px-3 py-1.5 font-medium text-[#d4d4dd]">{e.label}</td>
-                    <td className="px-3 py-1.5 font-mono tabular-nums text-[#a6a6b5]">{va || '—'}</td>
-                    <td className="px-3 py-1.5 font-mono tabular-nums text-[#a6a6b5]">{vb || '—'}</td>
-                    <td className="px-3 py-1.5 font-mono tabular-nums" style={{ color: d > 0 ? '#d9f99d' : d < 0 ? '#60a5fa' : '#757584' }}>
-                      {d > 0 ? '+' : ''}{d || '—'}
-                    </td>
+        <>
+          {desvioMedio != null && (
+            <div className={card}>
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <span className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium">Qué tan parecidas son</span>
+                <span className="font-display font-bold text-[22px] tabular-nums leading-none"
+                  style={{ color: desvioMedio <= 10 ? '#bef264' : desvioMedio <= 25 ? '#fbbf24' : '#ff8a7a' }}>
+                  {desvioMedio.toFixed(0)}%
+                </span>
+                <span className="text-[11px] text-[#757584]">de desvío promedio</span>
+              </div>
+              <p className="mt-1.5 text-[11px] text-[#8a8a9a]">
+                {desvioMedio <= 10
+                  ? 'Muy parecidas: el clon le pega al original.'
+                  : desvioMedio <= 25
+                    ? 'Se parecen, pero hay nutrientes con diferencia. Mirá las filas en rojo o azul.'
+                    : 'Bastante distintas. Revisá los elementos con mayor Δ.'}
+              </p>
+            </div>
+          )}
+
+          <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-[11px] min-w-[420px]">
+                <thead><tr className="border-b border-[#1f1f2b]">
+                  <th className="px-3 py-2 text-left text-[10px] uppercase tracking-[0.1em] text-[#5c5c6b] font-medium">Elemento</th>
+                  <th className="px-3 py-2 text-right text-[10px] uppercase tracking-[0.1em] text-[#a78bfa] font-medium">{pa.nombre}</th>
+                  <th className="px-3 py-2 text-right text-[10px] uppercase tracking-[0.1em] text-[#a3e635] font-medium">{pb.nombre}</th>
+                  <th className="px-3 py-2 text-right text-[10px] uppercase tracking-[0.1em] text-[#5c5c6b] font-medium">Δ</th>
+                </tr></thead>
+                <tbody>
+                  <tr className="border-b border-[#1f1f2b] bg-[#15151d]">
+                    <td className="px-3 py-1.5 font-medium text-[#d4d4dd]">EC aprox</td>
+                    <td className="px-3 py-1.5 text-right font-mono tabular-nums text-[#c4b5fd]">{ecOf(pa.perfil)}</td>
+                    <td className="px-3 py-1.5 text-right font-mono tabular-nums text-[#d9f99d]">{ecOf(pb.perfil)}</td>
+                    <td className="px-3 py-1.5 text-right font-mono tabular-nums text-[#757584]">{(ecOf(pb.perfil) - ecOf(pa.perfil)).toFixed(2)}</td>
                   </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                  {elementos.map(e => {
+                    const va = pa.perfil[e.key] ?? 0, vb = pb.perfil[e.key] ?? 0
+                    const d = +(vb - va).toFixed(2)
+                    const pctDesvio = vb > 0 ? Math.abs(d) / vb * 100 : (va > 0 ? 100 : 0)
+                    return (
+                      <tr key={e.key} className="border-b border-[#1f1f2b] last:border-0">
+                        <td className="px-3 py-1.5 font-medium text-[#d4d4dd]">{e.label}</td>
+                        <td className="px-3 py-1.5 text-right font-mono tabular-nums text-[#a6a6b5]">{va || '—'}</td>
+                        <td className="px-3 py-1.5 text-right font-mono tabular-nums text-[#a6a6b5]">{vb || '—'}</td>
+                        <td className="px-3 py-1.5 text-right font-mono tabular-nums"
+                          style={{ color: pctDesvio <= 10 ? '#757584' : d > 0 ? '#60a5fa' : '#ff8a7a' }}>
+                          {d > 0 ? '+' : ''}{d || '—'}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <p className="px-3 py-2 text-[10px] text-[#5c5c6b] border-t border-[#1f1f2b]">
+              Δ = cuánto le falta (rojo) o le sobra (azul) a <b className="text-[#a6a6b5]">B</b> respecto de <b className="text-[#a6a6b5]">A</b>. Gris = diferencia menor al 10%.
+            </p>
+          </div>
+        </>
+      )}
+
+      {!pb && (
+        <div className={card}>
+          <p className="text-[12px] text-[#5c5c6b] py-6 text-center">Elegí en <b className="text-[#a6a6b5]">B</b> contra qué querés comparar.</p>
         </div>
       )}
     </div>
