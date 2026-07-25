@@ -567,6 +567,52 @@ export const PRESETS: PresetPerfil[] = [
     perfil: { NO3: 54.56, NH4: 38.68, P: 40.48, K: 166.14, Ca: 70.4, Mg: 35.2, S: 111.58, Fe: 3.84, Mn: 0.7, Zn: 0.18, B: 0.28, Cu: 0.11, Mo: 0.02 } },
   { id: 'ryano_fin', nombre: 'Ryano · Fin de ciclo', desc: 'Semanas 13-14 · A/B 3,0 · sin Calcis · EC 0,77',
     perfil: { NH4: 32.34, P: 37.95, K: 155.76, Mg: 33.0, S: 104.61, Fe: 3.6, Mn: 0.66, Zn: 0.17, B: 0.26, Cu: 0.1, Mo: 0.02 } },
+
+  // --- Plan propio: sala con CO2, ciclo de 14 semanas en 6 m² -------------
+  // Arranca suave (los clones sin raíz no toman sal por más CO2 que haya),
+  // sube hasta EC 3.0 en engorde —donde el CO2 lo devuelve en peso— y cierra
+  // con Finis. Las dosis salen de escalar la tabla de Ryanodine: su pico de
+  // EC 1.68 son 3.8 mL/L, o sea 2,26 mL/L por punto de EC.
+  { id: 'co2_clon', nombre: 'Mi plan · Clonación', desc: 'Sem 1-2 · EC 0,6 · A/B/C 1,4 mL/L · 30 L/día',
+    perfil: { NO3: 37.02, NH4: 17.47, P: 17.17, K: 70.46, Ca: 47.77, Mg: 14.93, S: 47.32, Fe: 1.63, Mn: 0.3, Zn: 0.07, B: 0.12, Cu: 0.04, Mo: 0.01 } },
+  { id: 'co2_veg1', nombre: 'Mi plan · Vegetativo temprano', desc: 'Sem 3 · EC 1,2 · A/B/C 2,7 mL/L · 60 L/día',
+    perfil: { NO3: 74.05, NH4: 34.93, P: 34.34, K: 140.93, Ca: 95.54, Mg: 29.86, S: 94.65, Fe: 3.25, Mn: 0.6, Zn: 0.15, B: 0.24, Cu: 0.09, Mo: 0.01 } },
+  { id: 'co2_veg2', nombre: 'Mi plan · Vegetativo medio', desc: 'Sem 4 · EC 1,7 · A/B/C 3,9 mL/L · 100 L/día',
+    perfil: { NO3: 104.9, NH4: 49.49, P: 48.64, K: 199.64, Ca: 135.35, Mg: 42.3, S: 134.08, Fe: 4.61, Mn: 0.85, Zn: 0.21, B: 0.34, Cu: 0.13, Mo: 0.02 } },
+  { id: 'co2_veg3', nombre: 'Mi plan · Vegetativo tardío', desc: 'Sem 5 · EC 2,1 · A/B/C 4,8 mL/L · 130 L/día',
+    perfil: { NO3: 129.58, NH4: 61.13, P: 60.09, K: 246.62, Ca: 167.2, Mg: 52.25, S: 165.63, Fe: 5.7, Mn: 1.05, Zn: 0.26, B: 0.42, Cu: 0.16, Mo: 0.03 } },
+  { id: 'co2_estira', nombre: 'Mi plan · Estiramiento', desc: 'Sem 6-7 · EC 2,5 · A/B/C 5,7 mL/L · 150 L/día',
+    perfil: { NO3: 154.26, NH4: 72.78, P: 71.53, K: 293.6, Ca: 199.05, Mg: 62.2, S: 197.18, Fe: 6.78, Mn: 1.24, Zn: 0.31, B: 0.5, Cu: 0.19, Mo: 0.03 } },
+  { id: 'co2_engorde', nombre: 'Mi plan · Engorde con CO₂', desc: 'Sem 8-12 · EC 3,0 · A/B 6,8 · Calcis 4,6 mL/L · 150 L/día',
+    perfil: { NO3: 125.88, NH4: 82.79, P: 85.84, K: 352.31, Ca: 162.42, Mg: 74.64, S: 236.62, Fe: 8.14, Mn: 1.49, Zn: 0.37, B: 0.6, Cu: 0.22, Mo: 0.04 } },
+  { id: 'co2_finis', nombre: 'Mi plan · Finis (cierre)', desc: 'Sem 13-14 · Mikro B 4 mL/L + Finis 0,91 g/L · pH 6,0-6,4',
+    perfil: { P: 59.97, K: 187.28, Ca: 98.46, Mg: 44.0, S: 173.51, Fe: 4.8, Mn: 0.88, Zn: 0.22, B: 0.35, Cu: 0.13, Mo: 0.02 } },
+]
+
+// --- Calendario del plan propio, para la pestaña "Mi plan" -----------------
+export interface EtapaPlan {
+  presetId: string
+  etapa: string
+  semanas: string
+  nSemanas: number
+  ec: number
+  makro: number | null   // mL/L (null en la etapa de Finis)
+  mikro: number
+  calcis: number | null
+  finis: number | null   // g/L
+  litrosDia: number
+  nota?: string
+}
+
+/** Ciclo de 14 semanas en 6 m², sala con CO2, agua de ósmosis. */
+export const PLAN_CO2: EtapaPlan[] = [
+  { presetId: 'co2_clon',    etapa: 'Clonación / enraice', semanas: '1-2',   nSemanas: 2, ec: 0.6, makro: 1.36, mikro: 1.36, calcis: 1.36, finis: null, litrosDia: 30,  nota: 'EC baja sí o sí: el clon sin raíz no toma sal por más CO₂ que haya.' },
+  { presetId: 'co2_veg1',    etapa: 'Vegetativo temprano', semanas: '3',     nSemanas: 1, ec: 1.2, makro: 2.71, mikro: 2.71, calcis: 2.71, finis: null, litrosDia: 60 },
+  { presetId: 'co2_veg2',    etapa: 'Vegetativo medio',    semanas: '4',     nSemanas: 1, ec: 1.7, makro: 3.85, mikro: 3.85, calcis: 3.85, finis: null, litrosDia: 100 },
+  { presetId: 'co2_veg3',    etapa: 'Vegetativo tardío',   semanas: '5',     nSemanas: 1, ec: 2.1, makro: 4.75, mikro: 4.75, calcis: 4.75, finis: null, litrosDia: 130 },
+  { presetId: 'co2_estira',  etapa: 'Flora · estiramiento',semanas: '6-7',   nSemanas: 2, ec: 2.5, makro: 5.65, mikro: 5.65, calcis: 5.65, finis: null, litrosDia: 150 },
+  { presetId: 'co2_engorde', etapa: 'Flora · engorde',     semanas: '8-12',  nSemanas: 5, ec: 3.0, makro: 6.79, mikro: 6.79, calcis: 4.61, finis: null, litrosDia: 150, nota: 'El pico va acá, que es donde el CO₂ lo devuelve. Calcis al 68%: en engorde se pide menos nitrógeno.' },
+  { presetId: 'co2_finis',   etapa: 'Finis · cierre',      semanas: '13-14', nSemanas: 2, ec: 1.4, makro: null, mikro: 4.0,  calcis: null, finis: 0.91, litrosDia: 140, nota: 'Sin Makro ni Calcis. pH 6,0-6,4 (más alto que el resto). Disolver el Finis con la bomba recirculando.' },
 ]
 
 // Rangos objetivo min/max por elemento (estilo NuteMix). Verde si caés dentro.

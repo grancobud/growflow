@@ -2,8 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   FlaskConical, Beaker, Droplets, ChevronDown, Sparkles, AlertTriangle,
   Save, FolderOpen, Trash2, Calculator, FlaskRound, Layers, Scale, Plus, DollarSign,
-  Droplet, GitCompare, Package, ShieldCheck, Copy, HelpCircle, BookOpen, Lightbulb, Printer, Store, Phone, Globe, Upload, Star, X, Mail, MapPin, Repeat, Sprout, FileText, Loader2,
+  CalendarRange, Droplet, GitCompare, Package, ShieldCheck, Copy, HelpCircle, BookOpen, Lightbulb, Printer, Store, Phone, Globe, Upload, Star, X, Mail, MapPin, Repeat, Sprout, FileText, Loader2,
 } from 'lucide-react'
+import PlanTab from './PlanTab'
 import { toast } from 'sonner'
 import {
   SALES_DEFECTO, ELEMENTOS, PRESETS, calcularReceta, ecAprox, nTotal,
@@ -31,10 +32,11 @@ interface CalcTabProps {
 }
 type CostoResultado = { porLitro: number; detalle: { sal: Sal; costo: number }[] }
 
-type SubTab = 'calc' | 'clonar' | 'sustancias' | 'proveedores' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar' | 'enraizado' | 'elicitor' | 'bioestim' | 'hocl' | 'ayuda'
+type SubTab = 'calc' | 'plan' | 'clonar' | 'sustancias' | 'proveedores' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar' | 'enraizado' | 'elicitor' | 'bioestim' | 'hocl' | 'ayuda'
 
 const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
   { id: 'calc', label: 'Calculadora', icon: Calculator },
+  { id: 'plan', label: 'Mi plan', icon: CalendarRange },
   { id: 'clonar', label: 'Clonar marca', icon: Copy },
   { id: 'sustancias', label: 'Sustancias', icon: FlaskRound },
   { id: 'proveedores', label: 'Proveedores', icon: Store },
@@ -55,9 +57,9 @@ const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
 
 // 16 pestañas en una barra ocupaban dos filas enteras. Quedan visibles las de
 // uso diario y el resto pasa a un desplegable agrupado por tema.
-const TABS_FIJAS: SubTab[] = ['calc', 'sustancias', 'proveedores', 'ratios']
+const TABS_FIJAS: SubTab[] = ['calc', 'plan', 'sustancias', 'ratios']
 const GRUPOS_TABS: { grupo: string; ids: SubTab[] }[] = [
-  { grupo: 'Formular', ids: ['clonar', 'comparar'] },
+  { grupo: 'Formular', ids: ['clonar', 'comparar', 'proveedores'] },
   { grupo: 'Agua y mezcla', ids: ['agua', 'concentrados', 'estab', 'ph'] },
   { grupo: 'Recetas DIY', ids: ['enraizado', 'elicitor', 'bioestim', 'hocl'] },
   { grupo: 'Ayuda', ids: ['ayuda'] },
@@ -364,6 +366,10 @@ export default function CreadorNutrientes() {
       )}
       {sub === 'proveedores' && (
         <ProveedoresTab salesTodas={salesTodas} recargarInventario={recargarInventario} recargarProveedores={recargarProveedores} />
+      )}
+      {sub === 'plan' && (
+        <PlanTab salesTodas={salesTodas} proveedores={proveedores}
+          onUsarPreset={(p, id) => { setPerfil(p); setPresetId(id); setActivas(new Set(kitParaPerfil(p, opcionesDeMarca('')))); setRangos(rangosDesdePerfil(p)); setSub('calc') }} />
       )}
       {sub === 'agua' && (
         <div className="space-y-4">
