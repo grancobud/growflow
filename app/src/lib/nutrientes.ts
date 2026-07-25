@@ -245,9 +245,12 @@ export const SALES_DEFECTO: Sal[] = [
     comp: { NH4: 0.0098, P: 0.0115, K: 0.0472, S: 0.0182 },
     descripcion: 'Comercial Ryanodine (sistema 3 partes): macros sin calcio. N 100% amoniacal, P, K, S.' },
   { id: 'ryano_mikro', nombre: 'Ryanodine Mikro (B)', bidon: 'C', liquido: true, densidad: 1.1,
-    // Verificado contra el PDF oficial "Ryanodine ABC — Información del Producto":
-    // Mg 1.00, S 1.35, Fe 0.109, Mn 0.020, Zn 0.004, B 0.008, Cu 0.003, Mo 0.0005.
-    comp: { Mg: 0.01, S: 0.0135, Fe: 0.00109, Mn: 0.0002, Zn: 0.00004, B: 0.00008, Cu: 0.00003, Mo: 0.000005 },
+    // Verificado contra la etiqueta del envase: Mg 1.00, S 1.35, Fe 0.109,
+    // Mn 0.020, Zn 0.005, B 0.008, Cu 0.003, Mo 0.0005.
+    // OJO: el PDF "Ryanodine ABC — Información del Producto" dice Zn 0.004 en vez
+    // de 0.005; el resto de los valores coincide. Se usa el de la etiqueta, que es
+    // lo que viene impreso en el bidón. La diferencia son 0,044 ppm a 4 mL/L.
+    comp: { Mg: 0.01, S: 0.0135, Fe: 0.00109, Mn: 0.0002, Zn: 0.00005, B: 0.00008, Cu: 0.00003, Mo: 0.000005 },
     descripcion: 'Comercial Ryanodine: micros quelatados + magnesio. Derivado de: sulfato de magnesio, Fe EDDHA, ácido bórico, Mn/Zn/Cu EDTA, molibdato de sodio.' },
   { id: 'ryano_maikro', nombre: 'Ryanodine Maikro (AB)', bidon: 'B', liquido: true, densidad: 1.1,
     comp: { NH4: 0.0098, P: 0.0115, K: 0.0472, S: 0.0317, Mg: 0.01, Fe: 0.00109, Mn: 0.0002, Zn: 0.00004, Cu: 0.00003, B: 0.00008, Mo: 0.000005 },
