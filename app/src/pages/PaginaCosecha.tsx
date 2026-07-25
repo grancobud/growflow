@@ -96,10 +96,12 @@ export default function PaginaCosecha() {
   const totalSeco = filas.reduce((a, f) => a + f.pesoSeco, 0)
   const totalCosechas = filas.reduce((a, f) => a + f.nCosechas, 0)
   const conRinde = filas.filter(f => f.pesoSeco > 0)
+  // Las que faltan cargar van primero: es lo que se viene a hacer a esta pantalla.
+  const pendientes = filas.filter(f => f.pesoSeco <= 0)
   const maxSeco = Math.max(1, ...filas.map(f => f.pesoSeco))
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#0a0a0f] text-[#d4d4dd] font-sans">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden ct-page-scroll bg-[#0a0a0f] text-[#d4d4dd] font-sans">
       <div className="sticky top-0 z-40 bg-[#0a0a0f]/95 backdrop-blur-[2px] border-b border-[#1f1f2b]">
         <div className="flex items-center gap-2 sm:gap-4 px-3 sm:px-6 py-3">
           <div className="min-w-0">
@@ -107,106 +109,141 @@ export default function PaginaCosecha() {
             <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">Cargá los gramos que te dio cada variedad</div>
           </div>
           <div className="flex-1" />
-          <button onClick={cargar} className="p-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] transition-colors text-[#a6a6b5]" title="Refrescar">
+          <button onClick={cargar} className="p-2.5 sm:p-1.5 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] transition-colors text-[#a6a6b5]" title="Refrescar" aria-label="Refrescar">
             <RefreshCw className={`w-3.5 h-3.5 ${cargando ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>
 
-      <div className="px-3 sm:px-6 py-4 sm:py-5 pb-20 space-y-4 max-w-3xl mx-auto">
+      <div className="px-3 sm:px-6 py-4 sm:py-5 pb-[calc(5rem+env(safe-area-inset-bottom))] max-w-[1500px] mx-auto">
         {/* Totales */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4">
-            <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium">Total seco</p>
-            <p className="font-display font-bold text-[22px] sm:text-[26px] text-[#ececf1] mt-1.5 leading-none tabular-nums">
-              {totalSeco.toLocaleString('es-AR')} <span className="text-[14px] text-[#757584]">g</span>
-            </p>
-          </div>
-          <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4">
-            <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium">Variedades</p>
-            <p className="font-display font-bold text-[22px] sm:text-[26px] text-[#ececf1] mt-1.5 leading-none tabular-nums">{filas.length}</p>
-          </div>
-          <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4">
-            <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium">Cosechas</p>
-            <p className="font-display font-bold text-[22px] sm:text-[26px] text-[#ececf1] mt-1.5 leading-none tabular-nums">{totalCosechas}</p>
-          </div>
+        <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
+          <Total label="Total seco" valor={totalSeco.toLocaleString('es-AR')} unidad="g" />
+          <Total label="Variedades" valor={String(filas.length)} sub={pendientes.length > 0 ? `${pendientes.length} sin cargar` : 'todas cargadas'} />
+          <Total label="Cosechas" valor={String(totalCosechas)} />
         </div>
 
-        {/* Ranking por gramos */}
-        {conRinde.length > 0 && (
-          <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden">
-            <div className="px-4 sm:px-5 py-3 border-b border-[#1f1f2b] flex items-center gap-2">
-              <Scale className="w-3.5 h-3.5 text-[#bef264]" />
-              <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Ranking por gramos secos</h3>
-            </div>
-            <ul className="divide-y divide-[#1f1f2b]">
-              {conRinde.map((f, i) => {
-                const v = prom(f.valoraciones)
-                const porPlanta = f.plantas.length ? f.pesoSeco / f.plantas.length : 0
-                return (
-                  <li key={f.genetica} className="px-4 sm:px-5 py-3">
-                    <div className="flex items-center gap-2 mb-1.5">
-                      {i === 0 && <Trophy className="w-3.5 h-3.5 text-[#f59e0b] flex-shrink-0" />}
-                      <span className="text-[12.5px] font-medium text-[#ececf1] truncate">{f.genetica}</span>
-                      <span className="ml-auto font-display font-bold text-[14px] text-[#d9f99d] tabular-nums">
-                        {f.pesoSeco.toLocaleString('es-AR')} g
-                      </span>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-[#1c1c27] overflow-hidden">
-                      <div className="h-full rounded-full bg-gradient-to-r from-[#4d7c0f] to-[#a3e635]" style={{ width: `${(f.pesoSeco / maxSeco) * 100}%` }} />
-                    </div>
-                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-[10.5px] text-[#757584] tabular-nums">
-                      <span>{f.plantas.length} pl. · {porPlanta.toLocaleString('es-AR', { maximumFractionDigits: 0 })} g/pl.</span>
-                      {f.pesoHumedo > 0 && <span>{Math.round((f.pesoSeco / f.pesoHumedo) * 100)}% seco/húmedo</span>}
-                      {v != null && <span className="text-[#c4b5fd]">★ {v.toFixed(1)}/10</span>}
-                    </div>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-        )}
+        {/* Desktop: ranking fijo a la izquierda, variedades en grilla a la derecha.
+            Mobile: todo apilado. Antes eran 15 tarjetas en una sola columna angosta. */}
+        <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(320px,380px)_1fr] items-start">
 
-        {/* Variedades para cargar */}
-        <div>
-          <div className="flex items-center gap-2 px-1 mb-2">
-            <Layers className="w-3.5 h-3.5 text-[#a78bfa]" />
-            <h3 className="font-display font-semibold text-[12.5px] text-[#c4b5fd]">Variedades en cultivo</h3>
-          </div>
-          {cargando ? (
-            <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-16 bg-[#101016] border border-[#1f1f2b] rounded-xl animate-pulse" />)}</div>
-          ) : filas.length === 0 ? (
-            <div className="py-16 text-center">
-              <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><Sprout className="w-5 h-5 text-[#5c5c6b]" /></div>
-              <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">Sin plantas cargadas</div>
-              <div className="mt-1 text-[11.5px] text-[#5c5c6b]">Cargá plantas en /plantas y volvé para registrar la cosecha.</div>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {filas.map(f => (
-                <div key={f.genetica} className="rounded-xl bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] transition-colors px-4 py-3 flex items-center gap-3">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[13px] font-medium text-[#ececf1] truncate">{f.genetica}</span>
-                      <ChipTipo tipo={f.plantas[0]?.tipo} />
-                    </div>
-                    <div className="text-[10.5px] text-[#757584] mt-0.5 tabular-nums">
-                      {f.plantas.length} planta{f.plantas.length !== 1 ? 's' : ''}
-                      {f.pesoSeco > 0 && <span className="text-[#a3e635]"> · {f.pesoSeco.toLocaleString('es-AR')} g cargados</span>}
-                    </div>
-                  </div>
-                  <button onClick={() => setModal(f)} className={btnPrimario}>
-                    <Plus className="w-3.5 h-3.5" /> Cargar
-                  </button>
-                </div>
-              ))}
+          {/* Ranking */}
+          {conRinde.length > 0 && (
+            <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden lg:sticky lg:top-[76px]">
+              <div className="px-4 py-3 border-b border-[#1f1f2b] flex items-center gap-2">
+                <Scale className="w-3.5 h-3.5 text-[#bef264]" />
+                <h2 className="font-display font-semibold text-[13px] text-[#ececf1]">Ranking por gramos secos</h2>
+                <span className="ml-auto text-[10px] text-[#5c5c6b] tabular-nums">{conRinde.length} de {filas.length}</span>
+              </div>
+              <ul className="divide-y divide-[#1f1f2b] max-h-[52vh] lg:max-h-[calc(100vh-190px)] overflow-y-auto ct-page-scroll">
+                {conRinde.map((f, i) => {
+                  const v = prom(f.valoraciones)
+                  const porPlanta = f.plantas.length ? f.pesoSeco / f.plantas.length : 0
+                  return (
+                    <li key={f.genetica} className="px-4 py-2.5">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        {i === 0 && <Trophy className="w-3.5 h-3.5 text-[#f59e0b] flex-shrink-0" />}
+                        <span className="text-[12.5px] font-medium text-[#ececf1] truncate">{f.genetica}</span>
+                        <span className="ml-auto font-display font-bold text-[14px] text-[#d9f99d] tabular-nums flex-shrink-0">
+                          {f.pesoSeco.toLocaleString('es-AR')} g
+                        </span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-[#1c1c27] overflow-hidden">
+                        <div className="h-full rounded-full bg-gradient-to-r from-[#4d7c0f] to-[#a3e635]" style={{ width: `${(f.pesoSeco / maxSeco) * 100}%` }} />
+                      </div>
+                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-[10.5px] text-[#757584] tabular-nums">
+                        <span>{f.plantas.length} pl. · {porPlanta.toLocaleString('es-AR', { maximumFractionDigits: 0 })} g/pl.</span>
+                        {f.pesoHumedo > 0 && <span>{Math.round((f.pesoSeco / f.pesoHumedo) * 100)}% seco/húmedo</span>}
+                        {v != null && <span className="text-[#c4b5fd]">★ {v.toFixed(1)}/10</span>}
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
             </div>
           )}
+
+          {/* Variedades: primero las que faltan cargar */}
+          <div className={conRinde.length > 0 ? '' : 'lg:col-span-2'}>
+            {cargando ? (
+              <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-[74px] bg-[#101016] border border-[#1f1f2b] rounded-xl animate-pulse" />)}
+              </div>
+            ) : filas.length === 0 ? (
+              <div className="py-16 text-center">
+                <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><Sprout className="w-5 h-5 text-[#5c5c6b]" /></div>
+                <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">Sin plantas cargadas</div>
+                <div className="mt-1 text-[11.5px] text-[#5c5c6b]">Cargá plantas en /plantas y volvé para registrar la cosecha.</div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {pendientes.length > 0 && (
+                  <GrupoVariedades titulo="Falta cargar" cantidad={pendientes.length} color="#a78bfa"
+                    filas={pendientes} onCargar={setModal} />
+                )}
+                {conRinde.length > 0 && (
+                  <GrupoVariedades titulo="Ya cargadas" cantidad={conRinde.length} color="#a3e635"
+                    filas={conRinde} onCargar={setModal} />
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       {modal && <ModalCarga fila={modal} onCerrar={() => setModal(null)} onGuardado={() => { setModal(null); cargar() }} />}
     </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+
+function Total({ label, valor, unidad, sub }: { label: string; valor: string; unidad?: string; sub?: string }) {
+  return (
+    <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4">
+      <p className="text-[9.5px] sm:text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium truncate">{label}</p>
+      <p className="font-display font-bold text-[20px] sm:text-[26px] text-[#ececf1] mt-1 leading-none tabular-nums">
+        {valor}{unidad && <span className="text-[13px] text-[#757584]"> {unidad}</span>}
+      </p>
+      {sub && <p className="text-[9.5px] text-[#5c5c6b] mt-1 truncate">{sub}</p>}
+    </div>
+  )
+}
+
+/** Variedades en grilla: 1 columna en celular, 2 en tablet, 3 en pantalla grande. */
+function GrupoVariedades({ titulo, cantidad, color, filas, onCargar }: {
+  titulo: string; cantidad: number; color: string
+  filas: FilaVariedad[]; onCargar: (f: FilaVariedad) => void
+}) {
+  return (
+    <section>
+      <div className="flex items-center gap-2 px-1 mb-2">
+        <Layers className="w-3.5 h-3.5 flex-shrink-0" style={{ color }} />
+        <h2 className="font-display font-semibold text-[12.5px]" style={{ color }}>{titulo}</h2>
+        <span className="text-[10px] text-[#5c5c6b] tabular-nums">{cantidad}</span>
+      </div>
+      <div className="grid grid-cols-2 gap-2 sm:gap-2.5 xl:grid-cols-3">
+        {filas.map(f => (
+          <div key={f.genetica}
+            className="rounded-xl bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] transition-colors p-3 flex flex-col gap-2.5">
+            <div className="min-w-0">
+              <div className="flex items-start gap-1.5">
+                <span className="text-[13px] font-medium text-[#ececf1] leading-snug break-words min-w-0">{f.genetica}</span>
+                <span className="flex-shrink-0"><ChipTipo tipo={f.plantas[0]?.tipo} /></span>
+              </div>
+              <div className="text-[10.5px] text-[#757584] mt-1 tabular-nums">
+                {f.plantas.length} planta{f.plantas.length !== 1 ? 's' : ''}
+                {f.pesoSeco > 0 && <span className="text-[#a3e635]"> · {f.pesoSeco.toLocaleString('es-AR')} g</span>}
+              </div>
+            </div>
+            <button onClick={() => onCargar(f)}
+              className={`${btnPrimario} w-full justify-center min-h-[44px] sm:min-h-[40px] mt-auto`}>
+              <Plus className="w-3.5 h-3.5" /> {f.pesoSeco > 0 ? 'Ver / editar' : 'Cargar'}
+            </button>
+          </div>
+        ))}
+      </div>
+    </section>
   )
 }
 
