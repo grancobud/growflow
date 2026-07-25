@@ -6,7 +6,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 import {
-  Scale, Scissors, Trophy, X, Loader2, Plus, Star, Layers, Sprout, RefreshCw, Pencil, Trash2,
+  Scale, Scissors, Trophy, X, Loader2, Plus, Star, Layers, Sprout, RefreshCw, Pencil, Trash2, ChevronDown,
 } from 'lucide-react'
 import { cultivoService, type ResumenPlanta, type Cosecha } from '../lib/cultivo'
 
@@ -15,6 +15,9 @@ const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] f
 const btnPrimario = 'inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[12px] font-medium text-[#d9f99d] disabled:opacity-50'
 
 const SIN_GEN = 'Sin genética'
+
+// Fases a partir de las cuales tiene sentido cargar cosecha.
+const FASES_COSECHABLES = new Set(['Floracion', 'Secado', 'Curado', 'Cosechada'])
 
 // Chip de tipo de genética (Auto/Fem/…) — color + abreviatura.
 const COLOR_TIPO: Record<string, { label: string; text: string; bg: string; border: string }> = {
@@ -96,8 +99,12 @@ export default function PaginaCosecha() {
   const totalSeco = filas.reduce((a, f) => a + f.pesoSeco, 0)
   const totalCosechas = filas.reduce((a, f) => a + f.nCosechas, 0)
   const conRinde = filas.filter(f => f.pesoSeco > 0)
-  // Las que faltan cargar van primero: es lo que se viene a hacer a esta pantalla.
-  const pendientes = filas.filter(f => f.pesoSeco <= 0)
+  // Una variedad está para cosechar si alguna planta llegó a floración. Las que
+  // siguen en vegetativo/germinación no se cosechan todavía y sólo ensucian la
+  // lista (hoy: 9 variedades feminizadas en vegetativo).
+  const sinCargar = filas.filter(f => f.pesoSeco <= 0)
+  const pendientes = sinCargar.filter(f => f.plantas.some(p => FASES_COSECHABLES.has(p.fase)))
+  const creciendo = sinCargar.filter(f => !f.plantas.some(p => FASES_COSECHABLES.has(p.fase)))
   const maxSeco = Math.max(1, ...filas.map(f => f.pesoSeco))
 
   return (
@@ -119,7 +126,10 @@ export default function PaginaCosecha() {
         {/* Totales */}
         <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
           <Total label="Total seco" valor={totalSeco.toLocaleString('es-AR')} unidad="g" />
-          <Total label="Variedades" valor={String(filas.length)} sub={pendientes.length > 0 ? `${pendientes.length} sin cargar` : 'todas cargadas'} />
+          <Total label="Variedades" valor={String(filas.length)}
+            sub={pendientes.length > 0
+              ? `${pendientes.length} para cosechar`
+              : creciendo.length > 0 ? `${creciendo.length} todavía creciendo` : 'todas cargadas'} />
           <Total label="Cosechas" valor={String(totalCosechas)} />
         </div>
 
@@ -178,12 +188,17 @@ export default function PaginaCosecha() {
             ) : (
               <div className="space-y-4">
                 {pendientes.length > 0 && (
-                  <GrupoVariedades titulo="Falta cargar" cantidad={pendientes.length} color="#a78bfa"
+                  <GrupoVariedades titulo="Listas para cosechar" cantidad={pendientes.length} color="#a78bfa"
                     filas={pendientes} onCargar={setModal} />
                 )}
                 {conRinde.length > 0 && (
                   <GrupoVariedades titulo="Ya cargadas" cantidad={conRinde.length} color="#a3e635"
                     filas={conRinde} onCargar={setModal} />
+                )}
+                {creciendo.length > 0 && (
+                  <GrupoVariedades titulo="Todavía creciendo" cantidad={creciendo.length} color="#757584"
+                    subtitulo="No llegaron a floración — no hay nada que cosechar todavía"
+                    filas={creciendo} onCargar={setModal} plegable />
                 )}
               </div>
             )}
@@ -210,18 +225,26 @@ function Total({ label, valor, unidad, sub }: { label: string; valor: string; un
   )
 }
 
-/** Variedades en grilla: 1 columna en celular, 2 en tablet, 3 en pantalla grande. */
-function GrupoVariedades({ titulo, cantidad, color, filas, onCargar }: {
-  titulo: string; cantidad: number; color: string
-  filas: FilaVariedad[]; onCargar: (f: FilaVariedad) => void
+/** Variedades en grilla: 2 columnas en celular, 3 en pantalla grande. */
+function GrupoVariedades({ titulo, cantidad, color, subtitulo, filas, onCargar, plegable = false }: {
+  titulo: string; cantidad: number; color: string; subtitulo?: string
+  filas: FilaVariedad[]; onCargar: (f: FilaVariedad) => void; plegable?: boolean
 }) {
+  // Las que todavía crecen arrancan cerradas: no hay nada que hacer con ellas.
+  const [abierto, setAbierto] = useState(!plegable)
   return (
     <section>
-      <div className="flex items-center gap-2 px-1 mb-2">
+      <button onClick={() => plegable && setAbierto(a => !a)} disabled={!plegable}
+        className={`w-full flex items-center gap-2 px-1 mb-2 text-left ${plegable ? 'min-h-[40px] cursor-pointer' : 'cursor-default'}`}>
         <Layers className="w-3.5 h-3.5 flex-shrink-0" style={{ color }} />
-        <h2 className="font-display font-semibold text-[12.5px]" style={{ color }}>{titulo}</h2>
-        <span className="text-[10px] text-[#5c5c6b] tabular-nums">{cantidad}</span>
-      </div>
+        <span className="font-display font-semibold text-[12.5px]" style={{ color }}>{titulo}</span>
+        <span className="text-[10px] text-[#5c5c6b] tabular-nums flex-shrink-0">{cantidad}</span>
+        {subtitulo && <span className="text-[10px] text-[#5c5c6b] truncate hidden sm:inline">· {subtitulo}</span>}
+        {plegable && (
+          <ChevronDown className={`w-3.5 h-3.5 text-[#5c5c6b] ml-auto flex-shrink-0 transition-transform ${abierto ? 'rotate-180' : ''}`} />
+        )}
+      </button>
+      {!abierto ? null : (
       <div className="grid grid-cols-2 gap-2 sm:gap-2.5 xl:grid-cols-3">
         {filas.map(f => (
           <div key={f.genetica}
@@ -243,6 +266,7 @@ function GrupoVariedades({ titulo, cantidad, color, filas, onCargar }: {
           </div>
         ))}
       </div>
+      )}
     </section>
   )
 }
@@ -416,10 +440,23 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
               <div className="space-y-2">
                 {fila.plantas.map(p => {
                   const v = porPlanta[p.id]
+                  // Las ya cosechadas se marcan en rojo para no cargarlas dos veces.
+                  const yaCosechada = p.fase === 'Cosechada'
                   return (
-                    <div key={p.id} className="rounded-lg bg-[#15151d] border border-[#2a2a3a] p-3">
-                      <div className="text-[11.5px] font-medium text-[#ececf1] truncate mb-2">
-                        {p.codigo || p.nombre || 'Planta'} <span className="text-[#5c5c6b] font-normal">· {p.fase}</span>
+                    <div key={p.id}
+                      className={`rounded-lg p-3 border ${yaCosechada ? 'bg-[#1a1214] border-[#7a2820]' : 'bg-[#15151d] border-[#2a2a3a]'}`}>
+                      <div className="flex items-center gap-1.5 text-[11.5px] font-medium mb-2 min-w-0">
+                        <span className={`truncate ${yaCosechada ? 'text-[#ff8a7a]' : 'text-[#ececf1]'}`}>
+                          {p.codigo || p.nombre || 'Planta'}
+                        </span>
+                        {yaCosechada ? (
+                          <span className="text-[9px] font-semibold tracking-wide rounded px-1.5 py-0.5 border flex-shrink-0"
+                            style={{ color: '#ff8a7a', background: 'rgba(122,40,32,0.25)', borderColor: '#7a2820' }}>
+                            YA COSECHADA
+                          </span>
+                        ) : (
+                          <span className="text-[#5c5c6b] font-normal flex-shrink-0">· {p.fase}</span>
+                        )}
                       </div>
                       <div className="grid grid-cols-2 gap-2 items-end">
                         <div><label className="block text-[9px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1">Seco g</label><input type="number" inputMode="decimal" className={inputCls} placeholder="120" value={v?.seco ?? ''} onChange={e => setPP(p.id, 'seco', e.target.value)} /></div>
