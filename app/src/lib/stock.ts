@@ -37,6 +37,9 @@ export interface Insumo {
   stock_minimo: number | null
   proveedor: string | null
   precio: number | null
+  // Cómo pesa en el costo: capex se amortiza, consumible se gasta por ciclo,
+  // recurrente es un gasto mensual. null = se deduce de la categoría.
+  clase_costo: 'capex' | 'consumible' | 'recurrente' | null
   notas: string | null
   creado_en: string
   actualizado_en: string

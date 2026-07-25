@@ -82,3 +82,142 @@ export const econometriaService = {
     if (error) throw error
   },
 }
+
+// ---------------------------------------------------------------------------
+// Modelo de costos real: el inventario dividido en lo que se amortiza y lo que
+// se gasta. Antes el costo/g daba $0 porque no se usaba nada del Stock, y el
+// "CAPEX" salia del catalogo de Instalaciones, que es un presupuesto de cosas
+// que NO estan compradas. Aca solo cuenta lo que hay instalado.
+// ---------------------------------------------------------------------------
+
+export type ClaseCosto = 'capex' | 'consumible' | 'recurrente'
+
+/** Insumo del Stock, con lo justo para costear. */
+export interface InsumoCosto {
+  id: string
+  nombre: string
+  categoria: string | null
+  precio: number | null
+  clase_costo: ClaseCosto | null
+}
+
+/** Meses de vida util por categoria; define cuanto pesa el equipo por mes. */
+export type VidaUtil = Record<string, number>
+
+export const VIDA_UTIL_DEFECTO: VidaUtil = {
+  Iluminacion: 48, Climatizacion: 72, Riego: 60, Medicion: 36,
+  Herramienta: 36, CO2: 60, Otro: 60, Sustrato: 12, Fertilizante: 12, Sanidad: 12,
+}
+const VIDA_UTIL_FALLBACK = 60
+
+/** Si el insumo no tiene clase asignada se deduce de la categoria. */
+export function claseDe(i: InsumoCosto): ClaseCosto {
+  if (i.clase_costo) return i.clase_costo
+  const c = i.categoria ?? ''
+  if (['Fertilizante', 'Sustrato', 'Sanidad'].includes(c)) return 'consumible'
+  if (/recarga/i.test(i.nombre)) return 'consumible'
+  return 'capex'
+}
+
+export interface LineaAmortizacion {
+  categoria: string
+  valor: number        // lo invertido
+  meses: number        // vida util
+  porMes: number       // cuanto pesa por mes
+  items: number
+}
+
+/** Reparte el equipo instalado a lo largo de su vida util. */
+export function amortizacion(insumos: InsumoCosto[], vida: VidaUtil): LineaAmortizacion[] {
+  const porCat = new Map<string, { valor: number; items: number }>()
+  for (const i of insumos) {
+    if (claseDe(i) !== 'capex' || !i.precio) continue
+    const cat = i.categoria ?? 'Otro'
+    const acc = porCat.get(cat) ?? { valor: 0, items: 0 }
+    acc.valor += Number(i.precio); acc.items++
+    porCat.set(cat, acc)
+  }
+  return [...porCat.entries()]
+    .map(([categoria, { valor, items }]) => {
+      const meses = vida[categoria] ?? VIDA_UTIL_FALLBACK
+      return { categoria, valor, meses, porMes: meses > 0 ? valor / meses : 0, items }
+    })
+    .sort((a, b) => b.porMes - a.porMes)
+}
+
+/** Consumibles del Stock, prorrateados al mes segun la duracion del ciclo. */
+export function consumiblesPorMes(insumos: InsumoCosto[], mesesCiclo: number): number {
+  const total = insumos
+    .filter(i => claseDe(i) === 'consumible' && i.precio)
+    .reduce((s, i) => s + Number(i.precio), 0)
+  return mesesCiclo > 0 ? total / mesesCiclo : total
+}
+
+export interface ResumenEconomico {
+  amortizacionMes: number
+  fijosMes: number
+  variablesMes: number
+  consumiblesMes: number
+  totalMes: number
+  totalCiclo: number
+  capexInvertido: number
+  gramos: number
+  costoPorGramo: number | null
+  costoPorCiclo: number
+  lineas: LineaAmortizacion[]
+}
+
+/**
+ * Junta todo: equipo amortizado + gastos fijos + variables + consumibles,
+ * y lo divide por los gramos realmente cosechados.
+ */
+export function resumenEconomico(opts: {
+  insumos: InsumoCosto[]
+  costos: Costo[]
+  vida: VidaUtil
+  mesesCiclo: number
+  gramosCosechados: number
+}): ResumenEconomico {
+  const { insumos, costos, vida, mesesCiclo, gramosCosechados } = opts
+  const lineas = amortizacion(insumos, vida)
+  const amortizacionMes = lineas.reduce((s, l) => s + l.porMes, 0)
+  const fijosMes = costos.filter(c => c.tipo === 'fijo')
+    .reduce((s, c) => s + mensualEquivalente(c, mesesCiclo), 0)
+  const variablesMes = costos.filter(c => c.tipo === 'variable')
+    .reduce((s, c) => s + mensualEquivalente(c, mesesCiclo), 0)
+  const consumiblesMes = consumiblesPorMes(insumos, mesesCiclo)
+
+  const totalMes = amortizacionMes + fijosMes + variablesMes + consumiblesMes
+  const totalCiclo = totalMes * mesesCiclo
+  const capexInvertido = insumos
+    .filter(i => claseDe(i) === 'capex' && i.precio)
+    .reduce((s, i) => s + Number(i.precio), 0)
+
+  return {
+    amortizacionMes, fijosMes, variablesMes, consumiblesMes,
+    totalMes, totalCiclo, capexInvertido,
+    gramos: gramosCosechados,
+    costoPorGramo: gramosCosechados > 0 ? totalCiclo / gramosCosechados : null,
+    costoPorCiclo: totalCiclo,
+    lineas,
+  }
+}
+
+/** Gramos necesarios en el ciclo para que el costo/g baje del objetivo. */
+export function gramosParaCosto(totalCiclo: number, objetivoPorGramo: number): number {
+  return objetivoPorGramo > 0 ? totalCiclo / objetivoPorGramo : 0
+}
+
+export const configService = {
+  async get<T>(clave: string, porDefecto: T): Promise<T> {
+    const { data, error } = await supabase
+      .from('econometria_config').select('valor').eq('clave', clave).maybeSingle()
+    if (error) throw error
+    return ((data as { valor: T } | null)?.valor) ?? porDefecto
+  },
+  async set(clave: string, valor: unknown): Promise<void> {
+    const { error } = await supabase.from('econometria_config')
+      .upsert({ clave, valor, actualizado_en: new Date().toISOString() })
+    if (error) throw error
+  },
+}

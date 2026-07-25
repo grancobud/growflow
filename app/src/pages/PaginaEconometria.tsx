@@ -12,10 +12,12 @@ import {
   PiggyBank, Sprout, CalendarRange, TrendingUp, Eye, Wrench,
 } from 'lucide-react'
 import Instalaciones from '../components/econometria/Instalaciones'
+import { CostoPorGramo, ComposicionCosto, TablaAmortizacion } from '../components/econometria/ResumenEconomico'
 import {
   econometriaService, PERIODICIDADES, CATEGORIAS_COSTO_FIJO, CATEGORIAS_COSTO_VARIABLE,
   totalCosto, mensualEquivalente, labelPeriodicidad,
-  type Costo, type TipoCosto, type Periodicidad,
+  resumenEconomico, configService, VIDA_UTIL_DEFECTO,
+  type Costo, type TipoCosto, type Periodicidad, type VidaUtil,
 } from '../lib/econometria'
 import { stockService, type Insumo } from '../lib/stock'
 import { instalacionesService } from '../lib/instalaciones'
@@ -38,8 +40,9 @@ export default function PaginaEconometria() {
   const [nCosechas, setNCosechas] = useState(0)
   const [cargando, setCargando] = useState(true)
   const [mesesCiclo, setMesesCiclo] = useState(4)
+  const [vida, setVida] = useState<VidaUtil>(VIDA_UTIL_DEFECTO)
   const [capexInstalaciones, setCapexInstalaciones] = useState(0)
-  const [vidaUtilMeses, setVidaUtilMeses] = useState(36)
+
   const [modal, setModal] = useState(false)
   const [edit, setEdit] = useState<Costo | null>(null)
   const [tipoNuevo, setTipoNuevo] = useState<TipoCosto>('fijo')
@@ -48,14 +51,19 @@ export default function PaginaEconometria() {
 
   const cargar = useCallback(async () => {
     try {
-      const [cs, ins, plantas, cosechas, itemsInst] = await Promise.all([
+      const [cs, ins, plantas, cosechas, itemsInst, vida, params] = await Promise.all([
         econometriaService.getCostos(),
         stockService.getInsumos(),
         cultivoService.getResumenPlantas(true),
         cultivoService.getCosechas(),
         instalacionesService.getItems(),
+        configService.get<VidaUtil>('vida_util_meses', VIDA_UTIL_DEFECTO),
+        configService.get<{ meses_ciclo: number }>('parametros', { meses_ciclo: 4 }),
       ])
       setCostos(cs); setInsumos(ins); setPlantasActivas(plantas.length)
+      setVida(vida); setMesesCiclo(params.meses_ciclo ?? 4)
+      // Ojo: esto es el CATÁLOGO de instalaciones (un presupuesto de cosas que
+      // no están compradas). Se muestra aparte, NO entra en el costo real.
       setCapexInstalaciones(itemsInst.reduce((s, i) => s + (i.precio != null ? Number(i.precio) : 0), 0))
       setGramosSeco(cosechas.reduce((s, c) => s + (c.peso_seco_g != null ? Number(c.peso_seco_g) : 0), 0))
       setNCosechas(cosechas.filter(c => c.peso_seco_g != null && Number(c.peso_seco_g) > 0).length)
@@ -77,18 +85,16 @@ export default function PaginaEconometria() {
 
   const mensualFijos = useMemo(() => fijos.reduce((s, c) => s + mensualEquivalente(c, mesesCiclo), 0), [fijos, mesesCiclo])
   const mensualVariables = useMemo(() => variables.reduce((s, c) => s + mensualEquivalente(c, mesesCiclo), 0), [variables, mesesCiclo])
-  const mensualTotal = mensualFijos + mensualVariables
-  const inversionUnica = useMemo(
-    () => costos.filter(c => c.periodicidad === 'unico').reduce((s, c) => s + totalCosto(c), 0),
-    [costos],
-  )
-  const costoPorCiclo = mensualTotal * mesesCiclo
+  // Modelo real: el equipo del Stock amortizado por su vida útil + los gastos
+  // recurrentes + los consumibles del ciclo. El catálogo de Instalaciones NO
+  // entra: es un presupuesto de cosas que todavía no están compradas.
+  const eco = useMemo(() => resumenEconomico({
+    insumos, costos, vida, mesesCiclo, gramosCosechados: gramosSeco,
+  }), [insumos, costos, vida, mesesCiclo, gramosSeco])
+
+  const mensualTotal = eco.totalMes
+  const costoPorCiclo = eco.totalCiclo
   const costoPorPlanta = plantasActivas > 0 ? costoPorCiclo / plantasActivas : 0
-  // $/gramo: costo del ciclo dividido los gramos secos cosechados. Aproximación
-  // (asume que lo cosechado corresponde a ~un ciclo); útil como referencia.
-  const costoPorGramo = gramosSeco > 0 ? costoPorCiclo / gramosSeco : 0
-  // Amortización de instalaciones: el capex del catálogo repartido en su vida útil.
-  const amortizInstalaciones = vidaUtilMeses > 0 ? capexInstalaciones / vidaUtilMeses : 0
 
   const borrar = async (c: Costo) => {
     if (!window.confirm(`¿Borrar el costo "${c.nombre}"?`)) return
@@ -107,7 +113,7 @@ export default function PaginaEconometria() {
               <Calculator className="w-4 h-4 text-[#bef264]" /> Econometría
             </h1>
             <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
-              {fmt(mensualTotal)}/mes · {fmt(costoPorCiclo)}/ciclo · inventario {fmt(valorInsumos)}{gramosSeco > 0 ? ` · ${fmt(costoPorGramo)}/g` : ''}
+              {fmt(mensualTotal)}/mes · {fmt(costoPorCiclo)}/ciclo · inventario {fmt(valorInsumos)}{eco.costoPorGramo != null ? ` · ${fmt(eco.costoPorGramo)}/g` : ''}
             </div>
           </div>
           <div className="flex-1" />
@@ -138,45 +144,45 @@ export default function PaginaEconometria() {
         </div>
       ) : tab === 'resumen' ? (
         <div className="px-3 sm:px-6 py-4 pb-24 space-y-4">
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-            <Kpi icono={Activity} color="#bef264" label="Costo mensual" valor={fmt(mensualTotal)} sub={`${fmt(mensualFijos)} fijos · ${fmt(mensualVariables)} variables`} />
+          {/* El número que importa */}
+          <CostoPorGramo eco={eco} nCosechas={nCosechas} plantasActivas={plantasActivas} mesesCiclo={mesesCiclo} />
+
+          {/* A dónde va cada peso */}
+          <ComposicionCosto eco={eco} mesesCiclo={mesesCiclo} />
+
+          {/* Equipo instalado y cuánto pesa por mes */}
+          <TablaAmortizacion eco={eco} vida={vida} />
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <Kpi icono={Activity} color="#bef264" label="Costo mensual" valor={fmt(mensualTotal)} sub={`${fmt(eco.fijosMes)} fijos · ${fmt(eco.variablesMes + eco.consumiblesMes)} variables`} />
             <Kpi icono={CalendarRange} color="#a78bfa" label={`Costo por ciclo (${mesesCiclo}m)`} valor={fmt(costoPorCiclo)} sub={plantasActivas > 0 ? `${fmt(costoPorPlanta)} por planta` : 'sin plantas activas'} />
+            <Kpi icono={PiggyBank} color="#2dd4bf" label="Invertido en equipo" valor={fmt(eco.capexInvertido)} sub={`amortiza ${fmt(eco.amortizacionMes)}/mes`} />
             <Kpi icono={Boxes} color="#38bdf8" label="Valor inventario" valor={fmt(valorInsumos)} sub={`${insumosConPrecio.length} insumos con precio`} />
-            <Kpi icono={Landmark} color="#fbbf24" label="Costos fijos /mes" valor={fmt(mensualFijos)} sub={`${fijos.length} ítem${fijos.length === 1 ? '' : 's'}`} />
-            <Kpi icono={TrendingUp} color="#ff8a7a" label="Costos variables /mes" valor={fmt(mensualVariables)} sub={`${variables.length} ítem${variables.length === 1 ? '' : 's'}`} />
-            <Kpi icono={PiggyBank} color="#2dd4bf" label="Inversión única" valor={fmt(inversionUnica)} sub="costos marcados 'Único'" />
-            <Kpi icono={Sprout} color="#34d399" label="Costo por gramo"
-              valor={gramosSeco > 0 ? fmt(costoPorGramo) + '/g' : '—'}
-              sub={gramosSeco > 0 ? `${gramosSeco.toLocaleString('es-AR')}g secos · ${nCosechas} cosecha${nCosechas === 1 ? '' : 's'}` : 'cargá cosechas con peso seco'} />
-            <Kpi icono={Wrench} color="#f472b6" label="Instalaciones (capex)"
-              valor={capexInstalaciones > 0 ? fmt(capexInstalaciones) : '—'}
-              sub={capexInstalaciones > 0 ? `amortiza ${fmt(amortizInstalaciones)}/mes` : 'cargá el catálogo en Instalaciones'} />
           </div>
+
+          {capexInstalaciones > 0 && (
+            <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] px-4 py-3 flex items-start gap-2.5">
+              <Wrench className="w-4 h-4 text-[#f472b6] flex-shrink-0 mt-0.5" />
+              <div className="text-[11.5px] text-[#8a8a9a] leading-relaxed">
+                <b className="text-[#d4d4dd]">Catálogo de Instalaciones: {fmt(capexInstalaciones)}</b> — es un presupuesto de
+                lo que <i>podrías</i> comprar, así que <b>no</b> entra en el costo por gramo. El costo se calcula con
+                lo que ya tenés instalado en Stock ({fmt(eco.capexInvertido)}).
+              </div>
+            </div>
+          )}
 
           <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4 flex flex-wrap items-center gap-x-4 gap-y-2">
             <div className="flex items-center gap-2">
               <Sprout className="w-4 h-4 text-[#bef264]" />
-              <span className="text-[12px] text-[#a6a6b5]">Duración estimada de un ciclo</span>
+              <span className="text-[12px] text-[#a6a6b5]">Duración de un ciclo</span>
             </div>
             <div className="flex items-center gap-1.5">
               <input type="number" min={1} max={12} value={mesesCiclo}
-                onChange={e => setMesesCiclo(Math.max(1, Math.min(12, Number(e.target.value) || 1)))}
+                onChange={e => { const v = Math.max(1, Math.min(12, Number(e.target.value) || 1)); setMesesCiclo(v); configService.set('parametros', { meses_ciclo: v }).catch(() => {}) }}
                 className="w-16 px-2 py-1.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12.5px] text-[#ececf1] text-center focus:outline-none focus:border-[#a3e635]/60" />
               <span className="text-[12px] text-[#5c5c6b]">meses</span>
             </div>
-            <span className="text-[10.5px] text-[#5c5c6b]">Se usa para repartir los costos "por ciclo" en su equivalente mensual.</span>
-            <div className="w-full h-px bg-[#1f1f2b] my-1" />
-            <div className="flex items-center gap-2">
-              <Wrench className="w-4 h-4 text-[#f472b6]" />
-              <span className="text-[12px] text-[#a6a6b5]">Vida útil de las instalaciones</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <input type="number" min={1} max={240} value={vidaUtilMeses}
-                onChange={e => setVidaUtilMeses(Math.max(1, Math.min(240, Number(e.target.value) || 1)))}
-                className="w-20 px-2 py-1.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12.5px] text-[#ececf1] text-center focus:outline-none focus:border-[#a3e635]/60" />
-              <span className="text-[12px] text-[#5c5c6b]">meses</span>
-            </div>
-            <span className="text-[10.5px] text-[#5c5c6b]">Amortiza el capex del catálogo de Instalaciones (hoy {fmt(amortizInstalaciones)}/mes).</span>
+            <span className="text-[10.5px] text-[#5c5c6b]">Reparte los consumibles y los costos "por ciclo" en su equivalente mensual.</span>
           </div>
 
           {costos.length === 0 && (
