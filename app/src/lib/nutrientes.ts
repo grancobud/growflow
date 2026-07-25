@@ -448,12 +448,15 @@ export function kitParaPerfil(p: Perfil, opts: OpcionesKit = {}): string[] {
   }
   // --- Fósforo (MKP limpio, cero N) ---
   if (has('P')) kit.add('mkp')
-  // --- N amoniacal: elegir la fuente más limpia según qué más pide el perfil ---
+  // --- N amoniacal: se ofrecen las fuentes posibles y el solver elige la mezcla ---
+  // Ojo: el nitrato de amonio arrastra tanto NO3 como NH4. En perfiles con mucho
+  // amoniacal (las marcas de 3 partes: el calcio ya trae casi todo el nítrico) eso
+  // pasa el NO3 de largo, así que hay que ofrecer también una fuente sin nitrato.
   if (has('NH4')) {
-    if (has('NO3')) kit.add('nh4no3')      // NH4 + NO3 sin S ni P (ideal: cubre el amoniacal sin tocar nada)
-    else if (has('S')) kit.add('amsulf')   // NH4 + S (cuando no hay nítrico pero sí azufre)
-    else if (has('P')) kit.add('map')      // NH4 + P (sin nítrico ni azufre)
-    else kit.add('amsulf')                 // NH4 solo
+    if (has('NO3')) kit.add('nh4no3')      // NH4 + NO3, sin S ni P
+    if (has('S')) kit.add('amsulf')        // NH4 + S: cubre el amoniacal sin tocar el nítrico
+    if (has('P') && !has('S')) kit.add('map') // NH4 + P (sin nítrico ni azufre)
+    if (!kit.has('nh4no3') && !kit.has('amsulf') && !kit.has('map')) kit.add('amsulf')
   }
   // --- Potasio ---
   if (has('K')) {
@@ -542,6 +545,28 @@ export const PRESETS: PresetPerfil[] = [
     perfil: { P: 60, K: 187, Ca: 110, Mg: 45, S: 90, Fe: 1.5, Mn: 0.4, Zn: 0.15, B: 0.3, Cu: 0.05, Mo: 0.04 } },
   { id: 'fade', nombre: 'Fade Athena (Ca + micros)', desc: 'El aporte del Fade: calcio + micros sin N (se suma a un PK). Reemplaza al Pro Core en finish.',
     perfil: { Ca: 120, Mg: 40, Fe: 1.5, Mn: 0.4, Zn: 0.15, B: 0.3, Cu: 0.05, Mo: 0.04 } },
+
+  // --- Calendario Ryanodine ABC en fibra de coco ---------------------------
+  // El ppm de cada etapa sale de la tabla de dosificación oficial: se multiplica
+  // la composición de Makro A + Mikro B + Calcis C por los mL/L de esa semana
+  // (y por la densidad 1.1 de los líquidos). Elegir la etapa deja el objetivo
+  // igual al que da el producto original, y el solver arma el clon.
+  { id: 'ryano_enraiz', nombre: 'Ryano · Enraizamiento', desc: 'Semana 0 · A/B/C a 1,2 mL/L · EC 0,55',
+    perfil: { NO3: 32.74, NH4: 15.44, P: 15.18, K: 62.3, Ca: 42.24, Mg: 13.2, S: 41.84, Fe: 1.44, Mn: 0.26, Zn: 0.07, B: 0.11, Cu: 0.04, Mo: 0.01 } },
+  { id: 'ryano_veg1', nombre: 'Ryano · Vegetativo temprano', desc: 'Semanas 1-2 · A/B/C a 2,8 mL/L · EC 1,29',
+    perfil: { NO3: 76.38, NH4: 36.04, P: 35.42, K: 145.38, Ca: 98.56, Mg: 30.8, S: 97.64, Fe: 3.36, Mn: 0.62, Zn: 0.15, B: 0.25, Cu: 0.09, Mo: 0.02 } },
+  { id: 'ryano_veg2', nombre: 'Ryano · Vegetativo tardío', desc: 'Semanas 3-4 · A/B/C a 3,2 mL/L · EC 1,43',
+    perfil: { NO3: 87.3, NH4: 41.18, P: 40.48, K: 166.14, Ca: 112.64, Mg: 35.2, S: 111.58, Fe: 3.84, Mn: 0.7, Zn: 0.18, B: 0.28, Cu: 0.11, Mo: 0.02 } },
+  { id: 'ryano_preflo', nombre: 'Ryano · Pre-floración', desc: 'Semana 5 · A/B/C a 3,4 mL/L · EC 1,51',
+    perfil: { NO3: 92.75, NH4: 43.76, P: 43.01, K: 176.53, Ca: 119.68, Mg: 37.4, S: 118.56, Fe: 4.08, Mn: 0.75, Zn: 0.19, B: 0.3, Cu: 0.11, Mo: 0.02 } },
+  { id: 'ryano_estira', nombre: 'Ryano · Floración estiramiento', desc: 'Semanas 6-7 · A/B/C a 3,6 mL/L · EC 1,60',
+    perfil: { NO3: 98.21, NH4: 46.33, P: 45.54, K: 186.91, Ca: 126.72, Mg: 39.6, S: 125.53, Fe: 4.32, Mn: 0.79, Zn: 0.2, B: 0.32, Cu: 0.12, Mo: 0.02 } },
+  { id: 'ryano_engorde', nombre: 'Ryano · Floración engorde', desc: 'Semanas 8-11 · A/B 3,8 · Calcis baja a 2,6 mL/L · EC 1,44',
+    perfil: { NO3: 70.93, NH4: 46.4, P: 48.07, K: 197.3, Ca: 91.52, Mg: 41.8, S: 132.51, Fe: 4.56, Mn: 0.84, Zn: 0.21, B: 0.33, Cu: 0.13, Mo: 0.02 } },
+  { id: 'ryano_madura', nombre: 'Ryano · Floración maduración', desc: 'Semana 12 · A/B 3,2 · Calcis 2,0 mL/L · EC 1,23',
+    perfil: { NO3: 54.56, NH4: 38.68, P: 40.48, K: 166.14, Ca: 70.4, Mg: 35.2, S: 111.58, Fe: 3.84, Mn: 0.7, Zn: 0.18, B: 0.28, Cu: 0.11, Mo: 0.02 } },
+  { id: 'ryano_fin', nombre: 'Ryano · Fin de ciclo', desc: 'Semanas 13-14 · A/B 3,0 · sin Calcis · EC 0,77',
+    perfil: { NH4: 32.34, P: 37.95, K: 155.76, Mg: 33.0, S: 104.61, Fe: 3.6, Mn: 0.66, Zn: 0.17, B: 0.26, Cu: 0.1, Mo: 0.02 } },
 ]
 
 // Rangos objetivo min/max por elemento (estilo NuteMix). Verde si caés dentro.
