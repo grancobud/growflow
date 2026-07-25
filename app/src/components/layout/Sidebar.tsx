@@ -92,7 +92,9 @@ export default function Sidebar({ colapsado: colapsadoProp }: { colapsado?: bool
       className="h-full w-full bg-[#0a0a0f] text-[#d4d4dd] flex flex-col overflow-hidden font-sans"
     >
       {/* Logo */}
-      <div className="px-3 sm:px-4 pt-4 pb-3.5 border-b border-[#1f1f2b] flex-shrink-0">
+      {/* Sin borde inferior: los headers de página con pestañas caen ~33px más
+          abajo que esta línea y el escalón quedaba a la vista. */}
+      <div className="px-3 sm:px-4 pt-4 pb-3.5 flex-shrink-0">
         <div className={`flex items-center w-full ${colapsado ? 'justify-center' : 'gap-2.5'}`}>
           <div className="relative w-9 h-9 rounded-lg bg-[#a3e635]/15 border border-[#404d20] flex items-center justify-center flex-shrink-0">
             <Leaf className="w-4 h-4 text-[#bef264]" strokeWidth={2} />
