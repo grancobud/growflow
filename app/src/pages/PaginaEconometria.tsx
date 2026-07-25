@@ -8,11 +8,11 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 import {
-  Calculator, Plus, X, Loader2, Trash2, Pencil, Boxes, Landmark, Activity,
-  PiggyBank, Sprout, CalendarRange, TrendingUp, Eye, Wrench,
+  Calculator, Plus, X, Loader2, Trash2, Pencil, Boxes, Landmark,
+  Sprout, TrendingUp, Eye, Wrench,
 } from 'lucide-react'
 import Instalaciones from '../components/econometria/Instalaciones'
-import { CostoPorGramo, ComposicionCosto, TablaAmortizacion } from '../components/econometria/ResumenEconomico'
+import { CostoPorGramo, ComposicionCosto, DesgloseCostos, Indicadores } from '../components/econometria/ResumenEconomico'
 import {
   econometriaService, PERIODICIDADES, CATEGORIAS_COSTO_FIJO, CATEGORIAS_COSTO_VARIABLE,
   totalCosto, mensualEquivalente, labelPeriodicidad,
@@ -24,7 +24,8 @@ import { instalacionesService } from '../lib/instalaciones'
 import { cultivoService } from '../lib/cultivo'
 import { ModalInsumo, ModalVerInsumo } from './PaginaStockInsumos'
 
-const inputCls = 'w-full px-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+// text-[16px] en mobile: evita el zoom automático de iOS Safari al enfocar.
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
 const btnPrimario = 'inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[12px] font-medium text-[#d9f99d] disabled:opacity-50'
 const btnSutil = 'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] hover:border-[#404d20] transition-colors text-[11px] text-[#a6a6b5] hover:text-[#ececf1]'
@@ -94,7 +95,6 @@ export default function PaginaEconometria() {
 
   const mensualTotal = eco.totalMes
   const costoPorCiclo = eco.totalCiclo
-  const costoPorPlanta = plantasActivas > 0 ? costoPorCiclo / plantasActivas : 0
 
   const borrar = async (c: Costo) => {
     if (!window.confirm(`¿Borrar el costo "${c.nombre}"?`)) return
@@ -105,7 +105,7 @@ export default function PaginaEconometria() {
   const abrirNuevo = (tipo: TipoCosto) => { setTipoNuevo(tipo); setEdit(null); setModal(true) }
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#0a0a0f] text-[#d4d4dd] font-sans">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden ct-page-scroll bg-[#0a0a0f] text-[#d4d4dd] font-sans">
       <div className="sticky top-0 z-40 bg-[#0a0a0f]/95 backdrop-blur-[2px] border-b border-[#1f1f2b]">
         <div className="flex items-center flex-wrap gap-2 sm:gap-x-4 px-3 sm:px-6 pt-3">
           <div className="min-w-0">
@@ -128,10 +128,11 @@ export default function PaginaEconometria() {
             </div>
           )}
         </div>
-        <div className="flex gap-1 px-3 sm:px-6 pt-2">
+        {/* En celular las pestañas scrollean en vez de apretarse */}
+        <div className="flex gap-1 px-3 sm:px-6 pt-2 overflow-x-auto ct-page-scroll [-webkit-overflow-scrolling:touch]">
           {([['resumen', 'Resumen', TrendingUp], ['costos', 'Costos', Landmark], ['insumos', 'Insumos', Boxes], ['instalaciones', 'Instalaciones', Wrench]] as const).map(([t, lbl, Ico]) => (
             <button key={t} onClick={() => setTab(t)}
-              className={`px-3 py-2 text-[12px] font-medium border-b-2 -mb-px transition-colors flex items-center gap-1.5 ${tab === t ? 'border-[#a3e635] text-[#d9f99d]' : 'border-transparent text-[#5c5c6b] hover:text-[#a6a6b5]'}`}>
+              className={`px-3 py-2.5 sm:py-2 min-h-[44px] sm:min-h-0 flex-shrink-0 text-[12px] font-medium border-b-2 -mb-px transition-colors flex items-center gap-1.5 ${tab === t ? 'border-[#a3e635] text-[#d9f99d]' : 'border-transparent text-[#5c5c6b] hover:text-[#a6a6b5]'}`}>
               <Ico className="w-3.5 h-3.5" /> {lbl}
             </button>
           ))}
@@ -143,22 +144,18 @@ export default function PaginaEconometria() {
           {Array.from({ length: 6 }).map((_, i) => <div key={i} className="rounded-xl bg-[#101016] border border-[#1f1f2b] h-[92px] animate-pulse" />)}
         </div>
       ) : tab === 'resumen' ? (
-        <div className="px-3 sm:px-6 py-4 pb-24 space-y-4">
+        <div className="px-3 sm:px-6 py-4 pb-[calc(6rem+env(safe-area-inset-bottom))] space-y-4">
           {/* El número que importa */}
           <CostoPorGramo eco={eco} nCosechas={nCosechas} plantasActivas={plantasActivas} mesesCiclo={mesesCiclo} />
 
           {/* A dónde va cada peso */}
-          <ComposicionCosto eco={eco} mesesCiclo={mesesCiclo} />
+          <ComposicionCosto eco={eco} />
 
-          {/* Equipo instalado y cuánto pesa por mes */}
-          <TablaAmortizacion eco={eco} vida={vida} />
+          {/* Trazabilidad: cada peso hasta el ítem que lo genera */}
+          <DesgloseCostos eco={eco} vida={vida} />
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <Kpi icono={Activity} color="#bef264" label="Costo mensual" valor={fmt(mensualTotal)} sub={`${fmt(eco.fijosMes)} fijos · ${fmt(eco.variablesMes + eco.consumiblesMes)} variables`} />
-            <Kpi icono={CalendarRange} color="#a78bfa" label={`Costo por ciclo (${mesesCiclo}m)`} valor={fmt(costoPorCiclo)} sub={plantasActivas > 0 ? `${fmt(costoPorPlanta)} por planta` : 'sin plantas activas'} />
-            <Kpi icono={PiggyBank} color="#2dd4bf" label="Invertido en equipo" valor={fmt(eco.capexInvertido)} sub={`amortiza ${fmt(eco.amortizacionMes)}/mes`} />
-            <Kpi icono={Boxes} color="#38bdf8" label="Valor inventario" valor={fmt(valorInsumos)} sub={`${insumosConPrecio.length} insumos con precio`} />
-          </div>
+          {/* Indicadores de gestión */}
+          <Indicadores eco={eco} plantasActivas={plantasActivas} />
 
           {capexInstalaciones > 0 && (
             <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] px-4 py-3 flex items-start gap-2.5">
@@ -179,7 +176,7 @@ export default function PaginaEconometria() {
             <div className="flex items-center gap-1.5">
               <input type="number" min={1} max={12} value={mesesCiclo}
                 onChange={e => { const v = Math.max(1, Math.min(12, Number(e.target.value) || 1)); setMesesCiclo(v); configService.set('parametros', { meses_ciclo: v }).catch(() => {}) }}
-                className="w-16 px-2 py-1.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12.5px] text-[#ececf1] text-center focus:outline-none focus:border-[#a3e635]/60" />
+                className="w-16 px-2 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] text-center focus:outline-none focus:border-[#a3e635]/60" />
               <span className="text-[12px] text-[#5c5c6b]">meses</span>
             </div>
             <span className="text-[10.5px] text-[#5c5c6b]">Reparte los consumibles y los costos "por ciclo" en su equivalente mensual.</span>
@@ -195,16 +192,16 @@ export default function PaginaEconometria() {
           )}
         </div>
       ) : tab === 'costos' ? (
-        <div className="px-3 sm:px-6 py-4 pb-24 space-y-5">
+        <div className="px-3 sm:px-6 py-4 pb-[calc(6rem+env(safe-area-inset-bottom))] space-y-5">
           <ListaCostos titulo="Costos fijos" subtitulo="Se pagan igual produzcas o no (alquiler, luz de abono, internet)" icono={Landmark} color="#fbbf24" items={fijos} totalMensual={mensualFijos} mesesCiclo={mesesCiclo} onEdit={c => { setEdit(c); setModal(true) }} onBorrar={borrar} onNuevo={() => abrirNuevo('fijo')} />
           <ListaCostos titulo="Costos variables" subtitulo="Cambian según el cultivo (nutrientes, sustrato, agua, consumo de luz)" icono={TrendingUp} color="#ff8a7a" items={variables} totalMensual={mensualVariables} mesesCiclo={mesesCiclo} onEdit={c => { setEdit(c); setModal(true) }} onBorrar={borrar} onNuevo={() => abrirNuevo('variable')} />
         </div>
       ) : tab === 'instalaciones' ? (
-        <div className="px-3 sm:px-6 py-4 pb-24">
+        <div className="px-3 sm:px-6 py-4 pb-[calc(6rem+env(safe-area-inset-bottom))]">
           <Instalaciones />
         </div>
       ) : (
-        <div className="px-3 sm:px-6 py-4 pb-24">
+        <div className="px-3 sm:px-6 py-4 pb-[calc(6rem+env(safe-area-inset-bottom))]">
           <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-[#1f1f2b]">
               <div className="flex items-center gap-2">
@@ -263,20 +260,6 @@ export default function PaginaEconometria() {
   )
 }
 
-function Kpi({ icono: Ico, color, label, valor, sub }: { icono: any; color: string; label: string; valor: string; sub: string }) {
-  return (
-    <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-3.5">
-      <div className="flex items-center gap-2">
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${color}1f`, border: `1px solid ${color}40` }}>
-          <Ico className="w-3.5 h-3.5" style={{ color }} />
-        </div>
-        <div className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] leading-tight">{label}</div>
-      </div>
-      <div className="mt-2 font-display font-bold text-[18px] text-[#ececf1] leading-none">{valor}</div>
-      <div className="mt-1.5 text-[10.5px] text-[#5c5c6b] truncate">{sub}</div>
-    </div>
-  )
-}
 
 function ListaCostos({ titulo, subtitulo, icono: Ico, color, items, totalMensual, mesesCiclo, onEdit, onBorrar, onNuevo }: {
   titulo: string; subtitulo: string; icono: any; color: string; items: Costo[]; totalMensual: number; mesesCiclo: number

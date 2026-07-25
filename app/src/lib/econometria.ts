@@ -119,30 +119,59 @@ export function claseDe(i: InsumoCosto): ClaseCosto {
   return 'capex'
 }
 
+/** Una pieza de equipo con lo que aporta al mes. */
+export interface ItemAmortizado {
+  id: string
+  nombre: string
+  valor: number
+  porMes: number
+}
+
 export interface LineaAmortizacion {
   categoria: string
   valor: number        // lo invertido
   meses: number        // vida util
   porMes: number       // cuanto pesa por mes
   items: number
+  detalle: ItemAmortizado[]   // para poder rastrear de donde sale el numero
 }
 
 /** Reparte el equipo instalado a lo largo de su vida util. */
 export function amortizacion(insumos: InsumoCosto[], vida: VidaUtil): LineaAmortizacion[] {
-  const porCat = new Map<string, { valor: number; items: number }>()
+  const porCat = new Map<string, InsumoCosto[]>()
   for (const i of insumos) {
     if (claseDe(i) !== 'capex' || !i.precio) continue
     const cat = i.categoria ?? 'Otro'
-    const acc = porCat.get(cat) ?? { valor: 0, items: 0 }
-    acc.valor += Number(i.precio); acc.items++
-    porCat.set(cat, acc)
+    porCat.set(cat, [...(porCat.get(cat) ?? []), i])
   }
   return [...porCat.entries()]
-    .map(([categoria, { valor, items }]) => {
+    .map(([categoria, lista]) => {
       const meses = vida[categoria] ?? VIDA_UTIL_FALLBACK
-      return { categoria, valor, meses, porMes: meses > 0 ? valor / meses : 0, items }
+      const valor = lista.reduce((s, i) => s + Number(i.precio), 0)
+      return {
+        categoria, valor, meses,
+        porMes: meses > 0 ? valor / meses : 0,
+        items: lista.length,
+        detalle: lista
+          .map(i => ({
+            id: i.id, nombre: i.nombre, valor: Number(i.precio),
+            porMes: meses > 0 ? Number(i.precio) / meses : 0,
+          }))
+          .sort((a, b) => b.valor - a.valor),
+      }
     })
     .sort((a, b) => b.porMes - a.porMes)
+}
+
+/** Consumibles del Stock con su equivalente mensual, para mostrar el detalle. */
+export function detalleConsumibles(insumos: InsumoCosto[], mesesCiclo: number): ItemAmortizado[] {
+  return insumos
+    .filter(i => claseDe(i) === 'consumible' && i.precio)
+    .map(i => ({
+      id: i.id, nombre: i.nombre, valor: Number(i.precio),
+      porMes: mesesCiclo > 0 ? Number(i.precio) / mesesCiclo : Number(i.precio),
+    }))
+    .sort((a, b) => b.valor - a.valor)
 }
 
 /** Consumibles del Stock, prorrateados al mes segun la duracion del ciclo. */
@@ -165,6 +194,10 @@ export interface ResumenEconomico {
   costoPorGramo: number | null
   costoPorCiclo: number
   lineas: LineaAmortizacion[]
+  consumibles: ItemAmortizado[]
+  costosFijos: Costo[]
+  costosVariables: Costo[]
+  mesesCiclo: number
 }
 
 /**
@@ -200,6 +233,10 @@ export function resumenEconomico(opts: {
     costoPorGramo: gramosCosechados > 0 ? totalCiclo / gramosCosechados : null,
     costoPorCiclo: totalCiclo,
     lineas,
+    consumibles: detalleConsumibles(insumos, mesesCiclo),
+    costosFijos: costos.filter(c => c.tipo === 'fijo'),
+    costosVariables: costos.filter(c => c.tipo === 'variable'),
+    mesesCiclo,
   }
 }
 
