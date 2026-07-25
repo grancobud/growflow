@@ -72,7 +72,7 @@ function BarraTabs({ sub, setSub }: { sub: SubTab; setSub: (s: SubTab) => void }
   // El panel va con position:fixed porque la barra tiene overflow-x-auto (scroll
   // en celular) y eso recorta cualquier hijo posicionado: el menú se abría pero
   // quedaba cortado a la altura de la barra.
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+  const [pos, setPos] = useState<{ top: number; left: number; maxAlto: number } | null>(null)
   const btnRef = useRef<HTMLButtonElement>(null)
   const enMenu = !TABS_FIJAS.includes(sub)
   const actual = infoTab(sub)
@@ -83,29 +83,35 @@ function BarraTabs({ sub, setSub }: { sub: SubTab; setSub: (s: SubTab) => void }
       const ancho = 240
       // Si no entra a la derecha, se alinea con el borde de la ventana.
       const left = Math.max(8, Math.min(r.left, window.innerWidth - ancho - 8))
-      setPos({ top: r.bottom + 4, left })
+      // Que nunca pase del borde inferior: el alto se limita al espacio que queda.
+      const maxAlto = Math.max(200, window.innerHeight - r.bottom - 16)
+      setPos({ top: r.bottom + 4, left, maxAlto })
     }
     setAbierto(a => !a)
   }
 
-  // Cerrar al hacer click afuera, con Escape, o si cambia el tamaño/scroll.
+  // Cerrar al hacer click afuera, con Escape, o al cambiar el tamaño de ventana.
   useEffect(() => {
     if (!abierto) return
-    const fuera = (e: MouseEvent) => {
-      const t = e.target as HTMLElement
-      if (!t.closest('[data-menu-tabs]') && !t.closest('[data-panel-tabs]')) setAbierto(false)
+    const dentroDelMenu = (e: Event) => {
+      const t = e.target as HTMLElement | null
+      return !!t?.closest?.('[data-menu-tabs]') || !!t?.closest?.('[data-panel-tabs]')
     }
+    const fuera = (e: MouseEvent) => { if (!dentroDelMenu(e)) setAbierto(false) }
     const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setAbierto(false) }
-    const cerrar = () => setAbierto(false)
+    // El panel tiene scroll propio: scrollear DENTRO no debe cerrarlo.
+    const alScrollear = (e: Event) => { if (!dentroDelMenu(e)) setAbierto(false) }
+    const alRedimensionar = () => setAbierto(false)
+
     document.addEventListener('mousedown', fuera)
     document.addEventListener('keydown', esc)
-    window.addEventListener('resize', cerrar)
-    window.addEventListener('scroll', cerrar, true)
+    window.addEventListener('resize', alRedimensionar)
+    window.addEventListener('scroll', alScrollear, true)
     return () => {
       document.removeEventListener('mousedown', fuera)
       document.removeEventListener('keydown', esc)
-      window.removeEventListener('resize', cerrar)
-      window.removeEventListener('scroll', cerrar, true)
+      window.removeEventListener('resize', alRedimensionar)
+      window.removeEventListener('scroll', alScrollear, true)
     }
   }, [abierto])
 
@@ -138,8 +144,8 @@ function BarraTabs({ sub, setSub }: { sub: SubTab; setSub: (s: SubTab) => void }
         <>
           <div className="fixed inset-0 z-40" onClick={() => setAbierto(false)} />
           <div data-panel-tabs role="menu"
-            style={{ top: pos.top, left: pos.left }}
-            className="fixed z-50 w-[240px] max-h-[65vh] overflow-y-auto ct-page-scroll rounded-xl bg-[#101016] border border-[#2a2a3a] shadow-2xl py-1">
+            style={{ top: pos.top, left: pos.left, maxHeight: pos.maxAlto }}
+            className="fixed z-50 w-[240px] overflow-y-auto overscroll-contain ct-page-scroll [-webkit-overflow-scrolling:touch] rounded-xl bg-[#101016] border border-[#2a2a3a] shadow-2xl py-1">
             {GRUPOS_TABS.map(g => (
               <div key={g.grupo}>
                 <div className="px-3 pt-2 pb-1 text-[9.5px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium">{g.grupo}</div>
