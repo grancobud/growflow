@@ -99,7 +99,9 @@ const CLON_ADITIVO: Record<string, string> = {
   ksilic: 'Athena Balance',
 }
 const card = 'rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4'
-const inp = 'w-full bg-[#15151d] border border-[#1f1f2b] rounded-md px-2 py-1 text-[12px] text-[#ececf1] font-mono tabular-nums focus:border-[#404d20] outline-none'
+// text-[16px] en mobile: con menos de 16px iOS Safari hace zoom al enfocar el campo
+// y descuadra toda la pantalla. min-h-[40px] para que el dedo le acierte.
+const inp = 'w-full bg-[#15151d] border border-[#1f1f2b] rounded-md px-2 py-2 sm:py-1 min-h-[40px] sm:min-h-0 text-[16px] sm:text-[12px] text-[#ececf1] font-mono tabular-nums focus:border-[#404d20] outline-none'
 
 /**
  * Campo numérico que se escribe A MANO (no spinner, no cambia con la rueda del mouse).
@@ -233,12 +235,12 @@ export default function CreadorNutrientes() {
   return (
     <div className="space-y-4">
       {/* Sub-tabs: scroll horizontal en mobile, wrap en desktop */}
-      <div className="flex gap-1 flex-nowrap sm:flex-wrap overflow-x-auto border-b border-[#1f1f2b] -mt-1 -mx-1 px-1 scrollbar-thin">
+      <div className="flex gap-1 flex-nowrap sm:flex-wrap overflow-x-auto ct-page-scroll [-webkit-overflow-scrolling:touch] border-b border-[#1f1f2b] -mt-1 -mx-1 px-1">
         {SUBTABS.map(t => {
           const Icon = t.icon, on = sub === t.id
           return (
             <button key={t.id} onClick={() => setSub(t.id)}
-              className={`flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium border-b-2 transition-colors shrink-0 whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-3 py-2.5 sm:py-2 min-h-[44px] sm:min-h-0 text-[12px] font-medium border-b-2 transition-colors shrink-0 whitespace-nowrap ${
                 on ? 'border-[#a3e635] text-[#d9f99d]' : 'border-transparent text-[#8f8f9f] hover:text-[#d4d4dd]'
               }`}>
               <Icon className="w-3.5 h-3.5" strokeWidth={1.8} /> {t.label}
@@ -452,7 +454,7 @@ function CalcTab(p: CalcTabProps) {
           <div className="flex flex-wrap gap-1.5">
             {PRESETS.map(pr => (
               <button key={pr.id} onClick={() => setPreset(pr.id)} title={pr.desc}
-                className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors ${
+                className={`px-2.5 py-2.5 sm:py-1 min-h-[44px] sm:min-h-0 rounded-md text-[11px] font-medium transition-colors ${
                   presetId === pr.id ? 'bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d]'
                     : 'bg-[#15151d] border border-[#1f1f2b] text-[#8f8f9f] hover:border-[#2a2a3a] hover:text-[#d4d4dd]'
                 }`}>{pr.nombre}</button>
@@ -464,7 +466,7 @@ function CalcTab(p: CalcTabProps) {
           <div className="flex flex-wrap gap-1.5">
             {KITS_SALES.map(kit => (
               <button key={kit.id} onClick={() => setActivas(new Set(kit.sales))} title={kit.desc}
-                className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-[#15151d] border border-[#1f1f2b] text-[#a6a6b5] hover:border-[#463a66] hover:text-[#c4b5fd] transition-colors">
+                className="px-2.5 py-2.5 sm:py-1 min-h-[44px] sm:min-h-0 rounded-md text-[11px] font-medium bg-[#15151d] border border-[#1f1f2b] text-[#a6a6b5] hover:border-[#463a66] hover:text-[#c4b5fd] transition-colors">
                 {kit.nombre}
               </button>
             ))}
@@ -484,9 +486,9 @@ function CalcTab(p: CalcTabProps) {
           <input value={nombreNuevo} onChange={e => setNombreNuevo(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') guardarPerfil() }}
             placeholder="Nombre del perfil (ej. Mi flora coco)"
-            className="flex-1 bg-[#15151d] border border-[#1f1f2b] rounded-md px-2.5 py-1.5 text-[12px] text-[#ececf1] placeholder:text-[#4a4a58] focus:border-[#404d20] outline-none" />
+            className="flex-1 min-w-0 bg-[#15151d] border border-[#1f1f2b] rounded-md px-2.5 py-2 sm:py-1.5 min-h-[44px] sm:min-h-0 text-[16px] sm:text-[12px] text-[#ececf1] placeholder:text-[#4a4a58] focus:border-[#404d20] outline-none" />
           <button onClick={guardarPerfil} disabled={guardando}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] hover:bg-[#a3e635]/25 transition-colors disabled:opacity-50">
+            className="flex items-center gap-1.5 px-3 py-2.5 sm:py-1.5 min-h-[44px] sm:min-h-0 rounded-md text-[12px] font-medium bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] hover:bg-[#a3e635]/25 transition-colors disabled:opacity-50">
             <Save className="w-3.5 h-3.5" strokeWidth={1.8} /> Guardar
           </button>
         </div>
@@ -547,13 +549,13 @@ function CalcTab(p: CalcTabProps) {
             <label className="flex items-center gap-1 text-[10.5px] text-[#a6a6b5]">
               <span className="text-[#5c5c6b]">prepará</span>
               <NumField value={litros} onChange={setLitros} min={0.1}
-                className="w-16 bg-[#15151d] border border-[#1f1f2b] rounded px-1.5 py-0.5 text-[12px] text-[#ececf1] font-mono tabular-nums focus:border-[#404d20] outline-none" /> L
+                className="w-16 bg-[#15151d] border border-[#1f1f2b] rounded px-1.5 py-1.5 sm:py-0.5 min-h-[36px] sm:min-h-0 text-[16px] sm:text-[12px] text-[#ececf1] font-mono tabular-nums focus:border-[#404d20] outline-none" /> L
               <Info><b className="text-[#d9f99d]">Cuántos litros de riego vas a preparar</b>. Los gramos de la receta se multiplican por este número.<br /><span className="text-[#a3e635]">Ej: MKP 0.24 g/L × 10 L = 2.4 g a pesar.</span></Info>
             </label>
             <div className="flex rounded-md overflow-hidden border border-[#1f1f2b]">
               {(['polvo', 'liquido'] as const).map(m => (
                 <button key={m} onClick={() => setModoPrep(m)}
-                  className={`px-2 py-0.5 text-[10.5px] font-medium transition-colors ${modoPrep === m ? 'bg-[#a3e635]/15 text-[#d9f99d]' : 'bg-[#15151d] text-[#8f8f9f] hover:text-[#d4d4dd]'}`}>
+                  className={`px-2.5 py-2 sm:py-0.5 min-h-[36px] sm:min-h-0 text-[10.5px] font-medium transition-colors ${modoPrep === m ? 'bg-[#a3e635]/15 text-[#d9f99d]' : 'bg-[#15151d] text-[#8f8f9f] hover:text-[#d4d4dd]'}`}>
                   {m === 'polvo' ? 'Polvo' : 'Líquido A/B'}
                 </button>
               ))}
@@ -563,7 +565,7 @@ function CalcTab(p: CalcTabProps) {
             <Info><b className="text-[#d9f99d]">EC estimada</b> (electroconductividad): cuán fuerte queda la solución. Es lo que vas a medir con el lápiz de EC.<br /><span className="text-[#a3e635]">Coco: veg 1.2–1.8, flora 1.8–2.4. Si te da mucho más, bajá las dosis.</span></Info>
             <button onClick={() => imprimirReceta({ nombre: p.nombreNuevo, perfil, res, porBidon, ec, litros, modoPrep, resolucion })}
               disabled={porBidon.length === 0}
-              className="text-[10.5px] flex items-center gap-1 px-2 py-1 rounded-md bg-[#15151d] border border-[#1f1f2b] text-[#a6a6b5] hover:text-[#d9f99d] hover:border-[#404d20] transition-colors disabled:opacity-40">
+              className="text-[10.5px] flex items-center gap-1 px-2 py-2 sm:py-1 min-h-[36px] sm:min-h-0 rounded-md bg-[#15151d] border border-[#1f1f2b] text-[#a6a6b5] hover:text-[#d9f99d] hover:border-[#404d20] transition-colors disabled:opacity-40">
               <Printer className="w-3.5 h-3.5" strokeWidth={1.8} /> Imprimir
             </button>
           </div>
@@ -644,7 +646,7 @@ function CalcTab(p: CalcTabProps) {
           <Sparkles className="w-3.5 h-3.5 text-[#bef264]" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Logrado vs objetivo y rango</h3>
           <Info><b className="text-[#d9f99d]">Cuánto conseguís de cada nutriente</b> con la receta, vs lo que pediste. Verde EN RANGO = clavaste el objetivo.<br /><span className="text-[#a3e635]">Ej: Ca objetivo 170, logrado 168 → EN RANGO ✓.</span></Info>
-          <button onClick={() => setEditarRangos(v => !v)} className="ml-auto text-[10px] px-2 py-0.5 rounded border border-[#1f1f2b] text-[#8f8f9f] hover:text-[#d9f99d] hover:border-[#404d20] transition-colors">
+          <button onClick={() => setEditarRangos(v => !v)} className="ml-auto text-[10px] px-2 py-1.5 sm:py-0.5 min-h-[32px] sm:min-h-0 rounded border border-[#1f1f2b] text-[#8f8f9f] hover:text-[#d9f99d] hover:border-[#404d20] transition-colors">
             {editarRangos ? 'Listo' : 'Editar rangos'}
           </button>
         </div>
@@ -874,7 +876,7 @@ function FichaSal({ sal, onSaved, onDelete }: { sal: Sal; onSaved: () => void; o
             <Trash2 className="w-3.5 h-3.5" /> Eliminar
           </button>
         )}
-        <button onClick={guardarFicha} disabled={saving} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] hover:bg-[#a3e635]/25 disabled:opacity-50">
+        <button onClick={guardarFicha} disabled={saving} className="flex items-center gap-1.5 px-3 py-2.5 sm:py-1.5 min-h-[44px] sm:min-h-0 rounded-md text-[12px] font-medium bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] hover:bg-[#a3e635]/25 disabled:opacity-50">
           <Save className="w-3.5 h-3.5" /> Guardar ficha
         </button>
       </div>
@@ -921,7 +923,7 @@ function NuevaSustancia({ onClose, onSaved }: { onClose: () => void; onSaved: ()
       <div className="flex items-center justify-between flex-wrap gap-2">
         <p className="text-[11px] text-[#d9f99d] font-medium">Nueva sustancia — composición en {comercial ? 'óxidos (etiqueta)' : '%W/W'}</p>
         <label className="flex items-center gap-1.5 text-[11px] text-[#c4b5fd]">
-          <input type="checkbox" checked={comercial} onChange={e => setComercial(e.target.checked)} className="accent-[#a78bfa]" />
+          <input type="checkbox" checked={comercial} onChange={e => setComercial(e.target.checked)} className="accent-[#a78bfa] w-4 h-4 flex-shrink-0" />
           <Package className="w-3.5 h-3.5" /> Cargar desde etiqueta comercial (óxidos)
         </label>
       </div>
@@ -938,7 +940,7 @@ function NuevaSustancia({ onClose, onSaved }: { onClose: () => void; onSaved: ()
       </div>
       <div className="flex items-center gap-3 flex-wrap">
         <label className="flex items-center gap-1.5 text-[11px] text-[#a6a6b5]">
-          <input type="checkbox" checked={liquido} onChange={e => setLiquido(e.target.checked)} className="accent-[#a3e635]" /> Líquido
+          <input type="checkbox" checked={liquido} onChange={e => setLiquido(e.target.checked)} className="accent-[#a3e635] w-4 h-4 flex-shrink-0" /> Líquido
         </label>
         {liquido && <label className="flex items-center gap-1 text-[11px] text-[#a6a6b5]">Densidad
           <NumField value={densidad} onChange={setDensidad} className={`${inp} w-20`} /> g/mL</label>}
@@ -954,7 +956,7 @@ function NuevaSustancia({ onClose, onSaved }: { onClose: () => void; onSaved: ()
       </div>
       <div className="flex gap-2 justify-end">
         <button onClick={onClose} className="px-3 py-1.5 rounded-md text-[12px] text-[#8f8f9f] hover:text-[#d4d4dd]">Cancelar</button>
-        <button onClick={guardar} disabled={saving} className="px-3 py-1.5 rounded-md text-[12px] font-medium bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] hover:bg-[#a3e635]/25 disabled:opacity-50">Agregar</button>
+        <button onClick={guardar} disabled={saving} className="px-3 py-2.5 sm:py-1.5 min-h-[44px] sm:min-h-0 rounded-md text-[12px] font-medium bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] hover:bg-[#a3e635]/25 disabled:opacity-50">Agregar</button>
       </div>
     </div>
   )
@@ -1095,7 +1097,7 @@ function ColMicros({ titulo, sub, dosis, litros, resolucion, acento, elegida, on
         <p className="text-[11px] font-semibold flex-1" style={{ color: acento }}>{titulo}</p>
         {onElegir && (
           <button onClick={onElegir} title="Usar esta forma en la receta"
-            className={`flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded border ${elegida ? 'bg-[#facc15]/15 border-[#facc15]/50 text-[#facc15]' : 'border-[#2a2a3a] text-[#8f8f9f] hover:text-[#facc15] hover:border-[#facc15]/40'}`}>
+            className={`flex items-center gap-1 text-[10px] px-2 py-1.5 sm:py-0.5 min-h-[32px] sm:min-h-0 rounded border ${elegida ? 'bg-[#facc15]/15 border-[#facc15]/50 text-[#facc15]' : 'border-[#2a2a3a] text-[#8f8f9f] hover:text-[#facc15] hover:border-[#facc15]/40'}`}>
             <Star className="w-3 h-3" fill={elegida ? '#facc15' : 'none'} strokeWidth={1.8} /> {elegida ? 'Elegida' : 'Usar esta'}
           </button>
         )}
@@ -1287,7 +1289,7 @@ function EnraizadoTab() {
             </div>
           </label>
           <label className="flex items-center gap-2 text-[11px] text-[#a6a6b5] cursor-pointer select-none">
-            <input type="checkbox" checked={conNaa} onChange={e => setConNaa(e.target.checked)} className="accent-[#a3e635]" />
+            <input type="checkbox" checked={conNaa} onChange={e => setConNaa(e.target.checked)} className="accent-[#a3e635] w-4 h-4 flex-shrink-0" />
             Sumar NAA (más potente, NO es fiel a Radics)
             <Info><b className="text-[#d9f99d]">NAA = ácido naftalenacético</b>, otra auxina. Muchos DIY combinan IBA+NAA para reforzar el enraizado de especies difíciles. Radics/Clonex NO lo llevan (son IBA solo). Actívalo solo si querés un gel más agresivo.</Info>
           </label>
@@ -2216,7 +2218,7 @@ function ProveedoresTab({ salesTodas, recargarInventario, recargarProveedores }:
         <label className="text-[11px] text-[#a6a6b5] block mt-2">Nota
           <input value={form.nota} onChange={e => setForm(v => ({ ...v, nota: e.target.value }))} placeholder="ej. pedir por WhatsApp, mínimo 5 kg…" className={`${inp} mt-1`} />
         </label>
-        <button onClick={guardar} disabled={guardando} className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] hover:bg-[#a3e635]/25 transition-colors disabled:opacity-50">
+        <button onClick={guardar} disabled={guardando} className="mt-3 flex items-center gap-1.5 px-3 py-2.5 sm:py-1.5 min-h-[44px] sm:min-h-0 rounded-md text-[12px] font-medium bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] hover:bg-[#a3e635]/25 transition-colors disabled:opacity-50">
           <Store className="w-3.5 h-3.5" strokeWidth={1.8} /> Guardar proveedor
         </button>
       </div>
@@ -2305,7 +2307,7 @@ function ProveedoresTab({ salesTodas, recargarInventario, recargarProveedores }:
               ) : (
                 <div className="w-full h-24 rounded-lg border border-dashed border-[#2a2a38] flex items-center justify-center text-[11px] text-[#5c5c6b]">Sin imagen</div>
               )}
-              <label className="mt-1.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] bg-[#15151d] border border-[#1f1f2b] text-[#a6a6b5] hover:text-[#d9f99d] cursor-pointer">
+              <label className="mt-1.5 inline-flex items-center gap-1.5 px-2.5 py-2.5 sm:py-1 min-h-[44px] sm:min-h-0 rounded-md text-[11px] bg-[#15151d] border border-[#1f1f2b] text-[#a6a6b5] hover:text-[#d9f99d] cursor-pointer">
                 <Upload className="w-3.5 h-3.5" strokeWidth={1.8} /> {(detalleImg || detalle.imagen_thumb) ? 'Cambiar foto' : 'Subir foto'}
                 <input type="file" accept="image/*" onChange={onImagenDetalle} className="hidden" />
               </label>
@@ -2340,7 +2342,7 @@ function ProveedoresTab({ salesTodas, recargarInventario, recargarProveedores }:
             </div>
 
             <div className="flex gap-2 mt-3">
-              <button onClick={guardarEdicion} disabled={guardando} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] hover:bg-[#a3e635]/25 disabled:opacity-50">
+              <button onClick={guardarEdicion} disabled={guardando} className="flex items-center gap-1.5 px-3 py-2.5 sm:py-1.5 min-h-[44px] sm:min-h-0 rounded-md text-[12px] font-medium bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] hover:bg-[#a3e635]/25 disabled:opacity-50">
                 <Save className="w-3.5 h-3.5" strokeWidth={1.8} /> Guardar cambios
               </button>
               <button onClick={() => setDetalle(null)} className="px-3 py-1.5 rounded-md text-[12px] text-[#8f8f9f] border border-[#1f1f2b] hover:text-[#d4d4dd]">Cerrar</button>
