@@ -311,6 +311,20 @@ export const cultivoService = {
     return data as Cosecha
   },
 
+  /**
+   * Saca plantas de la Sala de Riego y libera sus lugares.
+   * Al registrar una cosecha, el trigger de la DB ya cierra la planta de esa
+   * cosecha; esto es para las demás plantas de una cosecha por variedad, que
+   * comparten un único registro.
+   */
+  async cerrarPlantas(ids: string[]): Promise<void> {
+    if (!ids.length) return
+    const { error } = await supabase.from('plantas')
+      .update({ activa: false, slot: null, fase: 'Cosechada' })
+      .in('id', ids)
+    lanzar(error)
+  },
+
   async actualizarCosecha(id: string, c: Partial<Cosecha>): Promise<void> {
     const { error } = await supabase.from('cosechas').update(c).eq('id', id)
     lanzar(error)

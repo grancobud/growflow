@@ -274,7 +274,11 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
           notas_sabor: sabor.trim() || null,
           notas_curado: [curado.trim() || null, `Total de variedad (${fila.plantas.length} pl.)`].filter(Boolean).join(' · '),
         })
-        toast.success(`Cosecha de ${fila.genetica} registrada`)
+        // La cosecha queda en una sola planta, pero se cosechó la variedad entera:
+        // el trigger cierra la representativa y acá salen de la Sala las demás.
+        const otras = fila.plantas.filter(p => p.id !== rep.id && p.activa).map(p => p.id)
+        await cultivoService.cerrarPlantas(otras)
+        toast.success(`Cosecha de ${fila.genetica} registrada${otras.length ? ` · ${otras.length + 1} plantas fuera de la Sala` : ''}`)
       }
       onGuardado()
     } catch (err) { toast.error(`Error: ${(err as Error).message}`); setGuardando(false) }
