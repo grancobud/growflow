@@ -1141,17 +1141,27 @@ export interface Proveedor {
   unidad?: string | null        // kg | g
   presentacion?: string | null  // "25 kg", "1 kg"
   calidad?: string | null       // alta | media | baja
-  imagen?: string | null        // data URL base64 o URL
+  imagen?: string | null        // data URL base64 — NO viaja en el listado
+  imagen_thumb?: string | null  // miniatura (~128px) — la que se muestra en la lista
+  tiene_imagen?: boolean        // columna generada: hay foto, sin traerla
   nota?: string | null
   elegido?: boolean             // el proveedor de referencia para el costo (1 por sal)
   creado_en?: string
 }
+
+// Todas menos `imagen`: eran 4,6 MB en 67 filas para dibujar miniaturas.
+const COLS_PROVEEDOR = 'id,sal_id,nombre_local,telefono,email,provincia,pagina,precio,unidad,presentacion,calidad,imagen_thumb,tiene_imagen,nota,elegido,creado_en'
+
 export const proveedoresService = {
   async list(): Promise<Proveedor[]> {
     const { data, error } = await supabase
-      .from('proveedores_nutrientes').select('*').order('creado_en', { ascending: false })
+      .from('proveedores_nutrientes').select(COLS_PROVEEDOR).order('creado_en', { ascending: false })
     if (error) throw error
     return (data ?? []) as unknown as Proveedor[]
+  },
+  // Foto grande on-demand.
+  async getImagen(id: string): Promise<string | null> {
+    return getImagenDe('proveedores_nutrientes', id)
   },
   async crear(p: Omit<Proveedor, 'id' | 'creado_en'>): Promise<void> {
     const { data: u } = await supabase.auth.getUser()
@@ -1216,10 +1226,7 @@ export const faltantesService = {
   },
   // Foto grande on-demand (al abrir la ficha).
   async getImagen(id: string): Promise<string | null> {
-    const { data, error } = await supabase
-      .from('insumos_faltantes').select('imagen').eq('id', id).single()
-    if (error) throw error
-    return (data as { imagen: string | null } | null)?.imagen ?? null
+    return getImagenDe('insumos_faltantes', id)
   },
   async crear(f: Omit<InsumoFaltante, 'id' | 'creado_en'>): Promise<void> {
     const { data: u } = await supabase.auth.getUser()
@@ -1235,17 +1242,34 @@ export const faltantesService = {
     if (error) throw error
   },
   async setThumb(id: string, thumb: string): Promise<void> {
-    const { error } = await supabase.from('insumos_faltantes').update({ imagen_thumb: thumb }).eq('id', id)
-    if (error) throw error
+    return setThumbDe('insumos_faltantes', id, thumb)
   },
 }
+
+// --- Fotos: helpers compartidos por insumos_faltantes y proveedores_nutrientes ---
+// Las dos tablas guardan la foto como data URI base64 en la columna `imagen`.
+// Traerla en el listado hacía bajar varios MB, así que viaja sólo la miniatura.
+
+export async function getImagenDe(tabla: string, id: string): Promise<string | null> {
+  const { data, error } = await supabase.from(tabla).select('imagen').eq('id', id).single()
+  if (error) throw error
+  return (data as { imagen: string | null } | null)?.imagen ?? null
+}
+
+async function setThumbDe(tabla: string, id: string, thumb: string): Promise<void> {
+  const { error } = await supabase.from(tabla).update({ imagen_thumb: thumb }).eq('id', id)
+  if (error) throw error
+}
+
+type ConFoto = { id: string; tiene_imagen?: boolean; imagen_thumb?: string | null }
 
 /**
  * Genera las miniaturas que falten (filas guardadas antes de que existiera
  * `imagen_thumb`). Corre de a una y en segundo plano; devuelve cuántas hizo.
  */
-export async function backfillThumbs(
-  filas: InsumoFaltante[],
+export async function backfillThumbs<T extends ConFoto>(
+  tabla: string,
+  filas: T[],
   thumbDesde: (dataUrl: string) => Promise<string>,
   onCada?: (id: string, thumb: string) => void,
 ): Promise<number> {
@@ -1253,10 +1277,10 @@ export async function backfillThumbs(
   let hechas = 0
   for (const f of pendientes) {
     try {
-      const full = await faltantesService.getImagen(f.id)
+      const full = await getImagenDe(tabla, f.id)
       if (!full) continue
       const thumb = await thumbDesde(full)
-      await faltantesService.setThumb(f.id, thumb)
+      await setThumbDe(tabla, f.id, thumb)
       onCada?.(f.id, thumb)
       hechas++
     } catch {

@@ -83,7 +83,7 @@ export default function PaginaInsumosFaltantes() {
     if (backfillCorrido.current) return
     if (!faltantes.some(f => f.tiene_imagen && !f.imagen_thumb)) return
     backfillCorrido.current = true
-    backfillThumbs(faltantes, thumbDesdeDataUrl, (id, thumb) => {
+    backfillThumbs('insumos_faltantes', faltantes, thumbDesdeDataUrl, (id, thumb) => {
       setFaltantes(prev => prev.map(f => f.id === id ? { ...f, imagen_thumb: thumb } : f))
     })
   }, [faltantes])

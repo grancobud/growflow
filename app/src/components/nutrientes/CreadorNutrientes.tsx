@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   FlaskConical, Beaker, Droplets, ChevronDown, Sparkles, AlertTriangle,
   Save, FolderOpen, Trash2, Calculator, FlaskRound, Layers, Scale, Plus, DollarSign,
-  Droplet, GitCompare, Package, ShieldCheck, Copy, HelpCircle, BookOpen, Lightbulb, Printer, Store, Phone, Globe, Upload, Star, X, Mail, MapPin, Repeat, Sprout, FileText,
+  Droplet, GitCompare, Package, ShieldCheck, Copy, HelpCircle, BookOpen, Lightbulb, Printer, Store, Phone, Globe, Upload, Star, X, Mail, MapPin, Repeat, Sprout, FileText, Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -12,12 +12,13 @@ import {
   recomendarEstabilizantes, esComercial, marcaDe, perfilDesdeProducto, categoriaSal, KITS_SALES, kitParaPerfil, opcionesDeMarca, DOSIS_REC, usosDeSal, compararMicros,
   CONV_OXIDO, PESO_EQ, ppmAmeq, meqAppm,
   necesitaSepararAB, bidonDeSal, detectarQuelatosRedundantes,
-  perfilesNutrientesService, sustanciasService, inventarioService, aplicarInventario, proveedoresService, type Proveedor,
+  perfilesNutrientesService, sustanciasService, inventarioService, aplicarInventario, proveedoresService, backfillThumbs, type Proveedor,
   compatibilidad, estadoRango, RANGOS_FLORA_COCO, rangosDesdePerfil,
   type ElementKey, type Perfil, type PerfilGuardado, type Sal, type Bidon,
   type Resultado, type ResultadoSal, type BidonConcentrado, type Ratios,
   type InventarioItem, type RangoPerfil,
 } from '../../lib/nutrientes'
+import { procesarImagen, thumbDesdeDataUrl } from '../../lib/imagen'
 
 type SetSet = React.Dispatch<React.SetStateAction<Set<string>>>
 interface CalcTabProps {
@@ -2035,15 +2036,50 @@ function ProveedoresTab({ salesTodas, recargarInventario, recargarProveedores }:
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(cargar, [])
 
+  // Fotos: el listado ya no trae `imagen` (eran 4,6 MB), sólo la miniatura.
+  // `fotoForm`/`fotoDetalle` guardan la foto nueva sin cambios = undefined.
+  const [fotoForm, setFotoForm] = useState<{ imagen: string; thumb: string } | null>(null)
+  const [fotoDetalle, setFotoDetalle] = useState<{ imagen: string; thumb: string } | null | undefined>(undefined)
+  const [detalleImg, setDetalleImg] = useState<string | null>(null)
+  const [cargandoImg, setCargandoImg] = useState(false)
+
+  // Foto grande de la ficha: on-demand. Depende del id, no del objeto:
+  // `detalle` se muta en cada tecla al editar y recargaría la foto sin parar.
+  const detalleId = detalle?.id
+  useEffect(() => {
+    if (!detalleId) { setDetalleImg(null); setFotoDetalle(undefined); return }
+    let vigente = true
+    setCargandoImg(true); setDetalleImg(null); setFotoDetalle(undefined)
+    proveedoresService.getImagen(detalleId)
+      .then(img => { if (vigente) setDetalleImg(img) })
+      .catch(() => { /* se queda sin foto grande */ })
+      .finally(() => { if (vigente) setCargandoImg(false) })
+    return () => { vigente = false }
+  }, [detalleId])
+
+  // Miniaturas de filas viejas: se generan una sola vez, en segundo plano.
+  const backfillCorrido = useRef(false)
+  useEffect(() => {
+    if (backfillCorrido.current) return
+    if (!provs.some(p => p.tiene_imagen && !p.imagen_thumb)) return
+    backfillCorrido.current = true
+    backfillThumbs('proveedores_nutrientes', provs, thumbDesdeDataUrl, (id, thumb) => {
+      setProvs(prev => prev.map(p => p.id === id ? { ...p, imagen_thumb: thumb } : p))
+    })
+  }, [provs])
+
   // solo materias primas (sales/insumos que se COMPRAN), no los productos de marca que se clonan
   const salesOrden = salesTodas.filter(s => !esComercial(s)).sort((a, b) => a.nombre.localeCompare(b.nombre))
   const salNombre = (id: string) => salesTodas.find(s => s.id === id)?.nombre ?? id
   const calColor = (c?: string | null) => c === 'alta' ? '#a3e635' : c === 'media' ? '#facc15' : '#ff8a7a'
 
-  const onImagen = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onImagen = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]; if (!f) return
-    if (f.size > 3_000_000) { toast.error('Imagen muy grande (máx 3 MB)'); return }
-    const r = new FileReader(); r.onload = () => setForm(v => ({ ...v, imagen: String(r.result) })); r.readAsDataURL(f)
+    if (f.size > 12_000_000) { toast.error('Imagen muy grande (máx 12 MB)'); return }
+    try {
+      const r = await procesarImagen(f)          // antes entraba la foto entera
+      setFotoForm(r); setForm(v => ({ ...v, imagen: r.thumb }))   // `imagen` acá es sólo el preview
+    } catch { toast.error('No se pudo procesar la imagen') }
   }
   const guardar = async () => {
     if (!form.sal_id || !form.nombre_local.trim()) { toast.error('Elegí la sal y el nombre del local'); return }
@@ -2054,9 +2090,10 @@ function ProveedoresTab({ salesTodas, recargarInventario, recargarProveedores }:
         telefono: form.telefono || null, email: form.email || null, provincia: form.provincia || null, pagina: form.pagina || null,
         precio: form.precio ? +form.precio : null, unidad: form.unidad,
         presentacion: form.presentacion || null, calidad: form.calidad,
-        imagen: form.imagen || null, nota: form.nota || null,
+        imagen: fotoForm?.imagen ?? null, imagen_thumb: fotoForm?.thumb ?? null,
+        nota: form.nota || null,
       })
-      toast.success('Proveedor guardado'); setForm(vacio); cargar()
+      toast.success('Proveedor guardado'); setForm(vacio); setFotoForm(null); cargar()
     } catch (e) { toast.error('No se pudo guardar: ' + (e instanceof Error ? e.message : String(e))) } finally { setGuardando(false) }
   }
   const borrar = async (p: Proveedor): Promise<boolean> => {
@@ -2074,23 +2111,33 @@ function ProveedoresTab({ salesTodas, recargarInventario, recargarProveedores }:
       cargar(); recargarInventario()
     } catch (e) { toast.error('No se pudo: ' + (e instanceof Error ? e.message : String(e))) }
   }
-  const onImagenDetalle = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onImagenDetalle = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]; if (!f || !detalle) return
-    if (f.size > 3_000_000) { toast.error('Imagen muy grande (máx 3 MB)'); return }
-    const r = new FileReader(); r.onload = () => setDetalle(v => v ? { ...v, imagen: String(r.result) } : v); r.readAsDataURL(f)
+    if (f.size > 12_000_000) { toast.error('Imagen muy grande (máx 12 MB)'); return }
+    try {
+      const r = await procesarImagen(f)
+      setFotoDetalle(r); setDetalleImg(r.imagen)
+    } catch { toast.error('No se pudo procesar la imagen') }
   }
   const guardarEdicion = async () => {
     if (!detalle) return
     if (!detalle.nombre_local?.trim()) { toast.error('Falta el nombre del local'); return }
     setGuardando(true)
     try {
-      await proveedoresService.actualizar(detalle.id, {
+      const patch: Partial<Proveedor> = {
         sal_id: detalle.sal_id, nombre_local: detalle.nombre_local.trim(),
         telefono: detalle.telefono || null, email: detalle.email || null, provincia: detalle.provincia || null, pagina: detalle.pagina || null,
         precio: detalle.precio ?? null, unidad: detalle.unidad || 'kg',
         presentacion: detalle.presentacion || null, calidad: detalle.calidad || 'alta',
-        imagen: detalle.imagen || null, nota: detalle.nota || null,
-      })
+        nota: detalle.nota || null,
+      }
+      // La foto sólo se toca si cambió: la ficha no la trae, y mandarla
+      // como `detalle.imagen || null` borraría la que ya estaba guardada.
+      if (fotoDetalle !== undefined) {
+        patch.imagen = fotoDetalle?.imagen ?? null
+        patch.imagen_thumb = fotoDetalle?.thumb ?? null
+      }
+      await proveedoresService.actualizar(detalle.id, patch)
       toast.success('Ficha actualizada'); setDetalle(null); cargar()
     } catch (e) { toast.error('No se pudo: ' + (e instanceof Error ? e.message : String(e))) } finally { setGuardando(false) }
   }
@@ -2200,7 +2247,7 @@ function ProveedoresTab({ salesTodas, recargarInventario, recargarProveedores }:
                 {[...lista].sort((a, b) => (ordenCal[a.calidad ?? 'baja'] ?? 3) - (ordenCal[b.calidad ?? 'baja'] ?? 3)).map(p => (
                   <div key={p.id} onClick={() => setDetalle(p)} title="Ver / editar ficha"
                     className={`rounded-lg p-2.5 flex gap-2.5 cursor-pointer transition-colors overflow-hidden ${p.elegido ? 'bg-[#facc15]/[0.07] border border-[#facc15]/50' : 'bg-[#15151d] border border-[#1f1f2b] hover:border-[#404d20]'}`}>
-                    {p.imagen && <img src={p.imagen} alt="" className="w-14 h-14 rounded object-cover border border-[#1f1f2b] flex-shrink-0" />}
+                    {p.imagen_thumb && <img src={p.imagen_thumb} alt="" className="w-14 h-14 rounded object-cover border border-[#1f1f2b] flex-shrink-0" />}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
                         <span className="text-[12px] font-semibold text-[#ececf1] truncate">{p.nombre_local}</span>
@@ -2244,13 +2291,22 @@ function ProveedoresTab({ salesTodas, recargarInventario, recargarProveedores }:
 
             {/* imagen grande */}
             <div className="mb-3">
-              {detalle.imagen ? (
-                <img src={detalle.imagen} alt="" className="w-full max-h-56 object-contain rounded-lg border border-[#1f1f2b] bg-[#0a0a0f]" />
+              {/* Mientras baja la foto grande se muestra la miniatura borrosa. */}
+              {(detalleImg || detalle.imagen_thumb) ? (
+                <div className="relative">
+                  <img src={detalleImg ?? detalle.imagen_thumb ?? ''} alt=""
+                    className={`w-full max-h-56 object-contain rounded-lg border border-[#1f1f2b] bg-[#0a0a0f] transition-[filter] ${detalleImg ? '' : 'blur-sm'}`} />
+                  {cargandoImg && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Loader2 className="w-5 h-5 animate-spin text-[#a3e635]" />
+                    </div>
+                  )}
+                </div>
               ) : (
                 <div className="w-full h-24 rounded-lg border border-dashed border-[#2a2a38] flex items-center justify-center text-[11px] text-[#5c5c6b]">Sin imagen</div>
               )}
               <label className="mt-1.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] bg-[#15151d] border border-[#1f1f2b] text-[#a6a6b5] hover:text-[#d9f99d] cursor-pointer">
-                <Upload className="w-3.5 h-3.5" strokeWidth={1.8} /> {detalle.imagen ? 'Cambiar foto' : 'Subir foto'}
+                <Upload className="w-3.5 h-3.5" strokeWidth={1.8} /> {(detalleImg || detalle.imagen_thumb) ? 'Cambiar foto' : 'Subir foto'}
                 <input type="file" accept="image/*" onChange={onImagenDetalle} className="hidden" />
               </label>
             </div>
