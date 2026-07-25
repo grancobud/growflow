@@ -52,6 +52,85 @@ const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
   { id: 'ayuda', label: 'Ayuda / Guía', icon: HelpCircle },
 ]
 
+// 16 pestañas en una barra ocupaban dos filas enteras. Quedan visibles las de
+// uso diario y el resto pasa a un desplegable agrupado por tema.
+const TABS_FIJAS: SubTab[] = ['calc', 'sustancias', 'proveedores', 'ratios']
+const GRUPOS_TABS: { grupo: string; ids: SubTab[] }[] = [
+  { grupo: 'Formular', ids: ['clonar', 'comparar', 'conversor'] },
+  { grupo: 'Agua y mezcla', ids: ['agua', 'concentrados', 'estab', 'ph'] },
+  { grupo: 'Recetas DIY', ids: ['enraizado', 'elicitor', 'bioestim', 'hocl'] },
+  { grupo: 'Ayuda', ids: ['ayuda'] },
+]
+const infoTab = (id: SubTab) => SUBTABS.find(t => t.id === id)!
+
+/**
+ * Barra de navegación: las cuatro de uso diario siempre visibles y el resto en
+ * un desplegable agrupado. Antes las 16 juntas ocupaban dos filas.
+ */
+function BarraTabs({ sub, setSub }: { sub: SubTab; setSub: (s: SubTab) => void }) {
+  const [abierto, setAbierto] = useState(false)
+  const enMenu = !TABS_FIJAS.includes(sub)
+  const actual = infoTab(sub)
+
+  // Cerrar al hacer click afuera o con Escape.
+  useEffect(() => {
+    if (!abierto) return
+    const fuera = (e: MouseEvent) => {
+      if (!(e.target as HTMLElement).closest('[data-menu-tabs]')) setAbierto(false)
+    }
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setAbierto(false) }
+    document.addEventListener('mousedown', fuera)
+    document.addEventListener('keydown', esc)
+    return () => { document.removeEventListener('mousedown', fuera); document.removeEventListener('keydown', esc) }
+  }, [abierto])
+
+  const btnCls = (on: boolean) =>
+    `flex items-center gap-1.5 px-3 py-2.5 sm:py-2 min-h-[44px] sm:min-h-0 text-[12px] font-medium border-b-2 transition-colors shrink-0 whitespace-nowrap ${
+      on ? 'border-[#a3e635] text-[#d9f99d]' : 'border-transparent text-[#8f8f9f] hover:text-[#d4d4dd]'}`
+
+  return (
+    <div className="flex gap-1 items-stretch border-b border-[#1f1f2b] -mt-1 -mx-1 px-1 overflow-x-auto ct-page-scroll [-webkit-overflow-scrolling:touch]">
+      {TABS_FIJAS.map(id => {
+        const t = infoTab(id); const Icon = t.icon
+        return (
+          <button key={id} onClick={() => setSub(id)} className={btnCls(sub === id)}>
+            <Icon className="w-3.5 h-3.5" strokeWidth={1.8} /> {t.label}
+          </button>
+        )
+      })}
+
+      <div className="relative shrink-0 flex" data-menu-tabs>
+        <button onClick={() => setAbierto(a => !a)} aria-expanded={abierto}
+          className={btnCls(enMenu)}>
+          {enMenu ? <><actual.icon className="w-3.5 h-3.5" strokeWidth={1.8} /> {actual.label}</>
+                  : <>Más herramientas</>}
+          <ChevronDown className={`w-3.5 h-3.5 transition-transform ${abierto ? 'rotate-180' : ''}`} />
+        </button>
+
+        {abierto && (
+          <div className="absolute top-full left-0 z-50 mt-1 w-[240px] max-h-[65vh] overflow-y-auto ct-page-scroll rounded-xl bg-[#101016] border border-[#2a2a3a] shadow-2xl py-1">
+            {GRUPOS_TABS.map(g => (
+              <div key={g.grupo}>
+                <div className="px-3 pt-2 pb-1 text-[9.5px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium">{g.grupo}</div>
+                {g.ids.map(id => {
+                  const t = infoTab(id); const Icon = t.icon; const on = sub === id
+                  return (
+                    <button key={id} onClick={() => { setSub(id); setAbierto(false) }}
+                      className={`w-full flex items-center gap-2 px-3 py-2.5 min-h-[42px] text-left text-[12px] transition-colors ${
+                        on ? 'bg-[#a3e635]/10 text-[#d9f99d]' : 'text-[#a6a6b5] hover:bg-[#15151d] hover:text-[#ececf1]'}`}>
+                      <Icon className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={1.8} /> {t.label}
+                    </button>
+                  )
+                })}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 const BIDON_INFO: Record<Bidon, { label: string; color: string }> = {
   A: { label: 'Bidón A · Calcio', color: '#a78bfa' },
   B: { label: 'Bidón B · Base/Sulfatos', color: '#a3e635' },
@@ -235,19 +314,7 @@ export default function CreadorNutrientes() {
   return (
     <div className="space-y-4">
       {/* Sub-tabs: scroll horizontal en mobile, wrap en desktop */}
-      <div className="flex gap-1 flex-nowrap sm:flex-wrap overflow-x-auto ct-page-scroll [-webkit-overflow-scrolling:touch] border-b border-[#1f1f2b] -mt-1 -mx-1 px-1">
-        {SUBTABS.map(t => {
-          const Icon = t.icon, on = sub === t.id
-          return (
-            <button key={t.id} onClick={() => setSub(t.id)}
-              className={`flex items-center gap-1.5 px-3 py-2.5 sm:py-2 min-h-[44px] sm:min-h-0 text-[12px] font-medium border-b-2 transition-colors shrink-0 whitespace-nowrap ${
-                on ? 'border-[#a3e635] text-[#d9f99d]' : 'border-transparent text-[#8f8f9f] hover:text-[#d4d4dd]'
-              }`}>
-              <Icon className="w-3.5 h-3.5" strokeWidth={1.8} /> {t.label}
-            </button>
-          )
-        })}
-      </div>
+      <BarraTabs sub={sub} setSub={setSub} />
 
       {sub === 'calc' && (
         <CalcTab {...{ perfil, presetId, setPreset, setPpm, macros, micros, res, ec, salesTodas, activas, setActivas,
@@ -447,69 +514,83 @@ function CalcTab(p: CalcTabProps) {
 
   return (
     <div className="space-y-4">
-      {/* Presets + Kits de sales */}
+      {/* Punto de partida: preset + kit + perfiles guardados, todo en una tarjeta.
+          Antes eran tres bloques sueltos que se comían media pantalla. */}
       <div className={`${card} space-y-3`}>
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-2">1 · Perfil objetivo (qué quiero lograr)</p>
-          <div className="flex flex-wrap gap-1.5">
-            {PRESETS.map(pr => (
-              <button key={pr.id} onClick={() => setPreset(pr.id)} title={pr.desc}
-                className={`px-2.5 py-2.5 sm:py-1 min-h-[44px] sm:min-h-0 rounded-md text-[11px] font-medium transition-colors ${
-                  presetId === pr.id ? 'bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d]'
-                    : 'bg-[#15151d] border border-[#1f1f2b] text-[#8f8f9f] hover:border-[#2a2a3a] hover:text-[#d4d4dd]'
-                }`}>{pr.nombre}</button>
-            ))}
+        <div className="grid gap-3 lg:grid-cols-2">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1.5">
+              1 · Perfil objetivo <span className="text-[#3a3a4a] normal-case tracking-normal">— qué quiero lograr</span>
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {PRESETS.map(pr => (
+                <button key={pr.id} onClick={() => setPreset(pr.id)} title={pr.desc}
+                  className={`px-2.5 py-2.5 sm:py-1 min-h-[44px] sm:min-h-0 rounded-md text-[11px] font-medium transition-colors ${
+                    presetId === pr.id ? 'bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d]'
+                      : 'bg-[#15151d] border border-[#1f1f2b] text-[#8f8f9f] hover:border-[#2a2a3a] hover:text-[#d4d4dd]'
+                  }`}>{pr.nombre}</button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1.5">
+              2 · Kit de sales <span className="text-[#3a3a4a] normal-case tracking-normal">— con qué lo hago</span>
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {KITS_SALES.map(kit => (
+                <button key={kit.id} onClick={() => setActivas(new Set(kit.sales))} title={kit.desc}
+                  className="px-2.5 py-2.5 sm:py-1 min-h-[44px] sm:min-h-0 rounded-md text-[11px] font-medium bg-[#15151d] border border-[#1f1f2b] text-[#a6a6b5] hover:border-[#463a66] hover:text-[#c4b5fd] transition-colors">
+                  {kit.nombre}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-2">2 · Kit de sales (con qué lo hago) <span className="text-[#3a3a4a] normal-case tracking-normal">— evita que el solver reparta en muchas sales</span></p>
-          <div className="flex flex-wrap gap-1.5">
-            {KITS_SALES.map(kit => (
-              <button key={kit.id} onClick={() => setActivas(new Set(kit.sales))} title={kit.desc}
-                className="px-2.5 py-2.5 sm:py-1 min-h-[44px] sm:min-h-0 rounded-md text-[11px] font-medium bg-[#15151d] border border-[#1f1f2b] text-[#a6a6b5] hover:border-[#463a66] hover:text-[#c4b5fd] transition-colors">
-                {kit.nombre}
-              </button>
-            ))}
+
+        <div className="border-t border-[#1f1f2b] pt-3">
+          <div className="flex items-center gap-2 mb-2">
+            <Save className="w-3.5 h-3.5 text-[#a78bfa] flex-shrink-0" strokeWidth={1.8} />
+            <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium">Mis perfiles</p>
+            <Info><b className="text-[#d9f99d]">Tus recetas guardadas</b> con nombre, para recuperarlas cuando quieras.<br /><span className="text-[#a3e635]">Ej: guardás "Flora coco sem 5" y la volvés a cargar el mes que viene.</span></Info>
+            <span className="ml-auto text-[10px] text-[#5c5c6b] tabular-nums">{guardados.length}</span>
+          </div>
+
+          {/* Guardados como chips: 4 perfiles ocupaban media pantalla en filas. */}
+          {guardados.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {guardados.map((g: PerfilGuardado) => (
+                <div key={g.id}
+                  className="group flex items-center gap-1 bg-[#15151d] border border-[#1f1f2b] rounded-md pl-2.5 pr-1 py-1 hover:border-[#404d20] transition-colors">
+                  <button onClick={() => cargarPerfil(g)} title="Cargar este perfil"
+                    className="flex items-center gap-1.5 text-[11.5px] text-[#d4d4dd] hover:text-[#d9f99d] min-h-[32px] max-w-[190px] truncate">
+                    <FolderOpen className="w-3.5 h-3.5 flex-shrink-0 text-[#5c5c6b] group-hover:text-[#a3e635]" strokeWidth={1.8} />
+                    <span className="truncate">{g.nombre}</span>
+                  </button>
+                  <button onClick={() => borrarPerfil(g)} title={`Borrar "${g.nombre}"`} aria-label={`Borrar ${g.nombre}`}
+                    className="p-1.5 rounded text-[#3a3a4a] hover:text-[#ff8a7a] hover:bg-[#ff8a7a]/10 transition-colors flex-shrink-0">
+                    <Trash2 className="w-3 h-3" strokeWidth={1.8} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            <input value={nombreNuevo} onChange={e => setNombreNuevo(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') guardarPerfil() }}
+              placeholder="Guardar el perfil actual como…"
+              className="flex-1 min-w-0 bg-[#15151d] border border-[#1f1f2b] rounded-md px-2.5 py-2 sm:py-1.5 min-h-[40px] sm:min-h-0 text-[16px] sm:text-[12px] text-[#ececf1] placeholder:text-[#4a4a58] focus:border-[#404d20] outline-none" />
+            <button onClick={guardarPerfil} disabled={guardando}
+              className="flex items-center gap-1.5 px-3 py-2 sm:py-1.5 min-h-[40px] sm:min-h-0 rounded-md text-[12px] font-medium bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] hover:bg-[#a3e635]/25 transition-colors disabled:opacity-50 flex-shrink-0">
+              <Save className="w-3.5 h-3.5" strokeWidth={1.8} /> Guardar
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Guardar/cargar */}
-      <div className={card}>
-        <div className="flex items-center gap-2 mb-3">
-          <Save className="w-4 h-4 text-[#a78bfa]" strokeWidth={1.8} />
-          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Mis perfiles guardados</h3>
-          <Info><b className="text-[#d9f99d]">Tus recetas guardadas</b> con nombre, para recuperarlas cuando quieras.<br /><span className="text-[#a3e635]">Ej: guardás "Flora coco sem 5" y la volvés a cargar el mes que viene.</span></Info>
-          <span className="ml-auto text-[10px] text-[#5c5c6b]">{guardados.length} guardados</span>
-        </div>
-        <div className="flex gap-2">
-          <input value={nombreNuevo} onChange={e => setNombreNuevo(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') guardarPerfil() }}
-            placeholder="Nombre del perfil (ej. Mi flora coco)"
-            className="flex-1 min-w-0 bg-[#15151d] border border-[#1f1f2b] rounded-md px-2.5 py-2 sm:py-1.5 min-h-[44px] sm:min-h-0 text-[16px] sm:text-[12px] text-[#ececf1] placeholder:text-[#4a4a58] focus:border-[#404d20] outline-none" />
-          <button onClick={guardarPerfil} disabled={guardando}
-            className="flex items-center gap-1.5 px-3 py-2.5 sm:py-1.5 min-h-[44px] sm:min-h-0 rounded-md text-[12px] font-medium bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] hover:bg-[#a3e635]/25 transition-colors disabled:opacity-50">
-            <Save className="w-3.5 h-3.5" strokeWidth={1.8} /> Guardar
-          </button>
-        </div>
-        {guardados.length > 0 && (
-          <div className="mt-3 space-y-1">
-            {guardados.map((g: PerfilGuardado) => (
-              <div key={g.id} className="flex items-center gap-2 bg-[#15151d] border border-[#1f1f2b] rounded-md px-2.5 py-1.5">
-                <span className="text-[11.5px] text-[#d4d4dd] flex-1 min-w-0 truncate">{g.nombre}</span>
-                <button onClick={() => cargarPerfil(g)} className="flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] text-[#8f8f9f] hover:text-[#d9f99d] hover:bg-[#a3e635]/10 transition-colors">
-                  <FolderOpen className="w-3.5 h-3.5" strokeWidth={1.8} /> Cargar
-                </button>
-                <button onClick={() => borrarPerfil(g)} className="p-1 rounded text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#ff8a7a]/10 transition-colors">
-                  <Trash2 className="w-3.5 h-3.5" strokeWidth={1.8} />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="grid lg:grid-cols-2 gap-4">
+      {/* items-start: si una columna es más alta, la otra no se estira con un
+          hueco vacío abajo. */}
+      <div className="grid lg:grid-cols-2 gap-4 items-start">
         {/* Objetivo */}
         <div className={card}>
           <div className="flex items-center gap-2 mb-3">
