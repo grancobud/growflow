@@ -1195,16 +1195,31 @@ export interface InsumoFaltante {
   nota?: string | null
   precio?: number | null       // precio estimado (ARS)
   link?: string | null         // link de compra / referencia
-  imagen?: string | null       // data URL base64 (como Proveedores)
+  imagen?: string | null       // data URL base64 de la foto grande — NO viaja en el listado
+  imagen_thumb?: string | null // miniatura (~128px) — la que se muestra en la lista
+  tiene_imagen?: boolean       // columna generada: hay foto, sin traerla
   comprado?: boolean
   creado_en?: string
 }
+
+// Columnas del listado: todas menos `imagen`. La foto grande pesa cientos de kB por
+// fila (data URI base64) y sólo hace falta al abrir la ficha; traerla en la lista
+// hacía bajar ~4,7 MB para dibujar thumbnails de 44x44 px.
+const COLS_LISTA = 'id,sal_id,nombre,cantidad,unidad,prioridad,nota,precio,link,imagen_thumb,tiene_imagen,comprado,creado_en'
+
 export const faltantesService = {
   async list(): Promise<InsumoFaltante[]> {
     const { data, error } = await supabase
-      .from('insumos_faltantes').select('*').order('creado_en', { ascending: false })
+      .from('insumos_faltantes').select(COLS_LISTA).order('creado_en', { ascending: false })
     if (error) throw error
     return (data ?? []) as unknown as InsumoFaltante[]
+  },
+  // Foto grande on-demand (al abrir la ficha).
+  async getImagen(id: string): Promise<string | null> {
+    const { data, error } = await supabase
+      .from('insumos_faltantes').select('imagen').eq('id', id).single()
+    if (error) throw error
+    return (data as { imagen: string | null } | null)?.imagen ?? null
   },
   async crear(f: Omit<InsumoFaltante, 'id' | 'creado_en'>): Promise<void> {
     const { data: u } = await supabase.auth.getUser()
@@ -1219,4 +1234,34 @@ export const faltantesService = {
     const { error } = await supabase.from('insumos_faltantes').delete().eq('id', id)
     if (error) throw error
   },
+  async setThumb(id: string, thumb: string): Promise<void> {
+    const { error } = await supabase.from('insumos_faltantes').update({ imagen_thumb: thumb }).eq('id', id)
+    if (error) throw error
+  },
+}
+
+/**
+ * Genera las miniaturas que falten (filas guardadas antes de que existiera
+ * `imagen_thumb`). Corre de a una y en segundo plano; devuelve cuántas hizo.
+ */
+export async function backfillThumbs(
+  filas: InsumoFaltante[],
+  thumbDesde: (dataUrl: string) => Promise<string>,
+  onCada?: (id: string, thumb: string) => void,
+): Promise<number> {
+  const pendientes = filas.filter(f => f.tiene_imagen && !f.imagen_thumb)
+  let hechas = 0
+  for (const f of pendientes) {
+    try {
+      const full = await faltantesService.getImagen(f.id)
+      if (!full) continue
+      const thumb = await thumbDesde(full)
+      await faltantesService.setThumb(f.id, thumb)
+      onCada?.(f.id, thumb)
+      hechas++
+    } catch {
+      // una foto rota no debe cortar el resto
+    }
+  }
+  return hechas
 }

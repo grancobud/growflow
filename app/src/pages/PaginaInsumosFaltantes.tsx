@@ -2,15 +2,16 @@
 // Carga tipo Proveedores (dropdown de sal del catálogo) + cantidad, prioridad, nota.
 // Persiste en Supabase (tabla insumos_faltantes vía faltantesService).
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { toast } from 'sonner'
 import {
   ShoppingCart, Plus, Trash2, Check, Loader2, RefreshCw, PackageX, Upload, ExternalLink, Pencil, Wallet, X as XIcon,
 } from 'lucide-react'
 import {
-  faltantesService,
+  faltantesService, backfillThumbs,
   type InsumoFaltante, type Prioridad,
 } from '../lib/nutrientes'
+import { procesarImagen, thumbDesdeDataUrl } from '../lib/imagen'
 
 // text-[16px] en mobile: evita el zoom automático de iOS Safari al enfocar un input.
 const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
@@ -39,14 +40,26 @@ export default function PaginaInsumosFaltantes() {
   const [nota, setNota] = useState('')
   const [precio, setPrecio] = useState('')
   const [link, setLink] = useState('')
-  const [imagen, setImagen] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
 
-  const onImagen = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Foto: `preview` es lo que se ve en el form (la miniatura alcanza).
+  // `foto` distingue los 3 casos al guardar: undefined = sin cambios,
+  // null = el usuario la quitó, objeto = subió una nueva.
+  const [preview, setPreview] = useState('')
+  const [foto, setFoto] = useState<{ imagen: string; thumb: string } | null | undefined>(undefined)
+
+  // Foto grande de la ficha: se pide on-demand, no viaja en el listado.
+  const [detalleImg, setDetalleImg] = useState<string | null>(null)
+  const [cargandoImg, setCargandoImg] = useState(false)
+
+  const onImagen = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]; if (!f) return
-    if (f.size > 3_000_000) { toast.error('Imagen muy grande (máx 3 MB)'); return }
-    const r = new FileReader(); r.onload = () => setImagen(String(r.result)); r.readAsDataURL(f)
+    if (f.size > 12_000_000) { toast.error('Imagen muy grande (máx 12 MB)'); return }
+    try {
+      const r = await procesarImagen(f)   // redimensiona: la foto de celular entraba entera
+      setFoto(r); setPreview(r.thumb)
+    } catch { toast.error('No se pudo procesar la imagen') }
   }
 
   const cargar = useCallback(async () => {
@@ -62,10 +75,35 @@ export default function PaginaInsumosFaltantes() {
 
   useEffect(() => { cargar() }, [cargar])
 
+  // Miniaturas faltantes (filas anteriores a `imagen_thumb`): se generan una sola
+  // vez, en segundo plano, y van apareciendo en la lista a medida que se guardan.
+  // El ref evita relanzarlo: cada thumb guardado muta `faltantes` y volvería a entrar.
+  const backfillCorrido = useRef(false)
+  useEffect(() => {
+    if (backfillCorrido.current) return
+    if (!faltantes.some(f => f.tiene_imagen && !f.imagen_thumb)) return
+    backfillCorrido.current = true
+    backfillThumbs(faltantes, thumbDesdeDataUrl, (id, thumb) => {
+      setFaltantes(prev => prev.map(f => f.id === id ? { ...f, imagen_thumb: thumb } : f))
+    })
+  }, [faltantes])
+
+  // La foto grande de la ficha se pide sólo al abrirla.
+  useEffect(() => {
+    if (!detalle) { setDetalleImg(null); return }
+    let vigente = true
+    setCargandoImg(true); setDetalleImg(null)
+    faltantesService.getImagen(detalle.id)
+      .then(img => { if (vigente) setDetalleImg(img) })
+      .catch(() => { /* se queda con la miniatura */ })
+      .finally(() => { if (vigente) setCargandoImg(false) })
+    return () => { vigente = false }
+  }, [detalle])
+
   const resetForm = () => {
     setEditId(null)
     setNombre(''); setCantidad(''); setNota(''); setPrioridad('media'); setUnidad('kg')
-    setPrecio(''); setLink(''); setImagen('')
+    setPrecio(''); setLink(''); setPreview(''); setFoto(undefined)
   }
   const editar = (f: InsumoFaltante) => {
     setEditId(f.id)
@@ -76,7 +114,7 @@ export default function PaginaInsumosFaltantes() {
     setNota(f.nota ?? '')
     setPrecio(f.precio != null ? String(f.precio) : '')
     setLink(f.link ?? '')
-    setImagen(f.imagen ?? '')
+    setPreview(f.imagen_thumb ?? ''); setFoto(undefined)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -84,12 +122,18 @@ export default function PaginaInsumosFaltantes() {
     const nom = nombre.trim()
     if (!nom) { toast.error('Escribí el nombre del insumo'); return }
     setGuardando(true)
-    const payload = {
+    const payload: Partial<InsumoFaltante> & { nombre: string; prioridad: Prioridad } = {
       nombre: nom,
       cantidad: cantidad.trim() === '' ? null : parseFloat(cantidad.replace(',', '.')),
       unidad, prioridad, nota: nota.trim() || null,
       precio: precio.trim() === '' ? null : parseFloat(precio.replace(',', '.')),
-      link: link.trim() || null, imagen: imagen || null,
+      link: link.trim() || null,
+    }
+    // Sólo tocamos la foto si cambió: al editar no la traemos, así que
+    // omitirla deja la que ya estaba guardada.
+    if (foto !== undefined) {
+      payload.imagen = foto?.imagen ?? null
+      payload.imagen_thumb = foto?.thumb ?? null
     }
     try {
       if (editId) {
@@ -203,11 +247,11 @@ export default function PaginaInsumosFaltantes() {
               <label className={labelCls}>Foto (etiqueta / precio)</label>
               <div className="flex items-center gap-3">
                 <label className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] hover:border-[#404d20] transition-colors text-[11px] text-[#a6a6b5] hover:text-[#ececf1] cursor-pointer">
-                  <Upload className="w-3.5 h-3.5" /> {imagen ? 'Cambiar foto' : 'Subir'}
+                  <Upload className="w-3.5 h-3.5" /> {preview ? 'Cambiar foto' : 'Subir'}
                   <input type="file" accept="image/*" onChange={onImagen} className="hidden" />
                 </label>
-                {imagen && <img src={imagen} alt="" className="w-9 h-9 rounded object-cover border border-[#1f1f2b]" />}
-                {imagen && <button type="button" onClick={() => setImagen('')} className="text-[10.5px] text-[#5c5c6b] hover:text-[#ff8a7a] underline">quitar</button>}
+                {preview && <img src={preview} alt="" className="w-9 h-9 rounded object-cover border border-[#1f1f2b]" />}
+                {preview && <button type="button" onClick={() => { setFoto(null); setPreview('') }} className="text-[10.5px] text-[#5c5c6b] hover:text-[#ff8a7a] underline">quitar</button>}
               </div>
             </div>
           </div>
@@ -276,7 +320,7 @@ export default function PaginaInsumosFaltantes() {
                     title={f.comprado ? 'Marcar como pendiente' : 'Marcar como comprado'}>
                     <Check className="w-3.5 h-3.5" />
                   </button>
-                  {f.imagen && <img src={f.imagen} alt="" onClick={() => setDetalle(f)} className="w-11 h-11 rounded object-cover border border-[#1f1f2b] flex-shrink-0 self-start cursor-pointer hover:border-[#404d20]" title="Ver ficha" />}
+                  {f.imagen_thumb && <img src={f.imagen_thumb} alt="" onClick={() => setDetalle(f)} className="w-11 h-11 rounded object-cover border border-[#1f1f2b] flex-shrink-0 self-start cursor-pointer hover:border-[#404d20]" title="Ver ficha" />}
                   <div className="min-w-0 flex-1">
                     {/* Línea 1: nombre + prioridad */}
                     <div className="flex items-center gap-2 min-w-0">
@@ -336,8 +380,17 @@ export default function PaginaInsumosFaltantes() {
               <button onClick={() => setDetalle(null)} className="p-1 text-[#5c5c6b] hover:text-[#ececf1] flex-shrink-0" aria-label="Cerrar"><XIcon className="w-4 h-4" /></button>
             </div>
             <div className="p-5 space-y-4">
-              {detalle.imagen && (
-                <img src={detalle.imagen} alt="" className="w-full max-h-72 object-contain rounded-lg border border-[#1f1f2b] bg-[#0a0a0f]" />
+              {/* Mientras baja la foto grande mostramos la miniatura borrosa. */}
+              {(detalleImg || detalle.imagen_thumb) && (
+                <div className="relative">
+                  <img src={detalleImg ?? detalle.imagen_thumb ?? ''} alt=""
+                    className={`w-full max-h-72 object-contain rounded-lg border border-[#1f1f2b] bg-[#0a0a0f] transition-[filter] ${detalleImg ? '' : 'blur-sm'}`} />
+                  {cargandoImg && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Loader2 className="w-5 h-5 animate-spin text-[#a3e635]" />
+                    </div>
+                  )}
+                </div>
               )}
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[9px] font-semibold tracking-wide rounded px-1.5 py-0.5 border" style={{ color: COLOR_PRIORIDAD[detalle.prioridad].text, background: COLOR_PRIORIDAD[detalle.prioridad].bg, borderColor: COLOR_PRIORIDAD[detalle.prioridad].border }}>{COLOR_PRIORIDAD[detalle.prioridad].label}</span>
