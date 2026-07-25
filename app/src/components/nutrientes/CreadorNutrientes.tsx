@@ -69,19 +69,44 @@ const infoTab = (id: SubTab) => SUBTABS.find(t => t.id === id)!
  */
 function BarraTabs({ sub, setSub }: { sub: SubTab; setSub: (s: SubTab) => void }) {
   const [abierto, setAbierto] = useState(false)
+  // El panel va con position:fixed porque la barra tiene overflow-x-auto (scroll
+  // en celular) y eso recorta cualquier hijo posicionado: el menú se abría pero
+  // quedaba cortado a la altura de la barra.
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+  const btnRef = useRef<HTMLButtonElement>(null)
   const enMenu = !TABS_FIJAS.includes(sub)
   const actual = infoTab(sub)
 
-  // Cerrar al hacer click afuera o con Escape.
+  const abrir = () => {
+    const r = btnRef.current?.getBoundingClientRect()
+    if (r) {
+      const ancho = 240
+      // Si no entra a la derecha, se alinea con el borde de la ventana.
+      const left = Math.max(8, Math.min(r.left, window.innerWidth - ancho - 8))
+      setPos({ top: r.bottom + 4, left })
+    }
+    setAbierto(a => !a)
+  }
+
+  // Cerrar al hacer click afuera, con Escape, o si cambia el tamaño/scroll.
   useEffect(() => {
     if (!abierto) return
     const fuera = (e: MouseEvent) => {
-      if (!(e.target as HTMLElement).closest('[data-menu-tabs]')) setAbierto(false)
+      const t = e.target as HTMLElement
+      if (!t.closest('[data-menu-tabs]') && !t.closest('[data-panel-tabs]')) setAbierto(false)
     }
     const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setAbierto(false) }
+    const cerrar = () => setAbierto(false)
     document.addEventListener('mousedown', fuera)
     document.addEventListener('keydown', esc)
-    return () => { document.removeEventListener('mousedown', fuera); document.removeEventListener('keydown', esc) }
+    window.addEventListener('resize', cerrar)
+    window.addEventListener('scroll', cerrar, true)
+    return () => {
+      document.removeEventListener('mousedown', fuera)
+      document.removeEventListener('keydown', esc)
+      window.removeEventListener('resize', cerrar)
+      window.removeEventListener('scroll', cerrar, true)
+    }
   }, [abierto])
 
   const btnCls = (on: boolean) =>
@@ -99,23 +124,29 @@ function BarraTabs({ sub, setSub }: { sub: SubTab; setSub: (s: SubTab) => void }
         )
       })}
 
-      <div className="relative shrink-0 flex" data-menu-tabs>
-        <button onClick={() => setAbierto(a => !a)} aria-expanded={abierto}
+      <div className="shrink-0 flex" data-menu-tabs>
+        <button ref={btnRef} onClick={abrir} aria-expanded={abierto} aria-haspopup="menu"
           className={btnCls(enMenu)}>
           {enMenu ? <><actual.icon className="w-3.5 h-3.5" strokeWidth={1.8} /> {actual.label}</>
                   : <>Más herramientas</>}
           <ChevronDown className={`w-3.5 h-3.5 transition-transform ${abierto ? 'rotate-180' : ''}`} />
         </button>
+      </div>
 
-        {abierto && (
-          <div className="absolute top-full left-0 z-50 mt-1 w-[240px] max-h-[65vh] overflow-y-auto ct-page-scroll rounded-xl bg-[#101016] border border-[#2a2a3a] shadow-2xl py-1">
+      {/* Fuera del contenedor con overflow, si no queda recortado. */}
+      {abierto && pos && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setAbierto(false)} />
+          <div data-panel-tabs role="menu"
+            style={{ top: pos.top, left: pos.left }}
+            className="fixed z-50 w-[240px] max-h-[65vh] overflow-y-auto ct-page-scroll rounded-xl bg-[#101016] border border-[#2a2a3a] shadow-2xl py-1">
             {GRUPOS_TABS.map(g => (
               <div key={g.grupo}>
                 <div className="px-3 pt-2 pb-1 text-[9.5px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium">{g.grupo}</div>
                 {g.ids.map(id => {
                   const t = infoTab(id); const Icon = t.icon; const on = sub === id
                   return (
-                    <button key={id} onClick={() => { setSub(id); setAbierto(false) }}
+                    <button key={id} role="menuitem" onClick={() => { setSub(id); setAbierto(false) }}
                       className={`w-full flex items-center gap-2 px-3 py-2.5 min-h-[42px] text-left text-[12px] transition-colors ${
                         on ? 'bg-[#a3e635]/10 text-[#d9f99d]' : 'text-[#a6a6b5] hover:bg-[#15151d] hover:text-[#ececf1]'}`}>
                       <Icon className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={1.8} /> {t.label}
@@ -125,8 +156,8 @@ function BarraTabs({ sub, setSub }: { sub: SubTab; setSub: (s: SubTab) => void }
               </div>
             ))}
           </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
   )
 }
