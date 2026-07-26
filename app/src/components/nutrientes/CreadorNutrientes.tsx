@@ -550,6 +550,13 @@ function imprimirReceta(d: {
   w.document.close()
 }
 
+/** Familias de presets, para no mostrarlos como una bolsa plana de 18 chips. */
+const GRUPOS_PRESET = [
+  { id: 'base', etiqueta: 'Base', color: 'text-[#5c5c6b]', test: (id: string) => !/^(ryano_|co2_)/.test(id) },
+  { id: 'ryano', etiqueta: 'Ryanodine', color: 'text-[#a78bfa]/70', test: (id: string) => id.startsWith('ryano_') },
+  { id: 'co2', etiqueta: 'Mi plan', color: 'text-[#a3e635]/70', test: (id: string) => id.startsWith('co2_') },
+]
+
 // ===================== CALCULADORA =====================
 function CalcTab(p: CalcTabProps) {
   const { perfil, presetId, setPreset, setPpm, macros, micros, res, ec, salesTodas, activas, setActivas,
@@ -557,6 +564,7 @@ function CalcTab(p: CalcTabProps) {
     rangos, setRangos, modoPrep, setModoPrep } = p
   const [editarRangos, setEditarRangos] = useState(false)
   const [litros, setLitros] = useState(1)
+  const presetActivo = PRESETS.find(pr => pr.id === presetId)
   const setRango = (k: ElementKey, campo: 'min' | 'max', v: number) =>
     setRangos(prev => ({ ...prev, [k]: { min: prev[k]?.min ?? 0, max: prev[k]?.max ?? 0, [campo]: v } }))
 
@@ -573,30 +581,51 @@ function CalcTab(p: CalcTabProps) {
       {/* Punto de partida: preset + kit + perfiles guardados, todo en una tarjeta.
           Antes eran tres bloques sueltos que se comían media pantalla. */}
       <div className={`${card} space-y-3`}>
-        <div className="grid gap-3 lg:grid-cols-2">
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           <div>
-            <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1.5">
-              1 · Perfil objetivo <span className="text-[#3a3a4a] normal-case tracking-normal">— qué quiero lograr</span>
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {PRESETS.map(pr => (
-                <button key={pr.id} onClick={() => setPreset(pr.id)} title={pr.desc}
-                  className={`px-2.5 py-2.5 sm:py-1 min-h-[44px] sm:min-h-0 rounded-md text-[11px] font-medium transition-colors ${
-                    presetId === pr.id ? 'bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d]'
-                      : 'bg-[#15151d] border border-[#1f1f2b] text-[#8f8f9f] hover:border-[#2a2a3a] hover:text-[#d4d4dd]'
-                  }`}>{pr.nombre}</button>
-              ))}
+            <div className="flex items-baseline gap-2 mb-2">
+              <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium">
+                1 · Perfil objetivo <span className="text-[#3a3a4a] normal-case tracking-normal">— qué quiero lograr</span>
+              </p>
+              {presetActivo && (
+                <span className="text-[10.5px] text-[#a3e635]/70 truncate hidden sm:block">{presetActivo.desc}</span>
+              )}
             </div>
+            {/* Agrupados por familia: 18 chips sueltos en una sola bolsa no se
+                entendían. El prefijo del nombre ("Ryano · ", "Mi plan · ") se saca
+                porque ya lo dice el grupo. */}
+            <div className="space-y-2">
+              {GRUPOS_PRESET.map(g => {
+                const items = PRESETS.filter(pr => g.test(pr.id))
+                if (items.length === 0) return null
+                return (
+                  <div key={g.id} className="flex flex-wrap items-center gap-1.5">
+                    <span className={`text-[9.5px] uppercase tracking-[0.1em] font-semibold w-full sm:w-[86px] sm:shrink-0 ${g.color}`}>{g.etiqueta}</span>
+                    {items.map(pr => (
+                      <button key={pr.id} onClick={() => setPreset(pr.id)} title={pr.desc}
+                        className={`px-2.5 py-2.5 sm:py-1 min-h-[44px] sm:min-h-0 rounded-md text-[11px] font-medium transition-colors ${
+                          presetId === pr.id ? 'bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d]'
+                            : 'bg-[#15151d] border border-[#1f1f2b] text-[#8f8f9f] hover:border-[#2a2a3a] hover:text-[#d4d4dd]'
+                        }`}>{pr.nombre.replace(/^(Ryano|Mi plan)\s·\s/, '')}</button>
+                    ))}
+                  </div>
+                )
+              })}
+            </div>
+            {presetActivo && (
+              <p className="text-[10.5px] text-[#a3e635]/70 mt-2 sm:hidden">{presetActivo.desc}</p>
+            )}
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1.5">
+            <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-2">
               2 · Kit de sales <span className="text-[#3a3a4a] normal-case tracking-normal">— con qué lo hago</span>
             </p>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-col gap-1.5">
               {KITS_SALES.map(kit => (
                 <button key={kit.id} onClick={() => setActivas(new Set(kit.sales))} title={kit.desc}
-                  className="px-2.5 py-2.5 sm:py-1 min-h-[44px] sm:min-h-0 rounded-md text-[11px] font-medium bg-[#15151d] border border-[#1f1f2b] text-[#a6a6b5] hover:border-[#463a66] hover:text-[#c4b5fd] transition-colors">
-                  {kit.nombre}
+                  className="text-left px-2.5 py-2 min-h-[44px] sm:min-h-0 rounded-md bg-[#15151d] border border-[#1f1f2b] hover:border-[#463a66] transition-colors group">
+                  <span className="block text-[11px] font-medium text-[#a6a6b5] group-hover:text-[#c4b5fd]">{kit.nombre}</span>
+                  <span className="block text-[10px] text-[#5c5c6b] leading-snug mt-0.5 line-clamp-2">{kit.desc}</span>
                 </button>
               ))}
             </div>
@@ -680,29 +709,43 @@ function CalcTab(p: CalcTabProps) {
 
         {/* Receta */}
         <div className={card}>
-          <div className="flex items-center gap-2 mb-3 flex-wrap">
-            <FlaskConical className="w-4 h-4 text-[#a78bfa]" strokeWidth={1.8} />
-            <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Receta {litros === 1 ? '· g/L' : `· para ${litros} L`}</h3>
-            <label className="flex items-center gap-1 text-[10.5px] text-[#a6a6b5]">
-              <span className="text-[#5c5c6b]">prepará</span>
-              <NumField value={litros} onChange={setLitros} min={0.1}
-                className="w-16 bg-[#15151d] border border-[#1f1f2b] rounded px-1.5 py-1.5 sm:py-0.5 min-h-[36px] sm:min-h-0 text-[16px] sm:text-[12px] text-[#ececf1] font-mono tabular-nums focus:border-[#404d20] outline-none" /> L
+          {/* Cada control va envuelto con su propio "?" en un shrink-0: si no, al
+              wrapear la fila el signo de pregunta se despega y termina al lado de
+              otro control (pasaba con litros e Imprimir). */}
+          <div className="flex items-center gap-x-2 gap-y-2 mb-3 flex-wrap">
+            <FlaskConical className="w-4 h-4 text-[#a78bfa] flex-shrink-0" strokeWidth={1.8} />
+            <h3 className="font-display font-semibold text-[13px] text-[#ececf1] mr-auto">Receta {litros === 1 ? '· g/L' : `· para ${litros} L`}</h3>
+
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <label className="flex items-center gap-1 text-[10.5px] text-[#a6a6b5]">
+                <span className="text-[#5c5c6b]">prepará</span>
+                <NumField value={litros} onChange={setLitros} min={0.1}
+                  className="w-14 bg-[#15151d] border border-[#1f1f2b] rounded px-1.5 py-1.5 sm:py-0.5 min-h-[36px] sm:min-h-0 text-[16px] sm:text-[12px] text-[#ececf1] font-mono tabular-nums text-center focus:border-[#404d20] outline-none" />
+                <span>L</span>
+              </label>
               <Info><b className="text-[#d9f99d]">Cuántos litros de riego vas a preparar</b>. Los gramos de la receta se multiplican por este número.<br /><span className="text-[#a3e635]">Ej: MKP 0.24 g/L × 10 L = 2.4 g a pesar.</span></Info>
-            </label>
-            <div className="flex rounded-md overflow-hidden border border-[#1f1f2b]">
-              {(['polvo', 'liquido'] as const).map(m => (
-                <button key={m} onClick={() => setModoPrep(m)}
-                  className={`px-2.5 py-2 sm:py-0.5 min-h-[36px] sm:min-h-0 text-[10.5px] font-medium transition-colors ${modoPrep === m ? 'bg-[#a3e635]/15 text-[#d9f99d]' : 'bg-[#15151d] text-[#8f8f9f] hover:text-[#d4d4dd]'}`}>
-                  {m === 'polvo' ? 'Polvo' : 'Líquido A/B'}
-                </button>
-              ))}
             </div>
-            <Info><b className="text-[#d9f99d]">Cómo vas a preparar la receta.</b> <b>Polvo</b>: todo junto en un envase seco (se echa al tanque). <b>Líquido A/B</b>: concentrado en botellas, separando calcio (A) de sulfatos (B) para que no precipiten.<br /><span className="text-[#a3e635]">Ej: el Finis viene en polvo; el Athena Fade viene líquido.</span></Info>
-            <span className="ml-auto text-[11px] font-mono tabular-nums px-2 py-0.5 rounded border border-[#404d20] bg-[#a3e635]/10 text-[#d9f99d]">EC ≈ {ec}</span>
-            <Info><b className="text-[#d9f99d]">EC estimada</b> (electroconductividad): cuán fuerte queda la solución. Es lo que vas a medir con el lápiz de EC.<br /><span className="text-[#a3e635]">Coco: veg 1.2–1.8, flora 1.8–2.4. Si te da mucho más, bajá las dosis.</span></Info>
+
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <div className="flex rounded-md overflow-hidden border border-[#1f1f2b]">
+                {(['polvo', 'liquido'] as const).map(m => (
+                  <button key={m} onClick={() => setModoPrep(m)}
+                    className={`px-2.5 py-2 sm:py-0.5 min-h-[36px] sm:min-h-0 text-[10.5px] font-medium transition-colors ${modoPrep === m ? 'bg-[#a3e635]/15 text-[#d9f99d]' : 'bg-[#15151d] text-[#8f8f9f] hover:text-[#d4d4dd]'}`}>
+                    {m === 'polvo' ? 'Polvo' : 'Líquido A/B'}
+                  </button>
+                ))}
+              </div>
+              <Info><b className="text-[#d9f99d]">Cómo vas a preparar la receta.</b> <b>Polvo</b>: todo junto en un envase seco (se echa al tanque). <b>Líquido A/B</b>: concentrado en botellas, separando calcio (A) de sulfatos (B) para que no precipiten.<br /><span className="text-[#a3e635]">Ej: el Finis viene en polvo; el Athena Fade viene líquido.</span></Info>
+            </div>
+
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <span className="text-[11px] font-mono tabular-nums px-2 py-1 sm:py-0.5 rounded border border-[#404d20] bg-[#a3e635]/10 text-[#d9f99d]">EC ≈ {ec}</span>
+              <Info><b className="text-[#d9f99d]">EC estimada</b> (electroconductividad): cuán fuerte queda la solución. Es lo que vas a medir con el lápiz de EC.<br /><span className="text-[#a3e635]">Coco: veg 1.2–1.8, flora 1.8–2.4. Si te da mucho más, bajá las dosis.</span></Info>
+            </div>
+
             <button onClick={() => imprimirReceta({ nombre: p.nombreNuevo, perfil, res, porBidon, ec, litros, modoPrep, resolucion })}
               disabled={porBidon.length === 0}
-              className="text-[10.5px] flex items-center gap-1 px-2 py-2 sm:py-1 min-h-[36px] sm:min-h-0 rounded-md bg-[#15151d] border border-[#1f1f2b] text-[#a6a6b5] hover:text-[#d9f99d] hover:border-[#404d20] transition-colors disabled:opacity-40">
+              className="text-[10.5px] flex items-center gap-1 flex-shrink-0 px-2 py-2 sm:py-1 min-h-[36px] sm:min-h-0 rounded-md bg-[#15151d] border border-[#1f1f2b] text-[#a6a6b5] hover:text-[#d9f99d] hover:border-[#404d20] transition-colors disabled:opacity-40">
               <Printer className="w-3.5 h-3.5" strokeWidth={1.8} /> Imprimir
             </button>
           </div>
