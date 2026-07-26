@@ -139,6 +139,22 @@ const TABLAS: DefTabla[] = [
     ],
   },
   {
+    id: 'fichas_comerciales', nombre: 'Fichas tecnicas (comerciales)', orden: 'marca',
+    cols: [
+      { campo: 'marca', titulo: 'Marca', tipo: 'text', ancho: 'min-w-[130px]' },
+      { campo: 'producto', titulo: 'Producto', tipo: 'text', ancho: 'min-w-[150px]' },
+      { campo: 'linea', titulo: 'Linea', tipo: 'text' },
+      { campo: 'forma', titulo: 'Forma', tipo: { select: ['liquido', 'polvo'] } },
+      { campo: 'densidad', titulo: 'Densidad', tipo: 'number' },
+      { campo: 'npk', titulo: 'NPK', tipo: 'text' },
+      { campo: 'dosis_ml_l', titulo: 'Dosis', tipo: 'number' },
+      { campo: 'sal_id', titulo: 'Sal clonable', tipo: 'text', ancho: 'min-w-[130px]' },
+      { campo: 'verificado', titulo: 'Cierra', tipo: 'bool' },
+      { campo: 'nota', titulo: 'Nota', tipo: 'text', ancho: 'min-w-[220px]' },
+      { campo: 'pdf_nombre', titulo: 'Archivo', tipo: 'text', ancho: 'min-w-[160px]' },
+    ],
+  },
+  {
     id: 'proveedores_nutrientes', nombre: 'Proveedores (nutrientes)', orden: 'sal_id',
     cols: [
       { campo: 'sal_id', titulo: 'Sal / insumo', tipo: 'text', ancho: 'min-w-[140px]' },

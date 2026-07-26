@@ -5,6 +5,7 @@ import {
   CalendarRange, Droplet, GitCompare, Package, ShieldCheck, Copy, HelpCircle, BookOpen, Lightbulb, Printer, Store, Phone, Globe, Upload, Star, X, Mail, MapPin, Repeat, Sprout, FileText, Loader2,
 } from 'lucide-react'
 import PlanTab from './PlanTab'
+import FichasTab from './FichasTab'
 import { toast } from 'sonner'
 import {
   SALES_DEFECTO, ELEMENTOS, PRESETS, calcularReceta, ecAprox, nTotal,
@@ -32,12 +33,13 @@ interface CalcTabProps {
 }
 type CostoResultado = { porLitro: number; detalle: { sal: Sal; costo: number }[] }
 
-type SubTab = 'calc' | 'plan' | 'clonar' | 'sustancias' | 'proveedores' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar' | 'enraizado' | 'elicitor' | 'bioestim' | 'hocl' | 'ayuda'
+type SubTab = 'calc' | 'plan' | 'fichas' | 'clonar' | 'sustancias' | 'proveedores' | 'agua' | 'concentrados' | 'estab' | 'ratios' | 'ph' | 'comparar' | 'enraizado' | 'elicitor' | 'bioestim' | 'hocl' | 'ayuda'
 
 const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
   { id: 'calc', label: 'Calculadora', icon: Calculator },
   { id: 'plan', label: 'Mi plan', icon: CalendarRange },
   { id: 'clonar', label: 'Clonar marca', icon: Copy },
+  { id: 'fichas', label: 'Fichas técnicas', icon: FileText },
   { id: 'sustancias', label: 'Sustancias', icon: FlaskRound },
   { id: 'proveedores', label: 'Proveedores', icon: Store },
   // Agua y Conversor iban separadas, pero las dos hacen lo mismo: traducir un
@@ -59,7 +61,7 @@ const SUBTABS: { id: SubTab; label: string; icon: typeof Calculator }[] = [
 // uso diario y el resto pasa a un desplegable agrupado por tema.
 const TABS_FIJAS: SubTab[] = ['calc', 'plan', 'sustancias', 'ratios']
 const GRUPOS_TABS: { grupo: string; ids: SubTab[] }[] = [
-  { grupo: 'Formular', ids: ['clonar', 'comparar', 'proveedores'] },
+  { grupo: 'Formular', ids: ['clonar', 'fichas', 'comparar', 'proveedores'] },
   { grupo: 'Agua y mezcla', ids: ['agua', 'concentrados', 'estab', 'ph'] },
   { grupo: 'Recetas DIY', ids: ['enraizado', 'elicitor', 'bioestim', 'hocl'] },
   { grupo: 'Ayuda', ids: ['ayuda'] },
@@ -370,6 +372,15 @@ export default function CreadorNutrientes() {
       {sub === 'plan' && (
         <PlanTab salesTodas={salesTodas} proveedores={proveedores}
           onUsarPreset={(p, id) => { setPerfil(p); setPresetId(id); setActivas(new Set(kitParaPerfil(p, opcionesDeMarca('')))); setRangos(rangosDesdePerfil(p)); setSub('calc') }} />
+      )}
+      {sub === 'fichas' && (
+        <FichasTab onClonar={(perfil, nombre) => {
+          setPerfil(perfil); setPresetId('')
+          setActivas(new Set(kitParaPerfil(perfil, opcionesDeMarca(''))))
+          setRangos(rangosDesdePerfil(perfil))
+          setNombreNuevo(nombre)
+          setSub('calc')
+        }} />
       )}
       {sub === 'agua' && (
         <div className="space-y-4">
