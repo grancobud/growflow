@@ -208,7 +208,7 @@ export default function PaginaDashboard() {
         </div>
       </div>
 
-      <div className="ct-dash-wrap px-3 sm:px-6 py-5 sm:py-7 pb-24 space-y-6 sm:space-y-8 max-w-[1600px] mx-auto">
+      <div className="ct-dash-wrap px-3 sm:px-6 py-5 sm:py-7 pb-24 space-y-6 sm:space-y-8">
 
         {/* Filtros período — segmented control prominente */}
         <Section title="Período de análisis" icon={Calendar}>

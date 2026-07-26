@@ -122,7 +122,7 @@ export default function PaginaCosecha() {
         </div>
       </div>
 
-      <div className="px-3 sm:px-6 py-4 sm:py-5 pb-[calc(5rem+env(safe-area-inset-bottom))] max-w-[1500px] mx-auto">
+      <div className="px-3 sm:px-6 py-4 sm:py-5 pb-[calc(5rem+env(safe-area-inset-bottom))]">
         {/* Totales */}
         <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
           <Total label="Total seco" valor={totalSeco.toLocaleString('es-AR')} unidad="g" />

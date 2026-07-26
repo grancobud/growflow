@@ -200,7 +200,7 @@ export default function PaginaInsumosFaltantes() {
         </div>
       </div>
 
-      <div className="px-3 sm:px-6 py-4 sm:py-5 pb-20 space-y-4 max-w-6xl mx-auto">
+      <div className="px-3 sm:px-6 py-4 sm:py-5 pb-20 space-y-4">
         {/* Form de alta — arriba de todo */}
         <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4 sm:p-5">
           <div className="flex items-center gap-2 mb-3">
