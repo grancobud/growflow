@@ -351,12 +351,15 @@ export const SALES_DEFECTO: Sal[] = [
   { id: 'plagron_terra_bloom', nombre: 'Plagron Terra Bloom (2-2-4)', bidon: 'B', liquido: true, densidad: 1.1,
     comp: { NO3: 0.015, NH4: 0.005, P: 0.0087, K: 0.0332, Mg: 0.003, S: 0.004 },
     descripcion: 'Comercial Plagron (línea Terra): base de floración. NPK 2-2-4 confirmado.' },
-  { id: 'plagron_coco_a', nombre: 'Plagron Coco A (aprox)', bidon: 'A', liquido: true, densidad: 1.1,
-    comp: { NO3: 0.015, NH4: 0.003, Ca: 0.015, K: 0.01 },
-    descripcion: 'Comercial Plagron Coco A (líquido): calcio + nitrógeno. Valores APROXIMADOS. Va con Coco B en partes iguales.' },
-  { id: 'plagron_coco_b', nombre: 'Plagron Coco B (aprox)', bidon: 'B', liquido: true, densidad: 1.1,
-    comp: { P: 0.008, K: 0.02, Mg: 0.005, S: 0.007, Fe: 0.0002, Mn: 0.0001, Zn: 0.00005, B: 0.0001 },
-    descripcion: 'Comercial Plagron Coco B (líquido): P-K-Mg-S + micros. Valores APROXIMADOS.' },
+  // Cocos A y B: valores del TDS oficial (A del 19/09/2024, B del 27/09/2024).
+  // Los óxidos pasados a elemental con los factores IPNI: K2O 2.8→K 2.324,
+  // CaO 4.2→Ca 3.002, P2O5 3.3→P 1.440, MgO 1.8→Mg 1.085, SO3 2.7→S 1.081.
+  { id: 'plagron_coco_a', nombre: 'Plagron Cocos A', bidon: 'A', liquido: true, densidad: 1.16,
+    comp: { NO3: 0.031, NH4: 0.006, K: 0.02324, Ca: 0.03002, Fe: 0.00025 },
+    descripcion: 'Comercial Plagron (línea Cocos): calcio + nitrógeno + algo de K y el hierro. Bidón A. Dosis máxima 4 ml/L (1:250), pH 4.0, densidad 1.16. Va con Cocos B en partes iguales.' },
+  { id: 'plagron_coco_b', nombre: 'Plagron Cocos B', bidon: 'B', liquido: true, densidad: 1.11,
+    comp: { NO3: 0.003, P: 0.0144, K: 0.01743, Mg: 0.01085, S: 0.01081, B: 0.00012, Cu: 0.00002, Mn: 0.00024, Mo: 0.000005, Zn: 0.00009 },
+    descripcion: 'Comercial Plagron (línea Cocos): P-K-Mg-S + micros (sin hierro, ese va en el A). Bidón B. Dosis máxima 4 ml/L (1:250), pH 3.3, densidad 1.11.' },
   { id: 'plagron_hydro_a', nombre: 'Plagron Hydro A (aprox)', bidon: 'A', liquido: true, densidad: 1.1,
     comp: { NO3: 0.015, NH4: 0.003, Ca: 0.016, K: 0.01 },
     descripcion: 'Comercial Plagron Hydro A (líquido): calcio + nitrógeno para hidroponía. Valores APROXIMADOS.' },
@@ -475,7 +478,19 @@ export function kitParaPerfil(p: Perfil, opts: OpcionesKit = {}): string[] {
   // --- Silicio (silicato de potasio; va en bidón aparte, sube pH) ---
   if (has('Si')) kit.add('ksilic')
   // --- Magnesio ---
-  if (has('Mg')) kit.add('epsom')
+  // --- Magnesio ---
+  // El Epsom arrastra 1,32 g de S por cada g de Mg. Si el perfil pide más Mg del
+  // que ese azufre permite, el solver tiene que elegir entre quedarse corto de Mg
+  // o pasarse de S, y siempre queda mal alguno. Por eso, cuando el perfil viene
+  // "flaco" de azufre, se ofrece también nitrato de magnesio (Mg sin sulfato) y
+  // el solver reparte. Es lo que hace Plagron en el Cocos B, y es lo que explica
+  // que ahí el N sea justo 0,3%.
+  if (has('Mg')) {
+    kit.add('epsom')
+    const ratioSulfato = 1.3191                       // S/Mg en MgSO₄
+    const ratioPerfil = (p.S ?? 0) / (p.Mg ?? 1)
+    if (ratioPerfil < ratioSulfato && (has('NO3') || N > 0)) kit.add('mgno3')
+  }
   // --- Azufre, si todavía no hay ninguna fuente ---
   if (has('S') && !kit.has('k2so4') && !kit.has('epsom') && !kit.has('yeso')) kit.add('k2so4')
   // --- Micros: SOLO el que se pide, con el quelato/forma de la marca ---
