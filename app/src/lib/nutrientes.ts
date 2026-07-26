@@ -360,6 +360,12 @@ export const SALES_DEFECTO: Sal[] = [
   { id: 'plagron_coco_b', nombre: 'Plagron Cocos B', bidon: 'B', liquido: true, densidad: 1.11,
     comp: { NO3: 0.003, P: 0.0144, K: 0.01743, Mg: 0.01085, S: 0.01081, B: 0.00012, Cu: 0.00002, Mn: 0.00024, Mo: 0.000005, Zn: 0.00009 },
     descripcion: 'Comercial Plagron (línea Cocos): P-K-Mg-S + micros (sin hierro, ese va en el A). Bidón B. Dosis máxima 4 ml/L (1:250), pH 3.3, densidad 1.11.' },
+  // Green Sensation: la etiqueta declara los tres ingredientes, no hay que deducir nada.
+  // El N del TDS (0,5% "amoniacal") es en realidad el nitrógeno de la molécula de DTPA
+  // —lleva 3 N y con Fe 0,9% da ~0,6%—, no amonio disponible, así que no se carga.
+  { id: 'plagron_green_sensation', nombre: 'Plagron Green Sensation', bidon: 'B', liquido: true, densidad: 1.28,
+    comp: { P: 0.03622, K: 0.07554, Fe: 0.009 },
+    descripcion: 'Comercial Plagron: PK de floración (8.3-9.1) con muchísimo hierro quelatado en DTPA. Es ácido fosfórico neutralizado con potasa + Fe-DTPA. Dosis máxima 1 ml/L (1:1000) desde la 4ª semana de flora, pH 5.9, densidad 1.28. OJO: a 1 ml/L mete 11,5 ppm de Fe, más del doble que el Mikro de Ryanodine a 4 ml/L.' },
   // CalMag Pro: sólo dos sales, y cierran casi exacto. Ver la ficha técnica.
   { id: 'plagron_calmag', nombre: 'Plagron CalMag Pro', bidon: 'A', liquido: true, densidad: 1.26,
     comp: { NO3: 0.051, Ca: 0.04074, Mg: 0.0199 },
