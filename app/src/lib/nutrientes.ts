@@ -443,7 +443,9 @@ export function kitParaPerfil(p: Perfil, opts: OpcionesKit = {}): string[] {
   const N = nTotal(p)
   const kit = new Set<string>()
   const fe = opts.feChelate ?? 'fehbed'
-  const useQuel = opts.microsQuelatados ?? true // MÁXIMA CALIDAD por defecto: micros EDTA (no sulfatos)
+  // Sulfatos por defecto: es lo que hay proveedor, y da el mismo resultado que el EDTA
+  // (ver opcionesDeMarca). Quien quiera quelato lo pide explícito.
+  const useQuel = opts.microsQuelatados ?? false
   const mn = useQuel ? 'mnedta' : 'mnso4'
   const zn = useQuel ? 'znedta' : 'znso4'
   const cu = useQuel ? 'cuedta' : 'cuso4'
@@ -487,8 +489,8 @@ export function kitParaPerfil(p: Perfil, opts: OpcionesKit = {}): string[] {
 }
 
 /** Compara cómo cubrir los MICROS de un perfil de dos formas, con el mismo solver:
- *  1) sueltos: cada quelato individual (Fe-HBED + Mn/Zn/Cu-EDTA + ácido bórico + molibdato)
- *  2) micromix: Fetrilon Combi 2 + refuerzos individuales (Fe-HBED, Mn-EDTA, ác. bórico y
+ *  1) sueltos: cada micro por separado (Fe-HBED + sulfatos de Mn/Zn/Cu + ácido bórico + molibdato)
+ *  2) micromix: Fetrilon Combi 2 + refuerzos individuales (Fe-HBED, sulfato de Mn, ác. bórico y
  *     molibdato) para completar lo que el ratio fijo del micromix deja corto. El solver reparte.
  *  Devuelve las dosis (g/L) y el ppm logrado de cada micro en cada variante. */
 export function compararMicros(perfil: Perfil, salesTodas: Sal[]): {
@@ -500,10 +502,10 @@ export function compararMicros(perfil: Perfil, salesTodas: Sal[]): {
   const microPerfil: Perfil = {}
   for (const k of MICROS) if ((perfil[k] ?? 0) > 0) microPerfil[k] = perfil[k]
   const pick = (ids: string[]) => ids.map(id => salesTodas.find(s => s.id === id)).filter(Boolean) as Sal[]
-  const suel = calcularReceta(microPerfil, pick(['fehbed', 'mnedta', 'znedta', 'cuedta', 'boric', 'namolib']))
+  const suel = calcularReceta(microPerfil, pick(['fehbed', 'mnso4', 'znso4', 'cuso4', 'boric', 'namolib']))
   // Micromix + refuerzos: el Fetrilon aporta la base, pero su ratio fijo deja corto B/Mn/Mo
-  // (y a veces Fe). Se agregan quelatos/sales individuales para que el solver complete cada micro.
-  const mmx = calcularReceta(microPerfil, pick(['fetrilon_combi2', 'fehbed', 'mnedta', 'znedta', 'boric', 'namolib']))
+  // (y a veces Fe). Se agregan sales individuales para que el solver complete cada micro.
+  const mmx = calcularReceta(microPerfil, pick(['fetrilon_combi2', 'fehbed', 'mnso4', 'znso4', 'boric', 'namolib']))
   return { microPerfil, sueltos: suel.dosis, ppmSueltos: suel.ppmLogrado, micromix: mmx.dosis, ppmMicromix: mmx.ppmLogrado }
 }
 
@@ -727,8 +729,8 @@ export function meqAppm(meq: number, elem: string): number | null {
 export interface KitSales { id: string; nombre: string; desc: string; sales: string[] }
 export const KITS_SALES: KitSales[] = [
   { id: 'limpio', nombre: 'Kit limpio (recomendado)',
-    desc: 'Calidad pro: 1 sal por nutriente, sin cloro, micros EDTA quelatados (estables). A=nitrato Ca · B=nitrato K+MKP+sulfato K+Epsom · C=Fe-HBED + micros EDTA.',
-    sales: ['cano3_ag', 'kno3', 'mkp', 'k2so4', 'epsom', 'fehbed', 'mnedta', 'znedta', 'cuedta', 'boric', 'namolib'] },
+    desc: 'Calidad pro: 1 sal por nutriente, sin cloro, hierro quelatado con Fe-HBED (estable de pH 3,5 a 12). A=nitrato Ca · B=nitrato K+MKP+sulfato K+Epsom · C=Fe-HBED + micros.',
+    sales: ['cano3_ag', 'kno3', 'mkp', 'k2so4', 'epsom', 'fehbed', 'mnso4', 'znso4', 'cuso4', 'boric', 'namolib'] },
   { id: 'finish', nombre: 'Kit finish (sin N)',
     desc: 'Finalización PK sin nitrógeno. El azufre sale de sulfato de K + yeso (no de micros, que ensucian). Ca limpio.',
     sales: ['mkp', 'k2so4', 'khco3', 'yeso', 'cagluc'] },

@@ -1256,8 +1256,8 @@ function ColMicros({ titulo, sub, dosis, litros, resolucion, acento, elegida, on
   )
 }
 // ids de micros para intercambiar la forma en la receta (activas)
-const MICROS_SUELTOS_IDS = ['fehbed', 'mnedta', 'znedta', 'cuedta', 'boric', 'namolib']
-const MICROS_MIX_IDS = ['fetrilon_combi2', 'fehbed', 'mnedta', 'znedta', 'boric', 'namolib']
+const MICROS_SUELTOS_IDS = ['fehbed', 'mnso4', 'znso4', 'cuso4', 'boric', 'namolib']
+const MICROS_MIX_IDS = ['fetrilon_combi2', 'fehbed', 'mnso4', 'znso4', 'boric', 'namolib']
 const MICROS_LIMPIAR = ['feeddha', 'feedta', 'mnedta', 'znedta', 'cuedta', 'boric', 'namolib', 'fetrilon_combi2', 'afital_micromix', 'mnso4', 'znso4', 'cuso4', 'feso4']
 function PanelMicros2({ perfil, salesTodas, litros, resolucion, activas, setActivas }: { perfil: Perfil; salesTodas: Sal[]; litros: number; resolucion: number; activas: Set<string>; setActivas: SetSet }) {
   const cmp = useMemo(() => compararMicros(perfil, salesTodas), [perfil, salesTodas])
