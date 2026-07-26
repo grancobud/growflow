@@ -423,13 +423,19 @@ export interface OpcionesKit {
   feChelate?: string        // id del quelato de hierro a usar (default feeddha)
   microsQuelatados?: boolean // true = Mn/Zn/Cu EDTA (como las marcas premium); false = sulfatos (barato)
 }
-/** Opciones de sales según cómo formula cada marca (tipo de hierro y micros).
- * MÁXIMA CALIDAD: micros Mn/Zn/Cu quelatados EDTA (como las marcas premium de verdad),
- * más estables en concentrado líquido y a pH alto que los sulfatos. */
+/** Opciones de sales según cómo formula cada marca (tipo de hierro y micros). */
 export function opcionesDeMarca(_salId: string): OpcionesKit {
   // Hierro SIEMPRE Fe-HBED (Rexolin X60): el quelato más estable (pH 3.5–12),
-  // preferencia de Gastón. Micros Mn/Zn/Cu quelatados EDTA (calidad marca premium).
-  return { feChelate: 'fehbed', microsQuelatados: true }
+  // preferencia de Gastón.
+  //
+  // Mn/Zn/Cu van como SULFATO, no como EDTA. Las marcas premium usan quelato porque
+  // aguanta mejor el pH alto y el concentrado guardado, pero se comprobó (25/07/2026)
+  // que el clon da idéntico con las dos vías: 2,2% de desvío y los cuatro micros
+  // clavados en 0%. Y los quelatos sueltos no se consiguen acá — no hay proveedor
+  // argentino cargado de Mn-EDTA ni de Cu-EDTA, mientras que los sulfatos sí. En coco
+  // a pH 5,8-6,2 con solución fresca todos los días el sulfato anda perfecto.
+  // Para volver a los quelatos: microsQuelatados: true.
+  return { feChelate: 'fehbed', microsQuelatados: false }
 }
 
 export function kitParaPerfil(p: Perfil, opts: OpcionesKit = {}): string[] {
