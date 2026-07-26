@@ -30,6 +30,7 @@ interface CalcTabProps {
   guardarPerfil: () => void; cargarPerfil: (g: PerfilGuardado) => void; borrarPerfil: (g: PerfilGuardado) => void
   resolucion: number; rangos: RangoPerfil; setRangos: React.Dispatch<React.SetStateAction<RangoPerfil>>
   modoPrep: 'polvo' | 'liquido'; setModoPrep: (m: 'polvo' | 'liquido') => void
+  proveedores: Proveedor[]
 }
 type CostoResultado = { porLitro: number; detalle: { sal: Sal; costo: number }[] }
 
@@ -361,7 +362,7 @@ export default function CreadorNutrientes() {
       {sub === 'calc' && (
         <CalcTab {...{ perfil, presetId, setPreset, setPpm, macros, micros, res, ec, salesTodas, activas, setActivas,
           guardados, nombreNuevo, setNombreNuevo, guardando, guardarPerfil, cargarPerfil, borrarPerfil, resolucion,
-          rangos, setRangos, modoPrep, setModoPrep }} />
+          rangos, setRangos, modoPrep, setModoPrep, proveedores }} />
       )}
       {sub === 'sustancias' && (
         <SustanciasTab {...{ salesTodas, activas, setActivas, recargarCustoms, inventario, recargarInventario, proveedores }} />
@@ -561,6 +562,22 @@ function imprimirReceta(d: {
   w.document.close()
 }
 
+/** Se asume que tenés una sal si le cargaste un proveedor. */
+function salesConProveedor(proveedores: Proveedor[]): Set<string> {
+  return new Set(proveedores.map(p => p.sal_id))
+}
+
+/** Punto al costado del nombre: verde = la tenés, amarillo = hay que comprarla.
+ *  Mismos colores que en Soluciones madre, para que se lea igual en toda la app. */
+function Disp({ tiene }: { tiene: boolean }) {
+  return (
+    <span aria-hidden
+      title={tiene ? 'Tenés proveedor cargado' : 'Sin proveedor cargado — hay que comprarla'}
+      className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+      style={{ background: tiene ? '#4ade80' : '#facc15' }} />
+  )
+}
+
 /** Familias de presets, para no mostrarlos como una bolsa plana de 18 chips. */
 const GRUPOS_PRESET = [
   { id: 'base', etiqueta: 'Base', color: 'text-[#5c5c6b]', test: (id: string) => !/^(ryano_|co2_)/.test(id) },
@@ -572,10 +589,13 @@ const GRUPOS_PRESET = [
 function CalcTab(p: CalcTabProps) {
   const { perfil, presetId, setPreset, setPpm, macros, micros, res, ec, salesTodas, activas, setActivas,
     guardados, nombreNuevo, setNombreNuevo, guardando, guardarPerfil, cargarPerfil, borrarPerfil, resolucion,
-    rangos, setRangos, modoPrep, setModoPrep } = p
+    rangos, setRangos, modoPrep, setModoPrep, proveedores } = p
   const [editarRangos, setEditarRangos] = useState(false)
   const [litros, setLitros] = useState(1)
   const presetActivo = PRESETS.find(pr => pr.id === presetId)
+  // "Tengo la sal" = le cargué un proveedor. Es el criterio de toda la pantalla.
+  const conProveedor = useMemo(() => salesConProveedor(proveedores), [proveedores])
+  const faltantesReceta = res.dosis.filter((d: ResultadoSal) => !conProveedor.has(d.sal.id)).length
   const setRango = (k: ElementKey, campo: 'min' | 'max', v: number) =>
     setRangos(prev => ({ ...prev, [k]: { min: prev[k]?.min ?? 0, max: prev[k]?.max ?? 0, [campo]: v } }))
 
@@ -764,6 +784,16 @@ function CalcTab(p: CalcTabProps) {
             <p className="text-[12px] text-[#5c5c6b] py-6 text-center">Sin sales que cubran el objetivo. Activá más en "Sustancias".</p>
           ) : (
             <div className="space-y-3">
+              {/* Qué de esta receta se puede comprar hoy y qué no. */}
+              <div className="flex items-center gap-3 flex-wrap text-[11px] text-[#5c5c6b] -mt-1">
+                <span className="inline-flex items-center gap-1.5"><Disp tiene /> la tenés</span>
+                <span className="inline-flex items-center gap-1.5"><Disp tiene={false} /> hay que comprarla</span>
+                <span className={faltantesReceta > 0 ? 'text-[#fcd34d]' : 'text-[#a3e635]/70'}>
+                  {faltantesReceta > 0
+                    ? `${faltantesReceta} de ${res.dosis.length} sin proveedor`
+                    : 'tenés todas las sales de esta receta'}
+                </span>
+              </div>
               {porBidon.map(g => (
                 <div key={g.bidon}>
                   <p className="text-[10px] uppercase tracking-[0.12em] font-medium mb-1.5" style={{ color: BIDON_INFO[g.bidon].color }}>{modoPrep === 'polvo' ? 'Mezcla en polvo · todo junto' : unaSolaBotella ? 'Botella única · todo junto' : BIDON_INFO[g.bidon].label}</p>
@@ -773,7 +803,11 @@ function CalcTab(p: CalcTabProps) {
                       const gv = gv0 * litros
                       return (
                       <div key={d.sal.id} className="flex items-center gap-2 bg-[#15151d] border border-[#1f1f2b] rounded-md px-2.5 py-1.5">
+                        <Disp tiene={conProveedor.has(d.sal.id)} />
                         <span className="text-[11.5px] text-[#d4d4dd] flex-1 min-w-0 truncate">{d.sal.nombre}</span>
+                        {!conProveedor.has(d.sal.id) && (
+                          <span className="flex-shrink-0 text-[8.5px] uppercase tracking-wide text-[#facc15] bg-[#facc15]/10 border border-[#facc15]/25 rounded px-1 py-px">falta</span>
+                        )}
                         <span className="text-[12px] font-mono tabular-nums font-bold text-[#ececf1]">
                           {gv >= 0.01 ? gv.toFixed(2) : gv >= 0.001 ? gv.toFixed(4) : gv.toFixed(6)} <span className="text-[#5c5c6b] font-normal">{litros === 1 ? 'g/L' : 'g'}</span>
                         </span>
@@ -789,7 +823,7 @@ function CalcTab(p: CalcTabProps) {
       </div>
 
       {/* Micros: 2 formas de armarlos (sueltos vs micromix + refuerzo Fe) */}
-      <PanelMicros2 perfil={perfil} salesTodas={salesTodas} litros={litros} resolucion={resolucion} activas={activas} setActivas={setActivas} />
+      <PanelMicros2 perfil={perfil} salesTodas={salesTodas} litros={litros} resolucion={resolucion} activas={activas} setActivas={setActivas} conProveedor={conProveedor} />
 
       {/* Solución stock: micros impesables → pesar grande + dosificar por mL */}
       {(() => {
@@ -1190,7 +1224,7 @@ function AguaTab({ agua, setAgua, macros, micros, otros }: { agua: Perfil; setAg
 // ===================== CONCENTRADOS =====================
 function ConcentradosTab({ factor, setFactor, volBidon, setVolBidon, resolucion, setResolucion, guardados, salesTodas, proveedores }: { factor: number; setFactor: (n: number) => void; volBidon: number; setVolBidon: (n: number) => void; resolucion: number; setResolucion: (n: number) => void; guardados: PerfilGuardado[]; salesTodas: Sal[]; proveedores: Proveedor[] }) {
   // sal_ids que tienen al menos un proveedor cargado (para marcar las que faltan comprar)
-  const conProveedor = useMemo(() => new Set(proveedores.map(p => p.sal_id)), [proveedores])
+  const conProveedor = useMemo(() => salesConProveedor(proveedores), [proveedores])
   // botella madre de cada perfil/clon guardado
   const botellasGuardadas = guardados.map(g => {
     const salesDisp = salesTodas.filter(s => (g.sales ?? []).includes(s.id))
@@ -1281,7 +1315,8 @@ function fmtG(n: number, litros: number, resolucion: number): string {
   const g = g0 * litros
   return g >= 0.01 ? g.toFixed(2) : g >= 0.001 ? g.toFixed(4) : g.toFixed(6)
 }
-function ColMicros({ titulo, sub, dosis, litros, resolucion, acento, elegida, onElegir }: { titulo: string; sub: string; dosis: ResultadoSal[]; litros: number; resolucion: number; acento: string; elegida?: boolean; onElegir?: () => void }) {
+function ColMicros({ titulo, sub, dosis, litros, resolucion, acento, elegida, onElegir, conProveedor }: { titulo: string; sub: string; dosis: ResultadoSal[]; litros: number; resolucion: number; acento: string; elegida?: boolean; onElegir?: () => void; conProveedor?: Set<string> }) {
+  const faltan = conProveedor ? dosis.filter(d => !conProveedor.has(d.sal.id)).length : 0
   return (
     <div className={`flex-1 min-w-0 rounded-lg bg-[#101016] border p-3 ${elegida ? 'border-[#facc15]/60' : 'border-[#1f1f2b]'}`}>
       <div className="flex items-center gap-2 mb-0.5">
@@ -1293,17 +1328,29 @@ function ColMicros({ titulo, sub, dosis, litros, resolucion, acento, elegida, on
           </button>
         )}
       </div>
-      <p className="text-[10px] text-[#5c5c6b] mb-2">{sub}</p>
+      <div className="flex items-baseline gap-2 mb-2">
+        <p className="text-[10px] text-[#5c5c6b] flex-1 min-w-0">{sub}</p>
+        {conProveedor && (
+          <span className={`text-[10px] flex-shrink-0 ${faltan > 0 ? 'text-[#facc15]' : 'text-[#a3e635]/70'}`}>
+            {faltan > 0 ? `te falta${faltan === 1 ? '' : 'n'} ${faltan}` : 'las tenés todas'}
+          </span>
+        )}
+      </div>
       {dosis.length === 0 ? (
         <p className="text-[10.5px] text-[#5c5c6b] py-2">Sin micros en este perfil.</p>
       ) : (
         <div className="space-y-1">
-          {dosis.map(d => (
+          {dosis.map(d => {
+            const falta = conProveedor ? !conProveedor.has(d.sal.id) : false
+            return (
             <div key={d.sal.id} className="flex items-center gap-2 bg-[#15151d] border border-[#1f1f2b] rounded-md px-2.5 py-1.5">
+              {conProveedor && <Disp tiene={!falta} />}
               <span className="text-[11px] text-[#d4d4dd] flex-1 min-w-0 truncate">{d.sal.nombre}</span>
+              {falta && <span className="flex-shrink-0 text-[8.5px] uppercase tracking-wide text-[#facc15] bg-[#facc15]/10 border border-[#facc15]/25 rounded px-1 py-px">falta</span>}
               <span className="text-[11.5px] font-mono tabular-nums font-bold text-[#ececf1]">{fmtG(d.gramosPorL, litros, resolucion)} <span className="text-[#5c5c6b] font-normal">{litros === 1 ? 'g/L' : 'g'}</span></span>
             </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>
@@ -1313,7 +1360,7 @@ function ColMicros({ titulo, sub, dosis, litros, resolucion, acento, elegida, on
 const MICROS_SUELTOS_IDS = ['fehbed', 'mnso4', 'znso4', 'cuso4', 'boric', 'namolib']
 const MICROS_MIX_IDS = ['fetrilon_combi2', 'fehbed', 'mnso4', 'znso4', 'boric', 'namolib']
 const MICROS_LIMPIAR = ['feeddha', 'feedta', 'mnedta', 'znedta', 'cuedta', 'boric', 'namolib', 'fetrilon_combi2', 'afital_micromix', 'mnso4', 'znso4', 'cuso4', 'feso4']
-function PanelMicros2({ perfil, salesTodas, litros, resolucion, activas, setActivas }: { perfil: Perfil; salesTodas: Sal[]; litros: number; resolucion: number; activas: Set<string>; setActivas: SetSet }) {
+function PanelMicros2({ perfil, salesTodas, litros, resolucion, activas, setActivas, conProveedor }: { perfil: Perfil; salesTodas: Sal[]; litros: number; resolucion: number; activas: Set<string>; setActivas: SetSet; conProveedor?: Set<string> }) {
   const cmp = useMemo(() => compararMicros(perfil, salesTodas), [perfil, salesTodas])
   const micros = MICRO_LABELS.filter(([k]) => (cmp.microPerfil[k] ?? 0) > 0)
   if (micros.length === 0) return null
@@ -1332,16 +1379,21 @@ function PanelMicros2({ perfil, salesTodas, litros, resolucion, activas, setActi
   }
   return (
     <div className={card}>
-      <div className="flex items-center gap-2 mb-1">
-        <FlaskRound className="w-4 h-4 text-[#a78bfa]" strokeWidth={1.8} />
-        <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Micros: dos formas de armarlos</h3>
-        <Info><b className="text-[#d9f99d]">Mismo objetivo, dos caminos.</b> Sales sueltas = cada quelato por separado (clon exacto). Micromix = Fetrilon Combi 2 + refuerzos (Fe-HBED, Mn-EDTA, ác. bórico, molibdato) para completar lo que el ratio fijo deja corto.<br /><span className="text-[#a3e635]">Tocá la ⭐ "Usar esta" para que la receta (y la solución madre) use esa forma.</span></Info>
+      <div className="flex items-center gap-2 mb-1 flex-wrap">
+        <FlaskRound className="w-4 h-4 text-[#a78bfa] flex-shrink-0" strokeWidth={1.8} />
+        <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Micros: elegí cómo armarlos</h3>
+        <Info><b className="text-[#d9f99d]">Esto no es otra receta.</b> Es el mismo objetivo de micros por dos caminos, y el que esté marcado <b>Elegida</b> es el que ya está aplicado arriba en la Receta.<br />Sales sueltas = cada micro por separado. Micromix = Fetrilon Combi 2 + refuerzos para completar lo que su ratio fijo deja corto.<br /><span className="text-[#a3e635]">Tocá "Usar esta" para cambiar cuál usa la receta.</span></Info>
       </div>
+      {/* Sin esta línea el panel se lee como una tercera receta suelta. */}
+      <p className="text-[11px] text-[#5c5c6b] mb-3 leading-relaxed">
+        Son dos caminos para los mismos micros. El marcado <span className="text-[#facc15]">Elegida</span> es el que
+        ya está incluido en la Receta de arriba — no se suma, la reemplaza.
+      </p>
       <div className="flex flex-col sm:flex-row gap-2 mb-3">
-        <ColMicros titulo="A · Sales sueltas" sub="cada quelato individual — clon exacto" dosis={cmp.sueltos} litros={litros} resolucion={resolucion} acento="#a3e635"
-          elegida={modo === 'sueltos'} onElegir={() => aplicar(MICROS_SUELTOS_IDS)} />
+        <ColMicros titulo="A · Sales sueltas" sub="cada micro por separado — clon exacto" dosis={cmp.sueltos} litros={litros} resolucion={resolucion} acento="#a3e635"
+          elegida={modo === 'sueltos'} onElegir={() => aplicar(MICROS_SUELTOS_IDS)} conProveedor={conProveedor} />
         <ColMicros titulo="B · Micromix + refuerzos" sub="Fetrilon Combi 2 + Fe-HBED / Mn / B / Mo (completa lo que falta)" dosis={cmp.micromix} litros={litros} resolucion={resolucion} acento="#7dd3fc"
-          elegida={modo === 'mix'} onElegir={() => aplicar(MICROS_MIX_IDS)} />
+          elegida={modo === 'mix'} onElegir={() => aplicar(MICROS_MIX_IDS)} conProveedor={conProveedor} />
       </div>
       {/* Tabla ppm objetivo vs logrado en cada variante */}
       <div className="overflow-x-auto">
