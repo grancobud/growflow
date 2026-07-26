@@ -103,9 +103,9 @@ export default function PlanTab({ salesTodas, proveedores, onUsarPreset }: {
       <section className={`${card} p-4 sm:p-5`}>
         <div className="flex items-center gap-2 mb-1">
           <CalendarRange className="w-4 h-4 text-[#bef264]" strokeWidth={1.8} />
-          <h2 className="font-display font-semibold text-[14px] text-[#ececf1]">Mi plan · 14 semanas</h2>
+          <h2 className="font-display font-semibold text-[15px] text-[#ececf1]">Mi plan · 14 semanas</h2>
         </div>
-        <p className="text-[11.5px] text-[#8a8a9a] leading-relaxed">
+        <p className="text-[13px] text-[#8a8a9a] leading-relaxed">
           Ciclo de 6 m² con CO₂ en floración y agua de ósmosis. Arranca suave, llega a
           <b className="text-[#d9f99d]"> EC 3,0 en engorde</b> —donde el CO₂ lo devuelve en peso— y cierra con Finis.
         </p>
@@ -122,15 +122,15 @@ export default function PlanTab({ salesTodas, proveedores, onUsarPreset }: {
       <section className={`${card} overflow-hidden`}>
         <div className="px-4 py-3 border-b border-[#1f1f2b] flex items-center gap-2">
           <Beaker className="w-3.5 h-3.5 text-[#a78bfa]" strokeWidth={1.8} />
-          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Calendario</h3>
-          <span className="ml-auto text-[10px] text-[#5c5c6b]">tocá una etapa para cargarla</span>
+          <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Calendario</h3>
+          <span className="ml-auto text-[11.5px] text-[#5c5c6b]">tocá una etapa para cargarla</span>
         </div>
 
         {/* Desktop */}
         <div className="hidden lg:block overflow-x-auto">
-          <table className="w-full text-[11.5px]">
+          <table className="w-full text-[13px]">
             <thead>
-              <tr className="text-[9.5px] uppercase tracking-wide text-[#5c5c6b] border-b border-[#1f1f2b]">
+              <tr className="text-[11px] uppercase tracking-wide text-[#5c5c6b] border-b border-[#1f1f2b]">
                 <th className="text-left font-medium px-4 py-2">Etapa</th>
                 <th className="text-center font-medium px-2 py-2">Sem</th>
                 <th className="text-center font-medium px-2 py-2">EC</th>
@@ -161,7 +161,7 @@ export default function PlanTab({ salesTodas, proveedores, onUsarPreset }: {
               ))}
             </tbody>
             <tfoot>
-              <tr className="bg-[#0d0d13] text-[12px]">
+              <tr className="bg-[#0d0d13] text-[13.5px]">
                 <td className="px-4 py-2.5 text-[#a6a6b5] font-medium" colSpan={7}>Total del ciclo · {Math.round(tot.litros).toLocaleString('es-AR')} L de riego</td>
                 <td />
                 <td className="px-3 py-2.5 text-right text-[#ff8a7a] font-semibold tabular-nums">{money(tot.comercial)}</td>
@@ -178,16 +178,16 @@ export default function PlanTab({ salesTodas, proveedores, onUsarPreset }: {
               className={`w-full text-left px-4 py-3 min-h-[44px] hover:bg-[#15151d] transition-colors ${f.ec >= 3 ? 'bg-[#a3e635]/[0.04]' : ''}`}>
               <div className="flex items-baseline justify-between gap-2">
                 <span className="text-[12.5px] font-medium text-[#ececf1]">{f.etapa}</span>
-                <span className="text-[10px] text-[#5c5c6b] tabular-nums flex-shrink-0">sem {f.semanas}</span>
+                <span className="text-[11.5px] text-[#5c5c6b] tabular-nums flex-shrink-0">sem {f.semanas}</span>
               </div>
-              <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[10.5px] text-[#8a8a9a] tabular-nums">
+              <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[12px] text-[#8a8a9a] tabular-nums">
                 <span style={{ color: f.ec >= 3 ? '#bef264' : undefined }}>EC {f.ec.toFixed(1)}</span>
                 {f.makro != null && <span>A/B {f.makro.toFixed(1)} mL/L</span>}
                 {f.calcis != null && <span>C {f.calcis.toFixed(1)}</span>}
                 {f.finis != null && <span className="text-[#c4b5fd]">Finis {f.finis} g/L</span>}
                 <span>{f.litrosDia} L/día</span>
               </div>
-              <div className="mt-1.5 flex items-baseline gap-3 text-[11px] tabular-nums">
+              <div className="mt-1.5 flex items-baseline gap-3 text-[12.5px] tabular-nums">
                 <span className="text-[#ff8a7a]">{money(f.costoComercial)}</span>
                 <span className="text-[#5c5c6b]">vs</span>
                 <span className="text-[#bef264] font-medium">{money(f.costoClon)}</span>
@@ -195,8 +195,8 @@ export default function PlanTab({ salesTodas, proveedores, onUsarPreset }: {
             </button>
           ))}
           <div className="px-4 py-3 bg-[#0d0d13] flex items-baseline justify-between">
-            <span className="text-[11px] text-[#a6a6b5] font-medium">Total del ciclo</span>
-            <span className="text-[12px] tabular-nums">
+            <span className="text-[12.5px] text-[#a6a6b5] font-medium">Total del ciclo</span>
+            <span className="text-[13.5px] tabular-nums">
               <span className="text-[#ff8a7a]">{money(tot.comercial)}</span>
               <span className="text-[#5c5c6b] mx-1.5">vs</span>
               <span className="text-[#bef264] font-semibold">{money(tot.clon)}</span>
@@ -210,7 +210,7 @@ export default function PlanTab({ salesTodas, proveedores, onUsarPreset }: {
         {PLAN_CO2.filter(e => e.nota).map(e => (
           <div key={e.presetId} className="flex items-start gap-2">
             <InfoIcon className="w-3.5 h-3.5 text-[#5c5c6b] flex-shrink-0 mt-px" />
-            <p className="text-[11px] text-[#8a8a9a] leading-relaxed">
+            <p className="text-[12.5px] text-[#8a8a9a] leading-relaxed">
               <b className="text-[#a6a6b5]">{e.etapa}:</b> {e.nota}
             </p>
           </div>
@@ -221,22 +221,22 @@ export default function PlanTab({ salesTodas, proveedores, onUsarPreset }: {
       <section className={`${card} overflow-hidden`}>
         <div className="px-4 py-3 border-b border-[#1f1f2b] flex items-center gap-2">
           <ShoppingCart className="w-3.5 h-3.5 text-[#fbbf24]" strokeWidth={1.8} />
-          <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Si comprás Ryanodine</h3>
-          <span className="ml-auto text-[11px] text-[#a6a6b5] tabular-nums">{money(totalCompra)}</span>
+          <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Si comprás Ryanodine</h3>
+          <span className="ml-auto text-[12.5px] text-[#a6a6b5] tabular-nums">{money(totalCompra)}</span>
         </div>
         <div className="divide-y divide-[#16161e]">
           {compras.map(c => (
             <div key={c.nombre} className="flex items-center gap-3 px-4 py-2.5">
-              <span className="text-[12px] text-[#d4d4dd] min-w-0 flex-1">{c.nombre}</span>
-              <span className="text-[10.5px] text-[#5c5c6b] tabular-nums">{c.cant.toFixed(1)} {c.unidad}</span>
-              <span className="text-[11px] text-[#a6a6b5] tabular-nums whitespace-nowrap">
+              <span className="text-[13.5px] text-[#d4d4dd] min-w-0 flex-1">{c.nombre}</span>
+              <span className="text-[12px] text-[#5c5c6b] tabular-nums">{c.cant.toFixed(1)} {c.unidad}</span>
+              <span className="text-[12.5px] text-[#a6a6b5] tabular-nums whitespace-nowrap">
                 {c.envases} × {c.envase}{c.unidad === 'kg' ? ' kg' : ' L'}
               </span>
-              <span className="text-[12px] text-[#ececf1] tabular-nums w-24 text-right">{money(c.total)}</span>
+              <span className="text-[13.5px] text-[#ececf1] tabular-nums w-24 text-right">{money(c.total)}</span>
             </div>
           ))}
         </div>
-        <div className="px-4 py-2.5 bg-[#0d0d13] text-[11px] text-[#8a8a9a]">
+        <div className="px-4 py-2.5 bg-[#0d0d13] text-[12.5px] text-[#8a8a9a]">
           Clonándolo con tus sales, el mismo ciclo sale <b className="text-[#bef264]">{money(tot.clon)}</b> —
           te ahorrás <b className="text-[#bef264]">{money(ahorro)}</b>.
         </div>
@@ -253,9 +253,9 @@ export default function PlanTab({ salesTodas, proveedores, onUsarPreset }: {
 function Dato({ label, valor, sub, color }: { label: string; valor: string; sub: string; color?: string }) {
   return (
     <div className="rounded-lg bg-[#0d0d13] border border-[#1a1a24] px-3 py-2.5">
-      <div className="text-[9.5px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium truncate">{label}</div>
-      <div className="mt-1 text-[15px] sm:text-[16px] font-semibold tabular-nums leading-none" style={{ color: color ?? '#ececf1' }}>{valor}</div>
-      <div className="text-[10px] text-[#5c5c6b] mt-1 truncate">{sub}</div>
+      <div className="text-[11px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium truncate">{label}</div>
+      <div className="mt-1 text-[16px] sm:text-[16px] font-semibold tabular-nums leading-none" style={{ color: color ?? '#ececf1' }}>{valor}</div>
+      <div className="text-[11.5px] text-[#5c5c6b] mt-1 truncate">{sub}</div>
     </div>
   )
 }
