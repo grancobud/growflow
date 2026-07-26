@@ -287,9 +287,12 @@ export const SALES_DEFECTO: Sal[] = [
   { id: 'athena_pro_bloom', nombre: 'Athena Pro Bloom (0-12-24)', bidon: 'B',
     comp: { P: 0.0524, K: 0.1992, Mg: 0.015, S: 0.04, Fe: 0.001 },
     descripcion: 'Comercial Athena Pro Line: base de floración P-K. NPK 0-12-24 confirmado; Mg/S estimados. Va en bidón B, con Pro Core.' },
-  { id: 'athena_fade', nombre: 'Athena Fade (finalizador Ca + micros)', bidon: 'A', liquido: true, densidad: 1.1,
-    comp: { Ca: 0.04, Cl: 0.07, Fe: 0.0008, Mn: 0.0004, Zn: 0.0002, Cu: 0.0001, B: 0.0003, Mo: 0.00005 },
-    descripcion: 'Comercial Athena: finalizador SIN nitrógeno que aporta calcio + micros quelatados completos (cloruro de calcio + Fe/Mn/Zn/Cu-EDTA + B + Mo). Reemplaza al Pro Core en las últimas 3 semanas, junto a un PK (Pro Bloom). OJO: mete cloro (Cl ~7%). Para un finish completo: Fade + base PK + Mg.' },
+  // Valores del guaranteed analysis de la etiqueta (PRO-FD-5G, rev. A01.004).
+  // Los micros estaban cargados de 2 a 7 veces por encima de lo real.
+  // Densidad: la etiqueta dice 9,29 lb/gal = 1,113 g/mL.
+  { id: 'athena_fade', nombre: 'Athena Fade (finalizador Ca + micros)', bidon: 'A', liquido: true, densidad: 1.113,
+    comp: { Ca: 0.04, Cl: 0.07, Fe: 0.0006, Mn: 0.00013, Zn: 0.000045, Cu: 0.00005, B: 0.0001, Mo: 0.000007 },
+    descripcion: 'Comercial Athena: finalizador SIN nitrógeno que aporta calcio + micros quelatados. Es cloruro de calcio + hierro en tres quelatos (EDTA, DTPA y EDDHA 85/15) + Zn/Mn/Cu-EDTA + molibdato de sodio + ácido bórico. Reemplaza al Pro Core en las últimas 2-3 semanas de flora, junto a un PK (Pro Bloom). Dosis 10-19 ml/galón = 2,6-5 ml/L. OJO: mete mucho cloro (Cl 7%), que es justamente lo que fuerza el fade.' },
   { id: 'athena_balance', nombre: 'Athena Balance (0-0-2)', bidon: 'C', liquido: true, densidad: 1.2,
     comp: { K: 0.0166, Si: 0.01 },
     descripcion: 'Comercial Athena: aporta silicio (silicato de potasio) para estructura/resistencia y ayuda a balancear pH. Va aparte (sube pH). NPK 0-0-2. ⚠️ REPOSO DE pH: químicamente es lo mismo que el silicato de potasio suelto (Kawsay) — TAMBIÉN sube el pH. "Balancea" solo porque en agua RO le da cuerpo/buffer y se usa PRIMERO, y las sales ácidas (Core/Bloom) lo bajan después. No es un bajador de pH. Metelo primero, revolvé y esperá 15-20 min antes del ajuste final para que no rebote la escorrentía.' },
@@ -464,6 +467,11 @@ export function kitParaPerfil(p: Perfil, opts: OpcionesKit = {}): string[] {
   const cu = useQuel ? 'cuedta' : 'cuso4'
   // --- Calcio (bidón A) ---
   if (has('Ca')) {
+    // Cloruro de calcio: sólo si el perfil pide cloro a propósito. Normalmente el
+    // Cl es un contaminante que uno quiere evitar, pero hay finalizadores que lo
+    // usan justamente para forzar la senescencia (el Athena Fade es 7% de Cl), y
+    // sin esto el clon se queda sin la mitad del producto.
+    if (has('Cl')) kit.add('cacl2')
     if (has('NO3') || N > 0) {
       // El grado agrícola (CN-9) trae 1,1% de amonio. Si el perfil pide N 100%
       // nítrico —los CalMag son así— ese amonio es nitrógeno que el producto no
