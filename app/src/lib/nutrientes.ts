@@ -360,6 +360,10 @@ export const SALES_DEFECTO: Sal[] = [
   { id: 'plagron_coco_b', nombre: 'Plagron Cocos B', bidon: 'B', liquido: true, densidad: 1.11,
     comp: { NO3: 0.003, P: 0.0144, K: 0.01743, Mg: 0.01085, S: 0.01081, B: 0.00012, Cu: 0.00002, Mn: 0.00024, Mo: 0.000005, Zn: 0.00009 },
     descripcion: 'Comercial Plagron (línea Cocos): P-K-Mg-S + micros (sin hierro, ese va en el A). Bidón B. Dosis máxima 4 ml/L (1:250), pH 3.3, densidad 1.11.' },
+  // CalMag Pro: sólo dos sales, y cierran casi exacto. Ver la ficha técnica.
+  { id: 'plagron_calmag', nombre: 'Plagron CalMag Pro', bidon: 'A', liquido: true, densidad: 1.26,
+    comp: { NO3: 0.051, Ca: 0.04074, Mg: 0.0199 },
+    descripcion: 'Comercial Plagron: corrector de calcio y magnesio, N 100% nítrico y cero azufre. Es nitrato de calcio + nitrato de magnesio. Dosis máxima 1 ml/L (1:1000), pH 4.3, densidad 1.26. Para agua blanda / ósmosis, o cuando la base no alcanza con el Ca-Mg.' },
   { id: 'plagron_hydro_a', nombre: 'Plagron Hydro A (aprox)', bidon: 'A', liquido: true, densidad: 1.1,
     comp: { NO3: 0.015, NH4: 0.003, Ca: 0.016, K: 0.01 },
     descripcion: 'Comercial Plagron Hydro A (líquido): calcio + nitrógeno para hidroponía. Valores APROXIMADOS.' },
@@ -454,8 +458,12 @@ export function kitParaPerfil(p: Perfil, opts: OpcionesKit = {}): string[] {
   const cu = useQuel ? 'cuedta' : 'cuso4'
   // --- Calcio (bidón A) ---
   if (has('Ca')) {
-    if (has('NO3') || N > 0) kit.add('cano3_ag')          // Ca + N nítrico (parte A de toda marca)
-    else { kit.add('cagluc'); if (has('S')) kit.add('yeso') } // finish: Ca limpio sin N
+    if (has('NO3') || N > 0) {
+      // El grado agrícola (CN-9) trae 1,1% de amonio. Si el perfil pide N 100%
+      // nítrico —los CalMag son así— ese amonio es nitrógeno que el producto no
+      // tiene, y el solver no lo ve porque sólo mira los elementos pedidos.
+      kit.add(has('NH4') ? 'cano3_ag' : 'cano3_puro')
+    } else { kit.add('cagluc'); if (has('S')) kit.add('yeso') } // finish: Ca limpio sin N
   }
   // --- Fósforo (MKP limpio, cero N) ---
   if (has('P')) kit.add('mkp')
@@ -486,10 +494,14 @@ export function kitParaPerfil(p: Perfil, opts: OpcionesKit = {}): string[] {
   // el solver reparte. Es lo que hace Plagron en el Cocos B, y es lo que explica
   // que ahí el N sea justo 0,3%.
   if (has('Mg')) {
-    kit.add('epsom')
     const ratioSulfato = 1.3191                       // S/Mg en MgSO₄
     const ratioPerfil = (p.S ?? 0) / (p.Mg ?? 1)
-    if (ratioPerfil < ratioSulfato && (has('NO3') || N > 0)) kit.add('mgno3')
+    const hayNitrico = has('NO3') || N > 0
+    if (ratioPerfil < ratioSulfato && hayNitrico) kit.add('mgno3')
+    // Si el perfil no pide NADA de azufre (los CalMag son así), el Epsom mete un
+    // S que el producto no tiene. El solver no lo castiga, porque sólo mira los
+    // elementos pedidos, así que hay que no ofrecérselo.
+    if (has('S') || !kit.has('mgno3')) kit.add('epsom')
   }
   // --- Azufre, si todavía no hay ninguna fuente ---
   if (has('S') && !kit.has('k2so4') && !kit.has('epsom') && !kit.has('yeso')) kit.add('k2so4')
