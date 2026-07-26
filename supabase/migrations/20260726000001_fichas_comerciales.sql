@@ -32,9 +32,11 @@ create index if not exists fichas_comerciales_marca_idx on public.fichas_comerci
 alter table public.fichas_comerciales enable row level security;
 
 -- Mismo criterio que el resto de las tablas del creador de nutrientes.
+-- OJO con el `to authenticated`: sin eso la política queda sobre el rol `public`,
+-- que incluye a `anon`, y las fichas se leen sin iniciar sesión.
 drop policy if exists fichas_comerciales_todo on public.fichas_comerciales;
 create policy fichas_comerciales_todo on public.fichas_comerciales
-  for all using (true) with check (true);
+  for all to authenticated using (true) with check (true);
 
 -- Bucket privado: son fichas compradas, no van a estar accesibles por URL suelta
 -- como pasó con `documentos`.
@@ -49,9 +51,11 @@ drop policy if exists fichas_lectura   on storage.objects;
 drop policy if exists fichas_escritura on storage.objects;
 drop policy if exists fichas_borrado   on storage.objects;
 
+-- Idem acá: sin el `to authenticated` un anónimo puede pedir una URL firmada de
+-- cualquier PDF del bucket, aunque el bucket sea privado.
 create policy fichas_lectura on storage.objects
-  for select using (bucket_id = 'fichas');
+  for select to authenticated using (bucket_id = 'fichas');
 create policy fichas_escritura on storage.objects
-  for insert with check (bucket_id = 'fichas');
+  for insert to authenticated with check (bucket_id = 'fichas');
 create policy fichas_borrado on storage.objects
-  for delete using (bucket_id = 'fichas');
+  for delete to authenticated using (bucket_id = 'fichas');
