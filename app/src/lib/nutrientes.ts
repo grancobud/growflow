@@ -291,9 +291,11 @@ export const SALES_DEFECTO: Sal[] = [
   { id: 'athena_pro_grow', nombre: 'Athena Pro Grow (2-8-20)', bidon: 'B',
     comp: { NO3: 0.02, P: 0.03491, K: 0.16602, Mg: 0.03, S: 0.08, Fe: 0.001 },
     descripcion: 'Comercial Athena Pro Line: base vegetativa P-K-Mg-S + Fe-DTPA, con el N 100% nítrico. Es MKP + nitrato de potasio + sulfato de potasio + sulfato de magnesio. Va en bidón B, con Pro Core. Proporción de la etiqueta: 1 g de Grow por cada 0,6 g de Core, medido por peso.' },
+  // Etiqueta PRO-BL-25B rev. A01.008. El Mg y el S estaban estimados a la mitad
+  // (1,5 y 4 contra los 3 y 9 reales).
   { id: 'athena_pro_bloom', nombre: 'Athena Pro Bloom (0-12-24)', bidon: 'B',
-    comp: { P: 0.0524, K: 0.1992, Mg: 0.015, S: 0.04, Fe: 0.001 },
-    descripcion: 'Comercial Athena Pro Line: base de floración P-K. NPK 0-12-24 confirmado; Mg/S estimados. Va en bidón B, con Pro Core.' },
+    comp: { P: 0.05237, K: 0.19922, Mg: 0.03, S: 0.09, Fe: 0.001 },
+    descripcion: 'Comercial Athena Pro Line: base de floración P-K, cero nitrógeno. Son sólo cuatro sales: MKP + sulfato de potasio + sulfato de magnesio + Fe-DTPA. Va en bidón B, con Pro Core. Proporción de la etiqueta: 1 g de Bloom por cada 0,6 g de Core, medido por peso.' },
   // Valores del guaranteed analysis de la etiqueta (PRO-FD-5G, rev. A01.004).
   // Los micros estaban cargados de 2 a 7 veces por encima de lo real.
   // Densidad: la etiqueta dice 9,29 lb/gal = 1,113 g/mL.
