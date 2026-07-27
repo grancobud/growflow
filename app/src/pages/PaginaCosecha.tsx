@@ -10,9 +10,11 @@ import {
 } from 'lucide-react'
 import { cultivoService, type ResumenPlanta, type Cosecha } from '../lib/cultivo'
 
-const inputCls = 'w-full px-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
-const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
-const btnPrimario = 'inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[12px] font-medium text-[#d9f99d] disabled:opacity-50'
+// Los 16px del input no son estéticos: abajo de eso iOS hace zoom al tocar el
+// campo y te deja la pantalla corrida. En desktop se achica con el sm:.
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 min-h-[44px] sm:min-h-0 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[13.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+const labelCls = 'block text-[13px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
+const btnPrimario = 'inline-flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-2 min-h-[44px] sm:min-h-0 rounded-lg border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[13.5px] font-medium text-[#d9f99d] disabled:opacity-50'
 
 const SIN_GEN = 'Sin genética'
 
@@ -31,7 +33,7 @@ function ChipTipo({ tipo }: { tipo?: string | null }) {
   if (!tipo) return null
   const c = COLOR_TIPO[tipo] ?? COLOR_TIPO.Desconocido
   return (
-    <span className="text-[9px] font-semibold tracking-wide rounded px-1.5 py-0.5 border flex-shrink-0" title={tipo}
+    <span className="text-[11px] font-semibold tracking-wide rounded px-1.5 py-0.5 border flex-shrink-0" title={tipo}
       style={{ color: c.text, background: c.bg, borderColor: c.border }}>{c.label}</span>
   )
 }
@@ -112,8 +114,8 @@ export default function PaginaCosecha() {
       <div className="sticky top-0 z-40 bg-[#0a0a0f]/95 backdrop-blur-[2px] border-b border-[#1f1f2b]">
         <div className="flex items-center gap-2 sm:gap-4 px-3 sm:px-6 py-3">
           <div className="min-w-0">
-            <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Cosecha</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">Cargá los gramos que te dio cada variedad</div>
+            <h1 className="font-display font-bold tracking-tight text-[16px] sm:text-[17px] text-[#ececf1]">Cosecha</h1>
+            <div className="mt-0.5 text-[12px] sm:text-[12.5px] text-[#5c5c6b]">Cargá los gramos que te dio cada variedad</div>
           </div>
           <div className="flex-1" />
           <button onClick={cargar} className="p-2.5 sm:p-1.5 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] transition-colors text-[#a6a6b5]" title="Refrescar" aria-label="Refrescar">
@@ -142,8 +144,8 @@ export default function PaginaCosecha() {
             <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden lg:sticky lg:top-[76px]">
               <div className="px-4 py-3 border-b border-[#1f1f2b] flex items-center gap-2">
                 <Scale className="w-3.5 h-3.5 text-[#bef264]" />
-                <h2 className="font-display font-semibold text-[13px] text-[#ececf1]">Ranking por gramos secos</h2>
-                <span className="ml-auto text-[10px] text-[#5c5c6b] tabular-nums">{conRinde.length} de {filas.length}</span>
+                <h2 className="font-display font-semibold text-[14px] text-[#ececf1]">Ranking por gramos secos</h2>
+                <span className="ml-auto text-[11.5px] text-[#5c5c6b] tabular-nums">{conRinde.length} de {filas.length}</span>
               </div>
               <ul className="divide-y divide-[#1f1f2b] max-h-[52vh] lg:max-h-[calc(100vh-190px)] overflow-y-auto ct-page-scroll">
                 {conRinde.map((f, i) => {
@@ -154,14 +156,14 @@ export default function PaginaCosecha() {
                       <div className="flex items-center gap-2 mb-1.5">
                         {i === 0 && <Trophy className="w-3.5 h-3.5 text-[#f59e0b] flex-shrink-0" />}
                         <span className="text-[12.5px] font-medium text-[#ececf1] truncate">{f.genetica}</span>
-                        <span className="ml-auto font-display font-bold text-[14px] text-[#d9f99d] tabular-nums flex-shrink-0">
+                        <span className="ml-auto font-display font-bold text-[15px] text-[#d9f99d] tabular-nums flex-shrink-0">
                           {f.pesoSeco.toLocaleString('es-AR')} g
                         </span>
                       </div>
                       <div className="h-1.5 rounded-full bg-[#1c1c27] overflow-hidden">
                         <div className="h-full rounded-full bg-gradient-to-r from-[#4d7c0f] to-[#a3e635]" style={{ width: `${(f.pesoSeco / maxSeco) * 100}%` }} />
                       </div>
-                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-[10.5px] text-[#757584] tabular-nums">
+                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-[12px] text-[#757584] tabular-nums">
                         <span>{f.plantas.length} pl. · {porPlanta.toLocaleString('es-AR', { maximumFractionDigits: 0 })} g/pl.</span>
                         {f.pesoHumedo > 0 && <span>{Math.round((f.pesoSeco / f.pesoHumedo) * 100)}% seco/húmedo</span>}
                         {v != null && <span className="text-[#c4b5fd]">★ {v.toFixed(1)}/10</span>}
@@ -182,8 +184,8 @@ export default function PaginaCosecha() {
             ) : filas.length === 0 ? (
               <div className="py-16 text-center">
                 <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><Sprout className="w-5 h-5 text-[#5c5c6b]" /></div>
-                <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">Sin plantas cargadas</div>
-                <div className="mt-1 text-[11.5px] text-[#5c5c6b]">Cargá plantas en /plantas y volvé para registrar la cosecha.</div>
+                <div className="font-display font-semibold text-[#d4d4dd] text-[15px]">Sin plantas cargadas</div>
+                <div className="mt-1 text-[13px] text-[#5c5c6b]">Cargá plantas en /plantas y volvé para registrar la cosecha.</div>
               </div>
             ) : (
               <div className="space-y-4">
@@ -216,11 +218,11 @@ export default function PaginaCosecha() {
 function Total({ label, valor, unidad, sub }: { label: string; valor: string; unidad?: string; sub?: string }) {
   return (
     <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4">
-      <p className="text-[9.5px] sm:text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium truncate">{label}</p>
+      <p className="text-[11.5px] sm:text-[11.5px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium truncate">{label}</p>
       <p className="font-display font-bold text-[20px] sm:text-[26px] text-[#ececf1] mt-1 leading-none tabular-nums">
-        {valor}{unidad && <span className="text-[13px] text-[#757584]"> {unidad}</span>}
+        {valor}{unidad && <span className="text-[14px] text-[#757584]"> {unidad}</span>}
       </p>
-      {sub && <p className="text-[9.5px] text-[#5c5c6b] mt-1 truncate">{sub}</p>}
+      {sub && <p className="text-[11.5px] text-[#5c5c6b] mt-1 truncate">{sub}</p>}
     </div>
   )
 }
@@ -235,11 +237,11 @@ function GrupoVariedades({ titulo, cantidad, color, subtitulo, filas, onCargar, 
   return (
     <section>
       <button onClick={() => plegable && setAbierto(a => !a)} disabled={!plegable}
-        className={`w-full flex items-center gap-2 px-1 mb-2 text-left ${plegable ? 'min-h-[40px] cursor-pointer' : 'cursor-default'}`}>
+        className={`w-full flex items-center gap-2 px-1 mb-2 text-left ${plegable ? 'min-h-[44px] sm:min-h-[40px] cursor-pointer' : 'cursor-default'}`}>
         <Layers className="w-3.5 h-3.5 flex-shrink-0" style={{ color }} />
         <span className="font-display font-semibold text-[12.5px]" style={{ color }}>{titulo}</span>
-        <span className="text-[10px] text-[#5c5c6b] tabular-nums flex-shrink-0">{cantidad}</span>
-        {subtitulo && <span className="text-[10px] text-[#5c5c6b] truncate hidden sm:inline">· {subtitulo}</span>}
+        <span className="text-[11.5px] text-[#5c5c6b] tabular-nums flex-shrink-0">{cantidad}</span>
+        {subtitulo && <span className="text-[11.5px] text-[#5c5c6b] truncate hidden sm:inline">· {subtitulo}</span>}
         {plegable && (
           <ChevronDown className={`w-3.5 h-3.5 text-[#5c5c6b] ml-auto flex-shrink-0 transition-transform ${abierto ? 'rotate-180' : ''}`} />
         )}
@@ -251,10 +253,10 @@ function GrupoVariedades({ titulo, cantidad, color, subtitulo, filas, onCargar, 
             className="rounded-xl bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] transition-colors p-3 flex flex-col gap-2.5">
             <div className="min-w-0">
               <div className="flex items-start gap-1.5">
-                <span className="text-[13px] font-medium text-[#ececf1] leading-snug break-words min-w-0">{f.genetica}</span>
+                <span className="text-[14px] font-medium text-[#ececf1] leading-snug break-words min-w-0">{f.genetica}</span>
                 <span className="flex-shrink-0"><ChipTipo tipo={f.plantas[0]?.tipo} /></span>
               </div>
-              <div className="text-[10.5px] text-[#757584] mt-1 tabular-nums">
+              <div className="text-[12px] text-[#757584] mt-1 tabular-nums">
                 {f.plantas.length} planta{f.plantas.length !== 1 ? 's' : ''}
                 {f.pesoSeco > 0 && <span className="text-[#a3e635]"> · {f.pesoSeco.toLocaleString('es-AR')} g</span>}
               </div>
@@ -367,27 +369,32 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
       <div className="absolute inset-0 bg-black/60" onClick={onCerrar} />
       <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl bg-[#101016] border border-[#2a2a3a] shadow-2xl">
         <div className="sticky top-0 bg-[#101016] flex items-center justify-between px-5 py-3.5 border-b border-[#1f1f2b]">
-          <h2 className="font-display font-semibold text-[14px] text-[#ececf1] flex items-center gap-2">
+          <h2 className="font-display font-semibold text-[15px] text-[#ececf1] flex items-center gap-2">
             <Scissors className="w-4 h-4 text-[#bef264]" /> Cosecha · {fila.genetica}
           </h2>
-          <button onClick={onCerrar} className="p-1 text-[#5c5c6b] hover:text-[#ececf1]" aria-label="Cerrar"><X className="w-4 h-4" /></button>
+          <button onClick={onCerrar} aria-label="Cerrar"
+            className="p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 sm:p-1 flex items-center justify-center rounded-lg text-[#5c5c6b] hover:text-[#ececf1] hover:bg-[#1f1f2b] transition-colors"><X className="w-5 h-5 sm:w-4 sm:h-4" /></button>
         </div>
 
         <div className="p-5 space-y-4">
           {/* Cosechas ya cargadas (editar / borrar) */}
           {fila.cosechas.length > 0 && (
             <div className="rounded-lg bg-[#15151d] border border-[#2a2a3a] overflow-hidden">
-              <div className="px-3 py-2 text-[9.5px] uppercase tracking-[0.14em] text-[#5c5c6b] border-b border-[#2a2a3a]">Cosechas cargadas</div>
+              <div className="px-3 py-2 text-[11.5px] uppercase tracking-[0.14em] text-[#5c5c6b] border-b border-[#2a2a3a]">Cosechas cargadas</div>
               <ul className="divide-y divide-[#20202c]">
                 {fila.cosechas.map(c => (
                   <li key={c.id} className={`flex items-center gap-2 px-3 py-2 ${editId === c.id ? 'bg-[#a3e635]/8' : ''}`}>
-                    <div className="min-w-0 flex-1 text-[11px] text-[#d4d4dd] truncate tabular-nums">
+                    <div className="min-w-0 flex-1 text-[12.5px] text-[#d4d4dd] truncate tabular-nums">
                       <span className="font-semibold text-[#d9f99d]">{(c.peso_seco_g ?? 0).toLocaleString('es-AR')} g</span>
                       <span className="text-[#5c5c6b]"> · {c.fecha}</span>
                       {c.valoracion != null && <span className="text-[#c4b5fd]"> · ★{c.valoracion}</span>}
                     </div>
-                    <button onClick={() => editar(c)} className="p-1 text-[#5c5c6b] hover:text-[#bef264] transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => borrar(c)} className="p-1 text-[#5c5c6b] hover:text-[#ff8a7a] transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
+                    {/* 44px y separados: en el celular median 22px y estaban
+                        pegados, así que era fácil darle a Borrar queriendo Editar. */}
+                    <button onClick={() => editar(c)} aria-label="Editar"
+                      className="p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 sm:p-1 flex items-center justify-center rounded-lg text-[#5c5c6b] hover:text-[#bef264] hover:bg-[#bef264]/10 transition-colors" title="Editar"><Pencil className="w-4 h-4 sm:w-3.5 sm:h-3.5" /></button>
+                    <button onClick={() => borrar(c)} aria-label="Borrar"
+                      className="p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 sm:p-1 flex items-center justify-center rounded-lg text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#ff8a7a]/10 transition-colors" title="Borrar"><Trash2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" /></button>
                   </li>
                 ))}
               </ul>
@@ -396,8 +403,8 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
 
           {editId && (
             <div className="flex items-center justify-between rounded-lg bg-[#a3e635]/10 border border-[#404d20] px-3 py-2">
-              <span className="text-[11px] text-[#d9f99d]">Editando una cosecha cargada</span>
-              <button onClick={resetForm} className="text-[10.5px] text-[#a6a6b5] hover:text-[#ececf1] underline">Cancelar</button>
+              <span className="text-[12.5px] text-[#d9f99d]">Editando una cosecha cargada</span>
+              <button onClick={resetForm} className="text-[12px] text-[#a6a6b5] hover:text-[#ececf1] underline">Cancelar</button>
             </div>
           )}
 
@@ -406,7 +413,7 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
             <div className="flex gap-1.5 p-1 rounded-lg bg-[#15151d] border border-[#2a2a3a]">
               {(['total', 'planta'] as const).map(m => (
                 <button key={m} onClick={() => setModo(m)}
-                  className={`flex-1 px-3 py-1.5 rounded-md text-[11.5px] font-medium transition-colors ${modo === m ? 'bg-[#a3e635]/15 text-[#d9f99d] border border-[#404d20]' : 'text-[#a6a6b5] hover:text-[#ececf1]'}`}>
+                  className={`flex-1 px-3 py-1.5 rounded-md text-[13px] font-medium transition-colors ${modo === m ? 'bg-[#a3e635]/15 text-[#d9f99d] border border-[#404d20]' : 'text-[#a6a6b5] hover:text-[#ececf1]'}`}>
                   {m === 'total' ? 'Total variedad' : 'Por planta'}
                 </button>
               ))}
@@ -424,7 +431,7 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
                 <label className={labelCls}>Peso seco (g)</label>
                 <input type="number" inputMode="decimal" className={inputCls} placeholder="480" value={seco} onChange={e => setSeco(e.target.value)} autoFocus />
               </div>
-              {!editId && <p className="text-[10.5px] text-[#757584] -mt-2">Se registra el total de las {fila.plantas.length} plantas de {fila.genetica}.</p>}
+              {!editId && <p className="text-[12px] text-[#757584] -mt-2">Se registra el total de las {fila.plantas.length} plantas de {fila.genetica}.</p>}
               <div>
                 <label className={labelCls}>Valoración</label>
                 <Estrellas valor={valoracion} onChange={setValoracion} />
@@ -445,12 +452,12 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
                   return (
                     <div key={p.id}
                       className={`rounded-lg p-3 border ${yaCosechada ? 'bg-[#1a1214] border-[#7a2820]' : 'bg-[#15151d] border-[#2a2a3a]'}`}>
-                      <div className="flex items-center gap-1.5 text-[11.5px] font-medium mb-2 min-w-0">
+                      <div className="flex items-center gap-1.5 text-[13px] font-medium mb-2 min-w-0">
                         <span className={`truncate ${yaCosechada ? 'text-[#ff8a7a]' : 'text-[#ececf1]'}`}>
                           {p.codigo || p.nombre || 'Planta'}
                         </span>
                         {yaCosechada ? (
-                          <span className="text-[9px] font-semibold tracking-wide rounded px-1.5 py-0.5 border flex-shrink-0"
+                          <span className="text-[11px] font-semibold tracking-wide rounded px-1.5 py-0.5 border flex-shrink-0"
                             style={{ color: '#ff8a7a', background: 'rgba(122,40,32,0.25)', borderColor: '#7a2820' }}>
                             YA COSECHADA
                           </span>
@@ -459,8 +466,8 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
                         )}
                       </div>
                       <div className="grid grid-cols-2 gap-2 items-end">
-                        <div><label className="block text-[9px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1">Seco g</label><input type="number" inputMode="decimal" className={inputCls} placeholder="120" value={v?.seco ?? ''} onChange={e => setPP(p.id, 'seco', e.target.value)} /></div>
-                        <div><label className="block text-[9px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1">Valoración ★</label>
+                        <div><label className="block text-[11px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1">Seco g</label><input type="number" inputMode="decimal" className={inputCls} placeholder="120" value={v?.seco ?? ''} onChange={e => setPP(p.id, 'seco', e.target.value)} /></div>
+                        <div><label className="block text-[11px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1">Valoración ★</label>
                           <select className={inputCls} value={v?.val ?? 0} onChange={e => setPP(p.id, 'val', Number(e.target.value))}>
                             <option value={0}>—</option>
                             {Array.from({ length: 10 }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n}</option>)}
@@ -490,7 +497,7 @@ function Estrellas({ valor, onChange }: { valor: number; onChange: (v: number) =
           <Star className={`w-4 h-4 ${n <= valor ? 'text-[#f59e0b] fill-[#f59e0b]' : 'text-[#3a3a48]'}`} />
         </button>
       ))}
-      {valor > 0 && <span className="ml-1.5 text-[11px] text-[#c4b5fd] tabular-nums">{valor}/10</span>}
+      {valor > 0 && <span className="ml-1.5 text-[12.5px] text-[#c4b5fd] tabular-nums">{valor}/10</span>}
     </div>
   )
 }
