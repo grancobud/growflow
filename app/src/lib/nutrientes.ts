@@ -302,9 +302,12 @@ export const SALES_DEFECTO: Sal[] = [
   { id: 'athena_fade', nombre: 'Athena Fade (finalizador Ca + micros)', bidon: 'A', liquido: true, densidad: 1.113,
     comp: { Ca: 0.04, Cl: 0.07, Fe: 0.0006, Mn: 0.00013, Zn: 0.000045, Cu: 0.00005, B: 0.0001, Mo: 0.000007 },
     descripcion: 'Comercial Athena: finalizador SIN nitrógeno que aporta calcio + micros quelatados. Es cloruro de calcio + hierro en tres quelatos (EDTA, DTPA y EDDHA 85/15) + Zn/Mn/Cu-EDTA + molibdato de sodio + ácido bórico. Reemplaza al Pro Core en las últimas 2-3 semanas de flora, junto a un PK (Pro Bloom). Dosis 10-19 ml/galón = 2,6-5 ml/L. OJO: mete mucho cloro (Cl 7%), que es justamente lo que fuerza el fade.' },
-  { id: 'athena_balance', nombre: 'Athena Balance (0-0-2)', bidon: 'C', liquido: true, densidad: 1.2,
-    comp: { K: 0.0166, Si: 0.01 },
-    descripcion: 'Comercial Athena: aporta silicio (silicato de potasio) para estructura/resistencia y ayuda a balancear pH. Va aparte (sube pH). NPK 0-0-2. ⚠️ REPOSO DE pH: químicamente es lo mismo que el silicato de potasio suelto (Kawsay) — TAMBIÉN sube el pH. "Balancea" solo porque en agua RO le da cuerpo/buffer y se usa PRIMERO, y las sales ácidas (Core/Bloom) lo bajan después. No es un bajador de pH. Metelo primero, revolvé y esperá 15-20 min antes del ajuste final para que no rebote la escorrentía.' },
+  // Etiqueta PRO-UP-10 rev. A01.005 + SDS US/CA V3. Estaba cargado como si fuera
+  // un silicato de potasio líquido con silicio: no lo es. Es carbonato de potasio
+  // en POLVO al 98,5-100%, o sea un pH UP puro (el código del producto es PRO-UP).
+  { id: 'athena_balance', nombre: 'Athena Pro Balance (pH up)', bidon: 'B', aditivo: true,
+    comp: { K: 0.5601 },
+    descripcion: 'Comercial Athena: NO es un nutriente, es un corrector de pH hacia arriba. Carbonato de potasio en polvo al 98,5-100% (bolsas de 2 lb dentro de una caja de 10 lb). Se disuelve como concentrado —0,25 a 1 lb por galón— y se dosifica hasta llegar al pH objetivo. Como es K₂CO₃ casi puro, arrastra mucho potasio: 56% en peso. Ojo que en solución forma carbonato de potasio líquido, que es corrosivo para el aluminio.' },
   { id: 'athena_cleanse', nombre: 'Athena Cleanse (limpieza)', formula: 'HOCl', bidon: 'C', aditivo: true, liquido: true, densidad: 1.0, comp: {},
     descripcion: 'Comercial Athena: NO es nutriente. Ácido hipocloroso (HOCl) derivado de sal, limpia raíces/sistema de riego y previene acumulación mineral/biofilm. Es un sanitizante, no aporta nada nutritivo.' },
   { id: 'hocl', nombre: 'Ácido hipocloroso (generador en polvo)', formula: 'HOCl', bidon: 'C', aditivo: true, comp: {},
@@ -713,7 +716,10 @@ export const DOSIS_REC: Record<string, number> = {
   // Advanced Nutrients Sensi Pro (polvo, g/L) — ~0.46 g/L por EC 1.0
   an_sensi_grow_a: 1, an_sensi_grow_b: 1, an_sensi_bloom_a: 1, an_sensi_bloom_b: 1,
   // Athena Pro (polvo, g/L) — dosis baja, ~Ca 150 en uso
-  athena_pro_core: 0.9, athena_pro_grow: 0.9, athena_pro_bloom: 0.9, athena_fade: 3, athena_balance: 1,
+  athena_pro_core: 0.9, athena_pro_grow: 0.9, athena_pro_bloom: 0.9, athena_fade: 3,
+  // Balance es un pH up: se dosifica a demanda hasta el pH objetivo, no hay dosis
+  // fija. 0,1 g/L es una referencia razonable; a 1 g/L metía 560 ppm de potasio.
+  athena_balance: 0.1,
   // Jacks (g/L)
   jacks_a: 0.65,
   // Canna (líquido, mL/L)
