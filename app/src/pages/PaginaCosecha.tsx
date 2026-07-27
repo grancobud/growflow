@@ -46,6 +46,10 @@ interface FilaVariedad {
   nCosechas: number
   valoraciones: number[]
   cosechas: Cosecha[]
+  /** Plantas de la variedad que ya salieron de la sala. */
+  cerradas: number
+  /** Las que siguen en pie y ya se podrían cosechar. */
+  faltan: number
 }
 
 const hoy = () => new Date().toISOString().slice(0, 10)
@@ -81,7 +85,7 @@ export default function PaginaCosecha() {
     for (const p of plantas) {
       const g = p.genetica ?? SIN_GEN
       let f = porGen.get(g)
-      if (!f) { f = { genetica: g, plantas: [], pesoSeco: 0, pesoHumedo: 0, nCosechas: 0, valoraciones: [], cosechas: [] }; porGen.set(g, f) }
+      if (!f) { f = { genetica: g, plantas: [], pesoSeco: 0, pesoHumedo: 0, nCosechas: 0, valoraciones: [], cosechas: [], cerradas: 0, faltan: 0 }; porGen.set(g, f) }
       f.plantas.push(p)
     }
     const plantaGen = new Map(plantas.map(p => [p.id, p.genetica ?? SIN_GEN]))
@@ -95,12 +99,24 @@ export default function PaginaCosecha() {
       if (c.valoracion != null) f.valoraciones.push(c.valoracion)
       f.cosechas.push(c)
     }
+    // Cuántas plantas de cada variedad quedaron cerradas y cuántas siguen en pie.
+    // Cargando planta por planta es normal terminar a medias, y sin esto la
+    // variedad figuraba como "ya cargada" con las 5 plantas aunque hubieras
+    // pesado 2: después las otras 3 aparecían en Plantas y parecía un error.
+    for (const f of porGen.values()) {
+      f.cerradas = f.plantas.filter(p => p.fase === 'Cosechada' || !p.activa).length
+      f.faltan = f.plantas.filter(p => p.activa && p.fase !== 'Cosechada' && FASES_COSECHABLES.has(p.fase)).length
+    }
     return [...porGen.values()].sort((a, b) => b.pesoSeco - a.pesoSeco)
   }, [plantas, cosechas])
 
   const totalSeco = filas.reduce((a, f) => a + f.pesoSeco, 0)
   const totalCosechas = filas.reduce((a, f) => a + f.nCosechas, 0)
   const conRinde = filas.filter(f => f.pesoSeco > 0)
+  // Con carga planta por planta se puede quedar a mitad de camino: la variedad
+  // tiene rinde cargado pero le siguen quedando plantas en pie.
+  const aMedias = conRinde.filter(f => f.faltan > 0)
+  const terminadas = conRinde.filter(f => f.faltan === 0)
   // Una variedad está para cosechar si alguna planta llegó a floración. Las que
   // siguen en vegetativo/germinación no se cosechan todavía y sólo ensucian la
   // lista (hoy: 9 variedades feminizadas en vegetativo).
@@ -193,9 +209,14 @@ export default function PaginaCosecha() {
                   <GrupoVariedades titulo="Listas para cosechar" cantidad={pendientes.length} color="#a78bfa"
                     filas={pendientes} onCargar={setModal} />
                 )}
-                {conRinde.length > 0 && (
-                  <GrupoVariedades titulo="Ya cargadas" cantidad={conRinde.length} color="#a3e635"
-                    filas={conRinde} onCargar={setModal} />
+                {aMedias.length > 0 && (
+                  <GrupoVariedades titulo="A medio cosechar" cantidad={aMedias.length} color="#fcd34d"
+                    subtitulo="tienen rinde cargado pero les quedan plantas en pie"
+                    filas={aMedias} onCargar={setModal} />
+                )}
+                {terminadas.length > 0 && (
+                  <GrupoVariedades titulo="Terminadas" cantidad={terminadas.length} color="#a3e635"
+                    filas={terminadas} onCargar={setModal} />
                 )}
                 {creciendo.length > 0 && (
                   <GrupoVariedades titulo="Todavía creciendo" cantidad={creciendo.length} color="#757584"
@@ -257,9 +278,19 @@ function GrupoVariedades({ titulo, cantidad, color, subtitulo, filas, onCargar, 
                 <span className="flex-shrink-0"><ChipTipo tipo={f.plantas[0]?.tipo} /></span>
               </div>
               <div className="text-[12px] text-[#757584] mt-1 tabular-nums">
-                {f.plantas.length} planta{f.plantas.length !== 1 ? 's' : ''}
+                {/* Cuántas de las plantas ya se cosecharon, no cuántas tiene la
+                    variedad: con la carga planta por planta casi nunca coinciden. */}
+                {f.pesoSeco > 0
+                  ? <>{f.cerradas} de {f.plantas.length} planta{f.plantas.length !== 1 ? 's' : ''}</>
+                  : <>{f.plantas.length} planta{f.plantas.length !== 1 ? 's' : ''}</>}
                 {f.pesoSeco > 0 && <span className="text-[#a3e635]"> · {f.pesoSeco.toLocaleString('es-AR')} g</span>}
               </div>
+              {f.pesoSeco > 0 && f.faltan > 0 && (
+                <div className="mt-1.5 text-[11.5px] text-[#fcd34d] flex items-center gap-1">
+                  <Sprout className="w-3 h-3 flex-shrink-0" />
+                  {f.faltan} sin cosechar todavía
+                </div>
+              )}
             </div>
             <button onClick={() => onCargar(f)}
               className={`${btnPrimario} w-full justify-center min-h-[44px] sm:min-h-[40px] mt-auto`}>
@@ -304,6 +335,8 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
 
   // --- estado modo por planta (map plantaId -> {seco, humedo, val}) ---
   const [porPlanta, setPorPlanta] = useState<Record<string, { seco: string; humedo: string; val: number }>>({})
+  // Por defecto se cierra la variedad entera: lo normal es cosechar todo junto.
+  const [cerrarResto, setCerrarResto] = useState(true)
   const setPP = (id: string, k: 'seco' | 'humedo' | 'val', v: string | number) =>
     setPorPlanta(m => {
       const cur = m[id] ?? { seco: '', humedo: '', val: 0 }
@@ -359,7 +392,24 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
           valoracion: v.val || null,
         })
       }
-      toast.success(`${entradas.length} cosecha${entradas.length !== 1 ? 's' : ''} registrada${entradas.length !== 1 ? 's' : ''}`)
+      // Las plantas que no se pesaron siguen en la sala. Si se cosechó la
+      // variedad entera hay que sacarlas igual, si no quedan como "en floración"
+      // para siempre y la variedad figura a medio cosechar.
+      let cerradas = 0
+      if (cerrarResto) {
+        // Se cierran TODAS las de la variedad, incluidas las que se acaban de
+        // pesar. A esas ya las cerró el trigger de la DB, así que el update es
+        // redundante ahí, pero en modo demo no hay trigger y de esta forma las
+        // dos vías terminan igual.
+        const pesadas = new Set(entradas.map(([id]) => id))
+        const abiertas = fila.plantas.filter(p => p.activa && p.fase !== 'Cosechada')
+        if (abiertas.length) {
+          await cultivoService.cerrarPlantas(abiertas.map(p => p.id))
+          cerradas = abiertas.filter(p => !pesadas.has(p.id)).length
+        }
+      }
+      toast.success(`${entradas.length} cosecha${entradas.length !== 1 ? 's' : ''} registrada${entradas.length !== 1 ? 's' : ''}`
+        + (cerradas ? ` · ${cerradas} planta${cerradas !== 1 ? 's' : ''} más fuera de la sala` : ''))
       onGuardado()
     } catch (err) { toast.error(`Error: ${(err as Error).message}`); setGuardando(false) }
   }
@@ -478,6 +528,19 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
                   )
                 })}
               </div>
+              {/* Sin esto, las plantas que no pesaste quedan en la sala para
+                  siempre y después aparecen "en floración" en Plantas. */}
+              <label className="flex items-start gap-2.5 mb-3 cursor-pointer rounded-lg border border-[#2a2a3a] bg-[#15151d] p-3">
+                <input type="checkbox" checked={cerrarResto} onChange={e => setCerrarResto(e.target.checked)}
+                  className="w-4 h-4 mt-0.5 accent-[#a3e635] flex-shrink-0" />
+                <span className="min-w-0">
+                  <span className="block text-[13.5px] text-[#ececf1]">Sacar de la sala las plantas que no pesé</span>
+                  <span className="block text-[12px] text-[#757584] mt-0.5 leading-snug">
+                    Dejalo tildado si cosechaste la variedad entera. Destildalo si vas a seguir cosechando
+                    el resto más adelante.
+                  </span>
+                </span>
+              </label>
               <button onClick={guardarPorPlanta} disabled={guardando} className={`${btnPrimario} w-full justify-center`}>
                 {guardando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Scale className="w-3.5 h-3.5" />} Guardar cosechas
               </button>
