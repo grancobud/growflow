@@ -278,9 +278,14 @@ export const SALES_DEFECTO: Sal[] = [
     descripcion: 'Comercial Advanced Nutrients (Sensi Pro Bloom B, polvo): aporta N + calcio + algo de K (nitrato de calcio/potasio). Va en bidón A. NPK 17-0-6 confirmado; Ca estimado.' },
 
   // --- Athena (Pro Line en polvo + finishers) ---
+  // Etiqueta PRO-CORE-25B rev. A01.008. Ca 17% (estaba estimado en 16) y micros
+  // del guaranteed analysis (estaban hasta 5 veces por encima).
+  // El N va repartido, aunque la etiqueta lo declare 14% todo nítrico: la fuente
+  // es nitrato de calcio-amonio, que trae ~7% de su N como amonio. Con Ca 17% son
+  // 89,5% de CAN → NO3-N 12,88% + NH4-N 0,98% = 13,87%, contra el 14% declarado.
   { id: 'athena_pro_core', nombre: 'Athena Pro Core (14-0-0)', bidon: 'A',
-    comp: { NO3: 0.14, Ca: 0.16, Fe: 0.001, Mn: 0.0005, Zn: 0.00015, Cu: 0.0001, B: 0.0002, Mo: 0.0001 },
-    descripcion: 'Comercial Athena Pro Line: la base de calcio + nitrógeno + micros quelatados (nitrato de Ca, Fe/Mn/Cu/Zn EDTA, ác. bórico, molibdato Na). Va en bidón A. Se usa SIEMPRE (veg y flora) junto a Grow o Bloom. Ca estimado ~16%.' },
+    comp: { NO3: 0.1288, NH4: 0.0098, Ca: 0.17, Fe: 0.0007, Mn: 0.00025, Zn: 0.0001, Cu: 0.0001, B: 0.00015, Mo: 0.00002 },
+    descripcion: 'Comercial Athena Pro Line: la base de calcio + nitrógeno + micros quelatados. Es nitrato de calcio-amonio (80-100% del producto) + Fe-DTPA, Mn/Cu/Zn-EDTA, ácido bórico y molibdato de sodio. Va en bidón A y se usa SIEMPRE, en veg y en flora, junto a Grow o Bloom. Proporción de la etiqueta: 0,6 g de Core por cada 1 g de Grow/Bloom, medido por peso.' },
   { id: 'athena_pro_grow', nombre: 'Athena Pro Grow (2-8-20)', bidon: 'B',
     comp: { NO3: 0.01, NH4: 0.01, P: 0.0349, K: 0.166, Mg: 0.03, S: 0.08, Fe: 0.001 },
     descripcion: 'Comercial Athena Pro Line: base vegetativa P-K-Mg-S + Fe DTPA. NPK 2-8-20, Mg 3%, S 8%, Fe 0.1% confirmados. Va en bidón B, con Pro Core.' },
