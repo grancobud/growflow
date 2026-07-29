@@ -150,11 +150,28 @@ function BarraTabs({ sub, setSub }: { sub: SubTab; setSub: (s: SubTab) => void }
         )
       })}
 
-      <div className="shrink-0 flex" data-menu-tabs>
+      {/* sticky right-0: la barra scrollea en celular y este botón quedaba 92px
+          fuera de la pantalla, o sea que no había forma de tocarlo sin saber que
+          la barra se arrastra. Ahora queda pegado al borde derecho, siempre
+          visible, con el fondo y un degradado para que se lea sobre lo que pasa
+          por debajo. */}
+      <div className="shrink-0 flex sticky right-0 z-10 bg-[#0a0a0f] pl-2 -ml-2
+                      before:absolute before:right-full before:top-0 before:bottom-0 before:w-6
+                      before:bg-gradient-to-l before:from-[#0a0a0f] before:to-transparent before:pointer-events-none"
+        data-menu-tabs>
+        {/* aria-label explícito: el texto va en dos spans que se alternan por
+            breakpoint, y sin esto el botón queda sin nombre accesible. */}
         <button ref={btnRef} onClick={abrir} aria-expanded={abierto} aria-haspopup="menu"
+          aria-label={enMenu ? `${actual.label} — más herramientas` : 'Más herramientas'}
           className={btnCls(enMenu)}>
-          {enMenu ? <><actual.icon className="w-3.5 h-3.5" strokeWidth={1.8} /> {actual.label}</>
-                  : <>Más herramientas</>}
+          {/* En celular el texto se acorta: el botón tiene que ocupar poco para
+              no comerse el espacio de las pestañas fijas. */}
+          {enMenu
+            ? <><actual.icon className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={1.8} />
+                <span className="hidden sm:inline">{actual.label}</span>
+                <span className="sm:hidden max-w-[72px] truncate">{actual.label}</span></>
+            : <><span className="hidden sm:inline">Más herramientas</span>
+                <span className="sm:hidden">Más</span></>}
           <ChevronDown className={`w-3.5 h-3.5 transition-transform ${abierto ? 'rotate-180' : ''}`} />
         </button>
       </div>
