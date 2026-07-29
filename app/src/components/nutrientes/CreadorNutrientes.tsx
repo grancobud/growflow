@@ -79,11 +79,15 @@ function BarraTabs({ sub, setSub }: { sub: SubTab; setSub: (s: SubTab) => void }
   // en celular) y eso recorta cualquier hijo posicionado: el menú se abría pero
   // quedaba cortado a la altura de la barra.
   const [pos, setPos] = useState<{ top: number; left: number; maxAlto: number } | null>(null)
+  // Se decide al abrir, no con un media query en CSS, porque el panel cambia de
+  // estructura (hoja inferior vs desplegable anclado), no sólo de estilo.
+  const [menuMovil, setMenuMovil] = useState(false)
   const btnRef = useRef<HTMLButtonElement>(null)
   const enMenu = !TABS_FIJAS.includes(sub)
   const actual = infoTab(sub)
 
   const abrir = () => {
+    setMenuMovil(window.innerWidth < 640)      // el breakpoint sm: de Tailwind
     const r = btnRef.current?.getBoundingClientRect()
     if (r) {
       const ancho = 240
@@ -105,8 +109,18 @@ function BarraTabs({ sub, setSub }: { sub: SubTab; setSub: (s: SubTab) => void }
     }
     const fuera = (e: MouseEvent) => { if (!dentroDelMenu(e)) setAbierto(false) }
     const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setAbierto(false) }
-    // El panel tiene scroll propio: scrollear DENTRO no debe cerrarlo.
-    const alScrollear = (e: Event) => { if (!dentroDelMenu(e)) setAbierto(false) }
+    // Scroll: el panel tiene scroll propio y la barra de tabs scrollea sola en
+    // celular (es overflow-x-auto y el botón queda al final). Cerrar ante
+    // cualquier scroll hacía que en el teléfono el menú se cerrara apenas se
+    // abría, porque al tocar el botón el navegador scrollea la barra para
+    // centrarlo. Sólo cierra el scroll de la PÁGINA, que es el que desplaza al
+    // botón de referencia.
+    const alScrollear = (e: Event) => {
+      if (dentroDelMenu(e)) return
+      const t = e.target as HTMLElement | null
+      if (t?.closest?.('[data-barra-tabs]')) return
+      setAbierto(false)
+    }
     const alRedimensionar = () => setAbierto(false)
 
     document.addEventListener('mousedown', fuera)
@@ -126,7 +140,7 @@ function BarraTabs({ sub, setSub }: { sub: SubTab; setSub: (s: SubTab) => void }
       on ? 'border-[#a3e635] text-[#d9f99d]' : 'border-transparent text-[#8f8f9f] hover:text-[#d4d4dd]'}`
 
   return (
-    <div className="flex gap-1 items-stretch border-b border-[#1f1f2b] -mt-1 -mx-1 px-1 overflow-x-auto ct-page-scroll [-webkit-overflow-scrolling:touch]">
+    <div data-barra-tabs className="flex gap-1 items-stretch border-b border-[#1f1f2b] -mt-1 -mx-1 px-1 overflow-x-auto ct-page-scroll [-webkit-overflow-scrolling:touch]">
       {TABS_FIJAS.map(id => {
         const t = infoTab(id); const Icon = t.icon
         return (
@@ -145,23 +159,38 @@ function BarraTabs({ sub, setSub }: { sub: SubTab; setSub: (s: SubTab) => void }
         </button>
       </div>
 
-      {/* Fuera del contenedor con overflow, si no queda recortado. */}
+      {/* Fuera del contenedor con overflow, si no queda recortado.
+          En celular va como hoja inferior a ancho completo: no depende de las
+          coordenadas del botón (que ahí queda al final de una barra que
+          scrollea) y se toca mucho mejor con el pulgar. */}
       {abierto && pos && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setAbierto(false)} />
+          <div className="fixed inset-0 z-40 bg-black/50 sm:bg-transparent" onClick={() => setAbierto(false)} />
           <div data-panel-tabs role="menu"
-            style={{ top: pos.top, left: pos.left, maxHeight: pos.maxAlto }}
-            className="fixed z-50 w-[240px] overflow-y-auto overscroll-contain ct-page-scroll [-webkit-overflow-scrolling:touch] rounded-xl bg-[#101016] border border-[#2a2a3a] shadow-2xl py-1">
+            style={menuMovil ? undefined : { top: pos.top, left: pos.left, maxHeight: pos.maxAlto }}
+            className={`fixed z-50 overflow-y-auto overscroll-contain ct-page-scroll [-webkit-overflow-scrolling:touch] bg-[#101016] border-[#2a2a3a] shadow-2xl ${
+              menuMovil
+                ? 'inset-x-0 bottom-0 max-h-[75vh] max-h-[75dvh] rounded-t-2xl border-t pb-[env(safe-area-inset-bottom)]'
+                : 'w-[240px] rounded-xl border py-1'}`}>
+            {menuMovil && (
+              <div className="sticky top-0 bg-[#101016] border-b border-[#1f1f2b] px-4 py-3 flex items-center gap-2">
+                <span className="font-display font-semibold text-[15px] text-[#ececf1]">Más herramientas</span>
+                <button onClick={() => setAbierto(false)} aria-label="Cerrar"
+                  className="ml-auto p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-[#5c5c6b] hover:text-[#ececf1] hover:bg-[#1f1f2b]">
+                  <X className="w-5 h-5" strokeWidth={2} />
+                </button>
+              </div>
+            )}
             {GRUPOS_TABS.map(g => (
               <div key={g.grupo}>
-                <div className="px-3 pt-2 pb-1 text-[11px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium">{g.grupo}</div>
+                <div className="px-3 sm:px-3 pt-3 sm:pt-2 pb-1 text-[11px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium">{g.grupo}</div>
                 {g.ids.map(id => {
                   const t = infoTab(id); const Icon = t.icon; const on = sub === id
                   return (
                     <button key={id} role="menuitem" onClick={() => { setSub(id); setAbierto(false) }}
-                      className={`w-full flex items-center gap-2 px-3 py-2.5 min-h-[42px] text-left text-[13.5px] transition-colors ${
+                      className={`w-full flex items-center gap-2.5 px-4 sm:px-3 py-3 sm:py-2.5 min-h-[48px] sm:min-h-[42px] text-left text-[14px] sm:text-[13.5px] transition-colors ${
                         on ? 'bg-[#a3e635]/10 text-[#d9f99d]' : 'text-[#a6a6b5] hover:bg-[#15151d] hover:text-[#ececf1]'}`}>
-                      <Icon className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={1.8} /> {t.label}
+                      <Icon className="w-4 h-4 sm:w-3.5 sm:h-3.5 flex-shrink-0" strokeWidth={1.8} /> {t.label}
                     </button>
                   )
                 })}
