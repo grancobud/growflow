@@ -180,15 +180,28 @@ function BarraTabs({ sub, setSub }: { sub: SubTab; setSub: (s: SubTab) => void }
           En celular va como hoja inferior a ancho completo: no depende de las
           coordenadas del botón (que ahí queda al final de una barra que
           scrollea) y se toca mucho mejor con el pulgar. */}
-      {abierto && pos && (
+      {abierto && (
         <>
-          <div className="fixed inset-0 z-40 bg-black/50 sm:bg-transparent" onClick={() => setAbierto(false)} />
+          <div onClick={() => setAbierto(false)}
+            style={{ position: 'fixed', inset: 0, zIndex: 60, background: menuMovil ? 'rgba(0,0,0,0.5)' : 'transparent' }} />
+          {/* Posicionamiento por estilo inline, no por clases: si el Service
+              Worker sirve un CSS viejo (pasa al actualizar una PWA, que cachea
+              JS y CSS por separado), las clases nuevas de Tailwind no existen y
+              el panel queda sin `fixed`, o sea invisible. Inline siempre aplica. */}
           <div data-panel-tabs role="menu"
-            style={menuMovil ? undefined : { top: pos.top, left: pos.left, maxHeight: pos.maxAlto }}
-            className={`fixed z-50 overflow-y-auto overscroll-contain ct-page-scroll [-webkit-overflow-scrolling:touch] bg-[#101016] border-[#2a2a3a] shadow-2xl ${
-              menuMovil
-                ? 'inset-x-0 bottom-0 max-h-[75vh] max-h-[75dvh] rounded-t-2xl border-t pb-[env(safe-area-inset-bottom)]'
-                : 'w-[240px] rounded-xl border py-1'}`}>
+            style={menuMovil
+              ? { position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 61,
+                  maxHeight: '75vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch',
+                  background: '#101016', borderTop: '1px solid #2a2a3a',
+                  borderTopLeftRadius: 16, borderTopRightRadius: 16,
+                  paddingBottom: 'env(safe-area-inset-bottom)',
+                  boxShadow: '0 -8px 32px rgba(0,0,0,0.6)' }
+              : { position: 'fixed', top: pos?.top ?? 0, left: pos?.left ?? 0, zIndex: 61,
+                  width: 240, maxHeight: pos?.maxAlto ?? 400, overflowY: 'auto',
+                  background: '#101016', border: '1px solid #2a2a3a',
+                  borderRadius: 12, paddingTop: 4, paddingBottom: 4,
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}
+            className="overscroll-contain ct-page-scroll">
             {menuMovil && (
               <div className="sticky top-0 bg-[#101016] border-b border-[#1f1f2b] px-4 py-3 flex items-center gap-2">
                 <span className="font-display font-semibold text-[15px] text-[#ececf1]">Más herramientas</span>
