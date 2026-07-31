@@ -335,8 +335,12 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
 
   // --- estado modo por planta (map plantaId -> {seco, humedo, val}) ---
   const [porPlanta, setPorPlanta] = useState<Record<string, { seco: string; humedo: string; val: number }>>({})
-  // Por defecto se cierra la variedad entera: lo normal es cosechar todo junto.
-  const [cerrarResto, setCerrarResto] = useState(true)
+  // Apagado por defecto. Venía prendido asumiendo que se cosecha la variedad
+  // entera de una, pero Gastón cosecha de a poco (fechas distintas por planta) y
+  // eso le cerró 10 plantas que no había cosechado. Cerrar una planta es difícil
+  // de revertir —pierde el lugar en la sala—, así que el default seguro es NO
+  // tocar las que no se pesaron.
+  const [cerrarResto, setCerrarResto] = useState(false)
   const setPP = (id: string, k: 'seco' | 'humedo' | 'val', v: string | number) =>
     setPorPlanta(m => {
       const cur = m[id] ?? { seco: '', humedo: '', val: 0 }
@@ -528,19 +532,31 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
                   )
                 })}
               </div>
-              {/* Sin esto, las plantas que no pesaste quedan en la sala para
-                  siempre y después aparecen "en floración" en Plantas. */}
-              <label className="flex items-start gap-2.5 mb-3 cursor-pointer rounded-lg border border-[#2a2a3a] bg-[#15151d] p-3">
-                <input type="checkbox" checked={cerrarResto} onChange={e => setCerrarResto(e.target.checked)}
-                  className="w-4 h-4 mt-0.5 accent-[#a3e635] flex-shrink-0" />
-                <span className="min-w-0">
-                  <span className="block text-[13.5px] text-[#ececf1]">Sacar de la sala las plantas que no pesé</span>
-                  <span className="block text-[12px] text-[#757584] mt-0.5 leading-snug">
-                    Dejalo tildado si cosechaste la variedad entera. Destildalo si vas a seguir cosechando
-                    el resto más adelante.
-                  </span>
-                </span>
-              </label>
+              {/* Marcar una planta como cosechada es difícil de deshacer: pierde
+                  el lugar en la sala. Por eso va apagado y se dice EXACTAMENTE
+                  cuántas plantas se van a cerrar. */}
+              {(() => {
+                const sinPeso = fila.plantas.filter(p =>
+                  p.activa && p.fase !== 'Cosechada' && num(porPlanta[p.id]?.seco) == null).length
+                if (sinPeso === 0) return null
+                return (
+                  <label className={`flex items-start gap-2.5 mb-3 cursor-pointer rounded-lg border p-3 transition-colors ${
+                    cerrarResto ? 'border-[#78500f] bg-[#f59e0b]/10' : 'border-[#2a2a3a] bg-[#15151d]'}`}>
+                    <input type="checkbox" checked={cerrarResto} onChange={e => setCerrarResto(e.target.checked)}
+                      className="w-4 h-4 mt-0.5 accent-[#facc15] flex-shrink-0" />
+                    <span className="min-w-0">
+                      <span className="block text-[13.5px] text-[#ececf1]">
+                        Dar por cosechadas las {sinPeso} planta{sinPeso !== 1 ? 's' : ''} que no pesé
+                      </span>
+                      <span className={`block text-[12px] mt-0.5 leading-snug ${cerrarResto ? 'text-[#fcd34d]' : 'text-[#757584]'}`}>
+                        {cerrarResto
+                          ? `Van a salir de la sala sin rinde cargado y liberan su lugar. Tildalo sólo si cosechaste la variedad entera.`
+                          : 'Dejalo sin tildar si vas a seguir cosechando el resto más adelante.'}
+                      </span>
+                    </span>
+                  </label>
+                )
+              })()}
               <button onClick={guardarPorPlanta} disabled={guardando} className={`${btnPrimario} w-full justify-center`}>
                 {guardando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Scale className="w-3.5 h-3.5" />} Guardar cosechas
               </button>
