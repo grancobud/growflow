@@ -75,159 +75,76 @@ const infoTab = (id: SubTab) => SUBTABS.find(t => t.id === id)!
  */
 function BarraTabs({ sub, setSub }: { sub: SubTab; setSub: (s: SubTab) => void }) {
   const [abierto, setAbierto] = useState(false)
-  // El panel va con position:fixed porque la barra tiene overflow-x-auto (scroll
-  // en celular) y eso recorta cualquier hijo posicionado: el menú se abría pero
-  // quedaba cortado a la altura de la barra.
-  const [pos, setPos] = useState<{ top: number; left: number; maxAlto: number } | null>(null)
-  // Se decide al abrir, no con un media query en CSS, porque el panel cambia de
-  // estructura (hoja inferior vs desplegable anclado), no sólo de estilo.
-  const [menuMovil, setMenuMovil] = useState(false)
-  const btnRef = useRef<HTMLButtonElement>(null)
   const enMenu = !TABS_FIJAS.includes(sub)
   const actual = infoTab(sub)
-
-  const abrir = () => {
-    setMenuMovil(window.innerWidth < 640)      // el breakpoint sm: de Tailwind
-    const r = btnRef.current?.getBoundingClientRect()
-    if (r) {
-      const ancho = 240
-      // Si no entra a la derecha, se alinea con el borde de la ventana.
-      const left = Math.max(8, Math.min(r.left, window.innerWidth - ancho - 8))
-      // Que nunca pase del borde inferior: el alto se limita al espacio que queda.
-      const maxAlto = Math.max(200, window.innerHeight - r.bottom - 16)
-      setPos({ top: r.bottom + 4, left, maxAlto })
-    }
-    setAbierto(a => !a)
-  }
-
-  // Cerrar al hacer click afuera, con Escape, o al cambiar el tamaño de ventana.
-  useEffect(() => {
-    if (!abierto) return
-    const dentroDelMenu = (e: Event) => {
-      const t = e.target as HTMLElement | null
-      return !!t?.closest?.('[data-menu-tabs]') || !!t?.closest?.('[data-panel-tabs]')
-    }
-    const fuera = (e: MouseEvent) => { if (!dentroDelMenu(e)) setAbierto(false) }
-    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setAbierto(false) }
-    // Scroll: el panel tiene scroll propio y la barra de tabs scrollea sola en
-    // celular (es overflow-x-auto y el botón queda al final). Cerrar ante
-    // cualquier scroll hacía que en el teléfono el menú se cerrara apenas se
-    // abría, porque al tocar el botón el navegador scrollea la barra para
-    // centrarlo. Sólo cierra el scroll de la PÁGINA, que es el que desplaza al
-    // botón de referencia.
-    const alScrollear = (e: Event) => {
-      if (dentroDelMenu(e)) return
-      const t = e.target as HTMLElement | null
-      if (t?.closest?.('[data-barra-tabs]')) return
-      setAbierto(false)
-    }
-    const alRedimensionar = () => setAbierto(false)
-
-    document.addEventListener('mousedown', fuera)
-    document.addEventListener('keydown', esc)
-    window.addEventListener('resize', alRedimensionar)
-    window.addEventListener('scroll', alScrollear, true)
-    return () => {
-      document.removeEventListener('mousedown', fuera)
-      document.removeEventListener('keydown', esc)
-      window.removeEventListener('resize', alRedimensionar)
-      window.removeEventListener('scroll', alScrollear, true)
-    }
-  }, [abierto])
 
   const btnCls = (on: boolean) =>
     `flex items-center gap-1.5 px-3 py-2.5 sm:py-2 min-h-[44px] sm:min-h-0 text-[13.5px] font-medium border-b-2 transition-colors shrink-0 whitespace-nowrap ${
       on ? 'border-[#a3e635] text-[#d9f99d]' : 'border-transparent text-[#8f8f9f] hover:text-[#d4d4dd]'}`
 
-  return (
-    <div data-barra-tabs className="flex gap-1 items-stretch border-b border-[#1f1f2b] -mt-1 -mx-1 px-1 overflow-x-auto ct-page-scroll [-webkit-overflow-scrolling:touch]">
-      {TABS_FIJAS.map(id => {
-        const t = infoTab(id); const Icon = t.icon
-        return (
-          <button key={id} onClick={() => setSub(id)} className={btnCls(sub === id)}>
-            <Icon className="w-3.5 h-3.5" strokeWidth={1.8} /> {t.label}
-          </button>
-        )
-      })}
+  const elegir = (id: SubTab) => { setSub(id); setAbierto(false) }
 
-      {/* sticky right-0: la barra scrollea en celular y este botón quedaba 92px
-          fuera de la pantalla, o sea que no había forma de tocarlo sin saber que
-          la barra se arrastra. Ahora queda pegado al borde derecho, siempre
-          visible, con el fondo y un degradado para que se lea sobre lo que pasa
-          por debajo. */}
-      <div className="shrink-0 flex sticky right-0 z-10 bg-[#0a0a0f] pl-2 -ml-2
-                      before:absolute before:right-full before:top-0 before:bottom-0 before:w-6
-                      before:bg-gradient-to-l before:from-[#0a0a0f] before:to-transparent before:pointer-events-none"
-        data-menu-tabs>
-        {/* aria-label explícito: el texto va en dos spans que se alternan por
-            breakpoint, y sin esto el botón queda sin nombre accesible. */}
-        <button ref={btnRef} onClick={abrir} aria-expanded={abierto} aria-haspopup="menu"
-          aria-label={enMenu ? `${actual.label} — más herramientas` : 'Más herramientas'}
-          className={btnCls(enMenu)}>
-          {/* En celular el texto se acorta: el botón tiene que ocupar poco para
-              no comerse el espacio de las pestañas fijas. */}
-          {enMenu
-            ? <><actual.icon className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={1.8} />
-                <span className="hidden sm:inline">{actual.label}</span>
-                <span className="sm:hidden max-w-[72px] truncate">{actual.label}</span></>
-            : <><span className="hidden sm:inline">Más herramientas</span>
-                <span className="sm:hidden">Más</span></>}
-          <ChevronDown className={`w-3.5 h-3.5 transition-transform ${abierto ? 'rotate-180' : ''}`} />
-        </button>
+  return (
+    <div className="-mt-1 -mx-1">
+      <div data-barra-tabs
+        className="flex gap-1 items-stretch border-b border-[#1f1f2b] px-1 overflow-x-auto ct-page-scroll [-webkit-overflow-scrolling:touch]">
+        {TABS_FIJAS.map(id => {
+          const t = infoTab(id); const Icon = t.icon
+          return (
+            <button key={id} onClick={() => setSub(id)} className={btnCls(sub === id)}>
+              <Icon className="w-3.5 h-3.5" strokeWidth={1.8} /> {t.label}
+            </button>
+          )
+        })}
+
+        {/* sticky right-0: la barra scrollea en celular y este botón quedaba
+            fuera de la pantalla, sin forma de tocarlo. */}
+        <div className="shrink-0 flex sticky right-0 z-10 bg-[#0a0a0f] pl-2 -ml-2" data-menu-tabs>
+          <button onClick={() => setAbierto(a => !a)} aria-expanded={abierto} aria-haspopup="true"
+            aria-label={enMenu ? `${actual.label} — más herramientas` : 'Más herramientas'}
+            className={btnCls(enMenu)}>
+            {enMenu
+              ? <><actual.icon className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={1.8} />
+                  <span className="hidden sm:inline">{actual.label}</span>
+                  <span className="sm:hidden max-w-[72px] truncate">{actual.label}</span></>
+              : <><span className="hidden sm:inline">Más herramientas</span>
+                  <span className="sm:hidden">Más</span></>}
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${abierto ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
       </div>
 
-      {/* Fuera del contenedor con overflow, si no queda recortado.
-          En celular va como hoja inferior a ancho completo: no depende de las
-          coordenadas del botón (que ahí queda al final de una barra que
-          scrollea) y se toca mucho mejor con el pulgar. */}
+      {/* El panel va INLINE, en el flujo del documento: aparece debajo de la
+          barra y empuja el contenido. Nada de position:fixed, overlay, z-index
+          ni coordenadas calculadas — todo eso fallaba en el celular por
+          motivos distintos y difíciles de ver (la barra recortaba el panel, el
+          scroll lo cerraba, el botón quedaba fuera de pantalla, el service
+          worker servía un CSS sin las clases nuevas). Un div normal no puede
+          fallar por ninguna de esas causas. */}
       {abierto && (
-        <>
-          <div onClick={() => setAbierto(false)}
-            style={{ position: 'fixed', inset: 0, zIndex: 60, background: menuMovil ? 'rgba(0,0,0,0.5)' : 'transparent' }} />
-          {/* Posicionamiento por estilo inline, no por clases: si el Service
-              Worker sirve un CSS viejo (pasa al actualizar una PWA, que cachea
-              JS y CSS por separado), las clases nuevas de Tailwind no existen y
-              el panel queda sin `fixed`, o sea invisible. Inline siempre aplica. */}
-          <div data-panel-tabs role="menu"
-            style={menuMovil
-              ? { position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 61,
-                  maxHeight: '75vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch',
-                  background: '#101016', borderTop: '1px solid #2a2a3a',
-                  borderTopLeftRadius: 16, borderTopRightRadius: 16,
-                  paddingBottom: 'env(safe-area-inset-bottom)',
-                  boxShadow: '0 -8px 32px rgba(0,0,0,0.6)' }
-              : { position: 'fixed', top: pos?.top ?? 0, left: pos?.left ?? 0, zIndex: 61,
-                  width: 240, maxHeight: pos?.maxAlto ?? 400, overflowY: 'auto',
-                  background: '#101016', border: '1px solid #2a2a3a',
-                  borderRadius: 12, paddingTop: 4, paddingBottom: 4,
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}
-            className="overscroll-contain ct-page-scroll">
-            {menuMovil && (
-              <div className="sticky top-0 bg-[#101016] border-b border-[#1f1f2b] px-4 py-3 flex items-center gap-2">
-                <span className="font-display font-semibold text-[15px] text-[#ececf1]">Más herramientas</span>
-                <button onClick={() => setAbierto(false)} aria-label="Cerrar"
-                  className="ml-auto p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-[#5c5c6b] hover:text-[#ececf1] hover:bg-[#1f1f2b]">
-                  <X className="w-5 h-5" strokeWidth={2} />
-                </button>
+        <div data-panel-tabs role="group" aria-label="Más herramientas"
+          className="border-b border-[#1f1f2b] bg-[#0d0d13] px-1 pb-2">
+          {GRUPOS_TABS.map(g => (
+            <div key={g.grupo}>
+              <div className="px-3 pt-3 pb-1 text-[11px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium">
+                {g.grupo}
               </div>
-            )}
-            {GRUPOS_TABS.map(g => (
-              <div key={g.grupo}>
-                <div className="px-3 sm:px-3 pt-3 sm:pt-2 pb-1 text-[11px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium">{g.grupo}</div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1">
                 {g.ids.map(id => {
                   const t = infoTab(id); const Icon = t.icon; const on = sub === id
                   return (
-                    <button key={id} role="menuitem" onClick={() => { setSub(id); setAbierto(false) }}
-                      className={`w-full flex items-center gap-2.5 px-4 sm:px-3 py-3 sm:py-2.5 min-h-[48px] sm:min-h-[42px] text-left text-[14px] sm:text-[13.5px] transition-colors ${
+                    <button key={id} onClick={() => elegir(id)}
+                      className={`flex items-center gap-2 px-3 py-3 min-h-[48px] rounded-lg text-left text-[13.5px] transition-colors ${
                         on ? 'bg-[#a3e635]/10 text-[#d9f99d]' : 'text-[#a6a6b5] hover:bg-[#15151d] hover:text-[#ececf1]'}`}>
-                      <Icon className="w-4 h-4 sm:w-3.5 sm:h-3.5 flex-shrink-0" strokeWidth={1.8} /> {t.label}
+                      <Icon className="w-4 h-4 flex-shrink-0" strokeWidth={1.8} />
+                      <span className="truncate">{t.label}</span>
                     </button>
                   )
                 })}
               </div>
-            ))}
-          </div>
-        </>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   )
