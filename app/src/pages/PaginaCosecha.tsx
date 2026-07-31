@@ -347,7 +347,9 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
       return { ...m, [id]: { ...cur, [k]: v } }
     })
 
-  const num = (s: string) => (s.trim() === '' ? null : parseFloat(s.replace(',', '.')))
+  // Acepta undefined: el mapa de pesos por planta arranca vacío, así que
+  // porPlanta[id]?.seco no existe hasta que se escribe algo en ese campo.
+  const num = (s?: string | null) => (!s || s.trim() === '' ? null : parseFloat(s.replace(',', '.')))
 
   const guardarTotal = async () => {
     const pesoSeco = num(seco)
