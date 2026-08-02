@@ -111,6 +111,23 @@ export default function PaginaCosecha() {
 
   const totalSeco = filas.reduce((a, f) => a + f.pesoSeco, 0)
   const totalCosechas = filas.reduce((a, f) => a + f.nCosechas, 0)
+
+  // Desglose por tipo de genética. El tipo vive en la planta, así que se toma de
+  // la primera de cada variedad (todas las plantas de una variedad comparten
+  // genética).
+  const porTipo = useMemo(() => {
+    const vacio = () => ({ variedades: 0, plantas: 0, cosechas: 0, gramos: 0 })
+    const acc = { auto: vacio(), fem: vacio(), otras: vacio() }
+    for (const f of filas) {
+      const t = f.plantas[0]?.tipo
+      const k = t === 'Automatica' ? 'auto' : t === 'Feminizada' ? 'fem' : 'otras'
+      acc[k].variedades++
+      acc[k].plantas += f.plantas.length
+      acc[k].cosechas += f.nCosechas
+      acc[k].gramos += f.pesoSeco
+    }
+    return acc
+  }, [filas])
   const conRinde = filas.filter(f => f.pesoSeco > 0)
   // Con carga planta por planta se puede quedar a mitad de camino: la variedad
   // tiene rinde cargado pero le siguen quedando plantas en pie.
@@ -140,14 +157,19 @@ export default function PaginaCosecha() {
       </div>
 
       <div className="px-3 sm:px-6 py-4 sm:py-5 pb-[calc(5rem+env(safe-area-inset-bottom))]">
-        {/* Totales */}
-        <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
+        {/* Totales. Autos y feminizadas van separadas: son ciclos distintos —las
+            autos se cosechan mientras las fem todavía vegetan— y verlas sumadas
+            en un solo número no dice nada. */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
           <Total label="Total seco" valor={totalSeco.toLocaleString('es-AR')} unidad="g" />
-          <Total label="Variedades" valor={String(filas.length)}
-            sub={pendientes.length > 0
-              ? `${pendientes.length} para cosechar`
-              : creciendo.length > 0 ? `${creciendo.length} todavía creciendo` : 'todas cargadas'} />
-          <Total label="Cosechas" valor={String(totalCosechas)} />
+          <Total label="Cosechadas" valor={String(totalCosechas)}
+            sub={porTipo.auto.cosechas > 0 || porTipo.fem.cosechas > 0
+              ? `${porTipo.auto.cosechas} auto · ${porTipo.fem.cosechas} fem`
+              : 'ninguna todavía'} />
+          <Total label="Variedades automáticas" valor={String(porTipo.auto.variedades)}
+            sub={`${porTipo.auto.plantas} planta${porTipo.auto.plantas === 1 ? '' : 's'}`} />
+          <Total label="Variedades feminizadas" valor={String(porTipo.fem.variedades)}
+            sub={`${porTipo.fem.plantas} planta${porTipo.fem.plantas === 1 ? '' : 's'}`} />
         </div>
 
         {/* Desktop: ranking fijo a la izquierda, variedades en grilla a la derecha.
@@ -206,20 +228,20 @@ export default function PaginaCosecha() {
               <div className="space-y-4">
                 {pendientes.length > 0 && (
                   <GrupoVariedades titulo="Listas para cosechar" cantidad={pendientes.length} color="#a78bfa"
-                    filas={pendientes} onCargar={setModal} />
+                    subtitulo={mezclaDeTipos(pendientes)} filas={pendientes} onCargar={setModal} />
                 )}
                 {aMedias.length > 0 && (
                   <GrupoVariedades titulo="A medio cosechar" cantidad={aMedias.length} color="#fcd34d"
-                    subtitulo="tienen rinde cargado pero les quedan plantas en pie"
+                    subtitulo={`${mezclaDeTipos(aMedias)} · les quedan plantas en pie`}
                     filas={aMedias} onCargar={setModal} />
                 )}
                 {terminadas.length > 0 && (
                   <GrupoVariedades titulo="Terminadas" cantidad={terminadas.length} color="#a3e635"
-                    filas={terminadas} onCargar={setModal} />
+                    subtitulo={mezclaDeTipos(terminadas)} filas={terminadas} onCargar={setModal} />
                 )}
                 {creciendo.length > 0 && (
                   <GrupoVariedades titulo="Todavía creciendo" cantidad={creciendo.length} color="#757584"
-                    subtitulo="No llegaron a floración — no hay nada que cosechar todavía"
+                    subtitulo={`${mezclaDeTipos(creciendo)} · no llegaron a floración`}
                     filas={creciendo} onCargar={setModal} plegable />
                 )}
               </div>
@@ -248,6 +270,21 @@ function Total({ label, valor, unidad, sub }: { label: string; valor: string; un
 }
 
 /** Variedades en grilla: 2 columnas en celular, 3 en pantalla grande. */
+
+/** "5 automáticas", "3 fem", o "2 auto · 1 fem" si el grupo está mezclado. */
+function mezclaDeTipos(filas: FilaVariedad[]): string {
+  const n = { auto: 0, fem: 0, otras: 0 }
+  for (const f of filas) {
+    const t = f.plantas[0]?.tipo
+    n[t === 'Automatica' ? 'auto' : t === 'Feminizada' ? 'fem' : 'otras']++
+  }
+  const partes: string[] = []
+  if (n.auto) partes.push(`${n.auto} automática${n.auto === 1 ? '' : 's'}`)
+  if (n.fem) partes.push(`${n.fem} feminizada${n.fem === 1 ? '' : 's'}`)
+  if (n.otras) partes.push(`${n.otras} otra${n.otras === 1 ? '' : 's'}`)
+  return partes.join(' · ')
+}
+
 function GrupoVariedades({ titulo, cantidad, color, subtitulo, filas, onCargar, plegable = false }: {
   titulo: string; cantidad: number; color: string; subtitulo?: string
   filas: FilaVariedad[]; onCargar: (f: FilaVariedad) => void; plegable?: boolean
