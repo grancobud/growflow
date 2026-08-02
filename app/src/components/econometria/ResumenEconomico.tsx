@@ -21,14 +21,21 @@ const pct = (parte: number, total: number) => total > 0 ? (parte / total) * 100 
 // 1. El número que importa
 // ---------------------------------------------------------------------------
 
-export function CostoPorGramo({ eco, nCosechas, plantasActivas, mesesCiclo }: {
-  eco: ResumenEconomico; nCosechas: number; plantasActivas: number; mesesCiclo: number
+export function CostoPorGramo({ eco, nCosechas, plantasActivas, plantasEnFlora, mesesCiclo }: {
+  eco: ResumenEconomico; nCosechas: number; plantasActivas: number
+  plantasEnFlora: number; mesesCiclo: number
 }) {
   const hay = eco.gramos > 0
   const metas = [1000, 2000, 3000].map(p => ({ precio: p, gramos: gramosParaCosto(eco.totalCiclo, p) }))
   const rinde = nCosechas > 0 ? eco.gramos / nCosechas : 0
-  const proyectado = rinde * plantasActivas
+  // Proyección = lo YA cosechado + lo que falta cortar. Antes era rinde × plantas
+  // activas, con dos errores: no sumaba lo cosechado, y contaba como si fueran a
+  // dar todas las activas, incluidas las que están en vegetativo y son del ciclo
+  // siguiente. Con 12 autos en flora y 20 fem vegetando, proyectaba 32.
+  const porCortar = rinde * plantasEnFlora
+  const proyectado = eco.gramos + porCortar
   const costoProyectado = proyectado > 0 ? eco.totalCiclo / proyectado : null
+  const enVegetativo = Math.max(0, plantasActivas - plantasEnFlora)
 
   return (
     <section className="rounded-xl bg-gradient-to-br from-[#12160f] to-[#101016] border border-[#2c3a1a] p-4 sm:p-5">
@@ -55,17 +62,23 @@ export function CostoPorGramo({ eco, nCosechas, plantasActivas, mesesCiclo }: {
       </p>
 
       {/* Proyección: el número que sirve para decidir */}
-      {hay && plantasActivas > 0 && costoProyectado != null && (
+      {hay && plantasEnFlora > 0 && costoProyectado != null && (
         <div className="mt-3.5 rounded-lg bg-[#0d120a]/70 border border-[#243018] p-3">
           <div className="text-[10px] uppercase tracking-[0.12em] text-[#7c8b5c] font-medium mb-1.5">
             Proyección del ciclo en curso
           </div>
           <p className="text-[11.5px] text-[#8a8a9a] leading-relaxed">
-            Tenés <b className="text-[#d4d4dd]">{plantasActivas} plantas activas</b>. Si rinden como las
-            ya cosechadas (<b className="text-[#d4d4dd]">{fmtG(rinde)}g</b> promedio), el ciclo daría
-            ~<b className="text-[#bef264]">{fmtG(proyectado)}g</b> y el costo bajaría a
+            Ya cortaste <b className="text-[#d4d4dd]">{fmtG(eco.gramos)}g</b> y te quedan{' '}
+            <b className="text-[#d4d4dd]">{plantasEnFlora} planta{plantasEnFlora === 1 ? '' : 's'} en floración</b>.
+            Si rinden como las ya cosechadas (<b className="text-[#d4d4dd]">{fmtG(rinde)}g</b> promedio),
+            el ciclo cierra en ~<b className="text-[#bef264]">{fmtG(proyectado)}g</b> y el costo baja a
             ~<b className="text-[#bef264] text-[13px]">{fmt(costoProyectado)}/g</b>.
           </p>
+          {enVegetativo > 0 && (
+            <p className="text-[11px] text-[#7c8b5c] mt-1.5 leading-relaxed">
+              No se cuentan {enVegetativo} planta{enVegetativo === 1 ? '' : 's'} en vegetativo: son del ciclo que viene.
+            </p>
+          )}
         </div>
       )}
 

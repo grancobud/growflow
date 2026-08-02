@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import {
   Scale, Scissors, Trophy, X, Loader2, Plus, Star, Layers, Sprout, RefreshCw, Pencil, Trash2, ChevronDown,
 } from 'lucide-react'
-import { cultivoService, type ResumenPlanta, type Cosecha } from '../lib/cultivo'
+import { cultivoService, FASES_COSECHABLES, type ResumenPlanta, type Cosecha } from '../lib/cultivo'
 
 // Los 16px del input no son estéticos: abajo de eso iOS hace zoom al tocar el
 // campo y te deja la pantalla corrida. En desktop se achica con el sm:.
@@ -19,7 +19,6 @@ const btnPrimario = 'inline-flex items-center justify-center gap-1.5 px-3 py-2.5
 const SIN_GEN = 'Sin genética'
 
 // Fases a partir de las cuales tiene sentido cargar cosecha.
-const FASES_COSECHABLES = new Set(['Floracion', 'Secado', 'Curado', 'Cosechada'])
 
 // Chip de tipo de genética (Auto/Fem/…) — color + abreviatura.
 const COLOR_TIPO: Record<string, { label: string; text: string; bg: string; border: string }> = {

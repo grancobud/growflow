@@ -17,6 +17,14 @@ export const FASES: FasePlanta[] = [
   'Germinacion', 'Plantula', 'Vegetativo', 'Floracion',
   'Secado', 'Curado', 'Cosechada', 'Muerta',
 ]
+/**
+ * Fases a partir de las cuales una planta cuenta para la cosecha de ESTE ciclo.
+ * Las que están en germinación, plántula o vegetativo son del ciclo siguiente:
+ * incluirlas al proyectar el rinde lo infla (a Gastón le pasa con las
+ * feminizadas vegetando mientras se cosechan las automáticas).
+ */
+export const FASES_COSECHABLES = new Set<string>(['Floracion', 'Secado', 'Curado', 'Cosechada'])
+
 export const TIPOS_EVENTO: TipoEvento[] = [
   'Riego', 'Fertilizacion', 'Poda', 'Trasplante', 'CambioFase',
   'Entrenamiento', 'Problema', 'Foto', 'Nota',

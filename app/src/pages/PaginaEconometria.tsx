@@ -21,7 +21,7 @@ import {
 } from '../lib/econometria'
 import { stockService, type Insumo } from '../lib/stock'
 import { instalacionesService } from '../lib/instalaciones'
-import { cultivoService } from '../lib/cultivo'
+import { cultivoService, FASES_COSECHABLES } from '../lib/cultivo'
 import { ModalInsumo, ModalVerInsumo } from './PaginaStockInsumos'
 
 // text-[16px] en mobile: evita el zoom automático de iOS Safari al enfocar.
@@ -37,6 +37,7 @@ export default function PaginaEconometria() {
   const [costos, setCostos] = useState<Costo[]>([])
   const [insumos, setInsumos] = useState<Insumo[]>([])
   const [plantasActivas, setPlantasActivas] = useState(0)
+  const [plantasEnFlora, setPlantasEnFlora] = useState(0)
   const [gramosSeco, setGramosSeco] = useState(0)
   const [nCosechas, setNCosechas] = useState(0)
   const [cargando, setCargando] = useState(true)
@@ -61,7 +62,15 @@ export default function PaginaEconometria() {
         configService.get<VidaUtil>('vida_util_meses', VIDA_UTIL_DEFECTO),
         configService.get<{ meses_ciclo: number }>('parametros', { meses_ciclo: 4 }),
       ])
-      setCostos(cs); setInsumos(ins); setPlantasActivas(plantas.length)
+      // Para proyectar el ciclo sólo cuentan las que van a dar cosecha AHORA:
+      // las que llegaron a floración. Las que están en vegetativo son del ciclo
+      // siguiente y contarlas infla el rinde. En el cultivo de Gastón se nota
+      // fuerte: las autos florecen y se cosechan mientras 20 feminizadas siguen
+      // vegetando, y esas 20 no van a dar nada en este ciclo.
+      const enFlora = plantas.filter(p => FASES_COSECHABLES.has(p.fase))
+      setCostos(cs); setInsumos(ins)
+      setPlantasActivas(plantas.length)
+      setPlantasEnFlora(enFlora.length)
       setVida(vida); setMesesCiclo(params.meses_ciclo ?? 4)
       // Ojo: esto es el CATÁLOGO de instalaciones (un presupuesto de cosas que
       // no están compradas). Se muestra aparte, NO entra en el costo real.
@@ -146,7 +155,7 @@ export default function PaginaEconometria() {
       ) : tab === 'resumen' ? (
         <div className="px-3 sm:px-6 py-4 pb-[calc(6rem+env(safe-area-inset-bottom))] space-y-4">
           {/* El número que importa */}
-          <CostoPorGramo eco={eco} nCosechas={nCosechas} plantasActivas={plantasActivas} mesesCiclo={mesesCiclo} />
+          <CostoPorGramo eco={eco} nCosechas={nCosechas} plantasActivas={plantasActivas} plantasEnFlora={plantasEnFlora} mesesCiclo={mesesCiclo} />
 
           {/* A dónde va cada peso */}
           <ComposicionCosto eco={eco} />
