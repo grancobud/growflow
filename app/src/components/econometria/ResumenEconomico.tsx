@@ -6,7 +6,7 @@
 // vuelven listas; en desktop se usan tablas. Los desgloses arrancan cerrados
 // para que la pantalla chica no quede infinita.
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { ChevronDown, Landmark, Wrench, FlaskConical, Droplets, Info } from 'lucide-react'
 import {
   gramosParaCosto, mensualEquivalente, labelPeriodicidad,
@@ -21,9 +21,18 @@ const pct = (parte: number, total: number) => total > 0 ? (parte / total) * 100 
 // 1. El número que importa
 // ---------------------------------------------------------------------------
 
-export function CostoPorGramo({ eco, nCosechas, plantasActivas, plantasEnFlora, mesesCiclo }: {
+/** Percentil de una lista YA ordenada de menor a mayor. */
+function percentil(ordenados: number[], p: number): number {
+  if (ordenados.length === 0) return 0
+  if (ordenados.length === 1) return ordenados[0]
+  const i = (ordenados.length - 1) * p
+  const bajo = Math.floor(i), alto = Math.ceil(i)
+  return bajo === alto ? ordenados[bajo] : ordenados[bajo] + (ordenados[alto] - ordenados[bajo]) * (i - bajo)
+}
+
+export function CostoPorGramo({ eco, nCosechas, plantasActivas, plantasEnFlora, rindes, mesesCiclo }: {
   eco: ResumenEconomico; nCosechas: number; plantasActivas: number
-  plantasEnFlora: number; mesesCiclo: number
+  plantasEnFlora: number; rindes: number[]; mesesCiclo: number
 }) {
   const hay = eco.gramos > 0
   const metas = [1000, 2000, 3000].map(p => ({ precio: p, gramos: gramosParaCosto(eco.totalCiclo, p) }))
@@ -36,6 +45,23 @@ export function CostoPorGramo({ eco, nCosechas, plantasActivas, plantasEnFlora, 
   const proyectado = eco.gramos + porCortar
   const costoProyectado = proyectado > 0 ? eco.totalCiclo / proyectado : null
   const enVegetativo = Math.max(0, plantasActivas - plantasEnFlora)
+
+  // Escenarios: qué pasa si las que faltan rinden como el peor cuarto de lo ya
+  // cosechado, como el promedio, como el mejor cuarto o como la mejor planta.
+  // Con pocas cosechas los percentiles no significan nada, así que se piden 4.
+  const escenarios = useMemo<{ nombre: string; rinde: number; total: number; costo: number; destacado: boolean }[]>(() => {
+    if (rindes.length < 4 || plantasEnFlora <= 0) return []
+    const armar = (nombre: string, rinde: number, destacado = false) => {
+      const total = eco.gramos + rinde * plantasEnFlora
+      return { nombre, rinde, total, costo: eco.totalCiclo / total, destacado }
+    }
+    return [
+      armar('Flojo', percentil(rindes, 0.25)),
+      armar('Esperado', rinde, true),          // el promedio de lo ya cosechado
+      armar('Bueno', percentil(rindes, 0.75)),
+      armar('Óptimo', rindes[rindes.length - 1]),
+    ]
+  }, [rindes, plantasEnFlora, eco.gramos, eco.totalCiclo, rinde])
 
   return (
     <section className="rounded-xl bg-gradient-to-br from-[#12160f] to-[#101016] border border-[#2c3a1a] p-4 sm:p-5">
@@ -82,12 +108,49 @@ export function CostoPorGramo({ eco, nCosechas, plantasActivas, plantasEnFlora, 
         </div>
       )}
 
-      {/* Cuánto hay que producir para cada precio objetivo */}
-      <div className="mt-3.5">
-        <div className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium mb-2">
-          Para que te salga…
+      {/* Escenarios con los rindes REALES. Antes había tres precios redondos
+          ($1.000, $2.000, $3.000) y cuántos gramos hacían falta para cada uno:
+          números inventados que no decían nada del cultivo. Ahora cada escenario
+          sale de la distribución de lo ya cosechado. */}
+      {escenarios.length > 0 && (
+        <div className="mt-3.5">
+          <div className="flex items-baseline gap-2 mb-2">
+            <span className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium">
+              Cómo puede cerrar el ciclo
+            </span>
+            <span className="text-[10.5px] text-[#3a3a4a]">según cómo rindan las {plantasEnFlora} que faltan</span>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+            {escenarios.map(e => (
+              <div key={e.nombre}
+                className={`rounded-lg px-2.5 py-2 border ${
+                  e.destacado ? 'bg-[#a3e635]/10 border-[#404d20]' : 'bg-[#0d0d13] border-[#1f1f2b]'}`}>
+                <div className={`text-[11px] font-medium ${e.destacado ? 'text-[#d9f99d]' : 'text-[#a6a6b5]'}`}>
+                  {e.nombre}
+                </div>
+                <div className="text-[10px] text-[#5c5c6b] tabular-nums mt-0.5">{fmtG(e.rinde)}g por planta</div>
+                <div className={`text-[17px] font-semibold tabular-nums leading-tight mt-1 ${
+                  e.destacado ? 'text-[#bef264]' : 'text-[#d4d4dd]'}`}>
+                  {fmt(e.costo)}<span className="text-[11px] font-normal text-[#5c5c6b]">/g</span>
+                </div>
+                <div className="text-[10px] text-[#5c5c6b] tabular-nums mt-0.5">{fmtG(e.total)}g el ciclo</div>
+              </div>
+            ))}
+          </div>
+          <p className="text-[10.5px] text-[#5c5c6b] mt-2 leading-relaxed">
+            Sale de tus {nCosechas} cosechas: la peor dio {fmtG(rindes[0] ?? 0)}g y la mejor{' '}
+            {fmtG(rindes[rindes.length - 1] ?? 0)}g.
+          </p>
         </div>
-        <div className="grid grid-cols-3 gap-2">
+      )}
+
+      {/* Cuánto hay que producir para cada precio objetivo */}
+      <details className="mt-3 group">
+        <summary className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium cursor-pointer hover:text-[#8a8a9a] list-none flex items-center gap-1">
+          <span className="group-open:rotate-90 transition-transform inline-block">›</span>
+          Para llegar a un precio objetivo
+        </summary>
+        <div className="grid grid-cols-3 gap-2 mt-2">
           {metas.map(m => (
             <div key={m.precio} className="rounded-lg bg-[#0d0d13] border border-[#1f1f2b] px-2 py-2 text-center">
               <div className="text-[11px] text-[#a6a6b5] tabular-nums">${fmtG(m.precio)}/g</div>
@@ -98,7 +161,7 @@ export function CostoPorGramo({ eco, nCosechas, plantasActivas, plantasEnFlora, 
             </div>
           ))}
         </div>
-      </div>
+      </details>
     </section>
   )
 }

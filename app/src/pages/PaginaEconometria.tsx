@@ -40,6 +40,10 @@ export default function PaginaEconometria() {
   const [plantasEnFlora, setPlantasEnFlora] = useState(0)
   const [gramosSeco, setGramosSeco] = useState(0)
   const [nCosechas, setNCosechas] = useState(0)
+  // Los rindes planta por planta: con ellos se arman los escenarios del ciclo
+  // (peor cuarto, promedio, mejor cuarto, mejor planta) en vez de inventar
+  // precios redondos.
+  const [rindes, setRindes] = useState<number[]>([])
   const [cargando, setCargando] = useState(true)
   const [mesesCiclo, setMesesCiclo] = useState(4)
   const [vida, setVida] = useState<VidaUtil>(VIDA_UTIL_DEFECTO)
@@ -77,6 +81,7 @@ export default function PaginaEconometria() {
       setCapexInstalaciones(itemsInst.reduce((s, i) => s + (i.precio != null ? Number(i.precio) : 0), 0))
       setGramosSeco(cosechas.reduce((s, c) => s + (c.peso_seco_g != null ? Number(c.peso_seco_g) : 0), 0))
       setNCosechas(cosechas.filter(c => c.peso_seco_g != null && Number(c.peso_seco_g) > 0).length)
+      setRindes(cosechas.map(c => Number(c.peso_seco_g)).filter(n => n > 0).sort((a, b) => a - b))
     } catch (err) { toast.error(`Error cargando econometría: ${(err as Error).message}`) }
     finally { setCargando(false) }
   }, [])
@@ -155,7 +160,7 @@ export default function PaginaEconometria() {
       ) : tab === 'resumen' ? (
         <div className="px-3 sm:px-6 py-4 pb-[calc(6rem+env(safe-area-inset-bottom))] space-y-4">
           {/* El número que importa */}
-          <CostoPorGramo eco={eco} nCosechas={nCosechas} plantasActivas={plantasActivas} plantasEnFlora={plantasEnFlora} mesesCiclo={mesesCiclo} />
+          <CostoPorGramo eco={eco} nCosechas={nCosechas} plantasActivas={plantasActivas} plantasEnFlora={plantasEnFlora} rindes={rindes} mesesCiclo={mesesCiclo} />
 
           {/* A dónde va cada peso */}
           <ComposicionCosto eco={eco} />
