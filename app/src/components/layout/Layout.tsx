@@ -117,9 +117,11 @@ export default function Layout() {
         )}
         <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden pb-[calc(3.5rem+env(safe-area-inset-bottom))]">
           <div className="flex items-center gap-3 px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] bg-surface-900 text-white">
+            {/* 44x44 minimo para el dedo. El -ml-1.5 compensa el padding extra
+                para que el icono siga alineado con el borde del contenedor. */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="p-1"
+              className="-ml-1.5 p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center"
               aria-label="Abrir menu completo"
             >
               <Menu className="w-6 h-6" />

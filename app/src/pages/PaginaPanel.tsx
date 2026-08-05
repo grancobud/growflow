@@ -103,8 +103,9 @@ export default function PaginaPanel() {
             </div>
           </div>
           <div className="flex-1" />
+          {/* min-h-[44px] en mobile: con py-1.5 el boton queda en 31px de alto. */}
           <Link to="/plantas"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[11.5px] font-medium text-[#d9f99d]">
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 min-h-[44px] sm:min-h-0 rounded-md border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[11.5px] font-medium text-[#d9f99d]">
             <Sprout className="w-3.5 h-3.5" /> Plantas
           </Link>
         </div>
@@ -189,7 +190,11 @@ export default function PaginaPanel() {
                 <Leaf className="w-3.5 h-3.5 text-[#bef264] flex-shrink-0" />
                 <h3 className="font-display font-semibold text-[13px] text-[#ececf1] truncate">Plantas activas</h3>
               </div>
-              <Link to="/plantas" className="text-[11px] text-[#d9f99d] hover:text-[#bef264] font-medium flex items-center gap-1 flex-shrink-0">
+              {/* En mobile se oculta el texto y queda solo la flecha de 12px. El
+                  after:-inset-4 agranda el area tocable a ~44px sin cambiar el
+                  tamano visible ni empujar el header. */}
+              <Link to="/plantas" aria-label="Gestionar plantas"
+                className="relative after:absolute after:-inset-4 after:content-[''] sm:after:hidden text-[11px] text-[#d9f99d] hover:text-[#bef264] font-medium flex items-center gap-1 flex-shrink-0">
                 <span className="hidden sm:inline">Gestionar</span>
                 <ArrowRight className="w-3 h-3" />
               </Link>
