@@ -13,6 +13,7 @@ import {
 import { cultivoService, type ResumenPlanta, type Evento, type Cosecha } from '../lib/cultivo'
 import { registroService, type Paciente } from '../lib/registro'
 import { supabase } from '../lib/supabase'
+import { FotoPrivada } from './FotoPrivada'
 import QR from './QR'
 
 const ICONO: Record<string, { Ic: any; color: string }> = {
@@ -254,7 +255,7 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
                     </div>
                     {it.detalle && <p className="text-[11.5px] text-[#a6a6b5] mt-0.5 leading-snug">{it.detalle}</p>}
                     {it.foto_url && (
-                      <img src={it.foto_url} alt="" loading="lazy" onClick={() => setVisor(it.foto_url)}
+                      <FotoPrivada valor={it.foto_url} onClick={() => setVisor(it.foto_url)}
                         className="mt-2 rounded-lg border border-[#1f1f2b] max-h-44 object-cover cursor-zoom-in" />
                     )}
                   </li>
@@ -268,7 +269,7 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
       {/* Visor de foto */}
       {visor && (
         <div className="absolute inset-0 z-10 bg-black/90 flex items-center justify-center p-4" onClick={() => setVisor(null)}>
-          <img src={visor} alt="" className="max-w-full max-h-full rounded-lg" />
+          <FotoPrivada valor={visor} className="max-w-full max-h-full rounded-lg" />
           <button className="absolute top-4 right-4 text-white/80 hover:text-white" onClick={() => setVisor(null)}>
             <X className="w-6 h-6" />
           </button>

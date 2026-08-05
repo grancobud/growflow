@@ -12,6 +12,7 @@ import {
   type Genetica,
 } from '../lib/cultivo'
 import { MODO_DEMO } from '../lib/supabase'
+import { FotoPrivada } from '../components/FotoPrivada'
 
 const inputCls = 'w-full px-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
@@ -88,7 +89,7 @@ export default function PaginaGeneticas() {
               const cg = g.genotipo ? COLOR_GENOTIPO[g.genotipo] : null
               return (
                 <div key={g.id} className="rounded-xl bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] transition-colors overflow-hidden h-full flex flex-col">
-                  {g.foto_url && <div className="h-28 bg-[#15151d] overflow-hidden"><img src={g.foto_url} alt="" className="w-full h-full object-cover" /></div>}
+                  {g.foto_url && <div className="h-28 bg-[#15151d] overflow-hidden"><FotoPrivada valor={g.foto_url} className="w-full h-full object-cover" /></div>}
                   <div className="p-4 flex flex-col flex-1">
                     <div className="flex items-start gap-2">
                       <div className="min-w-0 flex-1">
@@ -261,7 +262,7 @@ function ModalGeneticaFicha({ genetica, onCerrar, onGuardado }: {
         <div className="pt-2 border-t border-[#1f1f2b]"><div className="text-[10px] uppercase tracking-[0.14em] text-[#a78bfa] mb-2">Foto</div></div>
         {MODO_DEMO && <p className="text-[10.5px] text-[#f59e0b] -mt-1">Modo demo: la foto queda en este navegador.</p>}
         <div className="flex items-center gap-3">
-          {fotoUrl && <img src={fotoUrl} alt="" className="w-14 h-14 rounded-lg object-cover border border-[#2a2a3a]" />}
+          {fotoUrl && <FotoPrivada valor={fotoUrl} className="w-14 h-14 rounded-lg object-cover border border-[#2a2a3a]" />}
           <label className={`${btnSutil} cursor-pointer`}>
             {subiendo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
             {fotoUrl ? 'Cambiar foto' : 'Subir foto'}
@@ -298,7 +299,7 @@ function ModalVerFicha({ genetica, onCerrar }: { genetica: Genetica; onCerrar: (
   return (
     <Modal titulo={`Ficha: ${g.nombre}`} onCerrar={onCerrar}>
       <div className="space-y-4">
-        {g.foto_url && <img src={g.foto_url} alt="" className="w-full max-h-52 rounded-lg object-cover border border-[#2a2a3a]" />}
+        {g.foto_url && <FotoPrivada valor={g.foto_url} className="w-full max-h-52 rounded-lg object-cover border border-[#2a2a3a]" />}
         <div className="flex items-center gap-2 flex-wrap text-[11.5px] text-[#757584]">
           {cg && <span className="px-2 py-0.5 rounded-full border text-[11px] font-medium" style={{ color: cg.text, background: cg.bg, borderColor: cg.border }}>{g.genotipo}</span>}
           {g.tipo && <span>{g.tipo}</span>}

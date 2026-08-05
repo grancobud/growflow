@@ -10,12 +10,13 @@ import {
   ExternalLink, User, Phone, Mail, MapPin, Stethoscope, ShieldCheck, AlertTriangle, Sprout, Ruler,
 } from 'lucide-react'
 import {
-  registroService, ESTADOS_REPROCANN, MODALIDADES, diasParaVencer,
+  registroService, ESTADOS_REPROCANN, MODALIDADES, diasParaVencer, urlDeCredencial,
   type Paciente, type EstadoReprocann,
 } from '../lib/registro'
 import { cultivoService, type ResumenPlanta } from '../lib/cultivo'
 import { MODO_DEMO } from '../lib/supabase'
 import { leerCredencial, OCR_DISPONIBLE } from '../lib/ocr'
+import { FotoPrivada } from '../components/FotoPrivada'
 
 const COLOR_ESTADO: Record<EstadoReprocann, { text: string; bg: string; border: string }> = {
   Vigente:      { text: '#bef264', bg: 'rgba(163,230,53,0.14)', border: '#404d20' },
@@ -141,7 +142,7 @@ export default function PaginaPacientes() {
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 rounded-full bg-[#a3e635]/12 border border-[#404d20] flex items-center justify-center flex-shrink-0 overflow-hidden">
                         {p.foto_url
-                          ? <img src={p.foto_url} alt="" className="w-full h-full object-cover" />
+                          ? <FotoPrivada valor={p.foto_url} className="w-full h-full object-cover" />
                           : <span className="text-[14px] font-display font-bold text-[#d9f99d]">{inicial}</span>}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -262,6 +263,18 @@ function ModalDetalle({ paciente: p, onCerrar, onEditar, onBorrar }: {
   const [plantasPac, setPlantasPac] = useState<ResumenPlanta[]>([])
   useEffect(() => { cultivoService.getPlantasDePaciente(p.id).then(setPlantasPac).catch(() => {}) }, [p.id])
   const usoPlantas = plantasPac.filter(pl => pl.activa).length
+  // La credencial no tiene link permanente: se pide una URL firmada cada vez que
+  // se abre la ficha. null = todavía resolviendo; 'error' = no se pudo, se avisa
+  // en vez de dejar un visor en blanco.
+  const [cred, setCred] = useState<{ url: string } | 'error' | null>(null)
+  useEffect(() => {
+    if (!p.credencial_url) return
+    let vigente = true
+    urlDeCredencial(p.credencial_url)
+      .then(u => { if (vigente) setCred(u ? { url: u } : 'error') })
+      .catch(() => { if (vigente) setCred('error') })
+    return () => { vigente = false }
+  }, [p.credencial_url])
   return (
     <Modal titulo={p.nombre_completo} ancho="max-w-2xl" onCerrar={onCerrar}>
       <div className="flex items-center gap-2 flex-wrap mb-3">
@@ -294,14 +307,20 @@ function ModalDetalle({ paciente: p, onCerrar, onEditar, onBorrar }: {
       <div className="mt-4 pt-4 border-t border-[#1f1f2b]">
         <div className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] mb-2">Credencial REPROCANN</div>
         {p.credencial_url ? (
-          <div>
-            <div className="rounded-lg overflow-hidden border border-[#2a2a3a] bg-[#15151d]">
-              <iframe src={p.credencial_url} title="Credencial" className="w-full h-[360px]" />
+          cred === 'error' ? (
+            <p className="text-[11.5px] text-[#f0a5a5]">No se pudo abrir la credencial. Recargá la página o volvé a subir el archivo.</p>
+          ) : !cred ? (
+            <p className="text-[11.5px] text-[#5c5c6b]">Abriendo la credencial…</p>
+          ) : (
+            <div>
+              <div className="rounded-lg overflow-hidden border border-[#2a2a3a] bg-[#15151d]">
+                <iframe src={cred.url} title="Credencial" className="w-full h-[360px]" />
+              </div>
+              <a href={cred.url} target="_blank" rel="noreferrer" className={`${btnSutil} mt-2`}>
+                <ExternalLink className="w-3.5 h-3.5" /> Abrir en pestaña nueva
+              </a>
             </div>
-            <a href={p.credencial_url} target="_blank" rel="noreferrer" className={`${btnSutil} mt-2`}>
-              <ExternalLink className="w-3.5 h-3.5" /> Abrir en pestaña nueva
-            </a>
-          </div>
+          )
         ) : (
           <p className="text-[11.5px] text-[#5c5c6b]">Sin credencial cargada. Editá la ficha para subir el PDF.</p>
         )}

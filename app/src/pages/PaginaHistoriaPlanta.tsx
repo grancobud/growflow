@@ -12,6 +12,7 @@ import {
   cultivoService, type Planta, type Genetica, type ItemHistoria,
 } from '../lib/cultivo'
 import { registroService, type Paciente } from '../lib/registro'
+import { FotoPrivada } from '../components/FotoPrivada'
 import QR from '../components/QR'
 
 const ICONO: Record<string, { Ic: any; color: string }> = {
@@ -170,7 +171,7 @@ export default function PaginaHistoriaPlanta() {
                       <span className="text-[10.5px] text-[#5c5c6b] tabular-nums font-mono">{fmt(it.fecha)}</span>
                     </div>
                     {it.detalle && <p className="text-[11.5px] text-[#a6a6b5] mt-0.5 leading-snug">{it.detalle}</p>}
-                    {it.foto_url && <img src={it.foto_url} alt="" loading="lazy" onClick={() => setVisor(it.foto_url)} className="mt-2 rounded-lg border border-[#1f1f2b] max-h-44 object-cover cursor-zoom-in" />}
+                    {it.foto_url && <FotoPrivada valor={it.foto_url} onClick={() => setVisor(it.foto_url)} className="mt-2 rounded-lg border border-[#1f1f2b] max-h-44 object-cover cursor-zoom-in" />}
                   </li>
                 )
               })}
@@ -181,7 +182,7 @@ export default function PaginaHistoriaPlanta() {
 
       {visor && (
         <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setVisor(null)}>
-          <img src={visor} alt="" className="max-w-full max-h-full rounded-lg" />
+          <FotoPrivada valor={visor} className="max-w-full max-h-full rounded-lg" />
         </div>
       )}
     </div>

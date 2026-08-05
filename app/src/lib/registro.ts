@@ -44,6 +44,10 @@ function lanzar(error: { message: string } | null) {
   if (error) throw new Error(error.message)
 }
 
+// Sube y devuelve el PATH dentro del bucket, no una URL publica. La credencial
+// es un dato personal del paciente: si se guarda la URL publica, el PDF queda
+// accesible para cualquiera que la tenga, sin login y para siempre. Se lee con
+// createSignedUrl (ver urlDeCredencial), igual que las fichas tecnicas.
 async function subirA(bucket: string, file: File, prefijo: string): Promise<string> {
   const ext = (file.name.split('.').pop() || 'bin').toLowerCase()
   const nombre = `${prefijo}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
@@ -51,9 +55,10 @@ async function subirA(bucket: string, file: File, prefijo: string): Promise<stri
     cacheControl: '3600', upsert: false, contentType: file.type || 'application/octet-stream',
   })
   if (error) throw new Error(error.message)
-  const { data } = supabase.storage.from(bucket).getPublicUrl(nombre)
-  return data.publicUrl
+  return nombre
 }
+
+export { urlDeCredencial } from './archivos'
 
 // Dias hasta el vencimiento de la credencial (negativo = vencida, null = sin fecha).
 export function diasParaVencer(p: Pick<Paciente, 'reprocann_vencimiento'>): number | null {
@@ -96,10 +101,12 @@ export const registroService = {
     lanzar(error)
   },
 
+  /** Guarda el PATH: la credencial se ve con URL firmada (ver urlDeCredencial). */
   subirCredencial(file: File): Promise<string> {
     return subirA('documentos', file, 'credencial')
   },
 
+  /** Guarda el PATH: se muestra con <FotoPrivada>, que pide la URL firmada. */
   subirFotoPaciente(file: File): Promise<string> {
     return subirA('fotos', file, 'paciente')
   },

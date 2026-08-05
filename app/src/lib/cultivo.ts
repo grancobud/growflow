@@ -344,6 +344,9 @@ export const cultivoService = {
   },
 
   // --- fotos ---
+  // Devuelve el PATH dentro del bucket, no una URL publica: el bucket `fotos`
+  // es privado y las fotos se muestran con <FotoPrivada>, que pide una URL
+  // firmada. Guardar la URL publica dejaria la foto accesible sin login.
   async subirFoto(file: File): Promise<string> {
     const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
     const nombre = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
@@ -351,8 +354,7 @@ export const cultivoService = {
       cacheControl: '3600', upsert: false, contentType: file.type || 'image/jpeg',
     })
     if (error) throw new Error(error.message)
-    const { data } = supabase.storage.from('fotos').getPublicUrl(nombre)
-    return data.publicUrl
+    return nombre
   },
 
   // --- estadisticas ---
