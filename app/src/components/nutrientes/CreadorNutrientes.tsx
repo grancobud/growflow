@@ -120,21 +120,26 @@ function BarraTabs({ sub, setSub }: { sub: SubTab; setSub: (s: SubTab) => void }
           motivos distintos y difíciles de ver (la barra recortaba el panel, el
           scroll lo cerraba, el botón quedaba fuera de pantalla, el service
           worker servía un CSS sin las clases nuevas). Un div normal no puede
-          fallar por ninguna de esas causas. */}
+          fallar por ninguna de esas causas.
+
+          En celular los grupos van apilados (es una columna angosta y se
+          scrollea). En desktop sobra ancho y falta alto: los cuatro grupos
+          pasan a ser cuatro columnas, para que el panel no empuje la
+          calculadora fuera de la pantalla. */}
       {abierto && (
         <div data-panel-tabs role="group" aria-label="Más herramientas"
-          className="border-b border-[#1f1f2b] bg-[#0d0d13] px-1 pb-2">
+          className="border-b border-[#1f1f2b] bg-[#0d0d13] px-1 pb-2 sm:grid sm:grid-cols-4 sm:gap-x-3 sm:items-start">
           {GRUPOS_TABS.map(g => (
             <div key={g.grupo}>
               <div className="px-3 pt-3 pb-1 text-[11px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium">
                 {g.grupo}
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1">
+              <div className="grid grid-cols-2 sm:grid-cols-1 gap-1">
                 {g.ids.map(id => {
                   const t = infoTab(id); const Icon = t.icon; const on = sub === id
                   return (
                     <button key={id} onClick={() => elegir(id)}
-                      className={`flex items-center gap-2 px-3 py-3 min-h-[48px] rounded-lg text-left text-[13.5px] transition-colors ${
+                      className={`flex items-center gap-2 px-3 py-3 min-h-[48px] sm:py-2 sm:min-h-0 rounded-lg text-left text-[13.5px] transition-colors ${
                         on ? 'bg-[#a3e635]/10 text-[#d9f99d]' : 'text-[#a6a6b5] hover:bg-[#15151d] hover:text-[#ececf1]'}`}>
                       <Icon className="w-4 h-4 flex-shrink-0" strokeWidth={1.8} />
                       <span className="truncate">{t.label}</span>
