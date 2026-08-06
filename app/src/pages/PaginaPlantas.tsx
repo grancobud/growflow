@@ -13,6 +13,7 @@ import {
 } from '../lib/cultivo'
 import { registroService, type Paciente } from '../lib/registro'
 import DetallePlanta from '../components/DetallePlanta'
+import { btnPrimario, btnSutil } from '../lib/ui'
 
 const COLOR_FASE: Record<FasePlanta, { text: string; bg: string; border: string }> = {
   Germinacion: { text: '#d9f99d', bg: 'rgba(163,230,53,0.10)', border: '#404d20' },
@@ -44,8 +45,6 @@ function ChipTipo({ tipo }: { tipo?: string | null }) {
 
 const inputCls = 'w-full px-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
-const btnPrimario = 'inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[12px] font-medium text-[#d9f99d] disabled:opacity-50'
-const btnSutil = 'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] hover:border-[#404d20] transition-colors text-[11px] text-[#a6a6b5] hover:text-[#ececf1]'
 const selectFiltro = 'px-2.5 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11.5px] text-[#a6a6b5] focus:outline-none focus:border-[#a3e635]/60 cursor-pointer max-w-[170px]'
 
 // "Tarea pendiente" derivable de los datos reales: el riego. Una planta en fase

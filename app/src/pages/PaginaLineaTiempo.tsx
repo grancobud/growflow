@@ -10,13 +10,12 @@ import { toast } from 'sonner'
 import { CalendarRange, Sprout, Pencil, X, Loader2, ExternalLink } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { cultivoService, type Genetica } from '../lib/cultivo'
+import { btnPrimario, btnSutil } from '../lib/ui'
 
 const VERDE = '#a8cf8e', LILA = '#c9b8e8', GRIS = '#b7b3c2'
 
 const inputCls = 'w-full px-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
-const btnPrimario = 'inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[12px] font-medium text-[#d9f99d] disabled:opacity-50'
-const btnSutil = 'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] hover:border-[#404d20] transition-colors text-[11px] text-[#a6a6b5] hover:text-[#ececf1]'
 
 const hoyISO = () => new Date().toISOString().slice(0, 10)
 const diff = (a: string, b: string) => Math.round((new Date(b + 'T00:00:00').getTime() - new Date(a + 'T00:00:00').getTime()) / 86400000)
