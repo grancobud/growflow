@@ -121,3 +121,55 @@ export function perfilDesdeFicha(f: FichaComercial, dosis: number): Perfil {
 export function totalDeclarado(f: FichaComercial): number {
   return +Object.values(f.composicion).reduce((a, b) => a + (b || 0), 0).toFixed(3)
 }
+
+// ---------------------------------------------------------------------------
+// Comprar el comercial vs. hacerlo con sales.
+// ---------------------------------------------------------------------------
+
+export interface ComparacionComercial {
+  /** Litros de riego que rinde UN envase del comercial, a su dosis de etiqueta. */
+  rindeL: number | null
+  /** Lo que cuesta un litro de riego comprando el producto. */
+  comercialPorLitro: number | null
+  /**
+   * Cuántas veces concentrada tiene que quedar tu solución madre para que
+   * reemplace al comercial litro por litro: se usa a la misma dosis y sale la
+   * misma concentración en el tanque.
+   */
+  factorEquivalente: number | null
+}
+
+/**
+ * Tamaño del envase pasado a la unidad de la dosis: mL para los líquidos
+ * (dosis en mL/L) y g para los polvos (dosis en g/L).
+ */
+export function envaseEnUnidadDeDosis(f: FichaComercial): number | null {
+  if (!f.envase_cant) return null
+  switch (f.envase_unidad) {
+    case 'L': return f.envase_cant * 1000   // L  -> mL
+    case 'ml': return f.envase_cant
+    case 'kg': return f.envase_cant * 1000  // kg -> g
+    case 'g': return f.envase_cant
+    default: return null
+  }
+}
+
+/**
+ * Cuánto rinde y cuánto sale el comercial. Devuelve null en lo que no se pueda
+ * calcular (falta precio, envase o dosis) en vez de inventar un número.
+ */
+export function compararComercial(f: FichaComercial): ComparacionComercial {
+  const dosis = f.dosis_ml_l ?? null
+  const envase = envaseEnUnidadDeDosis(f)
+  // A dosis d (mL/L o g/L), 1 L del producto alcanza para 1000/d litros de
+  // riego; ése es justo el factor de concentración que iguala al comercial.
+  const factorEquivalente = dosis && dosis > 0 ? +(1000 / dosis).toFixed(1) : null
+  if (!dosis || dosis <= 0 || envase == null) {
+    return { rindeL: null, comercialPorLitro: null, factorEquivalente }
+  }
+  const rindeL = envase / dosis
+  const comercialPorLitro = f.precio_envase != null && rindeL > 0
+    ? f.precio_envase / rindeL
+    : null
+  return { rindeL: +rindeL.toFixed(1), comercialPorLitro, factorEquivalente }
+}

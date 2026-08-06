@@ -15,11 +15,15 @@ import {
   CONV_OXIDO, PESO_EQ, ppmAmeq, meqAppm,
   necesitaSepararAB, bidonDeSal, detectarQuelatosRedundantes,
   perfilesNutrientesService, sustanciasService, inventarioService, aplicarInventario, proveedoresService, backfillThumbs, type Proveedor,
+  UNIDADES_PROV, precioPorKg, costoDeAditivo, type CostoSustancia,
   compatibilidad, estadoRango, RANGOS_FLORA_COCO, rangosDesdePerfil,
   type ElementKey, type Perfil, type PerfilGuardado, type Sal, type Bidon,
   type Resultado, type ResultadoSal, type BidonConcentrado, type Ratios,
   type InventarioItem, type RangoPerfil,
 } from '../../lib/nutrientes'
+import {
+  fichasService, perfilDesdeFicha, compararComercial, type FichaComercial,
+} from '../../lib/fichas'
 import { procesarImagen, thumbDesdeDataUrl } from '../../lib/imagen'
 
 type SetSet = React.Dispatch<React.SetStateAction<Set<string>>>
@@ -1278,12 +1282,122 @@ function ConcentradosTab({ factor, setFactor, volBidon, setVolBidon, resolucion,
         </div>
       )}
 
+      <CompararConComercial salesTodas={salesTodas} />
+
       {/* Matriz de compatibilidad de mezcla */}
       <MatrizCompatibilidad sales={salesEnMadres.length ? salesEnMadres : salesTodas.filter(s => !s.aditivo && Object.keys(s.comp ?? {}).length > 0).slice(0, 12)} />
 
       <p className="text-[11.5px] text-[#5c5c6b] px-1">
         Regla de oro: al tanque final echá primero el bidón A (calcio), agitá, después el B. Nunca juntes A y B concentrados.
         Para tener tus clones acá, guardalos con un nombre en la pestaña Calculadora.
+      </p>
+    </div>
+  )
+}
+
+/**
+ * Comprar el comercial vs. hacerlo con sales, para cada ficha que tenga precio.
+ *
+ * Las dos puntas se llevan al MISMO denominador —lo que sale un litro de riego—
+ * porque es lo único comparable: un envase de 500 mL y una bolsa de 25 kg no se
+ * pueden mirar de frente. El costo propio sale de clonar la ficha con el mismo
+ * kit de sales que usa el botón Clonar, así que es el mismo número que te va a
+ * dar la calculadora.
+ */
+function CompararConComercial({ salesTodas }: { salesTodas: Sal[] }) {
+  const [fichas, setFichas] = useState<FichaComercial[]>([])
+  useEffect(() => { fichasService.listar().then(setFichas).catch(() => {}) }, [])
+
+  const filas = useMemo(() => fichas.map(f => {
+    const cmp = compararComercial(f)
+    // El DIY: mismo camino que Clonar (perfil a la dosis de etiqueta -> kit de
+    // sales -> receta -> costo), para que los dos números sean consistentes.
+    let diyPorLitro: number | null = null
+    const dosis = f.dosis_ml_l ?? null
+    if (dosis && Object.keys(f.composicion ?? {}).length > 0) {
+      const perfil = perfilDesdeFicha(f, dosis)
+      const ids = kitParaPerfil(perfil)
+      const sales = salesTodas.filter(s => ids.includes(s.id))
+      if (sales.length) {
+        const receta = calcularReceta(perfil, sales, {})
+        const c = calcularCosto(receta.dosis).porLitro
+        // Sin precios de sales cargados da 0, que no es "gratis" sino "no sé".
+        diyPorLitro = c > 0 ? c : null
+      }
+    }
+    const ahorro = cmp.comercialPorLitro != null && diyPorLitro != null && cmp.comercialPorLitro > 0
+      ? 1 - diyPorLitro / cmp.comercialPorLitro : null
+    return { f, cmp, diyPorLitro, ahorro }
+  }).filter(r => r.cmp.comercialPorLitro != null || r.diyPorLitro != null)
+    .sort((a, b) => (b.ahorro ?? -1) - (a.ahorro ?? -1)), [fichas, salesTodas])
+
+  if (filas.length === 0) return null
+  const sinPrecio = fichas.length - filas.length
+
+  return (
+    <div className={card}>
+      <div className="flex items-center gap-2 mb-1">
+        <Scale className="w-4 h-4 text-[#facc15]" strokeWidth={1.8} />
+        <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Comprarlo hecho vs. hacerlo vos</h3>
+        <Info><b className="text-[#d9f99d]">Lo que sale un litro de riego</b> con el producto comercial y con tus sales.<br /><span className="text-[#a3e635]">Ej: si el comercial sale $460/L de riego y las sales $12, el ahorro es 97%.</span></Info>
+      </div>
+      <p className="text-[11.5px] text-[#5c5c6b] mb-3">
+        Todo llevado a <b className="text-[#a6a6b5]">un litro de riego ya diluido</b>, que es lo único comparable entre un envase de 500 mL y una bolsa de 25 kg.
+      </p>
+      <div className="overflow-x-auto">
+        <table className="w-full text-[12.5px] border-collapse min-w-[640px]">
+          <thead>
+            <tr className="text-[10.5px] uppercase tracking-[0.1em] text-[#5c5c6b] text-left">
+              <th className="py-1.5 pr-2 font-medium">Producto</th>
+              <th className="py-1.5 px-2 font-medium text-right">Envase rinde</th>
+              <th className="py-1.5 px-2 font-medium text-right">Comprado</th>
+              <th className="py-1.5 px-2 font-medium text-right">Hecho por vos</th>
+              <th className="py-1.5 px-2 font-medium text-right">Ahorro</th>
+              <th className="py-1.5 pl-2 font-medium text-right">Concentrado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filas.map(({ f, cmp, diyPorLitro, ahorro }) => (
+              <tr key={f.id} className="border-t border-[#1f1f2b]">
+                <td className="py-2 pr-2">
+                  <span className="text-[#ececf1]">{f.marca} {f.producto}</span>
+                  {f.envase_cant && (
+                    <span className="text-[#5c5c6b]"> · {fmtNum(f.envase_cant)} {f.envase_unidad}
+                      {f.precio_envase != null && <> · {fmtPesos(f.precio_envase)}</>}
+                    </span>
+                  )}
+                </td>
+                <td className="py-2 px-2 text-right font-mono tabular-nums text-[#a6a6b5]">
+                  {cmp.rindeL != null ? `${fmtNum(cmp.rindeL)} L` : '—'}
+                </td>
+                <td className="py-2 px-2 text-right font-mono tabular-nums text-[#ff8a7a]">
+                  {cmp.comercialPorLitro != null ? `${fmtPesosFinos(cmp.comercialPorLitro)}/L` : 'sin precio'}
+                </td>
+                <td className="py-2 px-2 text-right font-mono tabular-nums text-[#bef264]">
+                  {diyPorLitro != null ? `${fmtPesosFinos(diyPorLitro)}/L` : '—'}
+                </td>
+                <td className="py-2 px-2 text-right font-mono tabular-nums font-bold"
+                  style={{ color: ahorro == null ? '#5c5c6b' : ahorro > 0 ? '#bef264' : '#ff8a7a' }}>
+                  {/* Con un decimal arriba de 99%: "100%" se lee como gratis. */}
+                  {ahorro == null ? '—'
+                    : `${ahorro > 0 ? '' : '+'}${(Math.abs(ahorro) * 100).toLocaleString('es-AR', {
+                      minimumFractionDigits: Math.abs(ahorro) > 0.99 ? 1 : 0,
+                      maximumFractionDigits: Math.abs(ahorro) > 0.99 ? 1 : 0,
+                    })}%`}
+                </td>
+                <td className="py-2 pl-2 text-right font-mono tabular-nums text-[#c4b5fd]">
+                  {cmp.factorEquivalente != null ? `${fmtNum(cmp.factorEquivalente)}x` : '—'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-[11.5px] text-[#5c5c6b] mt-3">
+        <b className="text-[#c4b5fd]">Concentrado</b> es a cuántas veces tenés que armar tu solución madre para que reemplace al comercial
+        litro por litro: la usás a la misma dosis de etiqueta y te queda la misma concentración en el tanque.
+        {' '}Un guion significa que falta un dato (precio del envase, o el precio de alguna sal), no que sea gratis.
+        {sinPrecio > 0 && <> Hay {sinPrecio} ficha{sinPrecio === 1 ? '' : 's'} sin precio de envase cargado.</>}
       </p>
     </div>
   )
@@ -2236,29 +2350,10 @@ function BotellasGrid({ concentrados, resolucion, conProveedor }: { concentrados
 
 // ===================== RATIOS Y COSTO =====================
 // ===================== PROVEEDORES =====================
-// Opciones de presentación: el precio se carga por la bolsa como viene, y calculamos el $/kg.
-const UNIDADES_PROV: { v: string; l: string }[] = [
-  { v: 'g', l: 'por gramo' }, { v: '25g', l: 'por 25 g' }, { v: '100g', l: 'por 100 g' }, { v: '500g', l: 'por 500 g' }, { v: '800g', l: 'por 800 g' }, { v: '1kg', l: 'por 1 kg' },
-  { v: '2kg', l: 'por 2 kg' }, { v: '5kg', l: 'por 5 kg' }, { v: '10kg', l: 'por 10 kg' },
-  { v: '20kg', l: 'por 20 kg' }, { v: '25kg', l: 'por 25 kg' }, { v: 'kg', l: 'por kg (directo)' },
-  { v: 'unidad', l: 'por unidad/bolsa' },
-  // Los comerciales vienen en bidones: sin estas unidades el precio por litro
-  // no se podía calcular y el costo del clon no era comparable.
-  { v: 'L', l: 'por litro' }, { v: '1L', l: 'por 1 L' }, { v: '5L', l: 'por 5 L' }, { v: '10L', l: 'por 10 L' }, { v: '20L', l: 'por 20 L' },
-]
-const KG_UNIDAD: Record<string, number> = {
-  g: 0.001, '25g': 0.025, '100g': 0.1, '500g': 0.5, '800g': 0.8, kg: 1, '1kg': 1, '2kg': 2, '5kg': 5, '10kg': 10, '20kg': 20, '25kg': 25,
-  // Para los líquidos se toma 1 L ≈ 1 kg: la densidad real (1.1) ya la aplica el
-  // cálculo del perfil, así que acá sólo hace falta el tamaño del envase.
-  L: 1, '1L': 1, '5L': 5, '10L': 10, '20L': 20,
-}
-const PROVINCIAS_AR = ['Buenos Aires', 'CABA', 'Catamarca', 'Chaco', 'Chubut', 'Córdoba', 'Corrientes', 'Entre Ríos', 'Formosa', 'Jujuy', 'La Pampa', 'La Rioja', 'Mendoza', 'Misiones', 'Neuquén', 'Río Negro', 'Salta', 'San Juan', 'San Luis', 'Santa Cruz', 'Santa Fe', 'Santiago del Estero', 'Tierra del Fuego', 'Tucumán', 'Online / Nacional']
-/** Precio por kg a partir del precio de la bolsa y su tamaño. null si la unidad no es de peso. */
-function precioPorKg(precio?: number | null, unidad?: string | null): number | null {
-  const k = KG_UNIDAD[unidad ?? '']
-  return (precio != null && k) ? +(precio / k).toFixed(2) : null
-}
-
+// UNIDADES_PROV, KG_UNIDAD y precioPorKg viven en lib/nutrientes.ts: los usa
+// también costoDeAditivo para calcular el rinde, y duplicar el mapa de tamaños
+// de envase en dos lados es pedir que se desincronicen.
+const PROVINCIAS_AR =['Buenos Aires', 'CABA', 'Catamarca', 'Chaco', 'Chubut', 'Córdoba', 'Corrientes', 'Entre Ríos', 'Formosa', 'Jujuy', 'La Pampa', 'La Rioja', 'Mendoza', 'Misiones', 'Neuquén', 'Río Negro', 'Salta', 'San Juan', 'San Luis', 'Santa Cruz', 'Santa Fe', 'Santiago del Estero', 'Tierra del Fuego', 'Tucumán', 'Online / Nacional']
 function ProveedoresTab({ salesTodas, recargarInventario, recargarProveedores }: { salesTodas: Sal[]; recargarInventario: () => void; recargarProveedores: () => void }) {
   const vacio = { sal_id: '', nombre_local: '', telefono: '', email: '', provincia: '', pagina: '', precio: '', unidad: '1kg', presentacion: '', calidad: 'alta', imagen: '', nota: '' }
   const [provs, setProvs] = useState<Proveedor[]>([])
@@ -3065,9 +3160,69 @@ function ClonarTab({ productos, onUsar, irA }: { productos: Sal[]; onUsar: (p: P
 }
 
 // ===================== ESTABILIZANTES =====================
+
+const fmtPesos = (n: number) => `$${Math.round(n).toLocaleString('es-AR')}`
+/**
+ * Pesos con la precisión que haga falta: el costo de un litro de riego hecho
+ * con sales puede ser de centavos, y redondeado a entero se lee "$0", o sea
+ * gratis. Se muestran decimales sólo cuando el número es chico.
+ */
+const fmtPesosFinos = (n: number) => {
+  const dec = n >= 100 ? 0 : n >= 10 ? 1 : 2
+  return `$${n.toLocaleString('es-AR', { minimumFractionDigits: dec, maximumFractionDigits: dec })}`
+}
+/** Redondeo legible: 12.500 L, 340 L, 8,5 L. */
+const fmtNum = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: n < 10 ? 1 : 0 })
+
+/**
+ * Línea de "de dónde lo saco y cuánto sale" para una sustancia: proveedor,
+ * envase, precio del envase, para cuántos litros alcanza y qué cuesta lo que
+ * va en este bidón. Cuando no hay proveedor cargado lo dice, en vez de mostrar
+ * un precio inventado.
+ */
+function FilaProveedor({ costo, volumen }: { costo: CostoSustancia; volumen: number }) {
+  const { proveedor, envase, precioEnvase, porUnidadBase, rindeL, costoEnBidon } = costo
+  if (!proveedor) {
+    return (
+      <div className="mt-1.5 pt-1.5 border-t border-[#1f1f2b] text-[11.5px] text-[#5c5c6b]">
+        Sin proveedor cargado. Agregalo en <b className="text-[#757584]">Más herramientas › Proveedores</b> y acá aparece el precio y el rinde.
+      </div>
+    )
+  }
+  const esLiquido = envase?.endsWith('L') || envase?.endsWith('ml')
+  return (
+    <div className="mt-1.5 pt-1.5 border-t border-[#1f1f2b] flex flex-wrap items-baseline gap-x-3 gap-y-1 text-[11.5px]">
+      <span className="text-[#a6a6b5]">{proveedor.nombre_local}</span>
+      {envase && precioEnvase != null && (
+        <span className="text-[#c4c4d0]">
+          {envase} <span className="text-[#5c5c6b]">·</span> <b className="font-mono tabular-nums">{fmtPesos(precioEnvase)}</b>
+        </span>
+      )}
+      {porUnidadBase != null && (
+        <span className="text-[#757584] font-mono tabular-nums">
+          {fmtPesos(Math.round(porUnidadBase))}/{esLiquido ? 'L' : 'kg'}
+        </span>
+      )}
+      {rindeL != null && (
+        <span className="text-[#d9f99d]">
+          rinde <b className="font-mono tabular-nums">{fmtNum(rindeL)} L</b> de concentrado
+        </span>
+      )}
+      {costoEnBidon != null && (
+        <span className="text-[#757584]">
+          en tu bidón de {volumen} L: <b className="font-mono tabular-nums text-[#a6a6b5]">{fmtPesos(Math.round(costoEnBidon))}</b>
+        </span>
+      )}
+    </div>
+  )
+}
 function EstabilizantesTab({ dosis }: { dosis: ResultadoSal[] }) {
   const [volumen, setVolumen] = useState(5)
   const rec = recomendarEstabilizantes(dosis, volumen)
+  // Proveedores para mostrar, en cada aditivo, de dónde sale y cuánto cuesta.
+  // Si falla, la pestaña sigue andando sin los precios.
+  const [provs, setProvs] = useState<Proveedor[]>([])
+  useEffect(() => { proveedoresService.list().then(setProvs).catch(() => {}) }, [])
   return (
     <div className="space-y-4">
       {/* Reglas dinámicas */}
@@ -3107,23 +3262,27 @@ function EstabilizantesTab({ dosis }: { dosis: ResultadoSal[] }) {
                 ? { t: 'evitar', c: '#ff8a7a', bg: 'rgba(255,138,122,0.12)' }
                 : { t: 'opcional', c: '#c4b5fd', bg: 'rgba(167,139,250,0.18)' }
             const nombreColor = info.nivel === 'esencial' ? '#d9f99d' : info.nivel === 'evitar' ? '#ff8a7a' : '#a6a6b5'
+            const u = info.unidad === 'ml' ? 'mL' : 'g'
+            const c = costoDeAditivo(info, provs, volumen)
             return (
               <div key={info.id} className="rounded-md bg-[#15151d] border border-[#1f1f2b] px-3 py-2">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-[13.5px] font-medium" style={{ color: nombreColor }}>{info.nombre}</span>
                   <span className="text-[10.5px] px-1.5 py-0.5 rounded font-medium" style={{ color: badge.c, background: badge.bg }}>{badge.t}</span>
                   <span className="ml-auto text-[13.5px] font-mono tabular-nums font-bold" style={{ color: info.nivel === 'evitar' ? '#ff8a7a' : '#ececf1' }}>
-                    {info.nivel === 'evitar' ? '— no usar —' : (cantidad != null ? `${cantidad} g` : info.dosis)}
+                    {info.nivel === 'evitar' ? '— no usar —' : (cantidad != null ? `${cantidad} ${u}` : info.dosis)}
                   </span>
                 </div>
                 <div className="text-[11.5px] text-[#757584] mt-0.5">{info.funcion} · dosis {info.dosis}</div>
                 <div className="text-[12px] text-[#a6a6b5] mt-1">{info.porque}</div>
+                {info.nivel !== 'evitar' && <FilaProveedor costo={c} volumen={volumen} />}
               </div>
             )
           })}
         </div>
         <p className="text-[11.5px] text-[#5c5c6b] mt-3">
-          Cantidades calculadas para {volumen} L de concentrado. EDDHA y gluconato se dosifican según el Fe/Ca objetivo (ya los tenés en Sustancias).
+          Cantidades calculadas para {volumen} L de concentrado. EDDHA, HBED, DTPA y gluconato se dosifican según el Fe/Ca objetivo (ya los tenés en Sustancias).
+          Los precios salen del proveedor marcado como elegido en <b className="text-[#a6a6b5]">Proveedores</b>.
           Datos: foros + patentes + scienceinhydroponics (autor de HydroBuddy).
         </p>
       </div>

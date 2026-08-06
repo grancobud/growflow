@@ -1115,22 +1115,58 @@ export function calcularAjustePH(alcActual: number, alcObjetivo: number, volumen
 export interface AditivoEstab {
   id: string; nombre: string; funcion: string; dosis: string; gPorL: number | null; porque: string
   nivel: 'esencial' | 'opcional' | 'evitar'
+  /** 'ml' para los líquidos (ácidos, glicol); el resto se pesan en gramos. */
+  unidad?: 'g' | 'ml'
+  /**
+   * id en la base de sales, para poder mostrar el proveedor y el precio. Los
+   * ids de los aditivos no coinciden con los sal_id (acá `citrico`, en la base
+   * `add_citrico`), así que el puente va explícito y no por convención.
+   */
+  salId?: string
 }
 export const ADITIVOS_ESTAB: AditivoEstab[] = [
-  { id: 'citrico', nombre: 'Ácido cítrico', funcion: 'Buffer + quelante + antioxidante', dosis: '1–2 g/L', gPorL: 1.5, nivel: 'esencial',
+  // --- lo que baja y sostiene el pH (a pH alto los metales precipitan) ---
+  { id: 'citrico', nombre: 'Ácido cítrico', funcion: 'Buffer + quelante + antioxidante', dosis: '1–2 g/L', gPorL: 1.5, nivel: 'esencial', salId: 'add_citrico',
     porque: 'EL más importante. Baja el pH del concentrado a ~5 (zona estable), quela suave y mantiene el hierro reducido. Triple función en una sola cosa.' },
+  { id: 'fosforico', nombre: 'Ácido fosfórico 85%', funcion: 'Buffer / baja pH (aporta P)', dosis: '0.3–1 mL/L', gPorL: 0.5, unidad: 'ml', nivel: 'opcional',
+    porque: 'Baja el pH y de paso suma fósforo. Va SOLO en el bidón B: si lo tirás donde está el calcio, te precipita fosfato de calcio al toque.' },
+  { id: 'nitrico', nombre: 'Ácido nítrico', funcion: 'Baja pH sin carbono', dosis: '0.2–0.8 mL/L', gPorL: 0.4, unidad: 'ml', nivel: 'opcional',
+    porque: 'La ventaja sobre el cítrico es que no aporta carbono, así que no le da de comer a los hongos. La desventaja es que es peligroso de manipular: siempre ácido sobre agua, nunca al revés.' },
+  // --- conservantes: sin esto el concentrado cría barro en semanas ---
   { id: 'benzoato', nombre: 'Benzoato de sodio', funcion: 'Conservante / biocida', dosis: '150–250 mg/L', gPorL: 0.2, nivel: 'esencial',
-    porque: 'El conservante. Sin esto, en semanas se llena de hongos/barro que se comen los quelatos. Es lo que usan las marcas y no lo declaran.' },
-  { id: 'ascorbico', nombre: 'Ácido ascórbico (vit. C)', funcion: 'Antioxidante', dosis: '0.1–0.3 g/L', gPorL: 0.2, nivel: 'opcional',
+    porque: 'El conservante. Sin esto, en semanas se llena de hongos/barro que se comen los quelatos. Es lo que usan las marcas y no lo declaran. Necesita pH bajo (menos de 5) para funcionar: con el cítrico ya lo tenés.' },
+  { id: 'sorbato', nombre: 'Sorbato de potasio', funcion: 'Conservante (alternativa)', dosis: '0.5–1 g/L', gPorL: 1, nivel: 'opcional',
+    porque: 'Alternativa al benzoato si no lo conseguís. Grado alimenticio. Combinado con benzoato cubren más espectro que cualquiera de los dos solo.' },
+  // --- antioxidantes: el Fe(II) se oxida a Fe(III) y se cae como óxido ---
+  { id: 'ascorbico', nombre: 'Ácido ascórbico (vit. C)', funcion: 'Antioxidante', dosis: '0.1–0.3 g/L', gPorL: 0.2, nivel: 'opcional', salId: 'add_ascorbico',
     porque: 'SOLO si el hierro se te pone marrón/turbio. Refuerza al cítrico para que el Fe no se oxide. Con cítrico, casi nunca hace falta.' },
+  // --- quelantes: mantienen los metales en solución ---
+  { id: 'eddha_add', nombre: 'Quelato de hierro EDDHA', funcion: 'Quelante de hierro (pH alto)', dosis: 'según Fe objetivo', gPorL: null, nivel: 'esencial', salId: 'feeddha',
+    porque: 'Mantiene el hierro soluble incluso a pH alto. Ya viene en tus micros; va en el bidón A con el calcio. Tiñe todo de rojo, es normal.' },
+  { id: 'hbed_add', nombre: 'Quelato de hierro HBED', funcion: 'Quelante de hierro (el más estable)', dosis: 'según Fe objetivo', gPorL: null, nivel: 'opcional', salId: 'fehbed',
+    porque: 'Aguanta más que el EDDHA y no tiñe. Es el que usás por defecto en la calculadora. Más caro, pero para un concentrado que va a estar guardado meses rinde.' },
+  { id: 'dtpa_add', nombre: 'Quelato de hierro DTPA', funcion: 'Quelante de hierro (pH medio)', dosis: 'según Fe objetivo', gPorL: null, nivel: 'opcional',
+    porque: 'Punto intermedio: aguanta hasta pH 7, más barato que el EDDHA. Por debajo de pH 6 el EDTA ya alcanza y sale menos.' },
+  { id: 'gluconato_add', nombre: 'Gluconato de calcio', funcion: 'Quelante de calcio', dosis: 'según Ca objetivo', gPorL: null, nivel: 'opcional', salId: 'cagluc',
+    porque: 'Calcio limpio quelatado. El EDTA NO sirve para Ca (prefiere el hierro y lo suelta).' },
+  { id: 'edta_libre', nombre: 'EDTA disódico (libre)', funcion: 'Secuestrante de dureza', dosis: '0.1–0.5 g/L', gPorL: 0.3, nivel: 'opcional',
+    porque: 'El EXCESO de quelante libre es lo que evita el barro al guardarlo: se come el Ca y el Mg del agua dura antes de que reaccionen con los sulfatos. Si armás con agua de ósmosis no hace falta.' },
+  { id: 'humico_add', nombre: 'Ácidos húmicos / fúlvicos', funcion: 'Quelante natural', dosis: '0.2–0.5 g/L', gPorL: 0.3, nivel: 'opcional', salId: 'humico_fulvico',
+    porque: 'Quelante natural y barato, y además mejora la absorción. Ojo que tiñe el concentrado de marrón oscuro y después no se ve si está turbio.' },
+  { id: 'lignosulfonato', nombre: 'Lignosulfonato', funcion: 'Quelante natural (económico)', dosis: '0.5–2 g/L', gPorL: 1, nivel: 'opcional',
+    porque: 'El quelante más barato por kilo. Menos estable que el EDTA pero sirve de sobra para Mn, Zn y Cu en un concentrado a pH 5.' },
+  // --- estabilidad física del líquido ---
+  { id: 'propilenglicol', nombre: 'Propilenglicol', funcion: 'Anticristalizante (frío)', dosis: '20–50 mL/L (2–5%)', gPorL: 35, unidad: 'ml', nivel: 'opcional',
+    porque: 'Si el bidón duerme en un lugar frío, las sales cristalizan y ya no vuelven a disolverse solas. Esto baja el punto de cristalización. Es lo que hace que un comercial aguante el invierno en un galpón.' },
+  { id: 'tensioactivo', nombre: 'Tensioactivo no iónico', funcion: 'Mojante / dispersante', dosis: '0.1–0.5 mL/L', gPorL: 0.2, unidad: 'ml', nivel: 'opcional',
+    porque: 'Ayuda a que los polvos se mojen y no floten formando grumos al preparar. No cambia nada de la química.' },
+  // --- lo que NO hay que hacer ---
   { id: 'xantica', nombre: 'Goma xántica', funcion: 'Anti-sedimentante / suspensión', dosis: '1–2 g/L (0.1–0.2%)', gPorL: 1.5, nivel: 'evitar',
     porque: 'NO la uses en un concentrado de sales CLARO: te lo deja gelatinoso al pedo. Solo sirve para suspensiones espesas con partículas.' },
-  { id: 'eddha_add', nombre: 'Quelato de hierro EDDHA', funcion: 'Quelante de hierro', dosis: 'según Fe objetivo', gPorL: null, nivel: 'esencial',
-    porque: 'Mantiene el hierro soluble incluso a pH alto. Ya viene en tus micros; va en el bidón A con el calcio.' },
-  { id: 'gluconato_add', nombre: 'Gluconato de calcio', funcion: 'Quelante de calcio', dosis: 'según Ca objetivo', gPorL: null, nivel: 'opcional',
-    porque: 'Calcio limpio quelatado. El EDTA NO sirve para Ca (prefiere el hierro y lo suelta).' },
-  { id: 'sorbato', nombre: 'Sorbato de potasio', funcion: 'Conservante (alternativa)', dosis: '0.01–1%', gPorL: 1, nivel: 'opcional',
-    porque: 'Alternativa al benzoato si no lo conseguís. Grado alimenticio.' },
+  { id: 'silicato_evitar', nombre: 'Silicato de potasio', funcion: 'NO va en el concentrado', dosis: '—', gPorL: null, nivel: 'evitar', salId: 'ksilic',
+    porque: 'El silicato necesita pH alto (más de 10) y el concentrado va a pH 5: en cuanto lo acidificás gelifica y precipita sílice. Va SIEMPRE aparte, directo al tanque de riego y primero, antes que nada.' },
+  { id: 'sulfato_ca_evitar', nombre: 'Sulfatos junto al calcio', funcion: 'NO mezclar en el mismo bidón', dosis: '—', gPorL: null, nivel: 'evitar',
+    porque: 'Sulfato + calcio = yeso, que es casi insoluble y se va al fondo como polvo blanco. Por eso el calcio va en el bidón A y los sulfatos y fosfatos en el B. Es la regla que no se negocia.' },
 ]
 
 export interface RecomendacionEstab {
@@ -1154,6 +1190,96 @@ export function recomendarEstabilizantes(dosis: ResultadoSal[], volumenL: number
     info, cantidad: info.gPorL != null ? +(info.gPorL * volumenL).toFixed(2) : null,
   }))
   return { aditivos, reglas }
+}
+
+// ---------------------------------------------------------------------------
+// De dónde sale cada sustancia y cuánto cuesta.
+// ---------------------------------------------------------------------------
+
+/**
+ * Opciones de presentación del proveedor. El precio se carga por la bolsa tal
+ * como viene y el $/kg se deriva: cargar el $/kg a mano con unidad "1kg" es lo
+ * que ya infló un precio 15x una vez.
+ */
+export const UNIDADES_PROV: { v: string; l: string }[] = [
+  { v: 'g', l: 'por gramo' }, { v: '25g', l: 'por 25 g' }, { v: '100g', l: 'por 100 g' }, { v: '500g', l: 'por 500 g' }, { v: '800g', l: 'por 800 g' }, { v: '1kg', l: 'por 1 kg' },
+  { v: '2kg', l: 'por 2 kg' }, { v: '5kg', l: 'por 5 kg' }, { v: '10kg', l: 'por 10 kg' },
+  { v: '20kg', l: 'por 20 kg' }, { v: '25kg', l: 'por 25 kg' }, { v: 'kg', l: 'por kg (directo)' },
+  { v: 'unidad', l: 'por unidad/bolsa' },
+  // Los comerciales vienen en bidones: sin estas unidades el precio por litro
+  // no se podía calcular y el costo del clon no era comparable.
+  { v: 'L', l: 'por litro' }, { v: '1L', l: 'por 1 L' }, { v: '5L', l: 'por 5 L' }, { v: '10L', l: 'por 10 L' }, { v: '20L', l: 'por 20 L' },
+]
+
+/** Tamaño del envase en kg (o en L para los líquidos) según la unidad elegida. */
+export const KG_UNIDAD: Record<string, number> = {
+  g: 0.001, '25g': 0.025, '100g': 0.1, '500g': 0.5, '800g': 0.8, kg: 1, '1kg': 1, '2kg': 2, '5kg': 5, '10kg': 10, '20kg': 20, '25kg': 25,
+  // Para los líquidos se toma 1 L ≈ 1 kg: la densidad real (1.1) ya la aplica el
+  // cálculo del perfil, así que acá sólo hace falta el tamaño del envase.
+  L: 1, '1L': 1, '5L': 5, '10L': 10, '20L': 20,
+}
+
+/** Precio por kg a partir del precio de la bolsa y su tamaño. null si la unidad no es de peso. */
+export function precioPorKg(precio?: number | null, unidad?: string | null): number | null {
+  const k = KG_UNIDAD[unidad ?? '']
+  return (precio != null && k) ? +(precio / k).toFixed(2) : null
+}
+
+/** true si la unidad del envase es de volumen; sólo cambia cómo se rotula. */
+export function esEnvaseLiquido(unidad?: string | null): boolean {
+  return /^\d*L$/.test(unidad ?? '')
+}
+
+export interface CostoSustancia {
+  proveedor: Proveedor | null
+  /** Texto del envase, ya normalizado: "5 kg". */
+  envase: string | null
+  precioEnvase: number | null
+  /** $ por kg (sólidos) o por litro (líquidos). */
+  porUnidadBase: number | null
+  /** Litros de concentrado que salen de UN envase a la dosis de este aditivo. */
+  rindeL: number | null
+  /** Lo que cuesta la cantidad que va en el bidón que se está preparando. */
+  costoEnBidon: number | null
+}
+
+/**
+ * Cruza un aditivo con su proveedor elegido para responder las tres preguntas
+ * de siempre: de dónde lo saco, cuánto sale el envase, y para cuántos litros
+ * me alcanza. Devuelve todo en null cuando no hay proveedor cargado, en vez de
+ * estimar un precio.
+ */
+export function costoDeAditivo(
+  info: AditivoEstab, proveedores: Proveedor[], volumenBidonL: number,
+): CostoSustancia {
+  const vacio: CostoSustancia = {
+    proveedor: null, envase: null, precioEnvase: null,
+    porUnidadBase: null, rindeL: null, costoEnBidon: null,
+  }
+  if (!info.salId) return vacio
+  const delSal = proveedores.filter(p => p.sal_id === info.salId)
+  const prov = delSal.find(p => p.elegido) ?? delSal[0]
+  if (!prov) return vacio
+
+  const precio = prov.precio ?? null
+  // KG_UNIDAD es el mismo mapa que usa el formulario de proveedores: si la
+  // unidad no está ahí (por ejemplo "unidad"), no se puede derivar un $/kg.
+  const enBase = KG_UNIDAD[prov.unidad ?? '']
+  if (precio == null || !enBase) return { ...vacio, proveedor: prov, precioEnvase: precio }
+
+  const liq = esEnvaseLiquido(prov.unidad)
+  const porUnidadBase = precio / enBase
+  const envase = `${enBase} ${liq ? 'L' : 'kg'}`
+
+  // gPorL viene en g/L o mL/L según el aditivo, y el envase en kg o L: en los
+  // dos casos el factor contra la unidad base es 1000, así que la cuenta es la
+  // misma para sólidos y líquidos.
+  const rindeL = info.gPorL ? (enBase * 1000) / info.gPorL : null
+  const costoEnBidon = info.gPorL != null
+    ? (info.gPorL * volumenBidonL / 1000) * porUnidadBase
+    : null
+
+  return { proveedor: prov, envase, precioEnvase: precio, porUnidadBase, rindeL, costoEnBidon }
 }
 
 // ---------------------------------------------------------------------------
