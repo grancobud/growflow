@@ -1210,11 +1210,24 @@ function AguaTab({ agua, setAgua, macros, micros, otros }: { agua: Perfil; setAg
 function ConcentradosTab({ factor, setFactor, volBidon, setVolBidon, resolucion, setResolucion, guardados, salesTodas, proveedores }: { factor: number; setFactor: (n: number) => void; volBidon: number; setVolBidon: (n: number) => void; resolucion: number; setResolucion: (n: number) => void; guardados: PerfilGuardado[]; salesTodas: Sal[]; proveedores: Proveedor[] }) {
   // sal_ids que tienen al menos un proveedor cargado (para marcar las que faltan comprar)
   const conProveedor = useMemo(() => salesConProveedor(proveedores), [proveedores])
+  // Fichas comerciales, para poner al lado de cada clon lo que sale comprado.
+  const [fichas, setFichas] = useState<FichaComercial[]>([])
+  useEffect(() => { fichasService.listar().then(setFichas).catch(() => {}) }, [])
+
   // botella madre de cada perfil/clon guardado
   const botellasGuardadas = guardados.map(g => {
     const salesDisp = salesTodas.filter(s => (g.sales ?? []).includes(s.id))
     const r = calcularReceta(g.perfil, salesDisp, g.agua ?? {})
-    return { nombre: g.nombre, concentrados: calcularConcentrados(r.dosis, factor, volBidon) }
+    // El clon se guarda con el nombre "<marca> <producto>", que es como lo
+    // nombra el botón Clonar de las fichas: por eso el cruce es por nombre.
+    const ficha = fichas.find(f => `${f.marca} ${f.producto}` === g.nombre)
+    const costo = calcularCosto(r.dosis).porLitro
+    return {
+      nombre: g.nombre,
+      concentrados: calcularConcentrados(r.dosis, factor, volBidon),
+      ficha,
+      diyPorLitro: costo > 0 ? costo : null,
+    }
   }).filter(b => b.concentrados.length > 0)
 
   // sales únicas que aparecen en las soluciones madre guardadas (para la matriz de compatibilidad)
@@ -1275,7 +1288,13 @@ function ConcentradosTab({ factor, setFactor, volBidon, setVolBidon, resolucion,
             {botellasGuardadas.map((b, i) => (
               <div key={i} className={card}>
                 <p className="text-[13.5px] font-display font-semibold text-[#d9f99d] mb-2">🧴 {b.nombre}</p>
-                <BotellasGrid concentrados={b.concentrados} resolucion={resolucion} conProveedor={conProveedor} />
+                {/* Las botellas y su economía, lado a lado: tener que bajar hasta
+                    el final de la página para saber si conviene no sirve. En
+                    celular el panel va abajo, que es la única forma que entra. */}
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 items-start">
+                  <BotellasGrid concentrados={b.concentrados} resolucion={resolucion} conProveedor={conProveedor} />
+                  <PanelEconomiaClon ficha={b.ficha} diyPorLitro={b.diyPorLitro} />
+                </div>
               </div>
             ))}
           </div>
@@ -1399,6 +1418,64 @@ function CompararConComercial({ salesTodas }: { salesTodas: Sal[] }) {
         {' '}Un guion significa que falta un dato (precio del envase, o el precio de alguna sal), no que sea gratis.
         {sinPrecio > 0 && <> Hay {sinPrecio} ficha{sinPrecio === 1 ? '' : 's'} sin precio de envase cargado.</>}
       </p>
+    </div>
+  )
+}
+
+/**
+ * La economía de un clon, al lado de sus botellas: qué sale comprado, qué sale
+ * hecho por vos y cuánto rinde el envase del comercial. Es la misma cuenta de
+ * la tabla de abajo, pero pegada a la botella, que es donde se necesita para
+ * decidir.
+ */
+function PanelEconomiaClon({ ficha, diyPorLitro }: { ficha?: FichaComercial; diyPorLitro: number | null }) {
+  const cmp = ficha ? compararComercial(ficha) : null
+  const comercial = cmp?.comercialPorLitro ?? null
+  const ahorro = comercial != null && diyPorLitro != null && comercial > 0
+    ? 1 - diyPorLitro / comercial : null
+
+  // Sin ficha enlazada no hay nada que comparar: se muestra sólo el costo propio.
+  const filas: { l: string; v: string; c: string }[] = []
+  if (comercial != null) filas.push({ l: 'Comprado', v: `${fmtPesosFinos(comercial)}/L`, c: '#ff8a7a' })
+  if (diyPorLitro != null) filas.push({ l: 'Hecho por vos', v: `${fmtPesosFinos(diyPorLitro)}/L`, c: '#bef264' })
+  if (cmp?.rindeL != null) filas.push({ l: 'El envase rinde', v: `${fmtNum(cmp.rindeL)} L`, c: '#a6a6b5' })
+  if (cmp?.factorEquivalente != null) filas.push({ l: 'Concentrado', v: `${fmtNum(cmp.factorEquivalente)}x`, c: '#c4b5fd' })
+  if (filas.length === 0) return null
+
+  return (
+    <div className="lg:w-[210px] rounded-lg bg-[#15151d] border border-[#1f1f2b] p-3">
+      {ahorro != null && (
+        <div className="text-center pb-2.5 mb-2.5 border-b border-[#1f1f2b]">
+          <div className="font-mono tabular-nums font-bold text-[22px] leading-none"
+            style={{ color: ahorro > 0 ? '#bef264' : '#ff8a7a' }}>
+            {ahorro > 0 ? '' : '+'}{(Math.abs(ahorro) * 100).toLocaleString('es-AR', {
+              minimumFractionDigits: Math.abs(ahorro) > 0.99 ? 1 : 0,
+              maximumFractionDigits: Math.abs(ahorro) > 0.99 ? 1 : 0,
+            })}%
+          </div>
+          <div className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] mt-1">
+            {ahorro > 0 ? 'más barato' : 'más caro'} que comprarlo
+          </div>
+        </div>
+      )}
+      <dl className="space-y-1.5">
+        {filas.map(f => (
+          <div key={f.l} className="flex items-baseline justify-between gap-2">
+            <dt className="text-[11px] text-[#757584]">{f.l}</dt>
+            <dd className="text-[12.5px] font-mono tabular-nums" style={{ color: f.c }}>{f.v}</dd>
+          </div>
+        ))}
+      </dl>
+      {ficha?.precio_envase != null && ficha.envase_cant && (
+        <p className="text-[10.5px] text-[#5c5c6b] mt-2 pt-2 border-t border-[#1f1f2b] leading-snug">
+          {ficha.marca} {ficha.producto} · {fmtNum(ficha.envase_cant)} {ficha.envase_unidad} · {fmtPesos(ficha.precio_envase)}
+        </p>
+      )}
+      {!ficha && (
+        <p className="text-[10.5px] text-[#5c5c6b] mt-2 pt-2 border-t border-[#1f1f2b] leading-snug">
+          Sin ficha comercial enlazada: no hay contra qué comparar.
+        </p>
+      )}
     </div>
   )
 }
