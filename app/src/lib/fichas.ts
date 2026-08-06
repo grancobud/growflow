@@ -23,7 +23,23 @@ export interface FichaComercial {
   pdf_path?: string | null
   pdf_nombre?: string | null
   pdf_tam?: number | null
+  /** Precio del ENVASE entero, no el $/L. El $/L se deriva con envase_cant. */
+  precio_envase?: number | null
+  envase_cant?: number | null
+  envase_unidad?: 'L' | 'ml' | 'kg' | 'g' | null
+  /** De dónde salió el precio, para poder auditarlo después. */
+  precio_fuente?: string | null
   creado_en?: string
+}
+
+/**
+ * Precio por litro (líquidos) o por kilo (polvos) del producto comercial.
+ * null si todavía no se le cargó el precio o el tamaño del envase.
+ */
+export function precioPorUnidadBase(f: FichaComercial): number | null {
+  if (f.precio_envase == null || !f.envase_cant) return null
+  const factor = f.envase_unidad === 'ml' || f.envase_unidad === 'g' ? 1000 : 1
+  return (f.precio_envase * factor) / f.envase_cant
 }
 
 export type FichaNueva = Omit<FichaComercial, 'id' | 'creado_en'>
