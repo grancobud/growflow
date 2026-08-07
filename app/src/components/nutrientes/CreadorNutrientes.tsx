@@ -1290,8 +1290,11 @@ function ConcentradosTab({ factor, setFactor, volBidon, setVolBidon, resolucion,
                 <p className="text-[13.5px] font-display font-semibold text-[#d9f99d] mb-2">🧴 {b.nombre}</p>
                 {/* Las botellas y su economía, lado a lado: tener que bajar hasta
                     el final de la página para saber si conviene no sirve. En
-                    celular el panel va abajo, que es la única forma que entra. */}
-                <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 items-start">
+                    celular el panel va abajo, que es la única forma que entra.
+                    flex-wrap y no grid: el panel tiene que quedar PEGADO a la
+                    última botella. Con [1fr_auto] se iba al borde derecho y
+                    dejaba medio metro de aire en el medio. */}
+                <div className="flex flex-wrap gap-3 items-start">
                   <BotellasGrid concentrados={b.concentrados} resolucion={resolucion} conProveedor={conProveedor} />
                   <PanelEconomiaClon ficha={b.ficha} diyPorLitro={b.diyPorLitro} />
                 </div>
@@ -1443,7 +1446,7 @@ function PanelEconomiaClon({ ficha, diyPorLitro }: { ficha?: FichaComercial; diy
   if (filas.length === 0) return null
 
   return (
-    <div className="lg:w-[210px] rounded-lg bg-[#15151d] border border-[#1f1f2b] p-3">
+    <div className="w-full sm:w-[230px] rounded-lg bg-[#15151d] border border-[#1f1f2b] p-3">
       {ahorro != null && (
         <div className="text-center pb-2.5 mb-2.5 border-b border-[#1f1f2b]">
           <div className="font-mono tabular-nums font-bold text-[22px] leading-none"
@@ -2377,10 +2380,17 @@ function BotellasGrid({ concentrados, resolucion, conProveedor }: { concentrados
   const faltantes = conProveedor
     ? [...new Map(concentrados.flatMap(g => g.items).filter(it => !conProveedor.has(it.sal.id)).map(it => [it.sal.id, it.sal])).values()]
     : []
+  // Ancho fijo por botella en vez de una grilla que reparte el espacio: con 3
+  // columnas fijas, una receta de una sola botella ocupaba un tercio y dejaba
+  // dos columnas vacías; y estirándola a todo el ancho, el nombre de la sal
+  // quedaba a 700px de sus gramos. Un ancho propio las deja compactas y
+  // legibles, y el panel de al lado se pega a continuación.
+  // w-full en celular: como esto es a su vez un item de un flex, sin ancho
+  // propio tomaba el de su contenido y se desbordaba de la tarjeta.
   return (
-    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+    <div className="flex flex-wrap gap-3 w-full sm:w-auto">
       {concentrados.map((g: BidonConcentrado) => (
-        <div key={g.bidon} className="rounded-lg bg-[#101016] border border-[#1f1f2b] p-3">
+        <div key={g.bidon} className="rounded-lg bg-[#101016] border border-[#1f1f2b] p-3 w-full sm:w-[320px]">
           <p className="text-[12px] uppercase tracking-[0.12em] font-medium mb-2" style={{ color: BIDON_INFO[g.bidon].color }}>
             {unica ? 'Botella única · todo junto' : BIDON_INFO[g.bidon].label}
           </p>
