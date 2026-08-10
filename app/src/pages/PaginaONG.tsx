@@ -16,11 +16,14 @@ import {
 } from 'lucide-react'
 import {
   ongService, calcularVencimientos, calcularCapacidad, finDeMandato,
-  topeTransporteG, CARGOS, ORGANOS,
+  topeTransporteG, TOPE_TRASLADO_INDIVIDUAL_G, CARGOS, ORGANOS,
   type Entidad, type Autoridad, type Requisito, type Predio, type Urgencia,
+  type Libro, type Acta, type Asociado, type CategoriaSocio, type Cuota,
 } from '../lib/ong'
-import { registroService } from '../lib/registro'
+import { registroService, type Paciente } from '../lib/registro'
 import { cultivoService } from '../lib/cultivo'
+import { Libros, Actas } from '../components/ong/LibrosYActas'
+import { Asociados, Coherencia } from '../components/ong/AsociadosYCoherencia'
 import { btnPrimario, btnSutil } from '../lib/ui'
 
 // text-[16px] en mobile: evita el zoom automático de iOS Safari al enfocar.
@@ -46,7 +49,7 @@ const fmtPeso = (g: number) => g < 1000
 const textoDias = (d: number | null) =>
   d == null ? 'sin fecha cargada' : d < 0 ? `hace ${Math.abs(d)} días` : d === 0 ? 'hoy' : `en ${d} días`
 
-type Tab = 'estado' | 'entidad' | 'autoridades' | 'predios'
+type Tab = 'estado' | 'coherencia' | 'entidad' | 'autoridades' | 'predios' | 'libros' | 'actas' | 'asociados'
 
 export default function PaginaONG() {
   const [tab, setTab] = useState<Tab>('estado')
@@ -58,15 +61,27 @@ export default function PaginaONG() {
   // Datos reales del cultivo, para cruzarlos contra los topes.
   const [nPacientes, setNPacientes] = useState(0)
   const [nPlantas, setNPlantas] = useState(0)
+  const [pacientes, setPacientes] = useState<Paciente[]>([])
+  const [libros, setLibros] = useState<Libro[]>([])
+  const [actas, setActas] = useState<Acta[]>([])
+  const [asociados, setAsociados] = useState<Asociado[]>([])
+  const [categorias, setCategorias] = useState<CategoriaSocio[]>([])
+  const [cuotas, setCuotas] = useState<Cuota[]>([])
 
   const cargar = useCallback(async () => {
     try {
-      const [e, a, r, p, pac, pl] = await Promise.all([
+      const [e, a, r, p, pac, pl, li, ac, aso, cat, cuo] = await Promise.all([
         ongService.getEntidad(), ongService.getAutoridades(), ongService.getRequisitos(),
         ongService.getPredios(), registroService.getPacientes(true), cultivoService.getResumenPlantas(true),
+        ongService.getLibros(), ongService.getActas(), ongService.getAsociados(),
+        ongService.getCategorias(), ongService.getCuotas(),
       ])
       setEntidad(e); setAutoridades(a); setRequisitos(r); setPredios(p)
-      setNPacientes(pac.length); setNPlantas(pl.length)
+      setLibros(li); setActas(ac); setAsociados(aso); setCategorias(cat); setCuotas(cuo)
+      setPacientes(pac); setNPacientes(pac.length)
+      // El tope de la 1780 es sobre plantas EN FLORACION: las de vegetativo o
+      // enraizando no cuentan contra el limite.
+      setNPlantas(pl.filter(x => x.fase === 'Floracion').length)
     } catch (err) {
       toast.error(`Error cargando la ONG: ${(err as Error).message}`)
     } finally { setCargando(false) }
@@ -80,6 +95,10 @@ export default function PaginaONG() {
 
   const TABS: { id: Tab; label: string }[] = [
     { id: 'estado', label: 'Estado' },
+    { id: 'coherencia', label: 'Coherencia' },
+    { id: 'libros', label: 'Libros' },
+    { id: 'actas', label: 'Actas' },
+    { id: 'asociados', label: 'Asociados' },
     { id: 'entidad', label: 'La entidad' },
     { id: 'autoridades', label: 'Autoridades' },
     { id: 'predios', label: 'Predios' },
@@ -114,6 +133,15 @@ export default function PaginaONG() {
           <div className="py-16 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-[#a3e635]" /></div>
         ) : tab === 'estado' ? (
           <Estado {...{ entidad, vencimientos, capacidad, requisitos, nPacientes, recargar: cargar }} />
+        ) : tab === 'coherencia' ? (
+          <Coherencia {...{ entidad, actas, libros, asociados, categorias, cuotas,
+            pacientes: nPacientes, plantasFloracion: nPlantas }} />
+        ) : tab === 'libros' ? (
+          <Libros libros={libros} onCambio={cargar} />
+        ) : tab === 'actas' ? (
+          <Actas actas={actas} libros={libros} onCambio={cargar} />
+        ) : tab === 'asociados' ? (
+          <Asociados {...{ asociados, categorias, cuotas, actas, pacientes }} onCambio={cargar} />
         ) : tab === 'entidad' ? (
           <FormEntidad entidad={entidad} onGuardado={cargar} />
         ) : tab === 'autoridades' ? (
@@ -237,7 +265,9 @@ function Estado({ entidad, vencimientos, capacidad, requisitos, nPacientes, reca
         <p className="text-[11px] text-[#5c5c6b] mt-3 pt-3 border-t border-[#1f1f2b]">
           Transporte: con {nPacientes} paciente{nPacientes === 1 ? '' : 's'} vinculado{nPacientes === 1 ? '' : 's'} podés
           mover hasta <b className="text-[#a6a6b5] font-mono">{fmtPeso(topeTransporteG(nPacientes))}</b> entre
-          tus predios, tomando 40 g por paciente.
+          tus predios, tomando 40 g por paciente. Aparte de eso, un traslado individual no puede superar
+          los <b className="text-[#a6a6b5] font-mono">{TOPE_TRASLADO_INDIVIDUAL_G} g</b> por vez: si la necesidad
+          medicinal es mayor, se hace en más de un viaje.
         </p>
       </div>
 

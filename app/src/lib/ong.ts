@@ -28,6 +28,12 @@ export interface Entidad {
   tope_pacientes?: number | null
   plantas_por_paciente?: number | null
   tope_predios?: number | null
+  /** El estatuto tiene que declarar explícitamente el objeto cannábico. */
+  objeto_cannabis?: boolean
+  objeto_social?: string | null
+  /** Código que la ONG le pasa al paciente para vincularse desde Mi Argentina. */
+  codigo_vinculacion?: string | null
+  perfil_reprocann?: string | null
   notas?: string | null
 }
 
@@ -52,6 +58,9 @@ export interface Requisito {
   responsable?: string | null
   nota?: string | null
   orden?: number | null
+  /** Título que acredita al responsable (postgrado, diplomatura). */
+  acreditacion?: string | null
+  acreditado?: boolean
 }
 
 /**
@@ -173,6 +182,88 @@ export const ongService = {
   async borrarPredio(id: string): Promise<void> {
     lanzar((await supabase.from('ong_predios').delete().eq('id', id)).error)
   },
+
+  // --- libros, actas, asociados ---
+  async getLibros(): Promise<Libro[]> {
+    const { data, error } = await supabase.from('ong_libros').select('*').order('tipo')
+    lanzar(error); return (data ?? []) as Libro[]
+  },
+  async guardarLibro(l: Partial<Libro>): Promise<void> {
+    const { data: u } = await supabase.auth.getUser()
+    const p = { ...l, user_id: u?.user?.id ?? null }
+    lanzar((l.id
+      ? await supabase.from('ong_libros').update(p).eq('id', l.id)
+      : await supabase.from('ong_libros').insert(p)).error)
+  },
+  async borrarLibro(id: string): Promise<void> {
+    lanzar((await supabase.from('ong_libros').delete().eq('id', id)).error)
+  },
+
+  async getActas(): Promise<Acta[]> {
+    const { data, error } = await supabase.from('ong_actas').select('*').order('fecha', { ascending: false })
+    lanzar(error); return (data ?? []) as Acta[]
+  },
+  async guardarActa(a: Partial<Acta>): Promise<void> {
+    const { data: u } = await supabase.auth.getUser()
+    const p = { ...a, user_id: u?.user?.id ?? null }
+    lanzar((a.id
+      ? await supabase.from('ong_actas').update(p).eq('id', a.id)
+      : await supabase.from('ong_actas').insert(p)).error)
+  },
+  async borrarActa(id: string): Promise<void> {
+    lanzar((await supabase.from('ong_actas').delete().eq('id', id)).error)
+  },
+  /** Siguiente número libre de la serie de ese tipo de acta. */
+  async proximoNumeroActa(tipo: string): Promise<number> {
+    const { data } = await supabase.from('ong_actas').select('numero').eq('tipo', tipo)
+    const nums = (data ?? []).map(r => (r as { numero: number }).numero)
+    return nums.length ? Math.max(...nums) + 1 : 1
+  },
+
+  async getAsociados(): Promise<Asociado[]> {
+    const { data, error } = await supabase.from('ong_asociados').select('*').order('nombre')
+    lanzar(error); return (data ?? []) as Asociado[]
+  },
+  async guardarAsociado(a: Partial<Asociado>): Promise<void> {
+    const { data: u } = await supabase.auth.getUser()
+    const p = { ...a, user_id: u?.user?.id ?? null }
+    lanzar((a.id
+      ? await supabase.from('ong_asociados').update(p).eq('id', a.id)
+      : await supabase.from('ong_asociados').insert(p)).error)
+  },
+  async borrarAsociado(id: string): Promise<void> {
+    lanzar((await supabase.from('ong_asociados').delete().eq('id', id)).error)
+  },
+
+  async getCategorias(): Promise<CategoriaSocio[]> {
+    const { data, error } = await supabase.from('ong_categorias_socio').select('*').order('nombre')
+    lanzar(error); return (data ?? []) as CategoriaSocio[]
+  },
+  async guardarCategoria(c: Partial<CategoriaSocio>): Promise<void> {
+    const { data: u } = await supabase.auth.getUser()
+    const p = { ...c, user_id: u?.user?.id ?? null }
+    lanzar((c.id
+      ? await supabase.from('ong_categorias_socio').update(p).eq('id', c.id)
+      : await supabase.from('ong_categorias_socio').insert(p)).error)
+  },
+  async borrarCategoria(id: string): Promise<void> {
+    lanzar((await supabase.from('ong_categorias_socio').delete().eq('id', id)).error)
+  },
+
+  async getCuotas(): Promise<Cuota[]> {
+    const { data, error } = await supabase.from('ong_cuotas').select('*').order('vigente_desde', { ascending: false })
+    lanzar(error); return (data ?? []) as Cuota[]
+  },
+  async guardarCuota(c: Partial<Cuota>): Promise<void> {
+    const { data: u } = await supabase.auth.getUser()
+    const p = { ...c, user_id: u?.user?.id ?? null }
+    lanzar((c.id
+      ? await supabase.from('ong_cuotas').update(p).eq('id', c.id)
+      : await supabase.from('ong_cuotas').insert(p)).error)
+  },
+  async borrarCuota(id: string): Promise<void> {
+    lanzar((await supabase.from('ong_cuotas').delete().eq('id', id)).error)
+  },
 }
 
 // ---------------------------------------------------------------------------
@@ -275,24 +366,321 @@ export interface LineaCapacidad {
 }
 
 export function calcularCapacidad(
-  e: Entidad | null, pacientes: number, plantasActivas: number, predios: number,
+  e: Entidad | null, pacientes: number, plantasEnFloracion: number, predios: number,
 ): LineaCapacidad[] {
   const topePac = e?.tope_pacientes ?? 150
   const porPac = e?.plantas_por_paciente ?? 9
   const topePre = e?.tope_predios ?? 3
-  // El tope de plantas no es fijo: sale de cuántos pacientes tenés vinculados.
+  // El tope de plantas no es fijo: sale de cuántos pacientes hay vinculados.
   const topePlantas = pacientes * porPac
   return [
     { titulo: 'Pacientes vinculados', usado: pacientes, tope: topePac,
-      detalle: `Tope de la 1780. Es ampliable por solicitud si la asociación lo supera.` },
-    { titulo: 'Plantas en cultivo', usado: plantasActivas, tope: topePlantas,
-      detalle: `${porPac} plantas por paciente vinculado. Con ${pacientes} paciente${pacientes === 1 ? '' : 's'} el techo es ${topePlantas}.` },
+      detalle: 'Tope de la 1780. Es ampliable por solicitud si la asociación lo supera.' },
+    // El límite es sobre plantas EN FLORACIÓN, no sobre el total del cultivo:
+    // las que están en vegetativo o enraizando no cuentan contra el tope.
+    { titulo: 'Plantas en floración', usado: plantasEnFloracion, tope: topePlantas,
+      detalle: `${porPac} plantas en floración por paciente vinculado. Con ${pacientes} paciente${pacientes === 1 ? '' : 's'} el techo es ${topePlantas}. Las que están en vegetativo no cuentan.` },
     { titulo: 'Predios', usado: predios, tope: topePre,
       detalle: 'La sede social es declarativa y puede estar en otra jurisdicción que el cultivo.' },
   ]
 }
 
-/** Gramos que la ONG puede transportar: es la cantidad de sus pacientes. */
+/** Gramos que la ONG puede mover entre sus propios predios. */
 export function topeTransporteG(pacientes: number, gramosPorPaciente = 40): number {
   return pacientes * gramosPorPaciente
+}
+
+/** Tope de un traslado individual, independiente de la necesidad total. */
+export const TOPE_TRASLADO_INDIVIDUAL_G = 40
+
+// ---------------------------------------------------------------------------
+// Libros, actas y coherencia.
+// ---------------------------------------------------------------------------
+
+export const TIPOS_LIBRO = [
+  { id: 'actas_cd', nombre: 'Actas de Comisión Directiva', grupo: 'social' },
+  { id: 'actas_asamblea', nombre: 'Actas de Asamblea', grupo: 'social' },
+  { id: 'asistencia', nombre: 'Asistencia a reuniones', grupo: 'social' },
+  { id: 'actas_revisora', nombre: 'Actas de Comisión Revisora de Cuentas', grupo: 'social' },
+  { id: 'registro_asociados', nombre: 'Registro de Asociados', grupo: 'social' },
+  { id: 'diario', nombre: 'Libro Diario', grupo: 'contable' },
+  { id: 'inventario_balances', nombre: 'Inventario y Balances', grupo: 'contable' },
+] as const
+
+export const TIPOS_ACTA = [
+  { id: 'cd', nombre: 'Comisión Directiva', libro: 'actas_cd' },
+  { id: 'asamblea_ordinaria', nombre: 'Asamblea Ordinaria', libro: 'actas_asamblea' },
+  { id: 'asamblea_extraordinaria', nombre: 'Asamblea Extraordinaria', libro: 'actas_asamblea' },
+  { id: 'revisora', nombre: 'Comisión Revisora de Cuentas', libro: 'actas_revisora' },
+] as const
+
+export const ESTADOS_ACTA = ['borrador', 'firmada', 'en_libro', 'inscripta'] as const
+
+export interface PuntoOrdenDia {
+  punto: string
+  resultado?: 'aprobado' | 'rechazado' | 'pendiente'
+  favor?: number
+  contra?: number
+  abstenciones?: number
+}
+
+export interface Libro {
+  id: string
+  tipo: string
+  numero?: number | null
+  rubricado?: boolean
+  fecha_rubrica?: string | null
+  organismo?: string | null
+  digital?: boolean
+  folios_totales?: number | null
+  folios_usados?: number | null
+  estado?: string | null
+  notas?: string | null
+}
+
+export interface Acta {
+  id: string
+  tipo: string
+  numero: number
+  fecha: string
+  lugar?: string | null
+  hora_inicio?: string | null
+  hora_fin?: string | null
+  asistentes?: number | null
+  quorum_ok?: boolean
+  segunda_convocatoria?: boolean
+  orden_del_dia?: PuntoOrdenDia[]
+  firmantes?: string | null
+  estado?: string | null
+  libro_id?: string | null
+  folio?: number | null
+  notas?: string | null
+}
+
+export interface Asociado {
+  id: string
+  nombre: string
+  dni?: string | null
+  categoria?: string | null
+  paciente_id?: string | null
+  fecha_alta?: string | null
+  acta_alta_id?: string | null
+  fecha_baja?: string | null
+  activo?: boolean
+  fundador?: boolean
+  vinculado_reprocann?: boolean
+  fecha_vinculacion?: string | null
+  notas?: string | null
+}
+
+export interface CategoriaSocio {
+  id: string
+  nombre: string
+  requiere_reprocann?: boolean
+  con_voto?: boolean
+  cuota?: number | null
+  notas?: string | null
+}
+
+export interface Cuota {
+  id: string
+  tipo?: string | null
+  categoria?: string | null
+  valor: number
+  vigente_desde?: string | null
+  acta_id?: string | null
+  notas?: string | null
+}
+
+/** Al 75% de ocupación ya hay que rubricar el libro siguiente. */
+export const UMBRAL_RUBRICA_NUEVA = 0.75
+
+export function ocupacionLibro(l: Libro): number | null {
+  if (!l.folios_totales || l.folios_totales <= 0) return null
+  return (l.folios_usados ?? 0) / l.folios_totales
+}
+
+/**
+ * La numeración de actas es correlativa POR TIPO: cada órgano lleva su serie.
+ * Devuelve los huecos y los repetidos, que es lo que genera observaciones.
+ */
+export interface ProblemaCorrelatividad {
+  tipo: string
+  faltantes: number[]
+  repetidos: number[]
+  fueraDeOrden: { numero: number; fecha: string }[]
+}
+
+export function revisarCorrelatividad(actas: Acta[]): ProblemaCorrelatividad[] {
+  const porTipo = new Map<string, Acta[]>()
+  for (const a of actas) {
+    if (!porTipo.has(a.tipo)) porTipo.set(a.tipo, [])
+    porTipo.get(a.tipo)!.push(a)
+  }
+  const out: ProblemaCorrelatividad[] = []
+  for (const [tipo, lista] of porTipo) {
+    const ordenadas = [...lista].sort((a, b) => a.numero - b.numero)
+    const nums = ordenadas.map(a => a.numero)
+    const faltantes: number[] = []
+    for (let n = 1; n <= Math.max(...nums); n++) if (!nums.includes(n)) faltantes.push(n)
+    const repetidos = [...new Set(nums.filter((n, i) => nums.indexOf(n) !== i))]
+    // Si el número sube, la fecha no puede bajar.
+    const fueraDeOrden: { numero: number; fecha: string }[] = []
+    for (let i = 1; i < ordenadas.length; i++) {
+      if (ordenadas[i].fecha < ordenadas[i - 1].fecha) {
+        fueraDeOrden.push({ numero: ordenadas[i].numero, fecha: ordenadas[i].fecha })
+      }
+    }
+    if (faltantes.length || repetidos.length || fueraDeOrden.length) {
+      out.push({ tipo, faltantes, repetidos, fueraDeOrden })
+    }
+  }
+  return out
+}
+
+/** Mayorías. Las abstenciones no suman a ningún lado pero bajan el total emitido. */
+export type Mayoria = 'simple' | 'absoluta' | 'agravada' | 'unanimidad'
+
+export function resultadoVotacion(
+  p: PuntoOrdenDia, totalMiembros: number, mayoria: Mayoria = 'simple', fraccion = 2 / 3,
+): { aprobado: boolean; explicacion: string } {
+  const favor = p.favor ?? 0, contra = p.contra ?? 0, abst = p.abstenciones ?? 0
+  const emitidos = favor + contra
+  switch (mayoria) {
+    case 'unanimidad':
+      return { aprobado: favor > 0 && contra === 0 && abst === 0,
+        explicacion: 'Unanimidad: todos a favor, sin votos en contra ni abstenciones.' }
+    case 'absoluta':
+      return { aprobado: favor > totalMiembros / 2,
+        explicacion: `Mayoría absoluta: más de la mitad del total de miembros (${Math.floor(totalMiembros / 2) + 1} de ${totalMiembros}).` }
+    case 'agravada':
+      return { aprobado: favor >= Math.ceil(totalMiembros * fraccion),
+        explicacion: `Mayoría agravada: ${Math.round(fraccion * 100)}% del total (${Math.ceil(totalMiembros * fraccion)} de ${totalMiembros}).` }
+    default:
+      return { aprobado: favor > contra,
+        explicacion: `Mayoría simple sobre ${emitidos} votos emitidos. Las ${abst} abstenciones no cuentan pero reducen el total.` }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Coherencia: los cruces que hace una inspección.
+// ---------------------------------------------------------------------------
+
+export interface Chequeo {
+  clave: string
+  titulo: string
+  estado: 'ok' | 'alerta' | 'error' | 'sin_datos'
+  valor: string
+  detalle: string
+}
+
+export function chequeosCoherencia(datos: {
+  entidad: Entidad | null
+  actas: Acta[]
+  libros: Libro[]
+  asociados: Asociado[]
+  categorias: CategoriaSocio[]
+  cuotas: Cuota[]
+  pacientes: number
+  plantasFloracion: number
+}): Chequeo[] {
+  const { entidad, actas, libros, asociados, categorias, cuotas, pacientes, plantasFloracion } = datos
+  const c: Chequeo[] = []
+  const activos = asociados.filter(a => a.activo !== false)
+
+  // 1. Correlatividad de actas.
+  const problemas = revisarCorrelatividad(actas)
+  c.push(problemas.length === 0
+    ? { clave: 'correlatividad', titulo: 'Actas correlativas', estado: actas.length ? 'ok' : 'sin_datos',
+        valor: actas.length ? `${actas.length} actas` : 'sin actas',
+        detalle: 'Numeración sin huecos ni repetidos, y las fechas acompañan al número.' }
+    : { clave: 'correlatividad', titulo: 'Actas correlativas', estado: 'error',
+        valor: `${problemas.length} serie${problemas.length === 1 ? '' : 's'} con problemas`,
+        detalle: problemas.map(p => {
+          const t = TIPOS_ACTA.find(x => x.id === p.tipo)?.nombre ?? p.tipo
+          const partes: string[] = []
+          if (p.faltantes.length) partes.push(`faltan ${p.faltantes.join(', ')}`)
+          if (p.repetidos.length) partes.push(`repetidos ${p.repetidos.join(', ')}`)
+          if (p.fueraDeOrden.length) partes.push(`${p.fueraDeOrden.length} fuera de orden cronológico`)
+          return `${t}: ${partes.join(' · ')}`
+        }).join(' | ') })
+
+  // 2. Cada asociado activo tiene que estar aprobado en un acta.
+  const sinActa = activos.filter(a => !a.acta_alta_id && !a.fundador)
+  c.push(activos.length === 0
+    ? { clave: 'altas_en_acta', titulo: 'Altas respaldadas en acta', estado: 'sin_datos', valor: 'sin asociados', detalle: 'Todavía no cargaste asociados.' }
+    : sinActa.length === 0
+      ? { clave: 'altas_en_acta', titulo: 'Altas respaldadas en acta', estado: 'ok', valor: `${activos.length}/${activos.length}`,
+          detalle: 'Todos los asociados activos tienen su alta aprobada en un acta de Comisión Directiva.' }
+      : { clave: 'altas_en_acta', titulo: 'Altas respaldadas en acta', estado: 'error',
+          valor: `${sinActa.length} sin acta`,
+          detalle: `El alta se aprueba primero en acta de CD y recién después va al Registro de Asociados. Sin acta: ${sinActa.slice(0, 5).map(a => a.nombre).join(', ')}${sinActa.length > 5 ? '…' : ''}.` })
+
+  // 3. Categorías inventadas: las que usa un asociado tienen que existir en el estatuto.
+  const nombresCat = new Set(categorias.map(x => x.nombre))
+  const inventadas = [...new Set(activos.map(a => a.categoria).filter(x => x && !nombresCat.has(x)) as string[])]
+  c.push(categorias.length === 0
+    ? { clave: 'categorias', titulo: 'Categorías del estatuto', estado: 'sin_datos', valor: 'sin cargar',
+        detalle: 'Cargá las categorías tal como figuran en el estatuto para poder validar contra ellas.' }
+    : inventadas.length === 0
+      ? { clave: 'categorias', titulo: 'Categorías del estatuto', estado: 'ok', valor: `${categorias.length} categorías`,
+          detalle: 'Ningún asociado usa una categoría que no exista en el estatuto.' }
+      : { clave: 'categorias', titulo: 'Categorías del estatuto', estado: 'error', valor: `${inventadas.length} inventada${inventadas.length === 1 ? '' : 's'}`,
+          detalle: `Estas categorías no están en el estatuto: ${inventadas.join(', ')}. Es uno de los errores que más observan.` })
+
+  // 4. El valor de la cuota tiene que estar aprobado en un acta.
+  const cuotaSinActa = cuotas.filter(x => !x.acta_id)
+  c.push(cuotas.length === 0
+    ? { clave: 'cuota_en_acta', titulo: 'Cuota aprobada en acta', estado: 'sin_datos', valor: 'sin cuota cargada',
+        detalle: 'Sin una cuota aprobada en acta no hay forma de probar cuál es la cuota social de la entidad.' }
+    : cuotaSinActa.length === 0
+      ? { clave: 'cuota_en_acta', titulo: 'Cuota aprobada en acta', estado: 'ok', valor: `${cuotas.length} vigente${cuotas.length === 1 ? '' : 's'}`,
+          detalle: 'Cada valor de cuota tiene el acta que lo aprobó.' }
+      : { clave: 'cuota_en_acta', titulo: 'Cuota aprobada en acta', estado: 'error', valor: `${cuotaSinActa.length} sin acta`,
+          detalle: 'Una reunión informal no alcanza: el valor tiene que estar aprobado por el órgano y pasado al libro.' })
+
+  // 5. Libros rubricados. Sin rúbrica el libro no vale.
+  const sinRubrica = libros.filter(l => !l.rubricado)
+  c.push(libros.length === 0
+    ? { clave: 'rubrica', titulo: 'Libros rubricados', estado: 'sin_datos', valor: 'sin libros cargados', detalle: 'La rúbrica es la autorización del registro para usar el libro.' }
+    : sinRubrica.length === 0
+      ? { clave: 'rubrica', titulo: 'Libros rubricados', estado: 'ok', valor: `${libros.length}/${libros.length}`, detalle: 'Todos los libros cargados están rubricados.' }
+      : { clave: 'rubrica', titulo: 'Libros rubricados', estado: 'error', valor: `${sinRubrica.length} sin rúbrica`,
+          detalle: `Un acta pasada a un libro sin rubricar no se inscribe en ningún lado. Falta: ${sinRubrica.map(l => TIPOS_LIBRO.find(t => t.id === l.tipo)?.nombre ?? l.tipo).join(', ')}.` })
+
+  // 6. Libros por encima del 75%: hay que rubricar el siguiente.
+  const llenos = libros.filter(l => { const o = ocupacionLibro(l); return o != null && o >= UMBRAL_RUBRICA_NUEVA })
+  if (llenos.length) {
+    c.push({ clave: 'ocupacion', titulo: 'Libros por reponer', estado: 'alerta', valor: `${llenos.length} sobre el 75%`,
+      detalle: `Conviene rubricar el libro siguiente antes de quedarte sin folios: ${llenos.map(l => TIPOS_LIBRO.find(t => t.id === l.tipo)?.nombre ?? l.tipo).join(', ')}.` })
+  }
+
+  // 7. Los siete libros obligatorios.
+  const faltanLibros = TIPOS_LIBRO.filter(t => !libros.some(l => l.tipo === t.id))
+  if (faltanLibros.length) {
+    c.push({ clave: 'libros_faltantes', titulo: 'Libros obligatorios', estado: 'alerta',
+      valor: `faltan ${faltanLibros.length} de ${TIPOS_LIBRO.length}`,
+      detalle: `Sin cargar: ${faltanLibros.map(t => t.nombre).join(', ')}.` })
+  }
+
+  // 8. Plantas en floración contra el tope de la 1780.
+  const topePlantas = pacientes * (entidad?.plantas_por_paciente ?? 9)
+  c.push({
+    clave: 'plantas', titulo: 'Plantas en floración vs. tope',
+    estado: pacientes === 0 ? 'sin_datos' : plantasFloracion > topePlantas ? 'error' : 'ok',
+    valor: `${plantasFloracion} / ${topePlantas}`,
+    detalle: pacientes === 0
+      ? 'Sin pacientes vinculados no hay plantas habilitadas.'
+      : `${entidad?.plantas_por_paciente ?? 9} en floración por paciente vinculado. Las de vegetativo no cuentan.`,
+  })
+
+  // 9. Objeto social: el estatuto tiene que declarar el objeto cannábico.
+  c.push(entidad?.objeto_cannabis
+    ? { clave: 'objeto', titulo: 'Objeto social cannábico', estado: 'ok', valor: 'declarado',
+        detalle: 'El estatuto declara el objeto de estudio, investigación y/o uso medicinal del cannabis.' }
+    : { clave: 'objeto', titulo: 'Objeto social cannábico', estado: 'error', valor: 'sin declarar',
+        detalle: 'Sin objeto cannábico en el estatuto no se puede inscribir la ONG en REPROCANN. Una asociación preexistente se adecúa reformando el estatuto.' })
+
+  const orden: Record<Chequeo['estado'], number> = { error: 0, alerta: 1, sin_datos: 2, ok: 3 }
+  return c.sort((a, b) => orden[a.estado] - orden[b.estado])
 }

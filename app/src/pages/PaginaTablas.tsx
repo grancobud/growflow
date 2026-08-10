@@ -196,6 +196,67 @@ const TABLAS: DefTabla[] = [
     ],
   },
   {
+    id: 'ong_libros', nombre: 'ONG · libros', orden: 'tipo',
+    cols: [
+      { campo: 'tipo', titulo: 'Tipo', tipo: 'text', ancho: 'min-w-[170px]' },
+      { campo: 'numero', titulo: 'Nro', tipo: 'number' },
+      { campo: 'rubricado', titulo: 'Rubricado', tipo: 'bool' },
+      { campo: 'fecha_rubrica', titulo: 'Fecha rubrica', tipo: 'date' },
+      { campo: 'organismo', titulo: 'Organismo', tipo: 'text' },
+      { campo: 'digital', titulo: 'Digital', tipo: 'bool' },
+      { campo: 'folios_totales', titulo: 'Folios', tipo: 'number' },
+      { campo: 'folios_usados', titulo: 'Usados', tipo: 'number' },
+      { campo: 'estado', titulo: 'Estado', tipo: 'text' },
+    ],
+  },
+  {
+    id: 'ong_actas', nombre: 'ONG · actas', orden: 'fecha',
+    cols: [
+      { campo: 'tipo', titulo: 'Organo', tipo: 'text', ancho: 'min-w-[160px]' },
+      { campo: 'numero', titulo: 'Nro', tipo: 'number' },
+      { campo: 'fecha', titulo: 'Fecha', tipo: 'date' },
+      { campo: 'asistentes', titulo: 'Asistentes', tipo: 'number' },
+      { campo: 'quorum_ok', titulo: 'Quorum', tipo: 'bool' },
+      { campo: 'segunda_convocatoria', titulo: '2da conv.', tipo: 'bool' },
+      { campo: 'estado', titulo: 'Estado', tipo: 'text' },
+      { campo: 'folio', titulo: 'Folio', tipo: 'number' },
+      { campo: 'firmantes', titulo: 'Firmantes', tipo: 'text', ancho: 'min-w-[160px]' },
+    ],
+  },
+  {
+    id: 'ong_asociados', nombre: 'ONG · asociados', orden: 'nombre',
+    cols: [
+      { campo: 'nombre', titulo: 'Nombre', tipo: 'text', ancho: 'min-w-[170px]' },
+      { campo: 'dni', titulo: 'DNI', tipo: 'text' },
+      { campo: 'categoria', titulo: 'Categoria', tipo: 'text', ancho: 'min-w-[130px]' },
+      { campo: 'fecha_alta', titulo: 'Alta', tipo: 'date' },
+      { campo: 'activo', titulo: 'Activo', tipo: 'bool' },
+      { campo: 'fundador', titulo: 'Fundador', tipo: 'bool' },
+      { campo: 'vinculado_reprocann', titulo: 'Vinculado', tipo: 'bool' },
+      { campo: 'fecha_vinculacion', titulo: 'Fecha vinc.', tipo: 'date' },
+    ],
+  },
+  {
+    id: 'ong_categorias_socio', nombre: 'ONG · categorias de socio', orden: 'nombre',
+    cols: [
+      { campo: 'nombre', titulo: 'Nombre', tipo: 'text', ancho: 'min-w-[150px]' },
+      { campo: 'requiere_reprocann', titulo: 'Requiere REPROCANN', tipo: 'bool' },
+      { campo: 'con_voto', titulo: 'Con voto', tipo: 'bool' },
+      { campo: 'cuota', titulo: 'Cuota', tipo: 'number' },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[160px]' },
+    ],
+  },
+  {
+    id: 'ong_cuotas', nombre: 'ONG · cuotas', orden: 'vigente_desde',
+    cols: [
+      { campo: 'tipo', titulo: 'Tipo', tipo: { select: ['social', 'cultivo'] } },
+      { campo: 'categoria', titulo: 'Categoria', tipo: 'text', ancho: 'min-w-[130px]' },
+      { campo: 'valor', titulo: 'Valor', tipo: 'number' },
+      { campo: 'vigente_desde', titulo: 'Vigente desde', tipo: 'date' },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[160px]' },
+    ],
+  },
+  {
     id: 'fichas_comerciales', nombre: 'Fichas tecnicas (comerciales)', orden: 'marca',
     cols: [
       { campo: 'marca', titulo: 'Marca', tipo: 'text', ancho: 'min-w-[130px]' },
