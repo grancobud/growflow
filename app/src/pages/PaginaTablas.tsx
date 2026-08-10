@@ -196,6 +196,19 @@ const TABLAS: DefTabla[] = [
     ],
   },
   {
+    id: 'ong_dispensas', nombre: 'ONG · dispensas', orden: 'fecha',
+    cols: [
+      { campo: 'fecha', titulo: 'Fecha', tipo: 'date' },
+      { campo: 'gramos', titulo: 'Gramos', tipo: 'number' },
+      { campo: 'producto', titulo: 'Producto', tipo: { select: ['flor', 'extracto', 'aceite', 'otro'] } },
+      { campo: 'aporte', titulo: 'Aporte ($)', tipo: 'number' },
+      { campo: 'modalidad', titulo: 'Modalidad', tipo: { select: ['retiro', 'envio'] } },
+      { campo: 'con_receta', titulo: 'Con receta', tipo: 'bool' },
+      { campo: 'entregado_por', titulo: 'Entregado por', tipo: 'text', ancho: 'min-w-[140px]' },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[160px]' },
+    ],
+  },
+  {
     id: 'ong_libros', nombre: 'ONG · libros', orden: 'tipo',
     cols: [
       { campo: 'tipo', titulo: 'Tipo', tipo: 'text', ancho: 'min-w-[170px]' },

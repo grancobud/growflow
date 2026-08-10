@@ -264,6 +264,89 @@ export const ongService = {
   async borrarCuota(id: string): Promise<void> {
     lanzar((await supabase.from('ong_cuotas').delete().eq('id', id)).error)
   },
+
+  async getDispensas(): Promise<Dispensa[]> {
+    const { data, error } = await supabase.from('ong_dispensas').select('*').order('fecha', { ascending: false })
+    lanzar(error); return (data ?? []) as Dispensa[]
+  },
+  async guardarDispensa(d: Partial<Dispensa>): Promise<void> {
+    const { data: u } = await supabase.auth.getUser()
+    const p = { ...d, user_id: u?.user?.id ?? null }
+    lanzar((d.id
+      ? await supabase.from('ong_dispensas').update(p).eq('id', d.id)
+      : await supabase.from('ong_dispensas').insert(p)).error)
+  },
+  async borrarDispensa(id: string): Promise<void> {
+    lanzar((await supabase.from('ong_dispensas').delete().eq('id', id)).error)
+  },
+}
+
+// ---------------------------------------------------------------------------
+// Dispensas.
+// ---------------------------------------------------------------------------
+
+export interface Dispensa {
+  id: string
+  paciente_id?: string | null
+  fecha: string
+  producto?: string | null
+  genetica_id?: string | null
+  gramos: number
+  aporte?: number | null
+  modalidad?: string | null
+  entregado_por?: string | null
+  con_receta?: boolean
+  notas?: string | null
+}
+
+export const PRODUCTOS_DISPENSA = ['flor', 'extracto', 'aceite', 'otro'] as const
+
+/**
+ * Revisa una dispensa contra las reglas que más exponen:
+ * - entregar a alguien sin REPROCANN vinculado
+ * - pasar los 40 g de un traslado sin receta que lo respalde
+ * - cobrar por encima del costo, que deja de ser aporte y pasa a ser venta
+ */
+export interface AvisoDispensa { nivel: 'error' | 'alerta'; texto: string }
+
+export function revisarDispensa(
+  d: Dispensa, opts: { pacienteVinculado?: boolean; costoPorGramo?: number | null },
+): AvisoDispensa[] {
+  const av: AvisoDispensa[] = []
+  if (opts.pacienteVinculado === false) {
+    av.push({ nivel: 'error', texto: 'El paciente no figura como vinculado en REPROCANN. Sólo se dispensa a pacientes vinculados a esta ONG.' })
+  }
+  if (!d.paciente_id) {
+    av.push({ nivel: 'error', texto: 'Sin paciente asignado: una dispensa siempre va a una persona identificada.' })
+  }
+  if (d.gramos > TOPE_TRASLADO_INDIVIDUAL_G && !d.con_receta) {
+    av.push({ nivel: 'alerta', texto: `${d.gramos} g en un solo traslado supera los ${TOPE_TRASLADO_INDIVIDUAL_G} g. Si la necesidad medicinal lo justifica, respaldalo con receta o entregalo en más de una vez.` })
+  }
+  if (opts.costoPorGramo != null && opts.costoPorGramo > 0 && d.aporte != null && d.gramos > 0) {
+    const porGramo = d.aporte / d.gramos
+    if (porGramo > opts.costoPorGramo * 1.05) {
+      av.push({ nivel: 'alerta', texto: `El aporte da $${Math.round(porGramo).toLocaleString('es-AR')}/g y tu costo real es $${Math.round(opts.costoPorGramo).toLocaleString('es-AR')}/g. El aporte cubre gastos: por encima del costo deja de ser aporte.` })
+    }
+  }
+  return av
+}
+
+export interface ResumenDispensas {
+  total: number
+  gramos: number
+  aporte: number
+  pacientes: number
+  aportePorGramo: number | null
+}
+
+export function resumirDispensas(ds: Dispensa[]): ResumenDispensas {
+  const gramos = ds.reduce((s, d) => s + (Number(d.gramos) || 0), 0)
+  const aporte = ds.reduce((s, d) => s + (Number(d.aporte) || 0), 0)
+  return {
+    total: ds.length, gramos, aporte,
+    pacientes: new Set(ds.map(d => d.paciente_id).filter(Boolean)).size,
+    aportePorGramo: gramos > 0 ? aporte / gramos : null,
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -583,6 +666,8 @@ export function chequeosCoherencia(datos: {
   cuotas: Cuota[]
   pacientes: number
   plantasFloracion: number
+  dispensas?: Dispensa[]
+  costoPorGramo?: number | null
 }): Chequeo[] {
   const { entidad, actas, libros, asociados, categorias, cuotas, pacientes, plantasFloracion } = datos
   const c: Chequeo[] = []
@@ -680,6 +765,33 @@ export function chequeosCoherencia(datos: {
         detalle: 'El estatuto declara el objeto de estudio, investigación y/o uso medicinal del cannabis.' }
     : { clave: 'objeto', titulo: 'Objeto social cannábico', estado: 'error', valor: 'sin declarar',
         detalle: 'Sin objeto cannábico en el estatuto no se puede inscribir la ONG en REPROCANN. Una asociación preexistente se adecúa reformando el estatuto.' })
+
+  // 10. Dispensas: a quién se entregó y si el aporte se pasó del costo.
+  const ds = datos.dispensas ?? []
+  if (ds.length) {
+    const r = resumirDispensas(ds)
+    const sinPaciente = ds.filter(d => !d.paciente_id).length
+    const excedidas = ds.filter(d => d.gramos > TOPE_TRASLADO_INDIVIDUAL_G && !d.con_receta).length
+    if (sinPaciente > 0) {
+      c.push({ clave: 'dispensa_sin_paciente', titulo: 'Dispensas sin paciente', estado: 'error',
+        valor: `${sinPaciente}`, detalle: 'Una dispensa siempre va a una persona identificada y vinculada en REPROCANN.' })
+    }
+    if (excedidas > 0) {
+      c.push({ clave: 'dispensa_tope', titulo: 'Dispensas sobre los 40 g', estado: 'alerta', valor: `${excedidas}`,
+        detalle: `Un traslado individual no puede superar los ${TOPE_TRASLADO_INDIVIDUAL_G} g sin receta que respalde la necesidad medicinal.` })
+    }
+    // El aporte tiene que cubrir el costo, no superarlo: ahí deja de ser aporte.
+    const costo = datos.costoPorGramo ?? null
+    if (costo && r.aportePorGramo != null) {
+      c.push(r.aportePorGramo > costo * 1.05
+        ? { clave: 'aporte', titulo: 'Aporte vs. costo real', estado: 'error',
+            valor: `$${Math.round(r.aportePorGramo).toLocaleString('es-AR')}/g`,
+            detalle: `Tu costo real es $${Math.round(costo).toLocaleString('es-AR')}/g. El aporte cubre gastos: por encima del costo deja de ser un aporte solidario.` }
+        : { clave: 'aporte', titulo: 'Aporte vs. costo real', estado: 'ok',
+            valor: `$${Math.round(r.aportePorGramo).toLocaleString('es-AR')}/g`,
+            detalle: `Por debajo del costo real de $${Math.round(costo).toLocaleString('es-AR')}/g: el aporte está cubriendo gastos, como corresponde.` })
+    }
+  }
 
   const orden: Record<Chequeo['estado'], number> = { error: 0, alerta: 1, sin_datos: 2, ok: 3 }
   return c.sort((a, b) => orden[a.estado] - orden[b.estado])

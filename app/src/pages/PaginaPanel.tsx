@@ -5,9 +5,10 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
   Leaf, Droplets, Flower2, Scale, ArrowRight, Sprout,
-  Activity, FileText, Dna, BellRing, Wrench, CheckCircle2,
+  Activity, FileText, Dna, BellRing, Wrench, CheckCircle2, AlertTriangle,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { ongService, calcularVencimientos, type Vencimiento } from '../lib/ong'
 import { toast } from 'sonner'
 import { cultivoService, type ResumenPlanta, type Evento, type FasePlanta } from '../lib/cultivo'
 import { stockService, proximoEfectivo, diasParaProximo, type Mantenimiento, type Insumo } from '../lib/stock'
@@ -37,6 +38,9 @@ export default function PaginaPanel() {
   const [eventos, setEventos] = useState<Evento[]>([])
   const [pesoSecoTotal, setPesoSecoTotal] = useState(0)
   const [mantes, setMantes] = useState<Mantenimiento[]>([])
+  // Vencimientos de la ONG: si el mandato o el REPROCANN se caen, no se puede
+  // hacer ningun tramite. Tienen que verse apenas entras, no dentro de /ong.
+  const [vencONG, setVencONG] = useState<Vencimiento[]>([])
   const [insumos, setInsumos] = useState<Insumo[]>([])
   const [cargando, setCargando] = useState(true)
 
@@ -60,7 +64,13 @@ export default function PaginaPanel() {
       setCargando(false)
     }
   }
-  useEffect(() => { cargar() }, [])
+  useEffect(() => {
+    cargar()
+    // Vencimientos de la ONG a 60 días: si falla, el panel sigue andando igual.
+    ongService.getEntidad()
+      .then(e => setVencONG(calcularVencimientos(e).filter(v => v.fecha && v.dias != null && v.dias <= 60)))
+      .catch(() => {})
+  }, [])
 
   // Alarmas de mantenimiento: vencidas, para hoy o mañana (diasParaProximo <= 1).
   const alarmas = mantes
@@ -112,6 +122,31 @@ export default function PaginaPanel() {
       </div>
 
       <div className="px-3 sm:px-6 py-4 sm:py-5 pb-20 space-y-4 sm:space-y-5">
+        {/* Vencimientos institucionales: con esto caido no se puede tramitar nada */}
+        {vencONG.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: EASE }}
+            className="rounded-xl border border-[#7a2820] bg-[#7a2820]/10 overflow-hidden">
+            <Link to="/ong" className="block px-4 py-3 hover:bg-[#7a2820]/10 transition-colors">
+              <div className="flex items-center gap-2 mb-1.5">
+                <AlertTriangle className="w-4 h-4 text-[#ff8a7a] flex-shrink-0" />
+                <h3 className="font-display font-bold text-[13px] text-[#ff8a7a]">
+                  {vencONG.length} vencimiento{vencONG.length === 1 ? '' : 's'} de la ONG
+                </h3>
+              </div>
+              <ul className="space-y-1">
+                {vencONG.map(v => (
+                  <li key={v.clave} className="text-[11.5px] text-[#c4c4d0] flex items-baseline gap-2">
+                    <span className="text-[#ececf1]">{v.titulo}</span>
+                    <span className="font-mono tabular-nums" style={{ color: (v.dias ?? 0) < 0 ? '#ff8a7a' : '#f59e0b' }}>
+                      {(v.dias ?? 0) < 0 ? `vencido hace ${Math.abs(v.dias ?? 0)} d` : `en ${v.dias} d`}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </Link>
+          </motion.div>
+        )}
+
         {/* Alarmas de mantenimiento (se ven apenas entrás a la app) */}
         {alarmas.length > 0 && (
           <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: EASE }}

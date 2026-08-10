@@ -144,11 +144,14 @@ export function CostoPorGramo({ eco, nCosechas, plantasActivas, plantasEnFlora, 
         </div>
       )}
 
-      {/* Cuánto hay que producir para cada precio objetivo */}
+      {/* Cuánto hay que producir para bajar el costo a cada valor.
+          Se habla de APORTE y no de precio a propósito: la ONG no vende, el
+          aporte del paciente cubre el prorrateo de costos. Poner "precio" acá
+          es usar el vocabulario que después te expone. */}
       <details className="mt-3 group">
         <summary className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium cursor-pointer hover:text-[#8a8a9a] list-none flex items-center gap-1">
           <span className="group-open:rotate-90 transition-transform inline-block">›</span>
-          Para llegar a un precio objetivo
+          Cuánto producir para bajar el costo a…
         </summary>
         <div className="grid grid-cols-3 gap-2 mt-2">
           {metas.map(m => (
@@ -161,6 +164,11 @@ export function CostoPorGramo({ eco, nCosechas, plantasActivas, plantasEnFlora, 
             </div>
           ))}
         </div>
+        <p className="text-[10.5px] text-[#5c5c6b] mt-2 leading-snug">
+          Este es tu <b className="text-[#a6a6b5]">costo</b>, no un precio de lista. La asociación no vende: el aporte
+          del paciente cubre el prorrateo de estos costos, y por encima del costo real deja de ser un aporte solidario.
+          El registro de dispensas en <b className="text-[#a6a6b5]">O.N.G.</b> compara los dos números.
+        </p>
       </details>
     </section>
   )

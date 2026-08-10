@@ -18,12 +18,15 @@ import {
   ongService, calcularVencimientos, calcularCapacidad, finDeMandato,
   topeTransporteG, TOPE_TRASLADO_INDIVIDUAL_G, CARGOS, ORGANOS,
   type Entidad, type Autoridad, type Requisito, type Predio, type Urgencia,
-  type Libro, type Acta, type Asociado, type CategoriaSocio, type Cuota,
+  type Libro, type Acta, type Asociado, type CategoriaSocio, type Cuota, type Dispensa,
 } from '../lib/ong'
 import { registroService, type Paciente } from '../lib/registro'
 import { cultivoService } from '../lib/cultivo'
 import { Libros, Actas } from '../components/ong/LibrosYActas'
 import { Asociados, Coherencia } from '../components/ong/AsociadosYCoherencia'
+import { Dispensas } from '../components/ong/Dispensas'
+import { econometriaService, configService, resumenEconomico, VIDA_UTIL_DEFECTO, type VidaUtil } from '../lib/econometria'
+import { stockService } from '../lib/stock'
 import { btnPrimario, btnSutil } from '../lib/ui'
 
 // text-[16px] en mobile: evita el zoom automático de iOS Safari al enfocar.
@@ -49,7 +52,7 @@ const fmtPeso = (g: number) => g < 1000
 const textoDias = (d: number | null) =>
   d == null ? 'sin fecha cargada' : d < 0 ? `hace ${Math.abs(d)} días` : d === 0 ? 'hoy' : `en ${d} días`
 
-type Tab = 'estado' | 'coherencia' | 'entidad' | 'autoridades' | 'predios' | 'libros' | 'actas' | 'asociados'
+type Tab = 'estado' | 'coherencia' | 'dispensas' | 'entidad' | 'autoridades' | 'predios' | 'libros' | 'actas' | 'asociados'
 
 export default function PaginaONG() {
   const [tab, setTab] = useState<Tab>('estado')
@@ -67,6 +70,11 @@ export default function PaginaONG() {
   const [asociados, setAsociados] = useState<Asociado[]>([])
   const [categorias, setCategorias] = useState<CategoriaSocio[]>([])
   const [cuotas, setCuotas] = useState<Cuota[]>([])
+  const [dispensas, setDispensas] = useState<Dispensa[]>([])
+  const [geneticas, setGeneticas] = useState<Awaited<ReturnType<typeof cultivoService.getGeneticas>>>([])
+  // El costo real por gramo sale de Econometria: es contra ese numero que se
+  // valida que el aporte del paciente siga siendo un aporte y no una venta.
+  const [costoPorGramo, setCostoPorGramo] = useState<number | null>(null)
 
   const cargar = useCallback(async () => {
     try {
@@ -76,6 +84,19 @@ export default function PaginaONG() {
         ongService.getLibros(), ongService.getActas(), ongService.getAsociados(),
         ongService.getCategorias(), ongService.getCuotas(),
       ])
+      const [disp, gen] = await Promise.all([ongService.getDispensas(), cultivoService.getGeneticas()])
+      setDispensas(disp); setGeneticas(gen)
+      try {
+        const [ins, cos, vida, par, cose] = await Promise.all([
+          stockService.getInsumos(), econometriaService.getCostos(),
+          configService.get<VidaUtil>('vida_util_meses', VIDA_UTIL_DEFECTO),
+          configService.get<{ meses_ciclo: number }>('parametros', { meses_ciclo: 4 }),
+          cultivoService.getCosechas(),
+        ])
+        const gramos = cose.reduce((t, x) => t + (Number(x.peso_seco_g) || 0), 0)
+        const eco = resumenEconomico({ insumos: ins, costos: cos, vida, mesesCiclo: par.meses_ciclo, gramosCosechados: gramos })
+        setCostoPorGramo(eco.costoPorGramo)
+      } catch { /* si falla econometria, las dispensas igual funcionan */ }
       setEntidad(e); setAutoridades(a); setRequisitos(r); setPredios(p)
       setLibros(li); setActas(ac); setAsociados(aso); setCategorias(cat); setCuotas(cuo)
       setPacientes(pac); setNPacientes(pac.length)
@@ -96,6 +117,7 @@ export default function PaginaONG() {
   const TABS: { id: Tab; label: string }[] = [
     { id: 'estado', label: 'Estado' },
     { id: 'coherencia', label: 'Coherencia' },
+    { id: 'dispensas', label: 'Dispensas' },
     { id: 'libros', label: 'Libros' },
     { id: 'actas', label: 'Actas' },
     { id: 'asociados', label: 'Asociados' },
@@ -135,7 +157,9 @@ export default function PaginaONG() {
           <Estado {...{ entidad, vencimientos, capacidad, requisitos, nPacientes, recargar: cargar }} />
         ) : tab === 'coherencia' ? (
           <Coherencia {...{ entidad, actas, libros, asociados, categorias, cuotas,
-            pacientes: nPacientes, plantasFloracion: nPlantas }} />
+            pacientes: nPacientes, plantasFloracion: nPlantas, dispensas, costoPorGramo }} />
+        ) : tab === 'dispensas' ? (
+          <Dispensas {...{ dispensas, pacientes, asociados, geneticas, costoPorGramo }} onCambio={cargar} />
         ) : tab === 'libros' ? (
           <Libros libros={libros} onCambio={cargar} />
         ) : tab === 'actas' ? (
