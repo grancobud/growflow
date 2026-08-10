@@ -3,7 +3,7 @@
 
 import { NavLink, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { LayoutDashboard, Leaf, LogOut, Sprout, Table2, Droplets, BarChart3, KeyRound, IdCard, Dna, Boxes, CalendarDays, CalendarRange, Calculator, Activity, FlaskConical, CircuitBoard, Waves, Scissors, ShoppingCart, Zap } from 'lucide-react'
+import { LayoutDashboard, Leaf, LogOut, Sprout, Table2, Droplets, BarChart3, KeyRound, IdCard, Dna, Boxes, CalendarDays, CalendarRange, Calculator, Activity, FlaskConical, CircuitBoard, Waves, Scissors, ShoppingCart, Zap, Building2 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '../../hooks/useAuth'
@@ -48,6 +48,7 @@ export default function Sidebar({ colapsado: colapsadoProp }: { colapsado?: bool
     { nombre: 'Riego', ruta: '/riego', icono: Waves },
     { nombre: 'Tablero eléctrico', ruta: '/tablero', icono: Zap },
     { nombre: 'Econometría', ruta: '/econometria', icono: Calculator },
+    { nombre: 'O.N.G.', ruta: '/ong', icono: Building2 },
     { nombre: 'Registro', ruta: '/registro', icono: IdCard },
     { nombre: 'Estadísticas', ruta: '/stats', icono: BarChart3 },
     { nombre: 'Tablas', ruta: '/tablas', icono: Table2 },

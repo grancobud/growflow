@@ -58,6 +58,7 @@ export const TABLAS_CONOCIDAS = [
   'ofertas_instalacion',
   'tableros', 'tableros_circuitos',
   'insumos', 'costos', 'econometria_config', 'mantenimientos', 'recordatorios',
+  'ong_entidad', 'ong_autoridades', 'ong_requisitos', 'ong_predios',
 ]
 
 export const USUARIO_DEMO = {

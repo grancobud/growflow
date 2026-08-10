@@ -35,6 +35,7 @@ const PaginaCreadorNutrientes = lazyWithRetry(() => import('./pages/PaginaCreado
 const PaginaHardwareDIY = lazyWithRetry(() => import('./pages/PaginaHardwareDIY'), 'PaginaHardwareDIY')
 const PaginaRiego = lazyWithRetry(() => import('./pages/PaginaRiego'), 'PaginaRiego')
 const PaginaTablero = lazyWithRetry(() => import('./pages/PaginaTablero'), 'PaginaTablero')
+const PaginaONG = lazyWithRetry(() => import('./pages/PaginaONG'), 'PaginaONG')
 const Pagina404 = lazyWithRetry(() => import('./pages/Pagina404'), 'Pagina404')
 
 function SpinnerCarga({ texto }: { texto: string }) {
@@ -101,6 +102,9 @@ function App() {
           } />
           <Route path="stats" element={
             <Suspense fallback={null}><PaginaEstadisticas /></Suspense>
+          } />
+          <Route path="ong" element={
+            <Suspense fallback={null}><PaginaONG /></Suspense>
           } />
           <Route path="registro" element={
             <Suspense fallback={null}><PaginaPacientes /></Suspense>
