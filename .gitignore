@@ -7,3 +7,6 @@ supabase/.branches/
 
 # Artefactos de sesiones
 .playwright-mcp/
+
+# telemetria de claude-flow, no es codigo de la app
+.claude-flow/
