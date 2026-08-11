@@ -279,6 +279,91 @@ export const ongService = {
   async borrarDispensa(id: string): Promise<void> {
     lanzar((await supabase.from('ong_dispensas').delete().eq('id', id)).error)
   },
+
+  async getCuotasEmitidas(): Promise<CuotaEmitida[]> {
+    const { data, error } = await supabase.from('ong_cuotas_emitidas').select('*').order('periodo', { ascending: false })
+    lanzar(error); return (data ?? []) as CuotaEmitida[]
+  },
+  async guardarCuotaEmitida(c: Partial<CuotaEmitida>): Promise<void> {
+    const { data: u } = await supabase.auth.getUser()
+    const p = { ...c, user_id: u?.user?.id ?? null }
+    lanzar((c.id
+      ? await supabase.from('ong_cuotas_emitidas').update(p).eq('id', c.id)
+      : await supabase.from('ong_cuotas_emitidas').insert(p)).error)
+  },
+  async borrarCuotaEmitida(id: string): Promise<void> {
+    lanzar((await supabase.from('ong_cuotas_emitidas').delete().eq('id', id)).error)
+  },
+  /**
+   * Emite la cuota del período a todos los asociados activos que todavía no la
+   * tengan. Es el paso que faltaba para poder cruzar asociados contra ingresos.
+   */
+  async emitirCuotasDelPeriodo(
+    periodo: string, asociados: Asociado[], cuotas: Cuota[], yaEmitidas: CuotaEmitida[],
+  ): Promise<number> {
+    const { data: u } = await supabase.auth.getUser()
+    const valorDe = (a: Asociado, tipo: string) =>
+      cuotas.find(c => c.tipo === tipo && c.categoria === a.categoria)?.valor
+      ?? cuotas.find(c => c.tipo === tipo && !c.categoria)?.valor ?? null
+    const nuevas = asociados
+      .filter(a => a.activo !== false)
+      .flatMap(a => (['social'] as const).map(tipo => ({ a, tipo, valor: valorDe(a, tipo) })))
+      .filter(x => x.valor != null)
+      .filter(x => !yaEmitidas.some(e => e.asociado_id === x.a.id && e.periodo === periodo && e.tipo === x.tipo))
+      .map(x => ({
+        asociado_id: x.a.id, periodo, tipo: x.tipo, monto: x.valor as number,
+        pagada: false, user_id: u?.user?.id ?? null,
+      }))
+    if (!nuevas.length) return 0
+    lanzar((await supabase.from('ong_cuotas_emitidas').insert(nuevas)).error)
+    return nuevas.length
+  },
+}
+
+export interface CuotaEmitida {
+  id: string
+  asociado_id?: string | null
+  periodo: string
+  tipo?: string | null
+  monto: number
+  pagada?: boolean
+  fecha_pago?: string | null
+  medio?: string | null
+  notas?: string | null
+}
+
+export interface ResumenCobranza {
+  periodo: string
+  emitidas: number
+  pagadas: number
+  montoEmitido: number
+  montoCobrado: number
+  asociadosActivos: number
+  /** Activos que no tienen cuota emitida en el período. */
+  sinEmitir: number
+}
+
+export function resumenCobranza(
+  periodo: string, emitidas: CuotaEmitida[], asociados: Asociado[],
+): ResumenCobranza {
+  const delPeriodo = emitidas.filter(e => e.periodo === periodo)
+  const activos = asociados.filter(a => a.activo !== false)
+  const conCuota = new Set(delPeriodo.map(e => e.asociado_id))
+  return {
+    periodo,
+    emitidas: delPeriodo.length,
+    pagadas: delPeriodo.filter(e => e.pagada).length,
+    montoEmitido: delPeriodo.reduce((s, e) => s + (Number(e.monto) || 0), 0),
+    montoCobrado: delPeriodo.filter(e => e.pagada).reduce((s, e) => s + (Number(e.monto) || 0), 0),
+    asociadosActivos: activos.length,
+    sinEmitir: activos.filter(a => !conCuota.has(a.id)).length,
+  }
+}
+
+/** Período actual en formato YYYY-MM. */
+export function periodoActual(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
 }
 
 // ---------------------------------------------------------------------------
@@ -339,13 +424,41 @@ export interface ResumenDispensas {
   aportePorGramo: number | null
 }
 
+/**
+ * Balance de materia: lo primero que se pregunta en cualquier control de
+ * trazabilidad. Cosechaste tanto, entregaste tanto: la diferencia es lo que
+ * tenés que poder mostrar.
+ */
+export interface BalanceMateria {
+  cosechado: number
+  dispensado: number
+  stock: number
+  /** Porcentaje de lo cosechado que ya se entregó. */
+  pctDispensado: number | null
+  /** Dispensar más de lo cosechado es imposible: hay un error de carga. */
+  inconsistente: boolean
+}
+
+export function balanceMateria(gramosCosechados: number, dispensas: Dispensa[]): BalanceMateria {
+  const dispensado = dispensas.reduce((s, d) => s + (Number(d.gramos) || 0), 0)
+  return {
+    cosechado: gramosCosechados,
+    dispensado,
+    stock: gramosCosechados - dispensado,
+    pctDispensado: gramosCosechados > 0 ? (dispensado / gramosCosechados) * 100 : null,
+    inconsistente: dispensado > gramosCosechados,
+  }
+}
+
 export function resumirDispensas(ds: Dispensa[]): ResumenDispensas {
   const gramos = ds.reduce((s, d) => s + (Number(d.gramos) || 0), 0)
   const aporte = ds.reduce((s, d) => s + (Number(d.aporte) || 0), 0)
   return {
     total: ds.length, gramos, aporte,
     pacientes: new Set(ds.map(d => d.paciente_id).filter(Boolean)).size,
-    aportePorGramo: gramos > 0 ? aporte / gramos : null,
+    // Un aporte total en 0 es "todavía no lo cargaste", no "se entregó gratis":
+    // devolver 0 haría que el tablero diera por comparado algo que no lo está.
+    aportePorGramo: gramos > 0 && aporte > 0 ? aporte / gramos : null,
   }
 }
 
@@ -668,6 +781,9 @@ export function chequeosCoherencia(datos: {
   plantasFloracion: number
   dispensas?: Dispensa[]
   costoPorGramo?: number | null
+  gramosCosechados?: number
+  cuotasEmitidas?: CuotaEmitida[]
+  periodo?: string
 }): Chequeo[] {
   const { entidad, actas, libros, asociados, categorias, cuotas, pacientes, plantasFloracion } = datos
   const c: Chequeo[] = []
@@ -791,6 +907,37 @@ export function chequeosCoherencia(datos: {
             valor: `$${Math.round(r.aportePorGramo).toLocaleString('es-AR')}/g`,
             detalle: `Por debajo del costo real de $${Math.round(costo).toLocaleString('es-AR')}/g: el aporte está cubriendo gastos, como corresponde.` })
     }
+  }
+
+  // 11. Balance de materia: lo cosechado tiene que dar cuenta de lo entregado.
+  const gCos = datos.gramosCosechados ?? 0
+  if (gCos > 0 || ds.length) {
+    const b = balanceMateria(gCos, ds)
+    c.push(b.inconsistente
+      ? { clave: 'balance', titulo: 'Balance de materia', estado: 'error',
+          valor: `faltan ${Math.round(b.dispensado - b.cosechado)} g`,
+          detalle: `Dispensaste ${Math.round(b.dispensado)} g pero tenés ${Math.round(b.cosechado)} g cosechados. No se puede entregar lo que no se cosechó: hay un error de carga en cosechas o en dispensas.` }
+      : { clave: 'balance', titulo: 'Balance de materia', estado: 'ok',
+          valor: `${Math.round(b.stock)} g en stock`,
+          detalle: `${Math.round(b.cosechado)} g cosechados menos ${Math.round(b.dispensado)} g entregados. Es lo que tenés que poder mostrar si te lo piden.` })
+  }
+
+  // 12. El cruce que mas observan: asociados registrados vs ingresos por cuotas.
+  const em = datos.cuotasEmitidas ?? []
+  if (activos.length > 0) {
+    const per = datos.periodo ?? periodoActual()
+    const r = resumenCobranza(per, em, asociados)
+    c.push(r.emitidas === 0
+      ? { clave: 'cuotas_periodo', titulo: 'Cuotas del período', estado: 'alerta',
+          valor: `0 de ${r.asociadosActivos}`,
+          detalle: `No emitiste las cuotas de ${per}. El cruce entre asociados registrados e ingresos por cuotas es la comparación que más observaciones genera.` }
+      : r.sinEmitir > 0
+        ? { clave: 'cuotas_periodo', titulo: 'Cuotas del período', estado: 'error',
+            valor: `${r.emitidas} de ${r.asociadosActivos}`,
+            detalle: `${r.sinEmitir} asociado${r.sinEmitir === 1 ? '' : 's'} activo${r.sinEmitir === 1 ? '' : 's'} sin cuota emitida en ${per}. Si figura como asociado, tiene que tener su cuota.` }
+        : { clave: 'cuotas_periodo', titulo: 'Cuotas del período', estado: 'ok',
+            valor: `${r.pagadas}/${r.emitidas} cobradas`,
+            detalle: `Todos los activos tienen cuota emitida en ${per}. Cobrado ${Math.round(r.montoCobrado).toLocaleString('es-AR')} de ${Math.round(r.montoEmitido).toLocaleString('es-AR')}.` })
   }
 
   const orden: Record<Chequeo['estado'], number> = { error: 0, alerta: 1, sin_datos: 2, ok: 3 }

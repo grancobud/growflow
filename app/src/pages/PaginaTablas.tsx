@@ -196,6 +196,18 @@ const TABLAS: DefTabla[] = [
     ],
   },
   {
+    id: 'ong_cuotas_emitidas', nombre: 'ONG · cuotas emitidas', orden: 'periodo',
+    cols: [
+      { campo: 'periodo', titulo: 'Periodo', tipo: 'text' },
+      { campo: 'tipo', titulo: 'Tipo', tipo: { select: ['social', 'cultivo'] } },
+      { campo: 'monto', titulo: 'Monto', tipo: 'number' },
+      { campo: 'pagada', titulo: 'Pagada', tipo: 'bool' },
+      { campo: 'fecha_pago', titulo: 'Fecha pago', tipo: 'date' },
+      { campo: 'medio', titulo: 'Medio', tipo: 'text' },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[160px]' },
+    ],
+  },
+  {
     id: 'ong_dispensas', nombre: 'ONG · dispensas', orden: 'fecha',
     cols: [
       { campo: 'fecha', titulo: 'Fecha', tipo: 'date' },

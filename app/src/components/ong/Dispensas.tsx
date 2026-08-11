@@ -4,9 +4,9 @@
 
 import { useState, useMemo } from 'react'
 import { toast } from 'sonner'
-import { HandCoins, Plus, Pencil, Trash2, AlertTriangle, XCircle } from 'lucide-react'
+import { HandCoins, Plus, Pencil, Trash2, AlertTriangle, XCircle, Scale } from 'lucide-react'
 import {
-  ongService, revisarDispensa, resumirDispensas, PRODUCTOS_DISPENSA,
+  ongService, revisarDispensa, resumirDispensas, balanceMateria, PRODUCTOS_DISPENSA,
   TOPE_TRASLADO_INDIVIDUAL_G,
   type Dispensa, type Asociado,
 } from '../../lib/ong'
@@ -21,16 +21,18 @@ const fmtPesos = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
 const fmtFecha = (f?: string | null) =>
   f ? new Date(f + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'
 
-export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPorGramo, onCambio }: {
+export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPorGramo, gramosCosechados, onCambio }: {
   dispensas: Dispensa[]
   pacientes: Paciente[]
   asociados: Asociado[]
   geneticas: Genetica[]
   costoPorGramo: number | null
+  gramosCosechados: number
   onCambio: () => void
 }) {
   const [form, setForm] = useState<Partial<Dispensa> | null>(null)
   const r = useMemo(() => resumirDispensas(dispensas), [dispensas])
+  const bal = useMemo(() => balanceMateria(gramosCosechados, dispensas), [gramosCosechados, dispensas])
   const hayCosto = costoPorGramo != null && costoPorGramo > 0
 
   // Un paciente está "vinculado" si figura como asociado con la vinculación hecha.
@@ -98,6 +100,45 @@ export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPor
           </p>
         )}
       </div>
+
+      {/* Balance de materia: lo primero que se pregunta en un control de
+          trazabilidad. Cosechaste tanto, entregaste tanto, y la diferencia es
+          lo que tenés que poder mostrar. */}
+      {(gramosCosechados > 0 || dispensas.length > 0) && (
+        <div className={card}>
+          <div className="flex items-center gap-2 mb-1">
+            <Scale className="w-4 h-4 text-[#38bdf8]" strokeWidth={1.8} />
+            <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Balance de materia</h3>
+          </div>
+          <p className="text-[11.5px] text-[#5c5c6b] mb-3">
+            De lo cosechado a lo entregado. La diferencia es el stock que deberías tener.
+          </p>
+          <div className="flex items-stretch gap-2 flex-wrap sm:flex-nowrap">
+            <Caja t="Cosechado" v={`${Math.round(bal.cosechado).toLocaleString('es-AR')} g`} c="#bef264" />
+            <Flecha />
+            <Caja t="Entregado" v={`${Math.round(bal.dispensado).toLocaleString('es-AR')} g`} c="#a78bfa" />
+            <Flecha signo="=" />
+            <Caja t="Stock" v={`${Math.round(bal.stock).toLocaleString('es-AR')} g`}
+              c={bal.inconsistente ? '#ff8a7a' : '#38bdf8'} />
+          </div>
+          {bal.pctDispensado != null && !bal.inconsistente && (
+            <>
+              <div className="mt-3 h-1.5 rounded-full bg-[#1f1f2b] overflow-hidden">
+                <div className="h-full rounded-full bg-[#a78bfa]" style={{ width: `${Math.min(100, bal.pctDispensado)}%` }} />
+              </div>
+              <p className="text-[10.5px] text-[#5c5c6b] mt-1">
+                Entregaste el {bal.pctDispensado.toFixed(1)}% de lo cosechado.
+              </p>
+            </>
+          )}
+          {bal.inconsistente && (
+            <p className="flex items-start gap-1.5 text-[11.5px] text-[#ff8a7a] mt-2">
+              <XCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+              Entregaste más de lo que cosechaste. No es posible: revisá las cargas de cosecha o de dispensas.
+            </p>
+          )}
+        </div>
+      )}
 
       {dispensas.length === 0 ? (
         <p className="text-[13px] text-[#5c5c6b] text-center py-8">Sin dispensas registradas.</p>
@@ -200,6 +241,19 @@ export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPor
       )}
     </div>
   )
+}
+
+function Caja({ t, v, c }: { t: string; v: string; c: string }) {
+  return (
+    <div className="flex-1 min-w-[92px] rounded-lg bg-[#15151d] border border-[#1f1f2b] px-3 py-2.5 text-center">
+      <div className="text-[9.5px] uppercase tracking-[0.12em] text-[#5c5c6b]">{t}</div>
+      <div className="text-[16px] font-mono tabular-nums font-bold mt-1" style={{ color: c }}>{v}</div>
+    </div>
+  )
+}
+
+function Flecha({ signo = '−' }: { signo?: string }) {
+  return <div className="flex items-center text-[#5c5c6b] text-[15px] font-mono px-0.5">{signo}</div>
 }
 
 function Kpi({ t, v, c }: { t: string; v: string; c: string }) {

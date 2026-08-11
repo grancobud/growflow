@@ -6,16 +6,16 @@
 // ONG. Se superponen pero no son lo mismo, y por eso el vínculo con el paciente
 // es opcional.
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { toast } from 'sonner'
 import {
-  Users, Plus, Pencil, Trash2, Tags, Coins, ClipboardCheck,
+  Users, Plus, Pencil, Trash2, Tags, Coins, ClipboardCheck, Receipt,
   CheckCircle2, AlertTriangle, XCircle, HelpCircle, Check,
 } from 'lucide-react'
 import {
-  ongService, chequeosCoherencia,
+  ongService, chequeosCoherencia, resumenCobranza, periodoActual,
   type Asociado, type CategoriaSocio, type Cuota, type Acta, type Libro,
-  type Entidad, type Chequeo,
+  type Entidad, type Chequeo, type CuotaEmitida,
 } from '../../lib/ong'
 import type { Paciente } from '../../lib/registro'
 import { btnPrimario, btnSutil } from '../../lib/ui'
@@ -25,9 +25,9 @@ const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] f
 const card = 'rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4'
 const fmtPesos = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
 
-export function Asociados({ asociados, categorias, cuotas, actas, pacientes, onCambio }: {
+export function Asociados({ asociados, categorias, cuotas, actas, pacientes, cuotasEmitidas, onCambio }: {
   asociados: Asociado[]; categorias: CategoriaSocio[]; cuotas: Cuota[]
-  actas: Acta[]; pacientes: Paciente[]; onCambio: () => void
+  actas: Acta[]; pacientes: Paciente[]; cuotasEmitidas: CuotaEmitida[]; onCambio: () => void
 }) {
   const [form, setForm] = useState<Partial<Asociado> | null>(null)
   const [cat, setCat] = useState<Partial<CategoriaSocio> | null>(null)
@@ -106,6 +106,9 @@ export function Asociados({ asociados, categorias, cuotas, actas, pacientes, onC
           </div>
         )}
       </div>
+
+      {/* Cobranza del período: el cruce que más observan */}
+      <Cobranza {...{ asociados, cuotas, cuotasEmitidas, onCambio }} />
 
       {/* Registro de asociados */}
       <div className={card}>
@@ -257,6 +260,104 @@ export function Asociados({ asociados, categorias, cuotas, actas, pacientes, onC
           </div>
         </Modal>
       )}
+    </div>
+  )
+}
+
+/**
+ * Emisión y cobro de la cuota del período. Sin esto no se puede hacer el cruce
+ * que más observaciones genera: asociados registrados contra ingresos por
+ * cuotas sociales.
+ */
+function Cobranza({ asociados, cuotas, cuotasEmitidas, onCambio }: {
+  asociados: Asociado[]; cuotas: Cuota[]; cuotasEmitidas: CuotaEmitida[]; onCambio: () => void
+}) {
+  const [periodo, setPeriodo] = useState(periodoActual())
+  const [emitiendo, setEmitiendo] = useState(false)
+  const r = useMemo(() => resumenCobranza(periodo, cuotasEmitidas, asociados), [periodo, cuotasEmitidas, asociados])
+  const delPeriodo = cuotasEmitidas.filter(e => e.periodo === periodo)
+  const nombre = (id?: string | null) => asociados.find(a => a.id === id)?.nombre ?? '—'
+
+  const emitir = async () => {
+    setEmitiendo(true)
+    try {
+      const n = await ongService.emitirCuotasDelPeriodo(periodo, asociados, cuotas, cuotasEmitidas)
+      toast[n > 0 ? 'success' : 'info'](
+        n > 0 ? `${n} cuota${n === 1 ? '' : 's'} emitida${n === 1 ? '' : 's'}` : 'No quedaban cuotas por emitir')
+      onCambio()
+    } catch (e) { toast.error((e as Error).message) } finally { setEmitiendo(false) }
+  }
+  const togglePago = async (c: CuotaEmitida) => {
+    try {
+      await ongService.guardarCuotaEmitida({
+        id: c.id, pagada: !c.pagada,
+        fecha_pago: !c.pagada ? new Date().toISOString().slice(0, 10) : null,
+      })
+      onCambio()
+    } catch (e) { toast.error((e as Error).message) }
+  }
+
+  return (
+    <div className={card}>
+      <div className="flex items-center gap-2 flex-wrap">
+        <Receipt className="w-4 h-4 text-[#38bdf8]" strokeWidth={1.8} />
+        <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Cobranza del período</h3>
+        <input type="month" value={periodo} onChange={e => setPeriodo(e.target.value)}
+          className="px-2 py-1.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12px] text-[#ececf1] min-h-[44px] sm:min-h-0" />
+        <button onClick={emitir} disabled={emitiendo || asociados.length === 0} className={`${btnPrimario} ml-auto`}>
+          <Plus className="w-3.5 h-3.5" /> Emitir a los activos
+        </button>
+      </div>
+      <p className="text-[11.5px] text-[#5c5c6b] mt-2">
+        Lo que un control cruza: cuántos asociados figuran registrados contra cuántas cuotas ingresaron.
+        Si alguien figura como asociado, tiene que tener su cuota.
+      </p>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3 pt-3 border-t border-[#1f1f2b]">
+        <Kpi t="Activos" v={String(r.asociadosActivos)} c="#a6a6b5" />
+        <Kpi t="Emitidas" v={String(r.emitidas)} c={r.sinEmitir > 0 ? '#ff8a7a' : '#d9f99d'} />
+        <Kpi t="Cobradas" v={`${r.pagadas}/${r.emitidas}`} c="#bef264" />
+        <Kpi t="Ingresado" v={fmtPesos(r.montoCobrado)} c="#facc15" />
+      </div>
+      {r.sinEmitir > 0 && (
+        <p className="text-[11.5px] text-[#ff8a7a] mt-2">
+          {r.sinEmitir} asociado{r.sinEmitir === 1 ? '' : 's'} activo{r.sinEmitir === 1 ? '' : 's'} sin cuota emitida en este período.
+        </p>
+      )}
+      {cuotas.length === 0 && (
+        <p className="text-[11.5px] text-[#f59e0b] mt-2">
+          Cargá primero el valor de la cuota (aprobado en acta) para poder emitirlas.
+        </p>
+      )}
+
+      {delPeriodo.length > 0 && (
+        <div className="mt-3 space-y-1.5">
+          {delPeriodo.map(c => (
+            <button key={c.id} onClick={() => togglePago(c)}
+              className="w-full text-left rounded-lg bg-[#15151d] border border-[#1f1f2b] px-3 py-2 min-h-[44px] hover:border-[#404d20] transition-colors">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="w-4 h-4 rounded border flex items-center justify-center flex-shrink-0"
+                  style={c.pagada ? { background: '#a3e635', borderColor: '#a3e635' } : { borderColor: '#2a2a3a' }}>
+                  {c.pagada && <Check className="w-3 h-3 text-[#07070b]" />}
+                </span>
+                <span className="text-[12.5px] text-[#ececf1] truncate">{nombre(c.asociado_id)}</span>
+                <span className="text-[10.5px] px-1.5 py-0.5 rounded bg-[#1f1f2b] text-[#a6a6b5]">{c.tipo}</span>
+                <span className="ml-auto text-[12.5px] font-mono tabular-nums"
+                  style={{ color: c.pagada ? '#bef264' : '#757584' }}>{fmtPesos(c.monto)}</span>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function Kpi({ t, v, c }: { t: string; v: string; c: string }) {
+  return (
+    <div>
+      <div className="text-[9.5px] uppercase tracking-[0.12em] text-[#5c5c6b]">{t}</div>
+      <div className="text-[15px] font-mono tabular-nums font-bold mt-0.5" style={{ color: c }}>{v}</div>
     </div>
   )
 }

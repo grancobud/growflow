@@ -19,6 +19,7 @@ import {
   topeTransporteG, TOPE_TRASLADO_INDIVIDUAL_G, CARGOS, ORGANOS,
   type Entidad, type Autoridad, type Requisito, type Predio, type Urgencia,
   type Libro, type Acta, type Asociado, type CategoriaSocio, type Cuota, type Dispensa,
+  type CuotaEmitida, periodoActual,
 } from '../lib/ong'
 import { registroService, type Paciente } from '../lib/registro'
 import { cultivoService } from '../lib/cultivo'
@@ -75,6 +76,9 @@ export default function PaginaONG() {
   // El costo real por gramo sale de Econometria: es contra ese numero que se
   // valida que el aporte del paciente siga siendo un aporte y no una venta.
   const [costoPorGramo, setCostoPorGramo] = useState<number | null>(null)
+  // Gramos secos cosechados: el otro extremo del balance de materia.
+  const [gramosCosechados, setGramosCosechados] = useState(0)
+  const [cuotasEmitidas, setCuotasEmitidas] = useState<CuotaEmitida[]>([])
 
   const cargar = useCallback(async () => {
     try {
@@ -84,8 +88,10 @@ export default function PaginaONG() {
         ongService.getLibros(), ongService.getActas(), ongService.getAsociados(),
         ongService.getCategorias(), ongService.getCuotas(),
       ])
-      const [disp, gen] = await Promise.all([ongService.getDispensas(), cultivoService.getGeneticas()])
-      setDispensas(disp); setGeneticas(gen)
+      const [disp, gen, cem] = await Promise.all([
+        ongService.getDispensas(), cultivoService.getGeneticas(), ongService.getCuotasEmitidas(),
+      ])
+      setDispensas(disp); setGeneticas(gen); setCuotasEmitidas(cem)
       try {
         const [ins, cos, vida, par, cose] = await Promise.all([
           stockService.getInsumos(), econometriaService.getCostos(),
@@ -94,6 +100,7 @@ export default function PaginaONG() {
           cultivoService.getCosechas(),
         ])
         const gramos = cose.reduce((t, x) => t + (Number(x.peso_seco_g) || 0), 0)
+        setGramosCosechados(gramos)
         // A proposito SIN los insumos faltantes: el aporte del paciente se
         // compara contra lo que YA gastaste, no contra lo que pensas gastar.
         const eco = resumenEconomico({ insumos: ins, costos: cos, vida, mesesCiclo: par.meses_ciclo, gramosCosechados: gramos })
@@ -159,15 +166,16 @@ export default function PaginaONG() {
           <Estado {...{ entidad, vencimientos, capacidad, requisitos, nPacientes, recargar: cargar }} />
         ) : tab === 'coherencia' ? (
           <Coherencia {...{ entidad, actas, libros, asociados, categorias, cuotas,
-            pacientes: nPacientes, plantasFloracion: nPlantas, dispensas, costoPorGramo }} />
+            pacientes: nPacientes, plantasFloracion: nPlantas, dispensas, costoPorGramo,
+            gramosCosechados, cuotasEmitidas, periodo: periodoActual() }} />
         ) : tab === 'dispensas' ? (
-          <Dispensas {...{ dispensas, pacientes, asociados, geneticas, costoPorGramo }} onCambio={cargar} />
+          <Dispensas {...{ dispensas, pacientes, asociados, geneticas, costoPorGramo, gramosCosechados }} onCambio={cargar} />
         ) : tab === 'libros' ? (
           <Libros libros={libros} onCambio={cargar} />
         ) : tab === 'actas' ? (
           <Actas actas={actas} libros={libros} onCambio={cargar} />
         ) : tab === 'asociados' ? (
-          <Asociados {...{ asociados, categorias, cuotas, actas, pacientes }} onCambio={cargar} />
+          <Asociados {...{ asociados, categorias, cuotas, actas, pacientes, cuotasEmitidas }} onCambio={cargar} />
         ) : tab === 'entidad' ? (
           <FormEntidad entidad={entidad} onGuardado={cargar} />
         ) : tab === 'autoridades' ? (
