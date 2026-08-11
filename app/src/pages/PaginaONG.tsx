@@ -22,10 +22,11 @@ import {
   type CuotaEmitida, periodoActual,
 } from '../lib/ong'
 import { registroService, type Paciente } from '../lib/registro'
-import { cultivoService } from '../lib/cultivo'
+import { cultivoService, type ResumenPlanta } from '../lib/cultivo'
 import { Libros, Actas } from '../components/ong/LibrosYActas'
 import { Asociados, Coherencia } from '../components/ong/AsociadosYCoherencia'
 import { Dispensas } from '../components/ong/Dispensas'
+import { CupoReprocann } from '../components/ong/CupoReprocann'
 import { econometriaService, configService, resumenEconomico, VIDA_UTIL_DEFECTO, type VidaUtil } from '../lib/econometria'
 import { stockService } from '../lib/stock'
 import { btnPrimario, btnSutil } from '../lib/ui'
@@ -53,7 +54,7 @@ const fmtPeso = (g: number) => g < 1000
 const textoDias = (d: number | null) =>
   d == null ? 'sin fecha cargada' : d < 0 ? `hace ${Math.abs(d)} días` : d === 0 ? 'hoy' : `en ${d} días`
 
-type Tab = 'estado' | 'coherencia' | 'dispensas' | 'entidad' | 'autoridades' | 'predios' | 'libros' | 'actas' | 'asociados'
+type Tab = 'estado' | 'coherencia' | 'cupo' | 'dispensas' | 'entidad' | 'autoridades' | 'predios' | 'libros' | 'actas' | 'asociados'
 
 export default function PaginaONG() {
   const [tab, setTab] = useState<Tab>('estado')
@@ -66,6 +67,7 @@ export default function PaginaONG() {
   const [nPacientes, setNPacientes] = useState(0)
   const [nPlantas, setNPlantas] = useState(0)
   const [pacientes, setPacientes] = useState<Paciente[]>([])
+  const [plantas, setPlantas] = useState<ResumenPlanta[]>([])
   const [libros, setLibros] = useState<Libro[]>([])
   const [actas, setActas] = useState<Acta[]>([])
   const [asociados, setAsociados] = useState<Asociado[]>([])
@@ -108,7 +110,7 @@ export default function PaginaONG() {
       } catch { /* si falla econometria, las dispensas igual funcionan */ }
       setEntidad(e); setAutoridades(a); setRequisitos(r); setPredios(p)
       setLibros(li); setActas(ac); setAsociados(aso); setCategorias(cat); setCuotas(cuo)
-      setPacientes(pac); setNPacientes(pac.length)
+      setPacientes(pac); setNPacientes(pac.length); setPlantas(pl)
       // El tope de la 1780 es sobre plantas EN FLORACION: las de vegetativo o
       // enraizando no cuentan contra el limite.
       setNPlantas(pl.filter(x => x.fase === 'Floracion').length)
@@ -126,6 +128,7 @@ export default function PaginaONG() {
   const TABS: { id: Tab; label: string }[] = [
     { id: 'estado', label: 'Estado' },
     { id: 'coherencia', label: 'Coherencia' },
+    { id: 'cupo', label: 'Cupo REPROCANN' },
     { id: 'dispensas', label: 'Dispensas' },
     { id: 'libros', label: 'Libros' },
     { id: 'actas', label: 'Actas' },
@@ -168,6 +171,8 @@ export default function PaginaONG() {
           <Coherencia {...{ entidad, actas, libros, asociados, categorias, cuotas,
             pacientes: nPacientes, plantasFloracion: nPlantas, dispensas, costoPorGramo,
             gramosCosechados, cuotasEmitidas, periodo: periodoActual() }} />
+        ) : tab === 'cupo' ? (
+          <CupoReprocann pacientes={pacientes} plantas={plantas} onCambio={cargar} />
         ) : tab === 'dispensas' ? (
           <Dispensas {...{ dispensas, pacientes, asociados, geneticas, costoPorGramo, gramosCosechados }} onCambio={cargar} />
         ) : tab === 'libros' ? (

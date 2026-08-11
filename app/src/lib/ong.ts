@@ -581,6 +581,89 @@ export function calcularCapacidad(
   ]
 }
 
+// ---------------------------------------------------------------------------
+// Cupo REPROCANN: qué planta se ampara en el permiso de qué persona.
+//
+// El cupo del cultivo no es un número propio de la ONG: es la suma de los
+// permisos que aportó cada paciente. Por eso la pregunta que hay que poder
+// contestar planta por planta es "¿de quién es el REPROCANN que la habilita?".
+// Una planta en floración sin persona asignada no está amparada por nadie.
+// ---------------------------------------------------------------------------
+
+export interface CupoPersona {
+  pacienteId: string
+  nombre: string
+  reprocann: string | null
+  estado: string | null
+  vencimiento: string | null
+  vencido: boolean
+  cupo: number
+  asignadas: number
+  enFloracion: number
+  libres: number
+  excedida: boolean
+}
+
+export interface CupoReprocann {
+  personas: CupoPersona[]
+  /** Personas que efectivamente aportaron su REPROCANN vigente. */
+  aportantes: number
+  cupoTotal: number
+  asignadas: number
+  enFloracion: number
+  /** Plantas activas que no se imputan al permiso de nadie. */
+  sinAsignar: number
+  /** Las críticas: en floración y sin respaldo. */
+  sinAsignarEnFloracion: number
+}
+
+interface PlantaCupo { paciente_id: string | null; fase: string; activa?: boolean }
+interface PacienteCupo {
+  id: string; nombre_completo: string; reprocann_nro: string | null
+  reprocann_estado: string | null; reprocann_vencimiento: string | null
+  plantas_habilitadas: number | null; activo?: boolean
+}
+
+export function cupoReprocann(
+  pacientes: PacienteCupo[], plantas: PlantaCupo[], porPacienteDefault = 9,
+): CupoReprocann {
+  const activas = plantas.filter(p => p.activa !== false)
+  const hoy = new Date().toISOString().slice(0, 10)
+
+  const personas: CupoPersona[] = pacientes
+    .filter(p => p.activo !== false)
+    .map(p => {
+      const suyas = activas.filter(x => x.paciente_id === p.id)
+      const enFloracion = suyas.filter(x => x.fase === 'Floracion').length
+      const cupo = p.plantas_habilitadas ?? porPacienteDefault
+      return {
+        pacienteId: p.id, nombre: p.nombre_completo,
+        reprocann: p.reprocann_nro, estado: p.reprocann_estado,
+        vencimiento: p.reprocann_vencimiento,
+        vencido: !!p.reprocann_vencimiento && p.reprocann_vencimiento < hoy,
+        cupo, asignadas: suyas.length, enFloracion,
+        libres: Math.max(0, cupo - enFloracion),
+        // El tope se mide contra las de floración, igual que en la 1780.
+        excedida: enFloracion > cupo,
+      }
+    })
+    .sort((a, b) => b.enFloracion - a.enFloracion || a.nombre.localeCompare(b.nombre))
+
+  const sinAsignarPlantas = activas.filter(p => !p.paciente_id)
+  // Sólo suma al cupo quien tiene REPROCANN cargado y no vencido.
+  const aportan = personas.filter(p => p.reprocann && !p.vencido)
+
+  return {
+    personas,
+    aportantes: aportan.length,
+    cupoTotal: aportan.reduce((s, p) => s + p.cupo, 0),
+    asignadas: activas.filter(p => p.paciente_id).length,
+    enFloracion: activas.filter(p => p.fase === 'Floracion').length,
+    sinAsignar: sinAsignarPlantas.length,
+    sinAsignarEnFloracion: sinAsignarPlantas.filter(p => p.fase === 'Floracion').length,
+  }
+}
+
 /** Gramos que la ONG puede mover entre sus propios predios. */
 export function topeTransporteG(pacientes: number, gramosPorPaciente = 40): number {
   return pacientes * gramosPorPaciente
