@@ -3,14 +3,16 @@
 
 import { NavLink, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { LayoutDashboard, Leaf, LogOut, Sprout, Table2, Droplets, BarChart3, KeyRound, IdCard, Dna, Boxes, CalendarDays, CalendarRange, Calculator, Activity, FlaskConical, CircuitBoard, Waves, Scissors, ShoppingCart, Zap, Building2 } from 'lucide-react'
+import { LayoutDashboard, Leaf, LogOut, Sprout, Table2, BarChart3, KeyRound, IdCard, Boxes, CalendarDays, Calculator, Activity, FlaskConical, CircuitBoard, Waves, Scissors, ShoppingCart, Zap, Building2 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '../../hooks/useAuth'
 import { tienePin, quitarPin } from '../../lib/pin'
 import PinLock from '../PinLock'
 
-type Item = { nombre: string; ruta: string; icono: LucideIcon }
+// `alias`: otras rutas que pertenecen al mismo item. Cultivo agrupa cuatro
+// vistas bajo URLs propias, y sin esto el menú se apaga al cambiar de pestaña.
+type Item = { nombre: string; ruta: string; icono: LucideIcon; alias?: string[] }
 
 export default function Sidebar({ colapsado: colapsadoProp }: { colapsado?: boolean } = {}) {
   const { usuario, logout } = useAuth()
@@ -34,11 +36,8 @@ export default function Sidebar({ colapsado: colapsadoProp }: { colapsado?: bool
 
   const items: Item[] = [
     { nombre: 'Panel', ruta: '/', icono: LayoutDashboard },
-    { nombre: 'Plantas', ruta: '/plantas', icono: Sprout },
-    { nombre: 'Genéticas', ruta: '/geneticas', icono: Dna },
-    { nombre: 'Línea de tiempo', ruta: '/linea-tiempo', icono: CalendarRange },
+    { nombre: 'Cultivo', ruta: '/plantas', icono: Sprout, alias: ['/geneticas', '/linea-tiempo', '/sala', '/cultivo'] },
     { nombre: 'Cosecha', ruta: '/cosecha', icono: Scissors },
-    { nombre: 'Sala', ruta: '/sala', icono: Droplets },
     { nombre: 'Ambiente', ruta: '/ambiente', icono: Activity },
     { nombre: 'Calendario', ruta: '/calendario', icono: CalendarDays },
     { nombre: 'Stock', ruta: '/stock', icono: Boxes },
@@ -63,7 +62,8 @@ export default function Sidebar({ colapsado: colapsadoProp }: { colapsado?: bool
   }
 
   const renderItem = (item: Item) => {
-    const isActive = location.pathname === item.ruta || (item.ruta !== '/' && location.pathname.startsWith(item.ruta))
+    const rutas = [item.ruta, ...(item.alias ?? [])]
+    const isActive = rutas.some(r => location.pathname === r || (r !== '/' && location.pathname.startsWith(r)))
     return (
       <NavLink
         key={item.ruta}

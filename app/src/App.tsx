@@ -14,20 +14,18 @@ import { lazyWithRetry } from './lib/lazyWithRetry'
 // Version personal: solo las paginas adaptadas al esquema simplificado.
 // El resto de las paginas del CannTrace original quedan en src/pages por si
 // se adaptan mas adelante, pero fuera del router.
-const PaginaPlantas = lazyWithRetry(() => import('./pages/PaginaPlantas'), 'PaginaPlantas')
+// Plantas, Geneticas, Linea de tiempo y Sala viven adentro de esta.
+const PaginaCultivo = lazyWithRetry(() => import('./pages/PaginaCultivo'), 'PaginaCultivo')
 const PaginaChat = lazyWithRetry(() => import('./pages/PaginaChat'), 'PaginaChat')
 const PaginaConocimiento = lazyWithRetry(() => import('./pages/PaginaConocimiento'), 'PaginaConocimiento')
 const PaginaTablas = lazyWithRetry(() => import('./pages/PaginaTablas'), 'PaginaTablas')
-const PaginaSala = lazyWithRetry(() => import('./pages/PaginaSala'), 'PaginaSala')
 const PaginaEstadisticas = lazyWithRetry(() => import('./pages/PaginaEstadisticas'), 'PaginaEstadisticas')
 const PaginaCosecha = lazyWithRetry(() => import('./pages/PaginaCosecha'), 'PaginaCosecha')
 const PaginaInsumosFaltantes = lazyWithRetry(() => import('./pages/PaginaInsumosFaltantes'), 'PaginaInsumosFaltantes')
 const PaginaPacientes = lazyWithRetry(() => import('./pages/PaginaPacientes'), 'PaginaPacientes')
-const PaginaGeneticas = lazyWithRetry(() => import('./pages/PaginaGeneticas'), 'PaginaGeneticas')
 const PaginaAsistencia = lazyWithRetry(() => import('./pages/PaginaAsistencia'), 'PaginaAsistencia')
 const PaginaStockInsumos = lazyWithRetry(() => import('./pages/PaginaStockInsumos'), 'PaginaStockInsumos')
 const PaginaCalendarioCultivo = lazyWithRetry(() => import('./pages/PaginaCalendarioCultivo'), 'PaginaCalendarioCultivo')
-const PaginaLineaTiempo = lazyWithRetry(() => import('./pages/PaginaLineaTiempo'), 'PaginaLineaTiempo')
 const PaginaEconometria = lazyWithRetry(() => import('./pages/PaginaEconometria'), 'PaginaEconometria')
 const PaginaAmbiente = lazyWithRetry(() => import('./pages/PaginaAmbiente'), 'PaginaAmbiente')
 const PaginaHistoriaPlanta = lazyWithRetry(() => import('./pages/PaginaHistoriaPlanta'), 'PaginaHistoriaPlanta')
@@ -79,9 +77,13 @@ function App() {
         />
         <Route path="/" element={<RutaRaiz />}>
           <Route index element={<PaginaPanel />} />
-          <Route path="plantas" element={
-            <Suspense fallback={null}><PaginaPlantas /></Suspense>
-          } />
+          {/* Cultivo: cuatro vistas de lo mismo bajo un solo item de menu.
+              Las rutas viejas se conservan; la seccion sale del pathname. */}
+          {['cultivo', 'plantas', 'geneticas', 'linea-tiempo', 'sala'].map(r => (
+            <Route key={r} path={r} element={
+              <Suspense fallback={null}><PaginaCultivo /></Suspense>
+            } />
+          ))}
           <Route path="conocimiento" element={
             <Suspense fallback={null}><PaginaConocimiento /></Suspense>
           } />
@@ -90,9 +92,6 @@ function App() {
           } />
           <Route path="tablas" element={
             <Suspense fallback={null}><PaginaTablas /></Suspense>
-          } />
-          <Route path="sala" element={
-            <Suspense fallback={null}><PaginaSala /></Suspense>
           } />
           <Route path="cosecha" element={
             <Suspense fallback={null}><PaginaCosecha /></Suspense>
@@ -109,9 +108,6 @@ function App() {
           <Route path="registro" element={
             <Suspense fallback={null}><PaginaPacientes /></Suspense>
           } />
-          <Route path="geneticas" element={
-            <Suspense fallback={null}><PaginaGeneticas /></Suspense>
-          } />
           <Route path="asistencia" element={
             <Suspense fallback={null}><PaginaAsistencia /></Suspense>
           } />
@@ -120,9 +116,6 @@ function App() {
           } />
           <Route path="calendario" element={
             <Suspense fallback={null}><PaginaCalendarioCultivo /></Suspense>
-          } />
-          <Route path="linea-tiempo" element={
-            <Suspense fallback={null}><PaginaLineaTiempo /></Suspense>
           } />
           <Route path="econometria" element={
             <Suspense fallback={null}><PaginaEconometria /></Suspense>

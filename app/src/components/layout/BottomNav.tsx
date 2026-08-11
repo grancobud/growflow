@@ -1,15 +1,20 @@
-import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Sprout, MessageSquareText, Droplets, Menu } from 'lucide-react'
+import { NavLink, useLocation } from 'react-router-dom'
+import { LayoutDashboard, Sprout, MessageSquareText, Scissors, Menu } from 'lucide-react'
 
 /** Bottom navigation mobile. El boton "Más" abre el cajon con todas las secciones. */
+// Sala dejó de tener entrada propia: es una pestaña dentro de Cultivo, y tenerla
+// acá además de Plantas gastaba dos de los cuatro lugares en la misma pantalla.
 const ITEMS = [
   { ruta: '/', icono: LayoutDashboard, label: 'Panel', exact: true },
-  { ruta: '/sala', icono: Droplets, label: 'Sala', exact: false },
-  { ruta: '/plantas', icono: Sprout, label: 'Plantas', exact: false },
+  // `alias`: las otras pestañas de Cultivo. Sin esto el item se apaga al pasar
+  // de Plantas a Sala, que es la misma sección.
+  { ruta: '/plantas', icono: Sprout, label: 'Cultivo', exact: false, alias: ['/geneticas', '/linea-tiempo', '/sala', '/cultivo'] },
+  { ruta: '/cosecha', icono: Scissors, label: 'Cosecha', exact: false },
   { ruta: '/chat', icono: MessageSquareText, label: 'Chat', exact: false },
 ]
 
 export default function BottomNav() {
+  const { pathname } = useLocation()
   return (
     <nav
       aria-label="Navegacion rapida mobile"
@@ -23,7 +28,8 @@ export default function BottomNav() {
             end={item.exact}
             className={({ isActive }) =>
               `relative flex flex-col items-center justify-center gap-0.5 flex-1 h-full min-w-[44px] transition-colors ${
-                isActive ? 'text-[#bef264]' : 'text-[#5c5c6b] hover:text-[#a6a6b5]'
+                isActive || item.alias?.some(a => pathname.startsWith(a))
+                  ? 'text-[#bef264]' : 'text-[#5c5c6b] hover:text-[#a6a6b5]'
               }`
             }
             aria-label={item.label}
