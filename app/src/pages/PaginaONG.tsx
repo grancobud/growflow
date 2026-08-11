@@ -94,6 +94,8 @@ export default function PaginaONG() {
           cultivoService.getCosechas(),
         ])
         const gramos = cose.reduce((t, x) => t + (Number(x.peso_seco_g) || 0), 0)
+        // A proposito SIN los insumos faltantes: el aporte del paciente se
+        // compara contra lo que YA gastaste, no contra lo que pensas gastar.
         const eco = resumenEconomico({ insumos: ins, costos: cos, vida, mesesCiclo: par.meses_ciclo, gramosCosechados: gramos })
         setCostoPorGramo(eco.costoPorGramo)
       } catch { /* si falla econometria, las dispensas igual funcionan */ }

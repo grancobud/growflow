@@ -20,6 +20,7 @@ import {
   type Costo, type TipoCosto, type Periodicidad, type VidaUtil,
 } from '../lib/econometria'
 import { stockService, type Insumo } from '../lib/stock'
+import { faltantesService } from '../lib/nutrientes'
 import { instalacionesService } from '../lib/instalaciones'
 import { cultivoService, FASES_COSECHABLES } from '../lib/cultivo'
 import { ModalInsumo, ModalVerInsumo } from './PaginaStockInsumos'
@@ -35,6 +36,8 @@ export default function PaginaEconometria() {
   const [tab, setTab] = useState<'resumen' | 'costos' | 'insumos' | 'instalaciones'>('resumen')
   const [costos, setCostos] = useState<Costo[]>([])
   const [insumos, setInsumos] = useState<Insumo[]>([])
+  // Total pendiente de la lista de compras, para el escenario "si compro todo".
+  const [faltantes, setFaltantes] = useState(0)
   const [plantasActivas, setPlantasActivas] = useState(0)
   const [plantasEnFlora, setPlantasEnFlora] = useState(0)
   const [gramosSeco, setGramosSeco] = useState(0)
@@ -56,7 +59,7 @@ export default function PaginaEconometria() {
 
   const cargar = useCallback(async () => {
     try {
-      const [cs, ins, plantas, cosechas, itemsInst, vida, params] = await Promise.all([
+      const [cs, ins, plantas, cosechas, itemsInst, vida, params, falt] = await Promise.all([
         econometriaService.getCostos(),
         stockService.getInsumos(),
         cultivoService.getResumenPlantas(true),
@@ -64,7 +67,12 @@ export default function PaginaEconometria() {
         instalacionesService.getItems(),
         configService.get<VidaUtil>('vida_util_meses', VIDA_UTIL_DEFECTO),
         configService.get<{ meses_ciclo: number }>('parametros', { meses_ciclo: 4 }),
+        faltantesService.list(),
       ])
+      // Mismo criterio que la pagina de Insumos faltantes: precio x cantidad,
+      // solo los que todavia no se compraron.
+      setFaltantes(falt.filter(x => !x.comprado)
+        .reduce((t, x) => t + (Number(x.precio) || 0) * (Number(x.cantidad) || 1), 0))
       // Para proyectar el ciclo sólo cuentan las que van a dar cosecha AHORA:
       // las que llegaron a floración. Las que están en vegetativo son del ciclo
       // siguiente y contarlas infla el rinde. En el cultivo de Gastón se nota
@@ -103,8 +111,8 @@ export default function PaginaEconometria() {
   // recurrentes + los consumibles del ciclo. El catálogo de Instalaciones NO
   // entra: es un presupuesto de cosas que todavía no están compradas.
   const eco = useMemo(() => resumenEconomico({
-    insumos, costos, vida, mesesCiclo, gramosCosechados: gramosSeco,
-  }), [insumos, costos, vida, mesesCiclo, gramosSeco])
+    insumos, costos, vida, mesesCiclo, gramosCosechados: gramosSeco, faltantes,
+  }), [insumos, costos, vida, mesesCiclo, gramosSeco, faltantes])
 
   const mensualTotal = eco.totalMes
   const costoPorCiclo = eco.totalCiclo

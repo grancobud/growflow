@@ -80,12 +80,47 @@ export function CostoPorGramo({ eco, nCosechas, plantasActivas, plantasEnFlora, 
             <b className="text-[#d4d4dd]">{fmt(eco.totalCiclo)}</b> que cuesta el ciclo de {mesesCiclo} meses,
             dividido <b className="text-[#d4d4dd]">{fmtG(eco.gramos)}g</b> secos cosechados
             {nCosechas > 0 && <> en {nCosechas} cosecha{nCosechas === 1 ? '' : 's'}</>}.
+            {' '}<span className="text-[#5c5c6b]">Es lo efectivamente gastado: no incluye la lista de compras pendiente.</span>
           </>
         ) : (
           <>Cargá cosechas con peso seco para que se calcule. El ciclo de {mesesCiclo} meses
             cuesta <b className="text-[#d4d4dd]">{fmt(eco.totalCiclo)}</b>.</>
         )}
       </p>
+
+      {/* El mismo costo, pero sumando lo que todavía falta comprar. Va aparte y
+          no reemplaza al de arriba: uno es lo que gastaste y el otro lo que
+          vas a gastar si comprás toda la lista. Mezclarlos daría un costo por
+          gramo que no corresponde a ninguna realidad. */}
+      {eco.faltantes > 0 && (
+        <div className="mt-3.5 rounded-lg bg-[#15151d]/80 border border-[#2a2a3a] p-3">
+          <div className="flex items-baseline justify-between gap-2 flex-wrap">
+            <div className="text-[10px] uppercase tracking-[0.12em] text-[#8f8f9f] font-medium">
+              Si comprás lo que falta
+            </div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-display font-bold text-[22px] leading-none text-[#facc15] tabular-nums">
+                {hay ? fmt(eco.costoPorGramoConFaltantes ?? 0) : '—'}
+              </span>
+              {hay && <span className="text-[11px] text-[#8a7c3c]">/g</span>}
+            </div>
+          </div>
+          <p className="text-[11.5px] text-[#8a8a9a] leading-relaxed mt-1.5">
+            Sumando los <b className="text-[#facc15]">{fmt(eco.faltantes)}</b> pendientes de{' '}
+            <b className="text-[#d4d4dd]">Insumos faltantes</b>, el ciclo pasa
+            de <b className="text-[#d4d4dd]">{fmt(eco.totalCiclo)}</b> a{' '}
+            <b className="text-[#d4d4dd]">{fmt(eco.totalCicloConFaltantes)}</b>
+            {hay && eco.costoPorGramo != null && eco.costoPorGramoConFaltantes != null && (
+              <>, y el gramo de <b className="text-[#bef264]">{fmt(eco.costoPorGramo)}</b> a{' '}
+                <b className="text-[#facc15]">{fmt(eco.costoPorGramoConFaltantes)}</b></>
+            )}.
+          </p>
+          <p className="text-[10.5px] text-[#5c5c6b] leading-snug mt-1.5">
+            Es un escenario, no tu costo real. Además la lista mezcla consumibles con equipamiento:
+            lo que sea equipo se amortiza en varios ciclos y no debería pesar entero sobre este.
+          </p>
+        </div>
+      )}
 
       {/* Proyección: el número que sirve para decidir */}
       {hay && plantasEnFlora > 0 && costoProyectado != null && (

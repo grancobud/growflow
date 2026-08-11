@@ -198,6 +198,12 @@ export interface ResumenEconomico {
   costosFijos: Costo[]
   costosVariables: Costo[]
   mesesCiclo: number
+  // --- escenario "si compro lo que falta" ---
+  /** Total pendiente de la lista de Insumos faltantes (no comprados). */
+  faltantes: number
+  /** El ciclo sumandole lo que todavia falta comprar. */
+  totalCicloConFaltantes: number
+  costoPorGramoConFaltantes: number | null
 }
 
 /**
@@ -210,8 +216,15 @@ export function resumenEconomico(opts: {
   vida: VidaUtil
   mesesCiclo: number
   gramosCosechados: number
+  /**
+   * Total pendiente de la lista de Insumos faltantes. Se mantiene APARTE del
+   * costo real: son cosas que todavía no se compraron, así que meterlas en el
+   * costo del ciclo mezclaría lo que gastaste con lo que pensás gastar. Se
+   * expone como un segundo número para poder ver las dos cosas.
+   */
+  faltantes?: number
 }): ResumenEconomico {
-  const { insumos, costos, vida, mesesCiclo, gramosCosechados } = opts
+  const { insumos, costos, vida, mesesCiclo, gramosCosechados, faltantes = 0 } = opts
   const lineas = amortizacion(insumos, vida)
   const amortizacionMes = lineas.reduce((s, l) => s + l.porMes, 0)
   const fijosMes = costos.filter(c => c.tipo === 'fijo')
@@ -226,12 +239,17 @@ export function resumenEconomico(opts: {
     .filter(i => claseDe(i) === 'capex' && i.precio)
     .reduce((s, i) => s + Number(i.precio), 0)
 
+  const totalCicloConFaltantes = totalCiclo + faltantes
+
   return {
     amortizacionMes, fijosMes, variablesMes, consumiblesMes,
     totalMes, totalCiclo, capexInvertido,
     gramos: gramosCosechados,
     costoPorGramo: gramosCosechados > 0 ? totalCiclo / gramosCosechados : null,
     costoPorCiclo: totalCiclo,
+    faltantes,
+    totalCicloConFaltantes,
+    costoPorGramoConFaltantes: gramosCosechados > 0 ? totalCicloConFaltantes / gramosCosechados : null,
     lineas,
     consumibles: detalleConsumibles(insumos, mesesCiclo),
     costosFijos: costos.filter(c => c.tipo === 'fijo'),
