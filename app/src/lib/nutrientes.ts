@@ -1475,13 +1475,20 @@ export interface InsumoFaltante {
   imagen_thumb?: string | null // miniatura (~128px) — la que se muestra en la lista
   tiene_imagen?: boolean       // columna generada: hay foto, sin traerla
   comprado?: boolean
+  /**
+   * Para que la lista pendiente pese bien sobre el ciclo: el equipo se
+   * amortiza segun su categoria y solo lo consumible cae entero. 'gasto' es
+   * un pago unico (honorarios, tramites) que no es un bien y no se amortiza.
+   */
+  categoria?: string | null
+  clase_costo?: 'capex' | 'consumible' | 'recurrente' | 'gasto' | null
   creado_en?: string
 }
 
 // Columnas del listado: todas menos `imagen`. La foto grande pesa cientos de kB por
 // fila (data URI base64) y sólo hace falta al abrir la ficha; traerla en la lista
 // hacía bajar ~4,7 MB para dibujar thumbnails de 44x44 px.
-const COLS_LISTA = 'id,sal_id,nombre,cantidad,unidad,prioridad,nota,precio,link,imagen_thumb,tiene_imagen,comprado,creado_en'
+const COLS_LISTA = 'id,sal_id,nombre,cantidad,unidad,prioridad,nota,precio,link,imagen_thumb,tiene_imagen,comprado,creado_en,categoria,clase_costo'
 
 export const faltantesService = {
   async list(): Promise<InsumoFaltante[]> {

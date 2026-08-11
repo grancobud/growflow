@@ -199,9 +199,16 @@ export interface ResumenEconomico {
   costosVariables: Costo[]
   mesesCiclo: number
   // --- escenario "si compro lo que falta" ---
-  /** Total pendiente de la lista de Insumos faltantes (no comprados). */
+  /** Total de la lista de compras pendiente, a precio de lista. */
   faltantes: number
-  /** El ciclo sumandole lo que todavia falta comprar. */
+  /**
+   * Lo que de verdad pesa sobre ESTE ciclo. No es el total: el equipamiento se
+   * amortiza en su vida util, así que un deshumidificador de $1.400.000 con 72
+   * meses de vida no carga entero sobre un ciclo de 4 meses.
+   */
+  faltantesEnCiclo: number
+  faltantesDetalle: { capexEnCiclo: number; consumibles: number; gastos: number }
+  /** El ciclo sumandole lo que falta comprar, ya amortizado donde corresponde. */
   totalCicloConFaltantes: number
   costoPorGramoConFaltantes: number | null
 }
@@ -217,14 +224,17 @@ export function resumenEconomico(opts: {
   mesesCiclo: number
   gramosCosechados: number
   /**
-   * Total pendiente de la lista de Insumos faltantes. Se mantiene APARTE del
-   * costo real: son cosas que todavía no se compraron, así que meterlas en el
-   * costo del ciclo mezclaría lo que gastaste con lo que pensás gastar. Se
-   * expone como un segundo número para poder ver las dos cosas.
+   * Lista de compras pendiente. Se mantiene APARTE del costo real: son cosas
+   * que todavía no se compraron, y meterlas en el costo del ciclo mezclaría lo
+   * que gastaste con lo que pensás gastar. Se expone como segundo número.
+   *
+   * Se pasa la lista y no un total porque cada item pesa distinto: el
+   * equipamiento se amortiza en su vida útil y sólo lo consumible (y los pagos
+   * únicos, como honorarios) cae entero sobre el ciclo.
    */
-  faltantes?: number
+  faltantes?: InsumoCosto[]
 }): ResumenEconomico {
-  const { insumos, costos, vida, mesesCiclo, gramosCosechados, faltantes = 0 } = opts
+  const { insumos, costos, vida, mesesCiclo, gramosCosechados, faltantes = [] } = opts
   const lineas = amortizacion(insumos, vida)
   const amortizacionMes = lineas.reduce((s, l) => s + l.porMes, 0)
   const fijosMes = costos.filter(c => c.tipo === 'fijo')
@@ -239,7 +249,22 @@ export function resumenEconomico(opts: {
     .filter(i => claseDe(i) === 'capex' && i.precio)
     .reduce((s, i) => s + Number(i.precio), 0)
 
-  const totalCicloConFaltantes = totalCiclo + faltantes
+  // Lo pendiente, con el mismo criterio que lo ya comprado: el equipamiento se
+  // amortiza y sólo lo consumible pesa entero. Los 'gasto' (honorarios,
+  // trámites) no son un bien y no se amortizan: se pagan una vez.
+  const faltTotal = faltantes.reduce((s, i) => s + (Number(i.precio) || 0), 0)
+  const faltGastos = faltantes
+    .filter(i => i.clase_costo === ('gasto' as ClaseCosto) && i.precio)
+    .reduce((s, i) => s + Number(i.precio), 0)
+  const faltConsumibles = faltantes
+    .filter(i => i.clase_costo !== ('gasto' as ClaseCosto) && claseDe(i) === 'consumible' && i.precio)
+    .reduce((s, i) => s + Number(i.precio), 0)
+  const faltCapexEnCiclo = amortizacion(
+    faltantes.filter(i => i.clase_costo !== ('gasto' as ClaseCosto)), vida,
+  ).reduce((s, l) => s + l.porMes, 0) * mesesCiclo
+
+  const faltantesEnCiclo = faltCapexEnCiclo + faltConsumibles + faltGastos
+  const totalCicloConFaltantes = totalCiclo + faltantesEnCiclo
 
   return {
     amortizacionMes, fijosMes, variablesMes, consumiblesMes,
@@ -247,7 +272,9 @@ export function resumenEconomico(opts: {
     gramos: gramosCosechados,
     costoPorGramo: gramosCosechados > 0 ? totalCiclo / gramosCosechados : null,
     costoPorCiclo: totalCiclo,
-    faltantes,
+    faltantes: faltTotal,
+    faltantesEnCiclo,
+    faltantesDetalle: { capexEnCiclo: faltCapexEnCiclo, consumibles: faltConsumibles, gastos: faltGastos },
     totalCicloConFaltantes,
     costoPorGramoConFaltantes: gramosCosechados > 0 ? totalCicloConFaltantes / gramosCosechados : null,
     lineas,

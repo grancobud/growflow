@@ -15,7 +15,7 @@ import Instalaciones from '../components/econometria/Instalaciones'
 import { CostoPorGramo, ComposicionCosto, DesgloseCostos, Indicadores } from '../components/econometria/ResumenEconomico'
 import {
   econometriaService, PERIODICIDADES, CATEGORIAS_COSTO_FIJO, CATEGORIAS_COSTO_VARIABLE,
-  totalCosto, mensualEquivalente, labelPeriodicidad,
+  totalCosto, mensualEquivalente, labelPeriodicidad, type InsumoCosto, type ClaseCosto,
   resumenEconomico, configService, VIDA_UTIL_DEFECTO,
   type Costo, type TipoCosto, type Periodicidad, type VidaUtil,
 } from '../lib/econometria'
@@ -37,7 +37,7 @@ export default function PaginaEconometria() {
   const [costos, setCostos] = useState<Costo[]>([])
   const [insumos, setInsumos] = useState<Insumo[]>([])
   // Total pendiente de la lista de compras, para el escenario "si compro todo".
-  const [faltantes, setFaltantes] = useState(0)
+  const [faltantes, setFaltantes] = useState<InsumoCosto[]>([])
   const [plantasActivas, setPlantasActivas] = useState(0)
   const [plantasEnFlora, setPlantasEnFlora] = useState(0)
   const [gramosSeco, setGramosSeco] = useState(0)
@@ -70,9 +70,15 @@ export default function PaginaEconometria() {
         faltantesService.list(),
       ])
       // Mismo criterio que la pagina de Insumos faltantes: precio x cantidad,
-      // solo los que todavia no se compraron.
-      setFaltantes(falt.filter(x => !x.comprado)
-        .reduce((t, x) => t + (Number(x.precio) || 0) * (Number(x.cantidad) || 1), 0))
+      // solo los que todavia no se compraron. Se mapean a InsumoCosto para que
+      // pasen por el mismo motor de amortizacion que los insumos ya comprados.
+      setFaltantes(falt.filter(x => !x.comprado).map(x => ({
+        id: x.id,
+        nombre: x.nombre,
+        categoria: x.categoria ?? null,
+        precio: (Number(x.precio) || 0) * (Number(x.cantidad) || 1),
+        clase_costo: (x.clase_costo ?? null) as ClaseCosto | null,
+      })))
       // Para proyectar el ciclo sólo cuentan las que van a dar cosecha AHORA:
       // las que llegaron a floración. Las que están en vegetativo son del ciclo
       // siguiente y contarlas infla el rinde. En el cultivo de Gastón se nota

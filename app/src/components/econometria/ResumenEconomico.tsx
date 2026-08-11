@@ -106,18 +106,31 @@ export function CostoPorGramo({ eco, nCosechas, plantasActivas, plantasEnFlora, 
             </div>
           </div>
           <p className="text-[11.5px] text-[#8a8a9a] leading-relaxed mt-1.5">
-            Sumando los <b className="text-[#facc15]">{fmt(eco.faltantes)}</b> pendientes de{' '}
-            <b className="text-[#d4d4dd]">Insumos faltantes</b>, el ciclo pasa
-            de <b className="text-[#d4d4dd]">{fmt(eco.totalCiclo)}</b> a{' '}
+            La lista pendiente suma <b className="text-[#d4d4dd]">{fmt(eco.faltantes)}</b>, pero sobre este ciclo
+            pesan <b className="text-[#facc15]">{fmt(eco.faltantesEnCiclo)}</b>: el equipamiento se amortiza en su
+            vida útil y no cae entero acá. El ciclo pasa de <b className="text-[#d4d4dd]">{fmt(eco.totalCiclo)}</b> a{' '}
             <b className="text-[#d4d4dd]">{fmt(eco.totalCicloConFaltantes)}</b>
             {hay && eco.costoPorGramo != null && eco.costoPorGramoConFaltantes != null && (
               <>, y el gramo de <b className="text-[#bef264]">{fmt(eco.costoPorGramo)}</b> a{' '}
                 <b className="text-[#facc15]">{fmt(eco.costoPorGramoConFaltantes)}</b></>
             )}.
           </p>
-          <p className="text-[10.5px] text-[#5c5c6b] leading-snug mt-1.5">
-            Es un escenario, no tu costo real. Además la lista mezcla consumibles con equipamiento:
-            lo que sea equipo se amortiza en varios ciclos y no debería pesar entero sobre este.
+          <div className="grid grid-cols-3 gap-2 mt-2.5">
+            {([
+              ['Equipo (parte del ciclo)', eco.faltantesDetalle.capexEnCiclo],
+              ['Consumibles', eco.faltantesDetalle.consumibles],
+              ['Pagos únicos', eco.faltantesDetalle.gastos],
+            ] as const).map(([t, v]) => (
+              <div key={t} className="rounded-lg bg-[#0d0d13] border border-[#1f1f2b] px-2 py-1.5">
+                <div className="text-[9.5px] text-[#5c5c6b] leading-tight">{t}</div>
+                <div className="text-[12.5px] font-semibold text-[#d4d4dd] tabular-nums mt-0.5">{fmt(v)}</div>
+              </div>
+            ))}
+          </div>
+          <p className="text-[10.5px] text-[#5c5c6b] leading-snug mt-2">
+            Es un escenario, no tu costo real. Cada item se clasifica en la lista de
+            {' '}<b className="text-[#757584]">Insumos faltantes</b>: lo que marques como equipo se amortiza según su
+            categoría, y los pagos únicos (honorarios, trámites) caen enteros porque no son un bien.
           </p>
         </div>
       )}

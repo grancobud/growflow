@@ -27,6 +27,10 @@ const COLOR_PRIORIDAD: Record<Prioridad, { label: string; text: string; bg: stri
 }
 const ORDEN_PRIORIDAD: Record<Prioridad, number> = { alta: 0, media: 1, baja: 2 }
 
+// Las mismas que usa la tabla de vida util de Econometria: de ahi sale en
+// cuantos meses se amortiza cada equipo.
+const CATEGORIAS_FALTANTE = ['Iluminacion', 'Climatizacion', 'Riego', 'Medicion', 'Herramienta', 'CO2', 'Sustrato', 'Fertilizante', 'Sanidad', 'Otro'] as const
+
 export default function PaginaInsumosFaltantes() {
   const [faltantes, setFaltantes] = useState<InsumoFaltante[]>([])
   const [cargando, setCargando] = useState(true)
@@ -37,6 +41,10 @@ export default function PaginaInsumosFaltantes() {
   const [cantidad, setCantidad] = useState('')
   const [unidad, setUnidad] = useState<string>('kg')
   const [prioridad, setPrioridad] = useState<Prioridad>('media')
+  // Definen cuanto pesa el item sobre el ciclo en Econometria: el equipo se
+  // amortiza segun su categoria y solo lo consumible cae entero.
+  const [categoria, setCategoria] = useState('')
+  const [claseCosto, setClaseCosto] = useState<'capex' | 'consumible' | 'gasto'>('capex')
   const [nota, setNota] = useState('')
   const [precio, setPrecio] = useState('')
   const [link, setLink] = useState('')
@@ -102,7 +110,7 @@ export default function PaginaInsumosFaltantes() {
 
   const resetForm = () => {
     setEditId(null)
-    setNombre(''); setCantidad(''); setNota(''); setPrioridad('media'); setUnidad('kg')
+    setNombre(''); setCantidad(''); setNota(''); setPrioridad('media'); setCategoria(''); setClaseCosto('capex'); setUnidad('kg')
     setPrecio(''); setLink(''); setPreview(''); setFoto(undefined)
   }
   const editar = (f: InsumoFaltante) => {
@@ -111,6 +119,8 @@ export default function PaginaInsumosFaltantes() {
     setCantidad(f.cantidad != null ? String(f.cantidad) : '')
     setUnidad(f.unidad ?? 'kg')
     setPrioridad(f.prioridad)
+    setCategoria(f.categoria ?? '')
+    setClaseCosto((f.clase_costo as 'capex' | 'consumible' | 'gasto') ?? 'capex')
     setNota(f.nota ?? '')
     setPrecio(f.precio != null ? String(f.precio) : '')
     setLink(f.link ?? '')
@@ -126,6 +136,7 @@ export default function PaginaInsumosFaltantes() {
       nombre: nom,
       cantidad: cantidad.trim() === '' ? null : parseFloat(cantidad.replace(',', '.')),
       unidad, prioridad, nota: nota.trim() || null,
+      categoria: categoria || null, clase_costo: claseCosto,
       precio: precio.trim() === '' ? null : parseFloat(precio.replace(',', '.')),
       link: link.trim() || null,
     }
@@ -232,6 +243,21 @@ export default function PaginaInsumosFaltantes() {
               </select>
             </div>
             <div>
+              <label className={labelCls}>Categoría</label>
+              <select className={inputCls} value={categoria} onChange={e => setCategoria(e.target.value)}>
+                <option value="">Sin categoría</option>
+                {CATEGORIAS_FALTANTE.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={labelCls}>Cómo pesa en el costo</label>
+              <select className={inputCls} value={claseCosto} onChange={e => setClaseCosto(e.target.value as 'capex' | 'consumible' | 'gasto')}>
+                <option value="capex">Equipo — se amortiza</option>
+                <option value="consumible">Consumible — cae en el ciclo</option>
+                <option value="gasto">Pago único — no se amortiza</option>
+              </select>
+            </div>
+            <div>
               <label className={labelCls}>Precio estimado (ARS)</label>
               <input type="number" inputMode="decimal" className={inputCls} placeholder="ej. 27596" value={precio} onChange={e => setPrecio(e.target.value)} />
             </div>
@@ -312,7 +338,9 @@ export default function PaginaInsumosFaltantes() {
         ) : (
           <ul className="space-y-2">
             {ordenados.map(f => {
-              const cp = COLOR_PRIORIDAD[f.prioridad]
+              // Sin prioridad cargada cae en 'media': un dato incompleto no puede
+              // romper el listado completo.
+              const cp = COLOR_PRIORIDAD[f.prioridad] ?? COLOR_PRIORIDAD.media
               return (
                 <li key={f.id} className={`rounded-xl border px-4 py-3 flex items-start gap-3 transition-colors sm:min-h-[130px] ${f.comprado ? 'bg-[#0d0d12] border-[#1a1a24] opacity-60' : 'bg-[#101016] border-[#1f1f2b] hover:border-[#404d20]'}`}>
                   <button onClick={() => toggleComprado(f)}
@@ -393,7 +421,7 @@ export default function PaginaInsumosFaltantes() {
                 </div>
               )}
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[9px] font-semibold tracking-wide rounded px-1.5 py-0.5 border" style={{ color: COLOR_PRIORIDAD[detalle.prioridad].text, background: COLOR_PRIORIDAD[detalle.prioridad].bg, borderColor: COLOR_PRIORIDAD[detalle.prioridad].border }}>{COLOR_PRIORIDAD[detalle.prioridad].label}</span>
+                <span className="text-[9px] font-semibold tracking-wide rounded px-1.5 py-0.5 border" style={{ color: (COLOR_PRIORIDAD[detalle.prioridad] ?? COLOR_PRIORIDAD.media).text, background: (COLOR_PRIORIDAD[detalle.prioridad] ?? COLOR_PRIORIDAD.media).bg, borderColor: (COLOR_PRIORIDAD[detalle.prioridad] ?? COLOR_PRIORIDAD.media).border }}>{(COLOR_PRIORIDAD[detalle.prioridad] ?? COLOR_PRIORIDAD.media).label}</span>
                 {detalle.cantidad != null && <span className="text-[11px] font-medium text-[#c4b5fd] bg-[#8b5cf6]/10 border border-[#463a66] rounded px-1.5 py-0.5 tabular-nums">{detalle.cantidad.toLocaleString('es-AR')} {detalle.unidad ?? ''}</span>}
                 {detalle.precio != null && <span className="text-[13px] font-bold text-[#d9f99d] bg-[#a3e635]/10 border border-[#404d20] rounded px-2 py-0.5 tabular-nums">${detalle.precio.toLocaleString('es-AR')}</span>}
               </div>
