@@ -4,7 +4,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { Plus, ChevronDown, Star, Trash2, ImagePlus, Loader2, X, Store } from 'lucide-react'
+import { Plus, ChevronDown, Star, Trash2, Pencil, ImagePlus, Loader2, X, Store } from 'lucide-react'
 import {
   instalacionesService, type ItemInstalacion, type OfertaInstalacion, type ProveedorInstalacion,
   UNIDADES_INST,
@@ -12,7 +12,8 @@ import {
 
 const SISTEMA = 'Riego'
 const card = 'rounded-xl bg-[#111119] border border-[#1f1f2b] p-4 sm:p-5'
-const inp = 'w-full bg-[#15151d] border border-[#1f1f2b] rounded-md px-2 py-1.5 text-[12px] text-[#ececf1] focus:border-[#404d20] outline-none'
+const inp = 'w-full bg-[#15151d] border border-[#1f1f2b] rounded-md px-2 py-1.5 text-[16px] sm:text-[12px] text-[#ececf1] focus:border-[#404d20] outline-none'
+const btnIcono = 'flex items-center justify-center flex-shrink-0 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 rounded-lg hover:bg-[#1f1f2b] transition-colors'
 
 // Reescala una imagen a max 1000px y devuelve data URL JPEG (base64 liviano).
 function comprimirImagen(file: File, max = 1000): Promise<string> {
@@ -47,7 +48,15 @@ export default function InsumosRiego() {
   const [abierto, setAbierto] = useState<string | null>(null)
   const [nuevoOpen, setNuevoOpen] = useState(false)
   const [verImg, setVerImg] = useState<string | null>(null)
+  const [editItem, setEditItem] = useState<string | null>(null)
+  const [editOferta, setEditOferta] = useState<string | null>(null)
   const provNombre = useMemo(() => Object.fromEntries(provs.map(p => [p.id, p.nombre])), [provs])
+
+  async function refrescarOfertas(itemId: string) {
+    const of = await instalacionesService.getOfertas(itemId)
+    setOfertas(o => ({ ...o, [itemId]: of }))
+    setProvs(await instalacionesService.getProveedores())
+  }
 
   async function cargar() {
     try {
@@ -107,26 +116,51 @@ export default function InsumosRiego() {
 
           {abierto === it.id && (
             <div className="mt-3 pt-3 border-t border-[#1f1f2b] space-y-2">
-              {(ofertas[it.id] ?? []).map(o => (
-                <div key={o.id} className="flex items-center gap-2 bg-[#15151d] border border-[#1f1f2b] rounded-lg p-2">
-                  {o.imagen
-                    ? <button onClick={() => setVerImg(o.imagen!)} className="flex-shrink-0"><img src={o.imagen} alt="" className="w-12 h-12 rounded-lg object-cover border border-[#2a2a3a]" /></button>
-                    : <div className="w-12 h-12 rounded-lg bg-[#101016] border border-[#2a2a3a] flex items-center justify-center flex-shrink-0"><Store className="w-4 h-4 text-[#3a3a4a]" /></div>}
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[12px] text-[#d4d4dd] truncate">{o.proveedor_id ? provNombre[o.proveedor_id] ?? 'Proveedor' : 'Proveedor'}</p>
-                    <p className="text-[10.5px] text-[#5c5c6b] truncate">{[o.presentacion, o.nota].filter(Boolean).join(' · ')}</p>
-                  </div>
-                  <span className="text-[12px] font-mono font-bold text-[#ececf1]">{fmt(o.precio)}</span>
-                  <button title="Usar este precio" onClick={async () => { await instalacionesService.elegirOferta(o.id, it.id, o.precio ?? null, o.proveedor_id ?? null); await cargar(); }}>
-                    <Star className="w-4 h-4" fill={o.elegido ? '#facc15' : 'none'} stroke={o.elegido ? '#facc15' : '#5c5c6b'} />
+              {editItem === it.id
+                ? <FormItem item={it} onListo={() => { setEditItem(null); cargar() }} onCancelar={() => setEditItem(null)} />
+                : (ofertas[it.id] ?? []).map(o => (
+                  editOferta === o.id ? (
+                    <FormOferta key={o.id} itemId={it.id} provs={provs} oferta={o} onCancelar={() => setEditOferta(null)}
+                      onListo={async () => { setEditOferta(null); await refrescarOfertas(it.id); cargar() }} />
+                  ) : (
+                    <div key={o.id} className="flex items-center gap-2 bg-[#15151d] border border-[#1f1f2b] rounded-lg p-2">
+                      {o.imagen
+                        ? <button onClick={() => setVerImg(o.imagen!)} className="flex-shrink-0"><img src={o.imagen} alt="" className="w-12 h-12 rounded-lg object-cover border border-[#2a2a3a]" /></button>
+                        : <div className="w-12 h-12 rounded-lg bg-[#101016] border border-[#2a2a3a] flex items-center justify-center flex-shrink-0"><Store className="w-4 h-4 text-[#3a3a4a]" /></div>}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[12px] text-[#d4d4dd] truncate">{o.proveedor_id ? provNombre[o.proveedor_id] ?? 'Proveedor' : 'Proveedor'}</p>
+                        <p className="text-[10.5px] text-[#5c5c6b] truncate">{[o.presentacion, o.nota].filter(Boolean).join(' · ')}</p>
+                      </div>
+                      <span className="text-[12px] font-mono font-bold text-[#ececf1]">{fmt(o.precio)}</span>
+                      <button title="Usar este precio" className={btnIcono} onClick={async () => { await instalacionesService.elegirOferta(o.id, it.id, o.precio ?? null, o.proveedor_id ?? null); await cargar(); }}>
+                        <Star className="w-4 h-4" fill={o.elegido ? '#facc15' : 'none'} stroke={o.elegido ? '#facc15' : '#5c5c6b'} />
+                      </button>
+                      <button title="Editar proveedor" aria-label="Editar proveedor" className={btnIcono} onClick={() => setEditOferta(o.id)}>
+                        <Pencil className="w-3.5 h-3.5 text-[#5c5c6b]" />
+                      </button>
+                      <button title="Eliminar" aria-label="Eliminar proveedor" className={btnIcono} onClick={async () => {
+                        if (!confirm(`¿Borrar el precio de ${o.proveedor_id ? provNombre[o.proveedor_id] ?? 'este proveedor' : 'este proveedor'}?`)) return
+                        await instalacionesService.eliminarOferta(o.id)
+                        setOfertas(x => ({ ...x, [it.id]: x[it.id].filter(y => y.id !== o.id) }))
+                        if (o.elegido) cargar()  // el insumo se queda sin precio elegido
+                      }}>
+                        <Trash2 className="w-3.5 h-3.5 text-[#ff8a7a]" />
+                      </button>
+                    </div>
+                  )
+                ))}
+              {editItem !== it.id && <>
+                {!editOferta && <FormOferta itemId={it.id} provs={provs} onListo={() => refrescarOfertas(it.id)} />}
+                <div className="flex items-center gap-3 pt-1">
+                  <button onClick={() => setEditItem(it.id)} className="flex items-center gap-1 text-[10.5px] text-[#7dd3fc] hover:underline py-2 min-h-[44px] sm:min-h-0">
+                    <Pencil className="w-3 h-3" /> Editar ficha
                   </button>
-                  <button title="Eliminar" onClick={async () => { await instalacionesService.eliminarOferta(o.id); setOfertas(x => ({ ...x, [it.id]: x[it.id].filter(y => y.id !== o.id) })); }}>
-                    <Trash2 className="w-3.5 h-3.5 text-[#ff8a7a]" />
+                  <button onClick={async () => { if (confirm(`¿Eliminar "${it.nombre}" y sus precios de proveedor?`)) { await instalacionesService.eliminarItem(it.id); cargar() } }}
+                    className="flex items-center gap-1 text-[10.5px] text-[#ff8a7a] hover:underline py-2 min-h-[44px] sm:min-h-0">
+                    <Trash2 className="w-3 h-3" /> Eliminar insumo
                   </button>
                 </div>
-              ))}
-              <FormOferta itemId={it.id} provs={provs} onListo={async () => { const of = await instalacionesService.getOfertas(it.id); setOfertas(o => ({ ...o, [it.id]: of })); setProvs(await instalacionesService.getProveedores()) }} />
-              <button onClick={async () => { if (confirm('¿Eliminar el insumo?')) { await instalacionesService.eliminarItem(it.id); cargar() } }} className="text-[10.5px] text-[#ff8a7a] hover:underline">Eliminar insumo</button>
+              </>}
             </div>
           )}
         </div>
@@ -142,14 +176,23 @@ export default function InsumosRiego() {
   )
 }
 
-function FormItem({ onListo }: { onListo: () => void }) {
-  const [f, setF] = useState({ nombre: '', marca: '', modelo: '', unidad: 'u', specs: '', url: '' })
+// Sirve para alta y para edición: con `item` actualiza esa ficha, sin él crea una nueva.
+function FormItem({ item, onListo, onCancelar }: { item?: ItemInstalacion; onListo: () => void; onCancelar?: () => void }) {
+  const [f, setF] = useState({
+    nombre: item?.nombre ?? '', marca: item?.marca ?? '', modelo: item?.modelo ?? '',
+    unidad: item?.unidad ?? 'u', specs: item?.specs ?? '', url: item?.url ?? '',
+  })
   const set = (k: string, v: string) => setF(p => ({ ...p, [k]: v }))
   const guardar = async () => {
     if (!f.nombre.trim()) { toast.error('Poné un nombre'); return }
+    const datos = {
+      nombre: f.nombre.trim(), marca: f.marca || null, modelo: f.modelo || null,
+      unidad: f.unidad, specs: f.specs || null, url: f.url || null,
+    }
     try {
-      await instalacionesService.crearItem({ nombre: f.nombre.trim(), sistema: SISTEMA, marca: f.marca || null, modelo: f.modelo || null, unidad: f.unidad, specs: f.specs || null, url: f.url || null })
-      toast.success('Insumo agregado'); onListo()
+      if (item) { await instalacionesService.actualizarItem(item.id, datos); toast.success('Insumo actualizado') }
+      else { await instalacionesService.crearItem({ ...datos, sistema: SISTEMA }); toast.success('Insumo agregado') }
+      onListo()
     } catch (e) { toast.error(String(e)) }
   }
   return (
@@ -164,13 +207,26 @@ function FormItem({ onListo }: { onListo: () => void }) {
         <label className="text-[10px] text-[#a6a6b5] col-span-2 sm:col-span-2">Specs<input className={`${inp} mt-0.5`} value={f.specs} onChange={e => set('specs', e.target.value)} placeholder="NC 220V, 3/4, diafragma" /></label>
         <label className="text-[10px] text-[#a6a6b5] col-span-2 sm:col-span-3">Link (opcional)<input className={`${inp} mt-0.5`} value={f.url} onChange={e => set('url', e.target.value)} placeholder="https://..." /></label>
       </div>
-      <button onClick={guardar} className="mt-2 text-[11px] bg-[#7dd3fc]/15 border border-[#7dd3fc]/30 text-[#7dd3fc] rounded-md px-3 py-1.5 hover:bg-[#7dd3fc]/25">Guardar insumo</button>
+      <div className="flex items-center gap-2 mt-2">
+        <button onClick={guardar} className="text-[11px] bg-[#7dd3fc]/15 border border-[#7dd3fc]/30 text-[#7dd3fc] rounded-md px-3 py-2 min-h-[44px] sm:min-h-0 sm:py-1.5 hover:bg-[#7dd3fc]/25">
+          {item ? 'Guardar cambios' : 'Guardar insumo'}
+        </button>
+        {onCancelar && <button onClick={onCancelar} className="text-[11px] text-[#5c5c6b] px-2 py-2 min-h-[44px] sm:min-h-0 hover:text-[#a6a6b5]">Cancelar</button>}
+      </div>
     </div>
   )
 }
 
-function FormOferta({ itemId, provs, onListo }: { itemId: string; provs: ProveedorInstalacion[]; onListo: () => void }) {
-  const [f, setF] = useState({ proveedor: '', precio: '', presentacion: '', imagen: '', nota: '' })
+// Igual que FormItem: con `oferta` edita esa fila, sin ella agrega una nueva.
+function FormOferta({ itemId, provs, oferta, onListo, onCancelar }: {
+  itemId: string; provs: ProveedorInstalacion[]; oferta?: OfertaInstalacion
+  onListo: () => void; onCancelar?: () => void
+}) {
+  const [f, setF] = useState({
+    proveedor: oferta?.proveedor_id ? (provs.find(p => p.id === oferta.proveedor_id)?.nombre ?? '') : '',
+    precio: oferta?.precio != null ? String(oferta.precio) : '',
+    presentacion: oferta?.presentacion ?? '', imagen: oferta?.imagen ?? '', nota: oferta?.nota ?? '',
+  })
   const [subiendo, setSubiendo] = useState(false)
   const set = (k: string, v: string) => setF(p => ({ ...p, [k]: v }))
   const onFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -186,12 +242,21 @@ function FormOferta({ itemId, provs, onListo }: { itemId: string; provs: Proveed
         const existente = provs.find(p => p.nombre.toLowerCase() === nombre.toLowerCase())
         proveedorId = existente ? existente.id : (await instalacionesService.crearProveedor({ nombre })).id
       }
-      await instalacionesService.crearOferta({
-        item_id: itemId, proveedor_id: proveedorId, precio: f.precio ? Number(f.precio) : null,
-        presentacion: f.presentacion || null, imagen: f.imagen || null, nota: f.nota || null, elegido: false,
-      })
-      setF({ proveedor: '', precio: '', presentacion: '', imagen: '', nota: '' })
-      toast.success('Proveedor agregado'); onListo()
+      const datos = {
+        proveedor_id: proveedorId, precio: f.precio ? Number(f.precio) : null,
+        presentacion: f.presentacion || null, imagen: f.imagen || null, nota: f.nota || null,
+      }
+      if (oferta) {
+        await instalacionesService.actualizarOferta(oferta.id, datos)
+        // Si era la elegida, el precio del insumo tiene que seguirla o queda desfasado.
+        if (oferta.elegido) await instalacionesService.elegirOferta(oferta.id, itemId, datos.precio, proveedorId)
+        toast.success('Proveedor actualizado')
+      } else {
+        await instalacionesService.crearOferta({ ...datos, item_id: itemId, elegido: false })
+        setF({ proveedor: '', precio: '', presentacion: '', imagen: '', nota: '' })
+        toast.success('Proveedor agregado')
+      }
+      onListo()
     } catch (e) { toast.error(String(e)) }
   }
   return (
@@ -211,9 +276,12 @@ function FormOferta({ itemId, provs, onListo }: { itemId: string; provs: Proveed
           <input className={inp} value={f.nota} onChange={e => set('nota', e.target.value)} placeholder="Nota" />
         </div>
       </div>
-      <div className="flex items-center gap-2 mt-2">
-        <button onClick={guardar} className="text-[11px] bg-[#7dd3fc]/15 border border-[#7dd3fc]/30 text-[#7dd3fc] rounded-md px-3 py-1 hover:bg-[#7dd3fc]/25">Agregar proveedor</button>
-        {f.imagen && <button onClick={() => set('imagen', '')} className="text-[10.5px] text-[#ff8a7a] hover:underline">Quitar foto</button>}
+      <div className="flex items-center gap-2 mt-2 flex-wrap">
+        <button onClick={guardar} className="text-[11px] bg-[#7dd3fc]/15 border border-[#7dd3fc]/30 text-[#7dd3fc] rounded-md px-3 py-2 min-h-[44px] sm:min-h-0 sm:py-1 hover:bg-[#7dd3fc]/25">
+          {oferta ? 'Guardar cambios' : 'Agregar proveedor'}
+        </button>
+        {onCancelar && <button onClick={onCancelar} className="text-[11px] text-[#5c5c6b] px-2 py-2 min-h-[44px] sm:min-h-0 hover:text-[#a6a6b5]">Cancelar</button>}
+        {f.imagen && <button onClick={() => set('imagen', '')} className="text-[10.5px] text-[#ff8a7a] hover:underline px-2 py-2 min-h-[44px] sm:min-h-0">Quitar foto</button>}
       </div>
     </div>
   )

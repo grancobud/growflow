@@ -274,6 +274,7 @@ function Cobranza({ asociados, cuotas, cuotasEmitidas, onCambio }: {
 }) {
   const [periodo, setPeriodo] = useState(periodoActual())
   const [emitiendo, setEmitiendo] = useState(false)
+  const [emit, setEmit] = useState<Partial<CuotaEmitida> | null>(null)
   const r = useMemo(() => resumenCobranza(periodo, cuotasEmitidas, asociados), [periodo, cuotasEmitidas, asociados])
   const delPeriodo = cuotasEmitidas.filter(e => e.periodo === periodo)
   const nombre = (id?: string | null) => asociados.find(a => a.id === id)?.nombre ?? '—'
@@ -295,6 +296,11 @@ function Cobranza({ asociados, cuotas, cuotasEmitidas, onCambio }: {
       })
       onCambio()
     } catch (e) { toast.error((e as Error).message) }
+  }
+  const borrarEmitida = async (c: CuotaEmitida, luego?: () => void) => {
+    if (!window.confirm(`¿Borrar la cuota de ${nombre(c.asociado_id)} del período ${c.periodo}?`)) return
+    try { await ongService.borrarCuotaEmitida(c.id); toast.success('Borrada'); luego?.(); onCambio() }
+    catch (e) { toast.error((e as Error).message) }
   }
 
   return (
@@ -333,21 +339,64 @@ function Cobranza({ asociados, cuotas, cuotasEmitidas, onCambio }: {
       {delPeriodo.length > 0 && (
         <div className="mt-3 space-y-1.5">
           {delPeriodo.map(c => (
-            <button key={c.id} onClick={() => togglePago(c)}
-              className="w-full text-left rounded-lg bg-[#15151d] border border-[#1f1f2b] px-3 py-2 min-h-[44px] hover:border-[#404d20] transition-colors">
-              <div className="flex items-center gap-2 flex-wrap">
+            <div key={c.id}
+              className="flex items-center gap-2 rounded-lg bg-[#15151d] border border-[#1f1f2b] px-2 sm:px-3 py-2 min-h-[44px]">
+              {/* El toggle de pago es lo que más se usa: queda en el cuerpo de la fila */}
+              <button onClick={() => togglePago(c)} className="flex items-center gap-2 flex-1 min-w-0 text-left self-stretch min-h-[40px]"
+                aria-label={c.pagada ? 'Marcar como impaga' : 'Marcar como pagada'}>
                 <span className="w-4 h-4 rounded border flex items-center justify-center flex-shrink-0"
                   style={c.pagada ? { background: '#a3e635', borderColor: '#a3e635' } : { borderColor: '#2a2a3a' }}>
                   {c.pagada && <Check className="w-3 h-3 text-[#07070b]" />}
                 </span>
                 <span className="text-[12.5px] text-[#ececf1] truncate">{nombre(c.asociado_id)}</span>
-                <span className="text-[10.5px] px-1.5 py-0.5 rounded bg-[#1f1f2b] text-[#a6a6b5]">{c.tipo}</span>
-                <span className="ml-auto text-[12.5px] font-mono tabular-nums"
+                <span className="text-[10.5px] px-1.5 py-0.5 rounded bg-[#1f1f2b] text-[#a6a6b5] flex-shrink-0">{c.tipo}</span>
+                <span className="ml-auto text-[12.5px] font-mono tabular-nums flex-shrink-0"
                   style={{ color: c.pagada ? '#bef264' : '#757584' }}>{fmtPesos(c.monto)}</span>
-              </div>
-            </button>
+              </button>
+              <button onClick={() => setEmit(c)} className={btnSutil} aria-label="Editar cuota"><Pencil className="w-3.5 h-3.5" /></button>
+              <button onClick={() => borrarEmitida(c)} className={btnSutil} aria-label="Borrar cuota"><Trash2 className="w-3.5 h-3.5" /></button>
+            </div>
           ))}
         </div>
+      )}
+
+      {emit && (
+        <Modal titulo={`Cuota de ${nombre(emit.asociado_id)}`} onCerrar={() => setEmit(null)}>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <label><span className={labelCls}>Período</span>
+                <input type="month" className={inputCls} value={emit.periodo ?? ''}
+                  onChange={e => setEmit({ ...emit, periodo: e.target.value })} /></label>
+              <label><span className={labelCls}>Monto</span>
+                <input type="number" className={inputCls} value={emit.monto ?? ''}
+                  onChange={e => setEmit({ ...emit, monto: +e.target.value })} /></label>
+              <label><span className={labelCls}>Tipo</span>
+                <select className={inputCls} value={emit.tipo ?? 'social'} onChange={e => setEmit({ ...emit, tipo: e.target.value })}>
+                  <option value="social">social</option>
+                  <option value="cultivo">cultivo</option>
+                </select></label>
+              <label><span className={labelCls}>Fecha de pago</span>
+                <input type="date" className={inputCls} value={emit.fecha_pago ?? ''}
+                  onChange={e => setEmit({ ...emit, fecha_pago: e.target.value || null })} /></label>
+            </div>
+            <label><span className={labelCls}>Medio de pago</span>
+              <input className={inputCls} value={emit.medio ?? ''} placeholder="Efectivo / transferencia"
+                onChange={e => setEmit({ ...emit, medio: e.target.value })} /></label>
+            <label><span className={labelCls}>Notas</span>
+              <input className={inputCls} value={emit.notas ?? ''}
+                onChange={e => setEmit({ ...emit, notas: e.target.value })} /></label>
+            <Toggle label="Pagada" v={!!emit.pagada} on={v => setEmit({ ...emit, pagada: v })} />
+          </div>
+          <div className="flex gap-2 mt-4">
+            <button onClick={async () => {
+              try { await ongService.guardarCuotaEmitida(emit); toast.success('Cuota actualizada'); setEmit(null); onCambio() }
+              catch (e) { toast.error((e as Error).message) }
+            }} className={`${btnPrimario} flex-1`}>Guardar</button>
+            <button onClick={() => borrarEmitida(emit as CuotaEmitida, () => setEmit(null))} className={btnSutil}>
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </Modal>
       )}
     </div>
   )
