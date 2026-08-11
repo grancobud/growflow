@@ -196,6 +196,21 @@ const TABLAS: DefTabla[] = [
     ],
   },
   {
+    id: 'ong_documentos', nombre: 'ONG · documentos', orden: 'fecha',
+    cols: [
+      { campo: 'tipo', titulo: 'Tipo', tipo: { select: ['emitido', 'gasto'] } },
+      { campo: 'subtipo', titulo: 'Clase', tipo: 'text' },
+      { campo: 'fecha', titulo: 'Fecha', tipo: 'date' },
+      { campo: 'numero', titulo: 'Numero', tipo: 'text' },
+      { campo: 'descripcion', titulo: 'Descripcion', tipo: 'text', ancho: 'min-w-[180px]' },
+      { campo: 'monto', titulo: 'Monto', tipo: 'number' },
+      { campo: 'proveedor', titulo: 'Proveedor', tipo: 'text' },
+      { campo: 'categoria', titulo: 'Rubro', tipo: 'text' },
+      { campo: 'archivo_nombre', titulo: 'Archivo', tipo: 'text' },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[160px]' },
+    ],
+  },
+  {
     id: 'ong_cuotas_emitidas', nombre: 'ONG · cuotas emitidas', orden: 'periodo',
     cols: [
       { campo: 'periodo', titulo: 'Periodo', tipo: 'text' },

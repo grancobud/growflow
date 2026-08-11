@@ -294,6 +294,38 @@ export const ongService = {
   async borrarCuotaEmitida(id: string): Promise<void> {
     lanzar((await supabase.from('ong_cuotas_emitidas').delete().eq('id', id)).error)
   },
+
+  async getDocumentos(): Promise<DocumentoONG[]> {
+    const { data, error } = await supabase.from('ong_documentos').select('*').order('fecha', { ascending: false })
+    lanzar(error); return (data ?? []) as DocumentoONG[]
+  },
+  async guardarDocumento(d: Partial<DocumentoONG>): Promise<void> {
+    const { data: u } = await supabase.auth.getUser()
+    const p = { ...d, user_id: u?.user?.id ?? null }
+    lanzar((d.id
+      ? await supabase.from('ong_documentos').update(p).eq('id', d.id)
+      : await supabase.from('ong_documentos').insert(p)).error)
+  },
+  async borrarDocumento(d: DocumentoONG): Promise<void> {
+    // El archivo se va con la ficha: si no, queda basura en el bucket que nadie
+    // puede ver ni borrar desde la app.
+    if (d.archivo_path) {
+      const { error } = await supabase.storage.from(BUCKET_DOCS).remove([d.archivo_path])
+      // Un archivo que ya no está no debería impedir borrar la ficha.
+      if (error && !/not found/i.test(error.message)) throw new Error(error.message)
+    }
+    lanzar((await supabase.from('ong_documentos').delete().eq('id', d.id)).error)
+  },
+  /** Sube el archivo al bucket privado y devuelve el path (nunca una URL pública). */
+  async subirArchivoDocumento(file: File): Promise<{ path: string; nombre: string }> {
+    const limpio = file.name.replace(/[^\w.-]+/g, '_')
+    const path = `ong/${Date.now()}_${limpio}`
+    const { error } = await supabase.storage.from(BUCKET_DOCS).upload(path, file, {
+      contentType: file.type || 'application/octet-stream', upsert: false,
+    })
+    if (error) throw new Error(error.message)
+    return { path, nombre: file.name }
+  },
   /**
    * Emite la cuota del período a todos los asociados activos que todavía no la
    * tengan. Es el paso que faltaba para poder cruzar asociados contra ingresos.
@@ -330,6 +362,82 @@ export interface CuotaEmitida {
   fecha_pago?: string | null
   medio?: string | null
   notas?: string | null
+}
+
+/**
+ * Papeles de la asociación, de las dos puntas:
+ * - `emitido`: lo que la ONG entrega (constancia de socio, recibo de cuota,
+ *   comprobante de dispensa). Va a nombre de alguien.
+ * - `gasto`: lo que la ONG recibe al comprar. Es el respaldo de que la plata
+ *   salió, y sin eso el costo por gramo es una afirmación sin prueba.
+ */
+export interface DocumentoONG {
+  id: string
+  tipo: 'emitido' | 'gasto'
+  subtipo?: string | null
+  numero?: string | null
+  fecha: string
+  descripcion?: string | null
+  monto?: number | null
+  proveedor?: string | null
+  categoria?: string | null
+  asociado_id?: string | null
+  paciente_id?: string | null
+  dispensa_id?: string | null
+  archivo_path?: string | null
+  archivo_nombre?: string | null
+  notas?: string | null
+}
+
+/** Bucket privado donde viven los archivos. Ver lib/archivos.ts. */
+export const BUCKET_DOCS = 'documentos'
+
+export const SUBTIPOS_EMITIDO = [
+  'Constancia de socio', 'Recibo de cuota', 'Comprobante de dispensa',
+  'Certificado de vinculación', 'Nota / carta', 'Otro',
+] as const
+
+export const SUBTIPOS_GASTO = [
+  'Factura A', 'Factura B', 'Factura C', 'Ticket', 'Remito',
+  'Recibo', 'Comprobante de transferencia', 'Otro',
+] as const
+
+/** Rubros de gasto, alineados con las categorías de Econometría. */
+export const CATEGORIAS_GASTO = [
+  'Nutrientes', 'Sustrato', 'Energía', 'Equipamiento', 'Alquiler',
+  'Sanidad', 'Análisis de laboratorio', 'Honorarios', 'Impuestos y tasas',
+  'Insumos varios', 'Otro',
+] as const
+
+export interface ResumenDocumentos {
+  emitidos: number
+  gastos: number
+  /** Gastos que tienen el archivo subido: los otros son una anotación sin respaldo. */
+  gastosConArchivo: number
+  emitidosConArchivo: number
+  totalGastos: number
+  porCategoria: { categoria: string; monto: number; n: number }[]
+}
+
+export function resumenDocumentos(docs: DocumentoONG[]): ResumenDocumentos {
+  const emitidos = docs.filter(d => d.tipo === 'emitido')
+  const gastos = docs.filter(d => d.tipo === 'gasto')
+  const porCat = new Map<string, { monto: number; n: number }>()
+  for (const g of gastos) {
+    const k = g.categoria || 'Sin categoría'
+    const a = porCat.get(k) ?? { monto: 0, n: 0 }
+    porCat.set(k, { monto: a.monto + (Number(g.monto) || 0), n: a.n + 1 })
+  }
+  return {
+    emitidos: emitidos.length,
+    gastos: gastos.length,
+    gastosConArchivo: gastos.filter(d => d.archivo_path).length,
+    emitidosConArchivo: emitidos.filter(d => d.archivo_path).length,
+    totalGastos: gastos.reduce((s, d) => s + (Number(d.monto) || 0), 0),
+    porCategoria: [...porCat.entries()]
+      .map(([categoria, v]) => ({ categoria, ...v }))
+      .sort((a, b) => b.monto - a.monto),
+  }
 }
 
 export interface ResumenCobranza {

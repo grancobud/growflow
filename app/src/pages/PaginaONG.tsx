@@ -17,7 +17,7 @@ import {
 import {
   ongService, calcularVencimientos, calcularCapacidad, finDeMandato,
   topeTransporteG, TOPE_TRASLADO_INDIVIDUAL_G, CARGOS, ORGANOS,
-  type Entidad, type Autoridad, type Requisito, type Predio, type Urgencia,
+  type Entidad, type Autoridad, type Requisito, type Predio, type Urgencia, type DocumentoONG,
   type Libro, type Acta, type Asociado, type CategoriaSocio, type Cuota, type Dispensa,
   type CuotaEmitida, periodoActual,
 } from '../lib/ong'
@@ -27,6 +27,7 @@ import { Libros, Actas } from '../components/ong/LibrosYActas'
 import { Asociados, Coherencia } from '../components/ong/AsociadosYCoherencia'
 import { Dispensas } from '../components/ong/Dispensas'
 import { CupoReprocann } from '../components/ong/CupoReprocann'
+import { Documentos } from '../components/ong/Documentos'
 import { econometriaService, configService, resumenEconomico, VIDA_UTIL_DEFECTO, type VidaUtil } from '../lib/econometria'
 import { stockService } from '../lib/stock'
 import { btnPrimario, btnSutil } from '../lib/ui'
@@ -54,7 +55,7 @@ const fmtPeso = (g: number) => g < 1000
 const textoDias = (d: number | null) =>
   d == null ? 'sin fecha cargada' : d < 0 ? `hace ${Math.abs(d)} días` : d === 0 ? 'hoy' : `en ${d} días`
 
-type Tab = 'estado' | 'coherencia' | 'cupo' | 'dispensas' | 'entidad' | 'autoridades' | 'predios' | 'libros' | 'actas' | 'asociados'
+type Tab = 'estado' | 'coherencia' | 'cupo' | 'dispensas' | 'documentos' | 'entidad' | 'autoridades' | 'predios' | 'libros' | 'actas' | 'asociados'
 
 export default function PaginaONG() {
   const [tab, setTab] = useState<Tab>('estado')
@@ -81,6 +82,7 @@ export default function PaginaONG() {
   // Gramos secos cosechados: el otro extremo del balance de materia.
   const [gramosCosechados, setGramosCosechados] = useState(0)
   const [cuotasEmitidas, setCuotasEmitidas] = useState<CuotaEmitida[]>([])
+  const [documentos, setDocumentos] = useState<DocumentoONG[]>([])
 
   const cargar = useCallback(async () => {
     try {
@@ -94,6 +96,7 @@ export default function PaginaONG() {
         ongService.getDispensas(), cultivoService.getGeneticas(), ongService.getCuotasEmitidas(),
       ])
       setDispensas(disp); setGeneticas(gen); setCuotasEmitidas(cem)
+      setDocumentos(await ongService.getDocumentos())
       try {
         const [ins, cos, vida, par, cose] = await Promise.all([
           stockService.getInsumos(), econometriaService.getCostos(),
@@ -130,6 +133,7 @@ export default function PaginaONG() {
     { id: 'coherencia', label: 'Coherencia' },
     { id: 'cupo', label: 'Cupo REPROCANN' },
     { id: 'dispensas', label: 'Dispensas' },
+    { id: 'documentos', label: 'Documentos' },
     { id: 'libros', label: 'Libros' },
     { id: 'actas', label: 'Actas' },
     { id: 'asociados', label: 'Asociados' },
@@ -175,6 +179,8 @@ export default function PaginaONG() {
           <CupoReprocann pacientes={pacientes} plantas={plantas} onCambio={cargar} />
         ) : tab === 'dispensas' ? (
           <Dispensas {...{ dispensas, pacientes, asociados, geneticas, costoPorGramo, gramosCosechados }} onCambio={cargar} />
+        ) : tab === 'documentos' ? (
+          <Documentos {...{ documentos, asociados, pacientes, dispensas }} onCambio={cargar} />
         ) : tab === 'libros' ? (
           <Libros libros={libros} onCambio={cargar} />
         ) : tab === 'actas' ? (
