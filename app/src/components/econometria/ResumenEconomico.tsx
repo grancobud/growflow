@@ -63,8 +63,10 @@ export function CostoPorGramo({ eco, nCosechas, plantasActivas, plantasEnFlora, 
     ]
   }, [rindes, plantasEnFlora, eco.gramos, eco.totalCiclo, rinde])
 
+  // tabular-nums en la sección entera: los párrafos comparan cifras entre sí
+  // ("de $5.371 a $11.112") y con ancho de dígito variable se corren al recalcular.
   return (
-    <section className="rounded-xl bg-gradient-to-br from-[#12160f] to-[#101016] border border-[#2c3a1a] p-4 sm:p-5">
+    <section className="rounded-xl bg-gradient-to-br from-[#12160f] to-[#101016] border border-[#2c3a1a] p-4 sm:p-5 tabular-nums">
       <div className="text-[10px] uppercase tracking-[0.14em] text-[#7c8b5c] font-medium">Costo por gramo</div>
 
       <div className="mt-1 flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
@@ -98,7 +100,7 @@ export function CostoPorGramo({ eco, nCosechas, plantasActivas, plantasEnFlora, 
             <div className="text-[10px] uppercase tracking-[0.12em] text-[#8f8f9f] font-medium">
               Si comprás lo que falta
             </div>
-            <div className="flex items-baseline gap-1.5">
+            <div className="flex items-baseline gap-1 ml-auto">
               <span className="font-display font-bold text-[22px] leading-none text-[#facc15] tabular-nums">
                 {hay ? fmt(eco.costoPorGramoConFaltantes ?? 0) : '—'}
               </span>
@@ -115,15 +117,24 @@ export function CostoPorGramo({ eco, nCosechas, plantasActivas, plantasEnFlora, 
                 <b className="text-[#facc15]">{fmt(eco.costoPorGramoConFaltantes)}</b></>
             )}.
           </p>
-          <div className="grid grid-cols-3 gap-2 mt-2.5">
+          {/* En mobile van apilados como filas etiqueta→monto: a tres columnas
+              los montos de siete cifras no entran y la tarjeta se aplasta.
+              En desktop, `mt-auto` empuja el monto al piso para que los tres
+              queden a la misma altura aunque una etiqueta ocupe dos líneas. */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 sm:gap-2 mt-2.5">
             {([
               ['Equipo (parte del ciclo)', eco.faltantesDetalle.capexEnCiclo],
               ['Consumibles', eco.faltantesDetalle.consumibles],
               ['Pagos únicos', eco.faltantesDetalle.gastos],
             ] as const).map(([t, v]) => (
-              <div key={t} className="rounded-lg bg-[#0d0d13] border border-[#1f1f2b] px-2 py-1.5">
-                <div className="text-[9.5px] text-[#5c5c6b] leading-tight">{t}</div>
-                <div className="text-[12.5px] font-semibold text-[#d4d4dd] tabular-nums mt-0.5">{fmt(v)}</div>
+              <div key={t}
+                className="rounded-lg bg-[#0d0d13] border border-[#1f1f2b] px-2.5 py-1.5
+                           flex items-baseline justify-between gap-2 sm:flex-col sm:items-stretch sm:gap-0">
+                <div className="text-[10px] sm:text-[9.5px] text-[#5c5c6b] leading-tight">{t}</div>
+                <div className="text-[13px] font-semibold text-[#d4d4dd] tabular-nums
+                                text-right sm:text-left whitespace-nowrap sm:mt-auto sm:pt-1">
+                  {fmt(v)}
+                </div>
               </div>
             ))}
           </div>
@@ -141,12 +152,14 @@ export function CostoPorGramo({ eco, nCosechas, plantasActivas, plantasEnFlora, 
           <div className="text-[10px] uppercase tracking-[0.12em] text-[#7c8b5c] font-medium mb-1.5">
             Proyección del ciclo en curso
           </div>
+          {/* Sin "~" delante de las cifras: pegado al número se lee como signo
+              menos, y "~4.228g" parecía un valor negativo. */}
           <p className="text-[11.5px] text-[#8a8a9a] leading-relaxed">
             Ya cortaste <b className="text-[#d4d4dd]">{fmtG(eco.gramos)}g</b> y te quedan{' '}
-            <b className="text-[#d4d4dd]">{plantasEnFlora} planta{plantasEnFlora === 1 ? '' : 's'} en floración</b>.
+            <b className="text-[#d4d4dd]">{plantasEnFlora} planta{plantasEnFlora === 1 ? '' : 's'} en floración</b>.{' '}
             Si rinden como las ya cosechadas (<b className="text-[#d4d4dd]">{fmtG(rinde)}g</b> promedio),
-            el ciclo cierra en ~<b className="text-[#bef264]">{fmtG(proyectado)}g</b> y el costo baja a
-            ~<b className="text-[#bef264] text-[13px]">{fmt(costoProyectado)}/g</b>.
+            el ciclo cierra cerca de <b className="text-[#bef264]">{fmtG(proyectado)}g</b> y el costo baja
+            a <b className="text-[#bef264] text-[13px]">{fmt(costoProyectado)}/g</b> aproximadamente.
           </p>
           {enVegetativo > 0 && (
             <p className="text-[11px] text-[#7c8b5c] mt-1.5 leading-relaxed">
@@ -168,20 +181,23 @@ export function CostoPorGramo({ eco, nCosechas, plantasActivas, plantasEnFlora, 
             </span>
             <span className="text-[10.5px] text-[#3a3a4a]">según cómo rindan las {plantasEnFlora} que faltan</span>
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+          {/* Los cuatro son la misma medida a distinto supuesto, así que el
+              costo —lo que se compara— va a la misma altura en los cuatro:
+              `flex-col` + `mt-auto` sobre el pie. */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 items-stretch">
             {escenarios.map(e => (
               <div key={e.nombre}
-                className={`rounded-lg px-2.5 py-2 border ${
+                className={`rounded-lg px-2.5 py-2 border flex flex-col ${
                   e.destacado ? 'bg-[#a3e635]/10 border-[#404d20]' : 'bg-[#0d0d13] border-[#1f1f2b]'}`}>
                 <div className={`text-[11px] font-medium ${e.destacado ? 'text-[#d9f99d]' : 'text-[#a6a6b5]'}`}>
                   {e.nombre}
                 </div>
                 <div className="text-[10px] text-[#5c5c6b] tabular-nums mt-0.5">{fmtG(e.rinde)}g por planta</div>
-                <div className={`text-[17px] font-semibold tabular-nums leading-tight mt-1 ${
+                <div className={`text-[17px] font-semibold tabular-nums leading-none mt-auto pt-1.5 ${
                   e.destacado ? 'text-[#bef264]' : 'text-[#d4d4dd]'}`}>
-                  {fmt(e.costo)}<span className="text-[11px] font-normal text-[#5c5c6b]">/g</span>
+                  {fmt(e.costo)}<span className="text-[11px] font-normal text-[#5c5c6b] ml-px">/g</span>
                 </div>
-                <div className="text-[10px] text-[#5c5c6b] tabular-nums mt-0.5">{fmtG(e.total)}g el ciclo</div>
+                <div className="text-[10px] text-[#5c5c6b] tabular-nums mt-1">{fmtG(e.total)}g el ciclo</div>
               </div>
             ))}
           </div>

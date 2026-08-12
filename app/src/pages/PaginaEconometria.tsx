@@ -139,7 +139,7 @@ export default function PaginaEconometria() {
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1] flex items-center gap-2">
               <Calculator className="w-4 h-4 text-[#bef264]" /> Econometría
             </h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b] tabular-nums">
               {fmt(mensualTotal)}/mes · {fmt(costoPorCiclo)}/ciclo · inventario {fmt(valorInsumos)}{eco.costoPorGramo != null ? ` · ${fmt(eco.costoPorGramo)}/g` : ''}
             </div>
           </div>
@@ -254,8 +254,8 @@ export default function PaginaEconometria() {
                         <div className="text-[12.5px] text-[#ececf1] truncate">{i.nombre}</div>
                         <div className="text-[10px] text-[#5c5c6b] truncate">{i.categoria}{i.marca ? ` · ${i.marca}` : ''}</div>
                       </div>
-                      <div className="hidden sm:block text-right text-[12px] text-[#a6a6b5]">{i.cantidad} {i.unidad || 'u'}</div>
-                      <div className="text-right text-[12.5px] font-medium text-[#d9f99d]">{fmt(Number(i.precio))}</div>
+                      <div className="hidden sm:block text-right text-[12px] text-[#a6a6b5] tabular-nums">{i.cantidad} {i.unidad || 'u'}</div>
+                      <div className="text-right text-[12.5px] font-medium text-[#d9f99d] tabular-nums">{fmt(Number(i.precio))}</div>
                       <div className="flex items-center justify-end gap-0.5">
                         <button onClick={() => setVerInsumo(i)} title="Ver ficha"
                           className="p-1.5 text-[#5c5c6b] hover:text-[#38bdf8] hover:bg-[#15151d] rounded-lg transition-colors">
@@ -269,9 +269,13 @@ export default function PaginaEconometria() {
                     </li>
                   ))}
                 </ul>
-                <div className="flex items-center justify-between px-4 py-3 border-t border-[#1f1f2b] bg-[#0d0d12]">
+                {/* Mismo grid que las filas: así el total cae justo debajo de
+                    la columna Costo en vez de irse al borde de la tarjeta. */}
+                <div className="grid grid-cols-[1fr_7rem_4.5rem] sm:grid-cols-[1fr_5rem_7rem_4.5rem] gap-3 items-center px-4 py-3 border-t border-[#1f1f2b] bg-[#0d0d12]">
                   <span className="text-[12px] text-[#a6a6b5]">Total inventario ({insumosConPrecio.length} insumos)</span>
-                  <span className="font-display font-bold text-[15px] text-[#bef264]">{fmt(valorInsumos)}</span>
+                  <span className="hidden sm:block" />
+                  <span className="text-right font-display font-bold text-[15px] text-[#bef264] tabular-nums">{fmt(valorInsumos)}</span>
+                  <span />
                 </div>
               </>
             )}
@@ -303,7 +307,7 @@ function ListaCostos({ titulo, subtitulo, icono: Ico, color, items, totalMensual
           <div className="text-[10.5px] text-[#5c5c6b] truncate">{subtitulo}</div>
         </div>
         <div className="text-right">
-          <div className="font-display font-bold text-[14px]" style={{ color }}>{fmt(totalMensual)}</div>
+          <div className="font-display font-bold text-[14px] tabular-nums" style={{ color }}>{fmt(totalMensual)}</div>
           <div className="text-[9.5px] text-[#5c5c6b] uppercase tracking-[0.1em]">por mes</div>
         </div>
       </div>
@@ -328,7 +332,7 @@ function ListaCostos({ titulo, subtitulo, icono: Ico, color, items, totalMensual
                   {c.notas && <div className="mt-0.5 text-[10.5px] text-[#5c5c6b] truncate">{c.notas}</div>}
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <div className="text-[12.5px] font-medium text-[#ececf1]">{fmt(total)}</div>
+                  <div className="text-[12.5px] font-medium text-[#ececf1] tabular-nums">{fmt(total)}</div>
                   {c.periodicidad !== 'mensual' && c.periodicidad !== 'unico' && (
                     <div className="text-[9.5px] text-[#5c5c6b]">≈ {fmt(mens)}/mes</div>
                   )}

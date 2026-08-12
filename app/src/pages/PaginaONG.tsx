@@ -9,6 +9,7 @@
 // puede hacer.
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
 import {
   Building2, Loader2, Plus, X, Pencil, Trash2, CalendarClock, ShieldCheck,
@@ -28,6 +29,9 @@ import { Asociados, Coherencia } from '../components/ong/AsociadosYCoherencia'
 import { Dispensas } from '../components/ong/Dispensas'
 import { CupoReprocann } from '../components/ong/CupoReprocann'
 import { Documentos } from '../components/ong/Documentos'
+// El registro de pacientes vive acá: el cupo, las dispensas y los documentos
+// cuelgan de el, y tenerlo en otro item del menu obligaba a saltar de pantalla.
+import PaginaPacientes from './PaginaPacientes'
 import { econometriaService, configService, resumenEconomico, VIDA_UTIL_DEFECTO, type VidaUtil } from '../lib/econometria'
 import { stockService } from '../lib/stock'
 import { btnPrimario, btnSutil } from '../lib/ui'
@@ -55,10 +59,13 @@ const fmtPeso = (g: number) => g < 1000
 const textoDias = (d: number | null) =>
   d == null ? 'sin fecha cargada' : d < 0 ? `hace ${Math.abs(d)} días` : d === 0 ? 'hoy' : `en ${d} días`
 
-type Tab = 'estado' | 'coherencia' | 'cupo' | 'dispensas' | 'documentos' | 'entidad' | 'autoridades' | 'predios' | 'libros' | 'actas' | 'asociados'
+type Tab = 'estado' | 'coherencia' | 'pacientes' | 'cupo' | 'dispensas' | 'documentos' | 'entidad' | 'autoridades' | 'predios' | 'libros' | 'actas' | 'asociados'
 
 export default function PaginaONG() {
-  const [tab, setTab] = useState<Tab>('estado')
+  // /registro es un alias que entra directo por Pacientes: es la URL vieja del
+  // registro y hay links de otras pantallas que apuntan ahí.
+  const { pathname } = useLocation()
+  const [tab, setTab] = useState<Tab>(pathname.startsWith('/registro') ? 'pacientes' : 'estado')
   const [cargando, setCargando] = useState(true)
   const [entidad, setEntidad] = useState<Entidad | null>(null)
   const [autoridades, setAutoridades] = useState<Autoridad[]>([])
@@ -131,6 +138,7 @@ export default function PaginaONG() {
   const TABS: { id: Tab; label: string }[] = [
     { id: 'estado', label: 'Estado' },
     { id: 'coherencia', label: 'Coherencia' },
+    { id: 'pacientes', label: 'Pacientes' },
     { id: 'cupo', label: 'Cupo REPROCANN' },
     { id: 'dispensas', label: 'Dispensas' },
     { id: 'documentos', label: 'Documentos' },
@@ -175,6 +183,8 @@ export default function PaginaONG() {
           <Coherencia {...{ entidad, actas, libros, asociados, categorias, cuotas,
             pacientes: nPacientes, plantasFloracion: nPlantas, dispensas, costoPorGramo,
             gramosCosechados, cuotasEmitidas, periodo: periodoActual() }} />
+        ) : tab === 'pacientes' ? (
+          <PaginaPacientes embebida />
         ) : tab === 'cupo' ? (
           <CupoReprocann pacientes={pacientes} plantas={plantas} onCambio={cargar} />
         ) : tab === 'dispensas' ? (

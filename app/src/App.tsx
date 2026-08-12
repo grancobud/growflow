@@ -22,7 +22,6 @@ const PaginaConocimiento = lazyWithRetry(() => import('./pages/PaginaConocimient
 const PaginaTablas = lazyWithRetry(() => import('./pages/PaginaTablas'), 'PaginaTablas')
 const PaginaEstadisticas = lazyWithRetry(() => import('./pages/PaginaEstadisticas'), 'PaginaEstadisticas')
 const PaginaCosecha = lazyWithRetry(() => import('./pages/PaginaCosecha'), 'PaginaCosecha')
-const PaginaPacientes = lazyWithRetry(() => import('./pages/PaginaPacientes'), 'PaginaPacientes')
 const PaginaAsistencia = lazyWithRetry(() => import('./pages/PaginaAsistencia'), 'PaginaAsistencia')
 const PaginaStockInsumos = lazyWithRetry(() => import('./pages/PaginaStockInsumos'), 'PaginaStockInsumos')
 const PaginaCalendarioCultivo = lazyWithRetry(() => import('./pages/PaginaCalendarioCultivo'), 'PaginaCalendarioCultivo')
@@ -88,6 +87,13 @@ function App() {
               <Suspense fallback={null}><PaginaInstalacion /></Suspense>
             } />
           ))}
+          {/* El registro de pacientes es una pestana de O.N.G.: el cupo
+              REPROCANN, las dispensas y los documentos cuelgan de el. */}
+          {['ong', 'registro'].map(r => (
+            <Route key={r} path={r} element={
+              <Suspense fallback={null}><PaginaONG /></Suspense>
+            } />
+          ))}
           <Route path="conocimiento" element={
             <Suspense fallback={null}><PaginaConocimiento /></Suspense>
           } />
@@ -102,12 +108,6 @@ function App() {
           } />
           <Route path="stats" element={
             <Suspense fallback={null}><PaginaEstadisticas /></Suspense>
-          } />
-          <Route path="ong" element={
-            <Suspense fallback={null}><PaginaONG /></Suspense>
-          } />
-          <Route path="registro" element={
-            <Suspense fallback={null}><PaginaPacientes /></Suspense>
           } />
           <Route path="asistencia" element={
             <Suspense fallback={null}><PaginaAsistencia /></Suspense>
