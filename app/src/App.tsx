@@ -15,13 +15,13 @@ import { lazyWithRetry } from './lib/lazyWithRetry'
 // El resto de las paginas del CannTrace original quedan en src/pages por si
 // se adaptan mas adelante, pero fuera del router.
 // Plantas, Geneticas, Linea de tiempo y Sala viven adentro de esta.
+const PaginaInstalacion = lazyWithRetry(() => import('./pages/PaginaInstalacion'), 'PaginaInstalacion')
 const PaginaCultivo = lazyWithRetry(() => import('./pages/PaginaCultivo'), 'PaginaCultivo')
 const PaginaChat = lazyWithRetry(() => import('./pages/PaginaChat'), 'PaginaChat')
 const PaginaConocimiento = lazyWithRetry(() => import('./pages/PaginaConocimiento'), 'PaginaConocimiento')
 const PaginaTablas = lazyWithRetry(() => import('./pages/PaginaTablas'), 'PaginaTablas')
 const PaginaEstadisticas = lazyWithRetry(() => import('./pages/PaginaEstadisticas'), 'PaginaEstadisticas')
 const PaginaCosecha = lazyWithRetry(() => import('./pages/PaginaCosecha'), 'PaginaCosecha')
-const PaginaInsumosFaltantes = lazyWithRetry(() => import('./pages/PaginaInsumosFaltantes'), 'PaginaInsumosFaltantes')
 const PaginaPacientes = lazyWithRetry(() => import('./pages/PaginaPacientes'), 'PaginaPacientes')
 const PaginaAsistencia = lazyWithRetry(() => import('./pages/PaginaAsistencia'), 'PaginaAsistencia')
 const PaginaStockInsumos = lazyWithRetry(() => import('./pages/PaginaStockInsumos'), 'PaginaStockInsumos')
@@ -30,9 +30,6 @@ const PaginaEconometria = lazyWithRetry(() => import('./pages/PaginaEconometria'
 const PaginaAmbiente = lazyWithRetry(() => import('./pages/PaginaAmbiente'), 'PaginaAmbiente')
 const PaginaHistoriaPlanta = lazyWithRetry(() => import('./pages/PaginaHistoriaPlanta'), 'PaginaHistoriaPlanta')
 const PaginaCreadorNutrientes = lazyWithRetry(() => import('./pages/PaginaCreadorNutrientes'), 'PaginaCreadorNutrientes')
-const PaginaHardwareDIY = lazyWithRetry(() => import('./pages/PaginaHardwareDIY'), 'PaginaHardwareDIY')
-const PaginaRiego = lazyWithRetry(() => import('./pages/PaginaRiego'), 'PaginaRiego')
-const PaginaTablero = lazyWithRetry(() => import('./pages/PaginaTablero'), 'PaginaTablero')
 const PaginaONG = lazyWithRetry(() => import('./pages/PaginaONG'), 'PaginaONG')
 const Pagina404 = lazyWithRetry(() => import('./pages/Pagina404'), 'Pagina404')
 
@@ -84,6 +81,13 @@ function App() {
               <Suspense fallback={null}><PaginaCultivo /></Suspense>
             } />
           ))}
+          {/* Instalacion: el montaje (hardware, riego, tablero) y lo que falta
+              comprar para armarlo. Mismo criterio que Cultivo. */}
+          {['instalacion', 'hardware-diy', 'riego', 'tablero', 'insumos-faltantes'].map(r => (
+            <Route key={r} path={r} element={
+              <Suspense fallback={null}><PaginaInstalacion /></Suspense>
+            } />
+          ))}
           <Route path="conocimiento" element={
             <Suspense fallback={null}><PaginaConocimiento /></Suspense>
           } />
@@ -95,9 +99,6 @@ function App() {
           } />
           <Route path="cosecha" element={
             <Suspense fallback={null}><PaginaCosecha /></Suspense>
-          } />
-          <Route path="insumos-faltantes" element={
-            <Suspense fallback={null}><PaginaInsumosFaltantes /></Suspense>
           } />
           <Route path="stats" element={
             <Suspense fallback={null}><PaginaEstadisticas /></Suspense>
@@ -125,15 +126,6 @@ function App() {
           } />
           <Route path="nutrientes" element={
             <Suspense fallback={null}><PaginaCreadorNutrientes /></Suspense>
-          } />
-          <Route path="hardware-diy" element={
-            <Suspense fallback={null}><PaginaHardwareDIY /></Suspense>
-          } />
-          <Route path="riego" element={
-            <Suspense fallback={null}><PaginaRiego /></Suspense>
-          } />
-          <Route path="tablero" element={
-            <Suspense fallback={null}><PaginaTablero /></Suspense>
           } />
           <Route path="p/:codigo" element={
             <Suspense fallback={null}><PaginaHistoriaPlanta /></Suspense>
