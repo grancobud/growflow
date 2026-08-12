@@ -87,7 +87,7 @@ export default function InsumosRiego() {
       <div className="flex items-center gap-2">
         <p className="text-[12px] text-[#a6a6b5]">Insumos de riego · {items.length}</p>
         <div className="flex-1" />
-        <button onClick={() => setNuevoOpen(v => !v)} className="flex items-center gap-1 text-[11px] bg-[#7dd3fc]/15 border border-[#7dd3fc]/30 text-[#7dd3fc] rounded-md px-2 py-1 hover:bg-[#7dd3fc]/25">
+        <button onClick={() => setNuevoOpen(v => !v)} className="flex items-center justify-center gap-1 text-[11px] bg-[#7dd3fc]/15 border border-[#7dd3fc]/30 text-[#7dd3fc] rounded-md px-2 py-2 min-h-[44px] sm:min-h-0 sm:py-1 hover:bg-[#7dd3fc]/25">
           <Plus className="w-3.5 h-3.5" /> Nuevo insumo
         </button>
       </div>

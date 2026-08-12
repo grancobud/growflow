@@ -258,11 +258,11 @@ export default function PaginaEconometria() {
                       <div className="text-right text-[12.5px] font-medium text-[#d9f99d] tabular-nums">{fmt(Number(i.precio))}</div>
                       <div className="flex items-center justify-end gap-0.5">
                         <button onClick={() => setVerInsumo(i)} title="Ver ficha"
-                          className="p-1.5 text-[#5c5c6b] hover:text-[#38bdf8] hover:bg-[#15151d] rounded-lg transition-colors">
+                          className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#38bdf8] hover:bg-[#15151d] rounded-lg transition-colors">
                           <Eye className="w-3.5 h-3.5" />
                         </button>
                         <button onClick={() => setEditInsumo(i)} title="Editar ficha"
-                          className="p-1.5 text-[#5c5c6b] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors">
+                          className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -339,8 +339,8 @@ function ListaCostos({ titulo, subtitulo, icono: Ico, color, items, totalMensual
                   {(c.cantidad ?? 1) !== 1 && <div className="text-[9.5px] text-[#5c5c6b]">{c.cantidad} × {fmt(Number(c.monto))}</div>}
                 </div>
                 <div className="flex flex-col gap-1 flex-shrink-0">
-                  <button onClick={() => onEdit(c)} className="p-1.5 text-[#5c5c6b] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
-                  <button onClick={() => onBorrar(c)} className="p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => onEdit(c)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => onBorrar(c)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
               </li>
             )
@@ -379,7 +379,7 @@ function ModalCosto({ costo, tipoInicial, onCerrar, onGuardado }: { costo: Costo
       <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 bg-[#0d0d12] border-b border-[#1f1f2b] px-4 py-3 flex items-center justify-between">
           <h2 className="font-display font-bold text-[15px] text-[#ececf1]">{costo ? 'Editar costo' : 'Nuevo costo'}</h2>
-          <button onClick={onCerrar} className="p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
+          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4 space-y-3">
           <div className="grid grid-cols-2 gap-2">

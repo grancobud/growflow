@@ -17,7 +17,9 @@ import {
 } from '../lib/calendario'
 import { btnPrimario, btnSutil } from '../lib/ui'
 
-const inputCls = 'w-full px-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+// text-[16px] en celular: iOS Safari hace zoom sobre cualquier campo con letra
+// menor y deja el formulario descuadrado. En desktop vuelve al tamaño real.
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
 
 const hoyISO = () => new Date().toISOString().slice(0, 10)
@@ -181,7 +183,7 @@ export default function PaginaCalendarioCultivo() {
                 <div className="font-display font-semibold text-[14px] text-[#ececf1] truncate">{detalle.titulo}</div>
                 <div className="text-[11px] text-[#5c5c6b] capitalize">{detalle.tipo} · {new Date(detalle.fecha + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: '2-digit', month: 'long' })}</div>
               </div>
-              <button onClick={() => setDetalle(null)} className="p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
+              <button onClick={() => setDetalle(null)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
             </div>
             <div className="px-4 py-3 space-y-1.5">
               {detalle.detalle && <p className="text-[12.5px] text-[#d4d4dd] leading-relaxed">{detalle.detalle}</p>}
@@ -235,7 +237,7 @@ function ModalRecordatorio({ rec, fechaPre, onCerrar, onGuardado }: { rec: Recor
       <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 bg-[#0d0d12] border-b border-[#1f1f2b] px-4 py-3 flex items-center justify-between">
           <h2 className="font-display font-bold text-[15px] text-[#ececf1]">{rec ? 'Editar recordatorio' : 'Nuevo recordatorio'}</h2>
-          <button onClick={onCerrar} className="p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
+          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4 space-y-3">
           <div><label className={labelCls}>Título *</label><input className={inputCls} value={f.titulo ?? ''} onChange={e => set('titulo', e.target.value)} placeholder="Ej: Regar carpa, Cambiar solución, Revisar pH" /></div>

@@ -17,7 +17,9 @@ import {
 } from '../lib/stock'
 import { btnPrimario, btnSutil } from '../lib/ui'
 
-const inputCls = 'w-full px-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+// text-[16px] en celular: iOS Safari hace zoom sobre cualquier campo con letra
+// menor y deja el formulario descuadrado. En desktop vuelve al tamaño real.
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
 
 type Estilo = { text: string; bg: string; border: string; icono: any }
@@ -146,7 +148,7 @@ export default function PaginaStockInsumos() {
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5c5c6b]" />
               <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar nombre / marca"
-                className="pl-8 pr-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 w-[180px]" />
+                className="pl-8 pr-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 min-h-[44px] sm:min-h-0 w-[180px]" />
             </div>
             <button onClick={() => setFiltroCat('Todos')}
               className={`px-2.5 py-1.5 rounded-full text-[11px] border transition-colors ${filtroCat === 'Todos' ? 'border-[#404d20] bg-[#a3e635]/12 text-[#d9f99d]' : 'border-[#2a2a3a] bg-[#101016] text-[#a6a6b5] hover:text-[#ececf1]'}`}>
@@ -219,7 +221,7 @@ export default function PaginaStockInsumos() {
                     <div className="mt-auto pt-3 flex gap-1.5">
                       <button onClick={() => setVerInsumo(i)} className={btnSutil}><Eye className="w-3.5 h-3.5" /> Ver ficha</button>
                       <button onClick={() => { setEditInsumo(i); setModalInsumo(true) }} className={btnSutil}><Pencil className="w-3.5 h-3.5" /> Editar ficha</button>
-                      <button onClick={() => borrarInsumo(i)} className="p-1.5 text-[#46464f] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors ml-auto" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => borrarInsumo(i)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#46464f] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors ml-auto" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </div>
                 )
@@ -300,9 +302,9 @@ export default function PaginaStockInsumos() {
                       {m.notas && <p className="mt-1.5 text-[11px] text-[#a6a6b5] leading-relaxed">{m.notas}</p>}
                     </div>
                     <div className="flex flex-col gap-1 flex-shrink-0">
-                      <button onClick={() => hechoHoy(m)} className="p-1.5 text-[#5c5c6b] hover:text-[#bef264] hover:bg-[#15151d] rounded-lg transition-colors" title="Marcar hecho hoy"><CheckCircle2 className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => { setEditMant(m); setModalMant(true) }} className="p-1.5 text-[#5c5c6b] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => borrarMant(m)} className="p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => hechoHoy(m)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#bef264] hover:bg-[#15151d] rounded-lg transition-colors" title="Marcar hecho hoy"><CheckCircle2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => { setEditMant(m); setModalMant(true) }} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => borrarMant(m)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </div>
                 )
@@ -347,7 +349,7 @@ export function ModalInsumo({ insumo, onCerrar, onGuardado }: { insumo: Insumo |
       <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 bg-[#0d0d12] border-b border-[#1f1f2b] px-4 py-3 flex items-center justify-between">
           <h2 className="font-display font-bold text-[15px] text-[#ececf1]">{insumo ? 'Editar insumo' : 'Nuevo insumo'}</h2>
-          <button onClick={onCerrar} className="p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
+          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4 space-y-3">
           <div>
@@ -425,7 +427,7 @@ function ModalMant({ mant, insumos, onCerrar, onGuardado }: { mant: Mantenimient
       <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 bg-[#0d0d12] border-b border-[#1f1f2b] px-4 py-3 flex items-center justify-between">
           <h2 className="font-display font-bold text-[15px] text-[#ececf1]">{mant ? 'Editar mantenimiento' : 'Nuevo mantenimiento'}</h2>
-          <button onClick={onCerrar} className="p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
+          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4 space-y-3">
           <div>
@@ -489,7 +491,7 @@ export function ModalVerInsumo({ insumo, onCerrar }: { insumo: Insumo; onCerrar:
             </span>
             <span className="truncate">{i.nombre}</span>
           </h2>
-          <button onClick={onCerrar} className="p-1 text-[#5c5c6b] hover:text-[#ececf1] flex-shrink-0"><X className="w-5 h-5" /></button>
+          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1] flex-shrink-0"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4 space-y-4">
           <div className="flex items-center gap-2 flex-wrap">

@@ -173,8 +173,8 @@ function DocTab(p: any) {
                 {sel.notas && <div className="mt-1 text-[11px] text-[#6b6b7b] italic">{sel.notas}</div>}
               </div>
               <div className="flex gap-1">
-                <button onClick={() => onEditTablero(sel)} className="p-1.5 text-[#6b6b7b] hover:text-[#a3e635]"><Pencil className="w-3.5 h-3.5" /></button>
-                <button onClick={() => onBorrarTablero(sel.id)} className="p-1.5 text-[#6b6b7b] hover:text-[#ef4444]"><Trash2 className="w-3.5 h-3.5" /></button>
+                <button onClick={() => onEditTablero(sel)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#6b6b7b] hover:text-[#a3e635]"><Pencil className="w-3.5 h-3.5" /></button>
+                <button onClick={() => onBorrarTablero(sel.id)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#6b6b7b] hover:text-[#ef4444]"><Trash2 className="w-3.5 h-3.5" /></button>
               </div>
             </div>
             <div className="mt-3 grid grid-cols-3 gap-2">
@@ -232,8 +232,8 @@ function DocTab(p: any) {
                         {c.notas && <div className="mt-1 text-[10.5px] text-[#6b6b7b] italic">{c.notas}</div>}
                       </div>
                       <div className="flex gap-1 flex-shrink-0">
-                        <button onClick={() => onEditCircuito(c)} className="p-1.5 text-[#6b6b7b] hover:text-[#a3e635]"><Pencil className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => onBorrarCircuito(c.id)} className="p-1.5 text-[#6b6b7b] hover:text-[#ef4444]"><Trash2 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => onEditCircuito(c)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#6b6b7b] hover:text-[#a3e635]"><Pencil className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => onBorrarCircuito(c.id)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#6b6b7b] hover:text-[#ef4444]"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     </div>
                   </div>
@@ -389,7 +389,7 @@ function ModalBase({ titulo, onCerrar, children }: { titulo: string; onCerrar: (
       <div className="bg-[#101016] border border-[#1f1f2b] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 bg-[#101016] border-b border-[#1f1f2b] px-4 py-3 flex items-center justify-between">
           <h3 className="text-[14px] font-semibold text-[#ececf1]">{titulo}</h3>
-          <button onClick={onCerrar} className="p-1 text-[#6b6b7b] hover:text-[#ececf1]"><X className="w-4 h-4" /></button>
+          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#6b6b7b] hover:text-[#ececf1]"><X className="w-4 h-4" /></button>
         </div>
         <div className="p-4 space-y-3">{children}</div>
       </div>
@@ -397,7 +397,7 @@ function ModalBase({ titulo, onCerrar, children }: { titulo: string; onCerrar: (
   )
 }
 
-const inputCls = "w-full bg-[#0d0d13] border border-[#1f1f2b] rounded-lg px-3 py-2 text-[13px] text-[#ececf1] focus:border-[#a3e635]/50 focus:outline-none"
+const inputCls = "w-full bg-[#0d0d13] border border-[#1f1f2b] rounded-lg px-3 py-2 text-[16px] sm:text-[13px] text-[#ececf1] focus:border-[#a3e635]/50 focus:outline-none min-h-[44px] sm:min-h-0"
 const labelCls = "block text-[11px] text-[#8a8a9a] mb-1"
 
 function ModalTablero({ tablero, onGuardar, onCerrar }: { tablero: Tablero | null; onGuardar: (t: Partial<Tablero>) => void; onCerrar: () => void }) {

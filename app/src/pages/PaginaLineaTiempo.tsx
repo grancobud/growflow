@@ -14,7 +14,9 @@ import { btnPrimario, btnSutil } from '../lib/ui'
 
 const VERDE = '#a8cf8e', LILA = '#c9b8e8', GRIS = '#b7b3c2'
 
-const inputCls = 'w-full px-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+// text-[16px] en celular: iOS Safari hace zoom sobre cualquier campo con letra
+// menor y deja el formulario descuadrado. En desktop vuelve al tamaño real.
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
 
 const hoyISO = () => new Date().toISOString().slice(0, 10)
@@ -168,7 +170,7 @@ export default function PaginaLineaTiempo() {
                   <span className="text-[10px] text-[#5c5c6b]">· {p.cantidad} pl.</span>
                   <div className="flex-1" />
                   <span className="text-[11px] font-medium" style={{ color: lista ? '#bef264' : (p.enFlora ? LILA : VERDE) }}>{p.estado}</span>
-                  <button onClick={() => setEdit(p)} className="p-1 text-[#5c5c6b] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar / ver ficha"><Pencil className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => setEdit(p)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar / ver ficha"><Pencil className="w-3.5 h-3.5" /></button>
                 </div>
                 <div className="relative" style={{ width: `${anchoBarra}%`, minWidth: '200px' }}>
                   <div className="relative h-7 rounded-md overflow-hidden flex">
@@ -240,7 +242,7 @@ function ModalEditar({ perfil, onCerrar, onGuardado }: { perfil: Perfil; onCerra
             <h2 className="font-display font-bold text-[15px] text-[#ececf1] truncate">{g.nombre}</h2>
             <div className="text-[10.5px] text-[#5c5c6b]">{perfil.auto ? 'Automática' : 'Feminizada'}{g.genotipo ? ' · ' + g.genotipo : ''}{g.banco ? ' · ' + g.banco : ''}</div>
           </div>
-          <button onClick={onCerrar} className="p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
+          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4 space-y-3">
           <div><label className={labelCls}>Fecha de germinación</label><input type="date" className={inputCls} value={germ} onChange={e => setGerm(e.target.value)} /><p className="text-[10px] text-[#5c5c6b] mt-1">Se aplica a las {perfil.cantidad} plantas de esta variedad.</p></div>

@@ -26,7 +26,9 @@ const COLOR_ESTADO: Record<EstadoReprocann, { text: string; bg: string; border: 
   Rechazado:    { text: '#8f8f9f', bg: 'rgba(180,180,200,0.06)', border: '#2a2a3a' },
 }
 
-const inputCls = 'w-full px-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+// text-[16px] en celular: iOS Safari hace zoom sobre cualquier campo con letra
+// menor y deja el formulario descuadrado. En desktop vuelve al tamaño real.
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
 
 const fmtFecha = (f: string | null) =>
@@ -183,7 +185,7 @@ export default function PaginaPacientes({ embebida = false }: { embebida?: boole
                     <div className="mt-3 flex flex-wrap gap-1.5">
                       <button onClick={() => setDetalle(p)} className={btnSutil}><User className="w-3.5 h-3.5" /> Ver ficha</button>
                       <button onClick={() => { setEditar(p); setModalForm(true) }} className={btnSutil}><Pencil className="w-3.5 h-3.5" /> Editar</button>
-                      <button onClick={() => borrar(p)} className="p-1.5 text-[#46464f] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors ml-auto" title="Borrar ficha">
+                      <button onClick={() => borrar(p)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#46464f] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors ml-auto" title="Borrar ficha">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -248,7 +250,7 @@ function Modal({ titulo, ancho = 'max-w-lg', onCerrar, children }: { titulo: str
       <div className={`relative w-full ${ancho} max-h-[90vh] overflow-y-auto rounded-xl bg-[#101016] border border-[#2a2a3a] shadow-2xl`}>
         <div className="sticky top-0 bg-[#101016] flex items-center justify-between px-5 py-3.5 border-b border-[#1f1f2b]">
           <h2 className="font-display font-semibold text-[14px] text-[#ececf1]">{titulo}</h2>
-          <button onClick={onCerrar} className="p-1 text-[#5c5c6b] hover:text-[#ececf1]" aria-label="Cerrar"><X className="w-4 h-4" /></button>
+          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1]" aria-label="Cerrar"><X className="w-4 h-4" /></button>
         </div>
         <div className="p-5">{children}</div>
       </div>

@@ -15,7 +15,9 @@ import { MODO_DEMO } from '../lib/supabase'
 import { FotoPrivada } from '../components/FotoPrivada'
 import { btnPrimario, btnSutil } from '../lib/ui'
 
-const inputCls = 'w-full px-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+// text-[16px] en celular: iOS Safari hace zoom sobre cualquier campo con letra
+// menor y deja el formulario descuadrado. En desktop vuelve al tamaño real.
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
 
 const COLOR_GENOTIPO: Record<string, { text: string; bg: string; border: string }> = {
@@ -63,7 +65,7 @@ export default function PaginaGeneticas() {
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5c5c6b]" />
             <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar nombre / banco"
-              className="pl-8 pr-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 w-[170px]" />
+              className="pl-8 pr-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 w-[170px] min-h-[44px] sm:min-h-0" />
           </div>
           <button onClick={() => { setEditar(null); setModalForm(true) }} className={btnPrimario}>
             <Plus className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Genética</span>
@@ -122,7 +124,7 @@ export default function PaginaGeneticas() {
                     <div className="mt-auto pt-3 flex gap-1.5">
                       <button onClick={() => setVerFicha(g)} className={btnSutil}><Eye className="w-3.5 h-3.5" /> Ver ficha</button>
                       <button onClick={() => { setEditar(g); setModalForm(true) }} className={btnSutil}><Pencil className="w-3.5 h-3.5" /> Editar ficha</button>
-                      <button onClick={() => borrar(g)} className="p-1.5 text-[#46464f] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors ml-auto" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => borrar(g)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#46464f] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors ml-auto" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </div>
                 </div>
@@ -145,7 +147,7 @@ function Modal({ titulo, onCerrar, children }: { titulo: string; onCerrar: () =>
       <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl bg-[#101016] border border-[#2a2a3a] shadow-2xl">
         <div className="sticky top-0 bg-[#101016] flex items-center justify-between px-5 py-3.5 border-b border-[#1f1f2b]">
           <h2 className="font-display font-semibold text-[14px] text-[#ececf1]">{titulo}</h2>
-          <button onClick={onCerrar} className="p-1 text-[#5c5c6b] hover:text-[#ececf1]" aria-label="Cerrar"><X className="w-4 h-4" /></button>
+          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1]" aria-label="Cerrar"><X className="w-4 h-4" /></button>
         </div>
         <div className="p-5">{children}</div>
       </div>

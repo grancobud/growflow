@@ -454,7 +454,7 @@ const TABLAS: DefTabla[] = [
 const CON_PLANTA = new Set(['eventos', 'cosechas', 'riegos', 'aplicaciones'])
 
 const celdaCls = 'px-2.5 py-1.5 text-[12px] text-[#d4d4dd] border-b border-r border-[#1f1f2b] whitespace-nowrap'
-const inputCls = 'w-full bg-[#1c1c27] border border-[#a3e635]/50 rounded px-1.5 py-0.5 text-[12px] text-[#ececf1] focus:outline-none'
+const inputCls = 'w-full bg-[#1c1c27] border border-[#a3e635]/50 rounded px-1.5 py-0.5 text-[16px] sm:text-[12px] text-[#ececf1] focus:outline-none'
 
 export default function PaginaTablas() {
   const [tabla, setTabla] = useState<DefTabla>(TABLAS[0])
@@ -635,22 +635,22 @@ export default function PaginaTablas() {
           </div>
           <div className="flex-1" />
           <button onClick={exportar}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] hover:border-[#404d20] transition-colors text-[11px] text-[#a6a6b5] hover:text-[#ececf1]"
+            className="inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] hover:border-[#404d20] transition-colors text-[11px] text-[#a6a6b5] hover:text-[#ececf1]"
             title="Copiar backup completo del cultivo (todas las tablas) al portapapeles">
             <Download className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Export</span>
           </button>
           <button onClick={() => setModalImport(true)}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] hover:border-[#404d20] transition-colors text-[11px] text-[#a6a6b5] hover:text-[#ececf1]"
+            className="inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] hover:border-[#404d20] transition-colors text-[11px] text-[#a6a6b5] hover:text-[#ececf1]"
             title="Pegar un backup para restaurar/mezclar">
             <Upload className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Import</span>
           </button>
           <button onClick={cargar}
-            className="p-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] transition-colors text-[#a6a6b5]"
+            className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] transition-colors text-[#a6a6b5]"
             title="Refrescar">
             <RefreshCw className={`w-3.5 h-3.5 ${cargando ? 'animate-spin' : ''}`} />
           </button>
           <button onClick={agregarFila}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[11.5px] font-medium text-[#d9f99d]">
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 min-h-[44px] sm:min-h-0 rounded-lg border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[11.5px] font-medium text-[#d9f99d]">
             <Plus className="w-3.5 h-3.5" /> Fila
           </button>
         </div>
@@ -712,7 +712,7 @@ export default function PaginaTablas() {
                   {tabla.cols.map(c => renderCelda(fila, c))}
                   <td className="px-2 py-1.5 border-b border-[#1f1f2b]">
                     <button onClick={() => borrarFila(fila)}
-                      className="p-1 text-[#46464f] opacity-0 group-hover:opacity-100 hover:text-[#ff8a7a] rounded transition-all"
+                      className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#46464f] opacity-0 group-hover:opacity-100 hover:text-[#ff8a7a] rounded transition-all"
                       title="Borrar fila">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -730,7 +730,7 @@ export default function PaginaTablas() {
           <div className="relative w-full max-w-lg rounded-xl bg-[#101016] border border-[#2a2a3a] shadow-2xl">
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#1f1f2b]">
               <h2 className="font-display font-semibold text-[14px] text-[#ececf1]">Importar backup</h2>
-              <button onClick={() => setModalImport(false)} className="p-1 text-[#5c5c6b] hover:text-[#ececf1]" aria-label="Cerrar">
+              <button onClick={() => setModalImport(false)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1]" aria-label="Cerrar">
                 <X className="w-4 h-4" />
               </button>
             </div>

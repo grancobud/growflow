@@ -36,7 +36,7 @@ export default function PaginaEstadisticas() {
             <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">Rendimiento por genética</div>
           </div>
           <div className="flex-1" />
-          <button onClick={cargar} className="p-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] transition-colors text-[#a6a6b5]" title="Refrescar">
+          <button onClick={cargar} className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] transition-colors text-[#a6a6b5]" title="Refrescar">
             <RefreshCw className={`w-3.5 h-3.5 ${cargando ? 'animate-spin' : ''}`} />
           </button>
         </div>

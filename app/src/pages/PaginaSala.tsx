@@ -415,7 +415,7 @@ export default function PaginaSala() {
           <div className="flex rounded-lg border border-[#2a2a3a] overflow-hidden">
             {([['regar', Droplets, 'Regar'], ['fumigar', SprayCan, 'Fumigar'], ['mover', Move, 'Mover'], ['genetica', Dna, 'Genética']] as const).map(([m, Ic, lbl]) => (
               <button key={m} onClick={() => { setModo(m); setMoviendo(null) }}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[11.5px] font-medium transition-colors ${
+                className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 text-[11.5px] font-medium transition-colors ${
                   modo === m ? 'bg-[#a3e635]/15 text-[#d9f99d]' : 'bg-[#15151d] text-[#757584] hover:text-[#a6a6b5]'
                 }`}>
                 <Ic className="w-3.5 h-3.5" /> <span className="hidden sm:inline">{lbl}</span>
@@ -424,22 +424,22 @@ export default function PaginaSala() {
           </div>
           {modo === 'genetica' && (
             <select value={genSel} onChange={e => setGenSel(e.target.value)}
-              className="px-2 py-1.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11.5px] text-[#ececf1] focus:outline-none focus:border-[#a3e635]/60">
+              className="px-2 py-1.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[11.5px] text-[#ececf1] focus:outline-none focus:border-[#a3e635]/60 min-h-[44px] sm:min-h-0">
               <option value="">Elegir genética...</option>
               {geneticas.map(g => <option key={g.id} value={g.id}>{g.nombre}</option>)}
             </select>
           )}
           <button onClick={exportar}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] hover:border-[#404d20] transition-colors text-[11px] text-[#a6a6b5] hover:text-[#ececf1]"
+            className="inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] hover:border-[#404d20] transition-colors text-[11px] text-[#a6a6b5] hover:text-[#ececf1]"
             title="Copiar todos los datos de la sala al portapapeles">
             <Download className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Export</span>
           </button>
           <button onClick={() => setModalImport(true)}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] hover:border-[#404d20] transition-colors text-[11px] text-[#a6a6b5] hover:text-[#ececf1]"
+            className="inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] hover:border-[#404d20] transition-colors text-[11px] text-[#a6a6b5] hover:text-[#ececf1]"
             title="Pegar datos exportados (de la app vieja o de GrowFlow)">
             <Upload className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Import</span>
           </button>
-          <button onClick={cargar} className="p-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] transition-colors text-[#a6a6b5]" title="Refrescar">
+          <button onClick={cargar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] transition-colors text-[#a6a6b5]" title="Refrescar">
             <RefreshCw className={`w-3.5 h-3.5 ${cargando ? 'animate-spin' : ''}`} />
           </button>
         </div>
@@ -462,7 +462,7 @@ export default function PaginaSala() {
               <input key={k} type="number" inputMode="decimal" value={receta[k]}
                 onChange={e => setReceta(r => ({ ...r, [k]: e.target.value }))}
                 placeholder={`${ph} (ej ${eg})`}
-                className="w-[120px] px-2 py-1 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#38bdf8]/60" />
+                className="w-[120px] px-2 py-1 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[11px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#38bdf8]/60 min-h-[44px] sm:min-h-0" />
             ))}
             <span className="text-[10px] text-[#5c5c6b]">se guarda en cada planta que toques</span>
           </div>
@@ -472,15 +472,15 @@ export default function PaginaSala() {
           <div className="flex items-center flex-wrap gap-2 px-3 sm:px-6 pb-2.5">
             <span className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium">Aplicación:</span>
             <select value={recetaA.categoria} onChange={e => setRecetaA(r => ({ ...r, categoria: e.target.value }))}
-              className="px-2 py-1 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11px] text-[#ececf1] focus:outline-none focus:border-[#c4b5fd]/60">
+              className="px-2 py-1 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[11px] text-[#ececf1] focus:outline-none focus:border-[#c4b5fd]/60 min-h-[44px] sm:min-h-0">
               {CATEGORIAS_APLIC.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
             <input value={recetaA.producto} onChange={e => setRecetaA(r => ({ ...r, producto: e.target.value }))}
               placeholder="Producto (ej Neem)"
-              className="w-[150px] px-2 py-1 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#c4b5fd]/60" />
+              className="w-[150px] px-2 py-1 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[11px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#c4b5fd]/60 min-h-[44px] sm:min-h-0" />
             <input value={recetaA.dosis} onChange={e => setRecetaA(r => ({ ...r, dosis: e.target.value }))}
               placeholder="Dosis (ej 5ml/L)"
-              className="w-[130px] px-2 py-1 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#c4b5fd]/60" />
+              className="w-[130px] px-2 py-1 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[11px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#c4b5fd]/60 min-h-[44px] sm:min-h-0" />
             <span className="text-[10px] text-[#c4b5fd]">tocá las plantas a las que les aplicaste</span>
           </div>
         )}
@@ -499,7 +499,7 @@ export default function PaginaSala() {
                 <span className="truncate min-w-0">{carpa.nombre} <span className="font-normal text-[#5c5c6b]">{carpa.medida}</span></span>
                 {modo === 'regar' && (
                   <button onClick={() => regarCarpa(carpa)}
-                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-[#1d3a5a] bg-[#38bdf8]/10 hover:bg-[#38bdf8]/20 text-[9.5px] text-[#38bdf8] transition-colors"
+                    className="inline-flex items-center justify-center gap-1 px-2 py-1.5 sm:px-1.5 sm:py-0.5 min-h-[36px] sm:min-h-0 rounded border border-[#1d3a5a] bg-[#38bdf8]/10 hover:bg-[#38bdf8]/20 text-[9.5px] text-[#38bdf8] transition-colors"
                     title={`Regar todas las plantas de ${carpa.nombre}`}>
                     <Droplets className="w-2.5 h-2.5" /> todas
                   </button>
@@ -554,7 +554,7 @@ export default function PaginaSala() {
           <div className="relative w-full max-w-lg rounded-xl bg-[#101016] border border-[#2a2a3a] shadow-2xl">
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#1f1f2b]">
               <h2 className="font-display font-semibold text-[14px] text-[#ececf1]">Importar datos</h2>
-              <button onClick={() => setModalImport(false)} className="p-1 text-[#5c5c6b] hover:text-[#ececf1]" aria-label="Cerrar">
+              <button onClick={() => setModalImport(false)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1]" aria-label="Cerrar">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -569,7 +569,7 @@ export default function PaginaSala() {
                 autoFocus rows={8} value={textoImport}
                 onChange={e => setTextoImport(e.target.value)}
                 placeholder='{"plants":{"1":{"slot":"c1-0","riegos":[...]},...}}'
-                className="w-full px-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11px] font-mono text-[#ececf1] placeholder-[#46464f] focus:outline-none focus:border-[#a3e635]/60 transition-colors resize-y"
+                className="w-full px-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[11px] font-mono text-[#ececf1] placeholder-[#46464f] focus:outline-none focus:border-[#a3e635]/60 transition-colors resize-y min-h-[44px] sm:min-h-0"
               />
               <button onClick={importar} disabled={importando || !textoImport.trim()}
                 className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[12px] font-medium text-[#d9f99d] disabled:opacity-50">

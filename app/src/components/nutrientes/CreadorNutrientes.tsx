@@ -173,16 +173,36 @@ function colorDelta(logrado: number, obj: number) {
   return { c: '#d9f99d', bg: 'rgba(63,176,116,0.10)' }
 }
 
-// Tooltip de ayuda: "?" que al pasar el mouse muestra descripción + ejemplo.
+/**
+ * Tooltip de ayuda: "?" con la descripción y un ejemplo.
+ *
+ * En el celular no hay hover, así que el tooltip de sólo-hover era invisible: se
+ * abre tocando. Y flotando quedaba cortado contra el borde de la pantalla
+ * —estaba centrado sobre el "?"— así que abajo de sm despliega en el flujo
+ * normal, ocupando el ancho de la tarjeta, donde nada se puede salir.
+ */
 function Info({ children }: { children: React.ReactNode }) {
+  const [abierto, setAbierto] = useState(false)
   return (
-    <span className="relative inline-flex group align-middle ml-1">
-      <span className="w-3.5 h-3.5 rounded-full bg-[#1f1f2b] border border-[#404d20] text-[#8f8f9f] text-[10.5px] font-bold flex items-center justify-center cursor-help group-hover:text-[#d9f99d] group-hover:border-[#a3e635] transition-colors">?</span>
-      <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-60 max-w-[calc(100vw-2rem)] z-50 opacity-0 group-hover:opacity-100 transition-opacity bg-[#0d0d14] border border-[#2a2a38] rounded-lg px-3 py-2 text-[12px] text-[#c4c4d0] leading-relaxed shadow-2xl">
-        {children}
-        <span className="absolute left-1/2 -translate-x-1/2 top-full w-2 h-2 rotate-45 -mt-1 bg-[#0d0d14] border-r border-b border-[#2a2a38]" />
+    <>
+      <span className="relative inline-flex group align-middle ml-1">
+        <button type="button" onClick={() => setAbierto(v => !v)} aria-expanded={abierto}
+          aria-label="Qué es esto"
+          className="p-2.5 -m-2.5 sm:p-0 sm:m-0 flex items-center justify-center cursor-help group">
+          <span className="w-3.5 h-3.5 rounded-full bg-[#1f1f2b] border border-[#404d20] text-[#8f8f9f] text-[10.5px] font-bold flex items-center justify-center group-hover:text-[#d9f99d] group-hover:border-[#a3e635] transition-colors">?</span>
+        </button>
+        {/* Flotante sólo en desktop, donde hay mouse y espacio de sobra. */}
+        <span className="hidden sm:block pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-60 max-w-[calc(100vw-2rem)] z-50 opacity-0 group-hover:opacity-100 transition-opacity bg-[#0d0d14] border border-[#2a2a38] rounded-lg px-3 py-2 text-[12px] text-[#c4c4d0] leading-relaxed shadow-2xl">
+          {children}
+          <span className="absolute left-1/2 -translate-x-1/2 top-full w-2 h-2 rotate-45 -mt-1 bg-[#0d0d14] border-r border-b border-[#2a2a38]" />
+        </span>
       </span>
-    </span>
+      {abierto && (
+        <span className="sm:hidden block mt-1.5 rounded-lg bg-[#0d0d14] border border-[#2a2a38] px-3 py-2 text-[12px] text-[#c4c4d0] leading-relaxed">
+          {children}
+        </span>
+      )}
+    </>
   )
 }
 

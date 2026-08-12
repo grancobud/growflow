@@ -343,10 +343,15 @@ export default function PaginaInsumosFaltantes() {
               const cp = COLOR_PRIORIDAD[f.prioridad] ?? COLOR_PRIORIDAD.media
               return (
                 <li key={f.id} className={`rounded-xl border px-4 py-3 flex items-start gap-3 transition-colors sm:min-h-[130px] ${f.comprado ? 'bg-[#0d0d12] border-[#1a1a24] opacity-60' : 'bg-[#101016] border-[#1f1f2b] hover:border-[#404d20]'}`}>
+                  {/* El cuadrito sigue midiendo 24 px, pero el área que responde
+                      al dedo es de 44: el padding la agranda y el margen negativo
+                      lo compensa para que no empuje al resto de la fila. */}
                   <button onClick={() => toggleComprado(f)}
-                    className={`w-6 h-6 sm:w-5 sm:h-5 mt-0.5 rounded-md border flex items-center justify-center flex-shrink-0 transition-colors ${f.comprado ? 'bg-[#a3e635]/20 border-[#404d20] text-[#bef264]' : 'border-[#2a2a3a] text-transparent hover:border-[#404d20]'}`}
+                    className="p-2.5 -m-2.5 sm:p-0 sm:m-0 mt-0.5 flex items-start flex-shrink-0"
                     title={f.comprado ? 'Marcar como pendiente' : 'Marcar como comprado'}>
-                    <Check className="w-3.5 h-3.5" />
+                    <span className={`w-6 h-6 sm:w-5 sm:h-5 rounded-md border flex items-center justify-center transition-colors ${f.comprado ? 'bg-[#a3e635]/20 border-[#404d20] text-[#bef264]' : 'border-[#2a2a3a] text-transparent hover:border-[#404d20]'}`}>
+                      <Check className="w-3.5 h-3.5" />
+                    </span>
                   </button>
                   {f.imagen_thumb && <img src={f.imagen_thumb} alt="" onClick={() => setDetalle(f)} className="w-11 h-11 rounded object-cover border border-[#1f1f2b] flex-shrink-0 self-start cursor-pointer hover:border-[#404d20]" title="Ver ficha" />}
                   <div className="min-w-0 flex-1">
@@ -405,7 +410,7 @@ export default function PaginaInsumosFaltantes() {
           <div className="ct-page-scroll relative w-full max-w-lg max-h-[90vh] max-h-[90dvh] overflow-y-auto overscroll-contain rounded-xl bg-[#101016] border border-[#2a2a3a] shadow-2xl">
             <div className="sticky top-0 bg-[#101016] flex items-center justify-between px-5 py-3.5 border-b border-[#1f1f2b]">
               <h2 className="font-display font-semibold text-[14px] text-[#ececf1] truncate pr-2">{detalle.nombre}</h2>
-              <button onClick={() => setDetalle(null)} className="p-1 text-[#5c5c6b] hover:text-[#ececf1] flex-shrink-0" aria-label="Cerrar"><XIcon className="w-4 h-4" /></button>
+              <button onClick={() => setDetalle(null)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1] flex-shrink-0" aria-label="Cerrar"><XIcon className="w-4 h-4" /></button>
             </div>
             <div className="p-5 space-y-4">
               {/* Mientras baja la foto grande mostramos la miniatura borrosa. */}

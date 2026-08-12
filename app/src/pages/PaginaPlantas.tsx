@@ -43,9 +43,11 @@ function ChipTipo({ tipo }: { tipo?: string | null }) {
   )
 }
 
-const inputCls = 'w-full px-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+// text-[16px] en celular: iOS Safari hace zoom sobre cualquier campo con letra
+// menor y deja el formulario descuadrado. En desktop vuelve al tamaño real.
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
-const selectFiltro = 'px-2.5 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11.5px] text-[#a6a6b5] focus:outline-none focus:border-[#a3e635]/60 cursor-pointer max-w-[170px]'
+const selectFiltro = 'px-2.5 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[11.5px] text-[#a6a6b5] focus:outline-none focus:border-[#a3e635]/60 cursor-pointer max-w-[170px] min-h-[44px] sm:min-h-0'
 
 // "Tarea pendiente" derivable de los datos reales: el riego. Una planta en fase
 // de crecimiento tiene riego pendiente si pasaron RIEGO_PENDIENTE_DIAS+ del último
@@ -237,7 +239,7 @@ export default function PaginaPlantas() {
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5c5c6b]" />
               <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar nombre / código / genética"
-                className="pl-8 pr-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 w-[210px]" />
+                className="pl-8 pr-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 min-h-[44px] sm:min-h-0 w-[210px]" />
             </div>
             <select value={fGenetica} onChange={e => setFGenetica(e.target.value)} className={selectFiltro} title="Filtrar por genética">
               <option value="">Toda genética</option>
@@ -306,7 +308,7 @@ export default function PaginaPlantas() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
                         <button onClick={() => setDetalle(p)}
-                          className="font-display font-semibold text-[14px] text-[#ececf1] truncate hover:text-[#bef264] transition-colors text-left"
+                          className="font-display font-semibold text-[14px] text-[#ececf1] truncate hover:text-[#bef264] transition-colors text-left py-2 -my-2 pr-3 -mr-3 sm:py-0 sm:my-0 sm:pr-0 sm:mr-0"
                           title="Ver línea de tiempo">{p.nombre}</button>
                         <p className="text-[11px] text-[#757584] truncate mt-0.5">
                           {p.genetica ?? 'Sin genética'}{p.banco ? ` · ${p.banco}` : ''}
@@ -322,7 +324,7 @@ export default function PaginaPlantas() {
                         {p.fase}
                       </span>
                       <button onClick={() => eliminarPlanta(p)}
-                        className="p-1 -mr-1 text-[#46464f] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded transition-colors flex-shrink-0"
+                        className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 -mr-1 text-[#46464f] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded transition-colors flex-shrink-0"
                         title="Borrar planta">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -352,7 +354,7 @@ export default function PaginaPlantas() {
                       <select
                         value={p.fase}
                         onChange={e => cambiarFase(p.id, e.target.value as FasePlanta)}
-                        className="px-2 py-1.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11px] text-[#a6a6b5] focus:outline-none focus:border-[#a3e635]/60 cursor-pointer"
+                        className="px-2 py-1.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[11px] text-[#a6a6b5] focus:outline-none focus:border-[#a3e635]/60 cursor-pointer min-h-[44px] sm:min-h-0"
                         title="Cambiar fase">
                         {FASES.map(f => <option key={f} value={f}>{f}</option>)}
                       </select>
@@ -431,7 +433,7 @@ function NotaRapida({ onGuardar }: { onGuardar: (txt: string) => void }) {
           if (e.key === 'Escape') { setTexto(''); setAbierto(false) }
         }}
         placeholder="Escribí la nota y Enter..." className={inputCls} />
-      <button onClick={() => { setTexto(''); setAbierto(false) }} className="p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a]">
+      <button onClick={() => { setTexto(''); setAbierto(false) }} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a]">
         <X className="w-3.5 h-3.5" />
       </button>
     </div>
@@ -463,8 +465,8 @@ function CosechaRapida({ onGuardar }: { onGuardar: (pesoSeco: number, valoracion
         <option value={0}>★</option>
         {Array.from({ length: 10 }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n}</option>)}
       </select>
-      <button onClick={guardar} className="p-1.5 text-[#bef264] hover:text-[#d9f99d]" title="Guardar cosecha"><Scissors className="w-3.5 h-3.5" /></button>
-      <button onClick={() => { setPeso(''); setAbierto(false) }} className="p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a]"><X className="w-3.5 h-3.5" /></button>
+      <button onClick={guardar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#bef264] hover:text-[#d9f99d]" title="Guardar cosecha"><Scissors className="w-3.5 h-3.5" /></button>
+      <button onClick={() => { setPeso(''); setAbierto(false) }} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a]"><X className="w-3.5 h-3.5" /></button>
     </div>
   )
 }
@@ -476,7 +478,7 @@ function Modal({ titulo, onCerrar, children }: { titulo: string; onCerrar: () =>
       <div className="relative w-full max-w-md rounded-xl bg-[#101016] border border-[#2a2a3a] shadow-2xl">
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#1f1f2b]">
           <h2 className="font-display font-semibold text-[14px] text-[#ececf1]">{titulo}</h2>
-          <button onClick={onCerrar} className="p-1 text-[#5c5c6b] hover:text-[#ececf1]" aria-label="Cerrar">
+          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1]" aria-label="Cerrar">
             <X className="w-4 h-4" />
           </button>
         </div>

@@ -17,7 +17,9 @@ import {
 } from '../../lib/instalaciones'
 import { btnPrimario, btnSutil } from '../../lib/ui'
 
-const inputCls = 'w-full px-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+// text-[16px] en celular: iOS Safari hace zoom sobre cualquier campo con letra
+// menor y deja el formulario descuadrado. En desktop vuelve al tamaño real.
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
 const fmt = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
 
@@ -216,9 +218,9 @@ export default function Instalaciones() {
                           <div className="text-[9.5px] text-[#5c5c6b]">por {i.unidad || 'u'}</div>
                         </div>
                         <div className="flex flex-col gap-1 flex-shrink-0">
-                          <button onClick={() => setModalOfertas(i)} className="p-1.5 text-[#5c5c6b] hover:text-[#fbbf24] hover:bg-[#15151d] rounded-lg transition-colors" title="Ofertas / comparar precios"><Tag className="w-3.5 h-3.5" /></button>
-                          <button onClick={() => setModalItem(i)} className="p-1.5 text-[#5c5c6b] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
-                          <button onClick={() => borrarItem(i)} className="p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => setModalOfertas(i)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#fbbf24] hover:bg-[#15151d] rounded-lg transition-colors" title="Ofertas / comparar precios"><Tag className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => setModalItem(i)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => borrarItem(i)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
                         </div>
                       </li>
                     )
@@ -251,8 +253,8 @@ export default function Instalaciones() {
                       {p.notas && <div className="mt-0.5 text-[10.5px] text-[#5c5c6b] truncate">{p.notas}</div>}
                     </div>
                     <div className="flex flex-col gap-1 flex-shrink-0">
-                      <button onClick={() => setModalProv(p)} className="p-1.5 text-[#5c5c6b] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => borrarProv(p)} className="p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => setModalProv(p)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => borrarProv(p)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </li>
                 )
@@ -331,7 +333,7 @@ function ModalOfertas({ item, proveedores, onCerrar, onCambio }: {
             <h2 className="font-display font-bold text-[15px] text-[#ececf1] truncate flex items-center gap-2"><Tag className="w-4 h-4 text-[#fbbf24]" /> Ofertas · {item.nombre}</h2>
             <div className="text-[10.5px] text-[#5c5c6b]">Cargá cada cotización con su foto y elegí ⭐ la de mejor precio</div>
           </div>
-          <button onClick={onCerrar} className="p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
+          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4 space-y-3">
           {cargando ? (
@@ -356,9 +358,9 @@ function ModalOfertas({ item, proveedores, onCerrar, onCambio }: {
                       </div>
                       <div className="text-[10.5px] text-[#5c5c6b] truncate">{prov?.nombre ?? 'sin proveedor'}{o.presentacion ? ` · ${o.presentacion}` : ''}{o.nota ? ` · ${o.nota}` : ''}</div>
                     </div>
-                    <button onClick={() => elegir(o)} title="Elegir como referencia" className={`p-1.5 rounded-lg transition-colors ${o.elegido ? 'text-[#a3e635]' : 'text-[#5c5c6b] hover:text-[#a3e635] hover:bg-[#15151d]'}`}><Star className={`w-4 h-4 ${o.elegido ? 'fill-[#a3e635]' : ''}`} /></button>
-                    <button onClick={() => setEdit(o)} className="p-1.5 text-[#5c5c6b] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => borrar(o)} className="p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => elegir(o)} title="Elegir como referencia" className={`min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 rounded-lg transition-colors ${o.elegido ? 'text-[#a3e635]' : 'text-[#5c5c6b] hover:text-[#a3e635] hover:bg-[#15151d]'}`}><Star className={`w-4 h-4 ${o.elegido ? 'fill-[#a3e635]' : ''}`} /></button>
+                    <button onClick={() => setEdit(o)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => borrar(o)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
                   </li>
                 )
               })}
@@ -550,7 +552,7 @@ function DetallePresupuesto({ presupuesto, items, provPorId, onVolver }: {
                     <div className="text-right flex-shrink-0 w-24">
                       <div className="text-[12.5px] font-medium text-[#ececf1]">{fmt(totalLinea(l))}</div>
                     </div>
-                    <button onClick={() => borrarLinea(l)} className="p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors flex-shrink-0" title="Quitar"><Trash2 className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => borrarLinea(l)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors flex-shrink-0" title="Quitar"><Trash2 className="w-3.5 h-3.5" /></button>
                   </li>
                 ))}
               </ul>
@@ -819,7 +821,7 @@ function ModalShell({ titulo, children, onCerrar, onGuardar, guardando }: { titu
       <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 bg-[#0d0d12] border-b border-[#1f1f2b] px-4 py-3 flex items-center justify-between">
           <h2 className="font-display font-bold text-[15px] text-[#ececf1]">{titulo}</h2>
-          <button onClick={onCerrar} className="p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
+          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4 space-y-3">{children}</div>
         <div className="sticky bottom-0 bg-[#0d0d12] border-t border-[#1f1f2b] px-4 py-3 flex justify-end gap-2">
