@@ -1,107 +1,529 @@
-// PaginaEstadisticas — gramos cosechados por genetica, ranking y barras.
+// Estadísticas — qué rinde, cuánto cuesta y cuál conviene volver a plantar.
+//
+// Criterios de los gráficos:
+//  - Todo lo que compara MAGNITUD usa una sola rampa de verde (más = más
+//    oscuro/intenso). Ponerle un color distinto a cada genética sería gastar el
+//    canal de color en repetir lo que ya dice el largo de la barra.
+//  - Nada de doble eje: dos medidas de escala distinta van en dos gráficos.
+//  - Un cero calculado se muestra como "—". Un "0 g/planta" se lee como "rinde
+//    cero" cuando en realidad significa "todavía no hay con qué calcularlo".
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
-import { BarChart3, RefreshCw, Scale, Trophy } from 'lucide-react'
-import { cultivoService, type EstadisticaGenetica } from '../lib/cultivo'
+import {
+  BarChart3, RefreshCw, Scale, Trophy, Sprout, CalendarRange,
+  Table2, LineChart, Target, AlertTriangle,
+} from 'lucide-react'
+import {
+  estadisticasService, resumir, porGenetica, porMes, gramosPorVatio, plantasCosechadas, mermaSecado,
+  type CosechaDetallada, type MetricasGenetica,
+} from '../lib/estadisticas'
+import { cultivoService, type ResumenPlanta } from '../lib/cultivo'
+import { stockService } from '../lib/stock'
+import { econometriaService, resumenEconomico, configService, VIDA_UTIL_DEFECTO, type VidaUtil } from '../lib/econometria'
+import { btnSutil } from '../lib/ui'
+
+// Rampa secuencial de un solo hue, validada para fondo oscuro: lightness
+// monótona, saltos visibles entre pasos y el extremo claro despegado del fondo.
+const RAMPA = ['#3f6212', '#65a30d', '#84cc16', '#a3e635', '#d9f99d']
+const ACENTO = '#a3e635'
+const TENUE = '#2a2a3a'
+
+const card = 'rounded-xl bg-[#101016] border border-[#1f1f2b]'
+const fmtG = (n: number) => Math.round(n).toLocaleString('es-AR')
+const fmtPesos = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
+const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+const nombreMes = (k: string) => {
+  const [a, m] = k.split('-').map(Number)
+  return `${MESES[m - 1]} ${String(a).slice(2)}`
+}
 
 export default function PaginaEstadisticas() {
-  const [stats, setStats] = useState<EstadisticaGenetica[]>([])
+  const [cosechas, setCosechas] = useState<CosechaDetallada[]>([])
+  const [plantas, setPlantas] = useState<ResumenPlanta[]>([])
+  const [vatiosLuz, setVatiosLuz] = useState(0)
+  const [costoPorGramo, setCostoPorGramo] = useState<number | null>(null)
   const [cargando, setCargando] = useState(true)
+  const [verTabla, setVerTabla] = useState(false)
 
   const cargar = useCallback(async () => {
     setCargando(true)
     try {
-      setStats(await cultivoService.getEstadisticasCosecha())
+      const [cs, pl, insumos] = await Promise.all([
+        estadisticasService.getCosechasDetalladas(),
+        cultivoService.getResumenPlantas(false),
+        stockService.getInsumos(),
+      ])
+      setCosechas(cs); setPlantas(pl)
+      // g/W se mide sobre la luz, no sobre el consumo total del cuarto.
+      setVatiosLuz(insumos
+        .filter(i => i.categoria === 'Iluminacion' && i.potencia_w)
+        .reduce((s, i) => s + Number(i.potencia_w) * (Number(i.cantidad) || 1), 0))
+      try {
+        const [costos, vida, par] = await Promise.all([
+          econometriaService.getCostos(),
+          configService.get<VidaUtil>('vida_util_meses', VIDA_UTIL_DEFECTO),
+          configService.get<{ meses_ciclo: number }>('parametros', { meses_ciclo: 4 }),
+        ])
+        const gramos = cs.reduce((s, c) => s + (c.peso_seco_g ?? 0), 0)
+        const eco = resumenEconomico({ insumos, costos, vida, mesesCiclo: par.meses_ciclo, gramosCosechados: gramos })
+        setCostoPorGramo(eco.costoPorGramo)
+      } catch { /* sin econometría el resto de la página funciona igual */ }
     } catch (err) {
       toast.error(`Error cargando estadísticas: ${(err as Error).message}`)
-    } finally {
-      setCargando(false)
-    }
+    } finally { setCargando(false) }
   }, [])
-
   useEffect(() => { cargar() }, [cargar])
 
-  const totalSeco = stats.reduce((a, s) => a + s.peso_seco_g, 0)
-  const totalCosechas = stats.reduce((a, s) => a + s.cosechas, 0)
-  const maxSeco = Math.max(1, ...stats.map(s => s.peso_seco_g))
-  const prom = (vs: number[]) => vs.length ? (vs.reduce((a, b) => a + b, 0) / vs.length) : null
+  const r = useMemo(() => resumir(cosechas), [cosechas])
+  const gens = useMemo(() => porGenetica(cosechas), [cosechas])
+  const meses = useMemo(() => porMes(cosechas), [cosechas])
+  const cosechadas = plantasCosechadas(cosechas)
+  const gPorPlanta = cosechadas > 0 ? r.totalSeco / cosechadas : null
+  const gW = gramosPorVatio(r.totalSeco, vatiosLuz)
+  const activas = plantas.filter(p => p.activa !== false)
 
+  if (cargando) {
+    return (
+      <Marco onRefrescar={cargar} cargando>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {Array.from({ length: 8 }).map((_, i) => <div key={i} className={`${card} h-[76px] animate-pulse`} />)}
+        </div>
+        <div className={`${card} h-[220px] animate-pulse`} />
+        <div className={`${card} h-[300px] animate-pulse`} />
+      </Marco>
+    )
+  }
+
+  if (r.cosechas === 0) {
+    return (
+      <Marco onRefrescar={cargar}>
+        <div className="py-20 text-center">
+          <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3">
+            <BarChart3 className="w-5 h-5 text-[#5c5c6b]" />
+          </div>
+          <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">Todavía no hay cosechas con peso</div>
+          <div className="mt-1 text-[11.5px] text-[#5c5c6b] max-w-sm mx-auto leading-relaxed">
+            Registrá una cosecha con su peso seco y acá vas a ver el rendimiento por genética, la evolución
+            en el tiempo y cuánto te está costando cada gramo.
+          </div>
+          {activas.length > 0 && (
+            <p className="mt-3 text-[11.5px] text-[#7c8b5c]">
+              Tenés {activas.length} planta{activas.length === 1 ? '' : 's'} en curso.
+            </p>
+          )}
+        </div>
+      </Marco>
+    )
+  }
+
+  return (
+    <Marco onRefrescar={cargar}>
+      {/* El número que encabeza, y las medidas que lo explican */}
+      <section className={`${card} p-4 sm:p-5 tabular-nums`}>
+        <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.14em] text-[#7c8b5c] font-medium">Total cosechado</div>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="font-display font-bold text-[40px] sm:text-[48px] leading-none text-[#bef264]">
+                {(r.totalSeco / 1000).toLocaleString('es-AR', { maximumFractionDigits: 2 })}
+              </span>
+              <span className="text-[15px] text-[#7c8b5c] font-medium">kg secos</span>
+            </div>
+          </div>
+          <p className="text-[11.5px] text-[#8a8a9a] leading-relaxed max-w-md">
+            {r.cosechas} cosecha{r.cosechas === 1 ? '' : 's'} de {gens.length} genética{gens.length === 1 ? '' : 's'}
+            {r.mejor?.genetica && <>. La mejor fue <b className="text-[#d4d4dd]">{r.mejor.genetica}</b> con {fmtG(r.mejor.peso_seco_g ?? 0)} g</>}
+            {r.peor && r.peor.peso_seco_g != null && <>, la más floja {fmtG(r.peor.peso_seco_g)} g</>}.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-3.5 mt-4 pt-4 border-t border-[#1f1f2b]">
+          <Kpi t="Por cosecha" v={r.promedioPorCosecha != null ? `${fmtG(r.promedioPorCosecha)} g` : '—'} sub="promedio" />
+          <Kpi t="Por planta" v={gPorPlanta != null ? `${fmtG(gPorPlanta)} g` : '—'}
+            sub={cosechadas > 0 ? `${cosechadas} planta${cosechadas === 1 ? '' : 's'} cosechada${cosechadas === 1 ? '' : 's'}` : 'sin plantas cosechadas'} />
+          <Kpi t="Gramos por vatio" v={gW != null ? gW.toFixed(2) : '—'}
+            sub={gW != null ? `${fmtG(vatiosLuz)} W de luz` : 'cargá la potencia en Inventario'}
+            color={gW == null ? undefined : gW >= 1 ? '#bef264' : gW >= 0.6 ? '#facc15' : '#ff8a7a'} />
+          <Kpi t="Costo por gramo" v={costoPorGramo != null ? fmtPesos(costoPorGramo) : '—'}
+            sub={costoPorGramo != null ? 'según Econometría' : 'cargá costos'} />
+          <Kpi t="Merma de secado" v={r.merma != null ? `${r.merma.toFixed(0)}%` : '—'}
+            sub={r.merma != null ? (r.merma >= 70 && r.merma <= 82 ? 'en rango normal' : 'fuera de 70-82%') : 'falta peso húmedo'}
+            color={r.merma == null ? undefined : r.merma >= 70 && r.merma <= 82 ? '#bef264' : '#facc15'} />
+          <Kpi t="Valoración" v={r.valoracion != null ? `${r.valoracion.toFixed(1)}/10` : '—'} sub="promedio de tus notas" />
+          <Kpi t="Ciclo" v={r.diasCicloPromedio != null ? `${Math.round(r.diasCicloPromedio)} d` : '—'}
+            sub="de germinación a corte" />
+          <Kpi t="En curso" v={String(activas.length)}
+            sub={`${activas.filter(p => p.fase === 'Floracion').length} en floración`} />
+        </div>
+      </section>
+
+      <ProduccionPorMes meses={meses} />
+
+      <RankingGeneticas gens={gens} verTabla={verTabla} onVerTabla={setVerTabla} />
+
+      <RindeVsCalidad gens={gens} />
+
+      <UltimasCosechas cosechas={cosechas} />
+
+      <EstadoDelCultivo plantas={activas} />
+    </Marco>
+  )
+}
+
+// ---------------------------------------------------------------------------
+
+function Marco({ children, onRefrescar, cargando }: {
+  children: React.ReactNode; onRefrescar: () => void; cargando?: boolean
+}) {
   return (
     <div className="flex-1 overflow-y-auto bg-[#0a0a0f] text-[#d4d4dd] font-sans">
       <div className="sticky top-0 z-40 bg-[#0a0a0f]/95 backdrop-blur-[2px] border-b border-[#1f1f2b]">
         <div className="flex items-center gap-2 sm:gap-4 px-3 sm:px-6 py-3">
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Estadísticas</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">Rendimiento por genética</div>
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">Rendimiento, eficiencia y qué conviene repetir</div>
           </div>
           <div className="flex-1" />
-          <button onClick={cargar} className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] transition-colors text-[#a6a6b5]" title="Refrescar">
+          <button onClick={onRefrescar}
+            className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] transition-colors text-[#a6a6b5]"
+            title="Refrescar">
             <RefreshCw className={`w-3.5 h-3.5 ${cargando ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>
-
-      <div className="px-3 sm:px-6 py-4 sm:py-5 pb-20 space-y-4 max-w-3xl mx-auto">
-        {/* Totales */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4">
-            <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium">Total cosechado</p>
-            <p className="font-display font-bold text-[26px] text-[#ececf1] mt-1.5 leading-none tabular-nums">
-              {(totalSeco / 1000).toLocaleString('es-AR', { maximumFractionDigits: 2 })} <span className="text-[15px] text-[#757584]">kg secos</span>
-            </p>
-          </div>
-          <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4">
-            <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium">Cosechas</p>
-            <p className="font-display font-bold text-[26px] text-[#ececf1] mt-1.5 leading-none tabular-nums">{totalCosechas}</p>
-          </div>
-        </div>
-
-        {/* Ranking */}
-        {cargando ? (
-          <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-16 bg-[#101016] border border-[#1f1f2b] rounded-xl animate-pulse" />)}</div>
-        ) : stats.length === 0 ? (
-          <div className="py-16 text-center">
-            <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3">
-              <BarChart3 className="w-5 h-5 text-[#5c5c6b]" />
-            </div>
-            <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">Sin cosechas registradas</div>
-            <div className="mt-1 text-[11.5px] text-[#5c5c6b]">Cuando registres cosechas con peso, vas a ver el ranking por genética.</div>
-          </div>
-        ) : (
-          <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden">
-            <div className="px-4 sm:px-5 py-3 border-b border-[#1f1f2b] flex items-center gap-2">
-              <Scale className="w-3.5 h-3.5 text-[#bef264]" />
-              <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Gramos secos por genética</h3>
-            </div>
-            <ul className="divide-y divide-[#1f1f2b]">
-              {stats.map((s, i) => {
-                const v = prom(s.valoraciones)
-                return (
-                  <li key={s.genetica} className="px-4 sm:px-5 py-3">
-                    <div className="flex items-center gap-2 mb-1.5">
-                      {i === 0 && <Trophy className="w-3.5 h-3.5 text-[#f59e0b] flex-shrink-0" />}
-                      <span className="text-[12.5px] font-medium text-[#ececf1] truncate">{s.genetica}</span>
-                      <span className="ml-auto font-display font-bold text-[14px] text-[#d9f99d] tabular-nums">
-                        {s.peso_seco_g.toLocaleString('es-AR')} g
-                      </span>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-[#1c1c27] overflow-hidden">
-                      <div className="h-full rounded-full bg-gradient-to-r from-[#4d7c0f] to-[#a3e635]"
-                        style={{ width: `${(s.peso_seco_g / maxSeco) * 100}%` }} />
-                    </div>
-                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-[10.5px] text-[#757584] tabular-nums">
-                      <span>{s.cosechas} cosecha{s.cosechas !== 1 ? 's' : ''}</span>
-                      {s.peso_humedo_g > 0 && <span>{Math.round((s.peso_seco_g / s.peso_humedo_g) * 100)}% rendimiento seco</span>}
-                      {v != null && <span className="text-[#c4b5fd]">★ {v.toFixed(1)}/10</span>}
-                    </div>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-        )}
+      <div className="px-3 sm:px-6 py-4 pb-[calc(6rem+env(safe-area-inset-bottom))] space-y-4 max-w-5xl mx-auto">
+        {children}
       </div>
     </div>
+  )
+}
+
+function Kpi({ t, v, sub, color }: { t: string; v: string; sub?: string; color?: string }) {
+  return (
+    <div className="min-w-0">
+      <div className="text-[9.5px] uppercase tracking-[0.12em] text-[#5c5c6b]">{t}</div>
+      <div className="text-[19px] font-display font-bold leading-none mt-1" style={{ color: color ?? '#ececf1' }}>{v}</div>
+      {sub && <div className="text-[10px] text-[#5c5c6b] mt-1 truncate">{sub}</div>}
+    </div>
+  )
+}
+
+function Encabezado({ Ic, titulo, nota, extra }: {
+  Ic: typeof Scale; titulo: string; nota?: string; extra?: React.ReactNode
+}) {
+  return (
+    <div className="flex items-center gap-2 flex-wrap px-4 sm:px-5 py-3 border-b border-[#1f1f2b]">
+      <Ic className="w-3.5 h-3.5 flex-shrink-0" style={{ color: ACENTO }} strokeWidth={1.8} />
+      <h2 className="font-display font-semibold text-[13px] text-[#ececf1]">{titulo}</h2>
+      {nota && <span className="text-[10.5px] text-[#5c5c6b]">{nota}</span>}
+      {extra && <div className="ml-auto">{extra}</div>}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Producción en el tiempo. Una sola medida, un solo color: el eje ya dice todo.
+// ---------------------------------------------------------------------------
+
+function ProduccionPorMes({ meses }: { meses: { mes: string; seco: number; cosechas: number }[] }) {
+  if (meses.length < 2) return null
+  const max = Math.max(...meses.map(m => m.seco), 1)
+  const total = meses.reduce((s, m) => s + m.seco, 0)
+  const activos = meses.filter(m => m.seco > 0)
+  const mejor = meses.reduce((a, b) => b.seco > a.seco ? b : a)
+
+  return (
+    <section className={card}>
+      <Encabezado Ic={LineChart} titulo="Producción por mes"
+        nota={`${fmtG(total)} g en ${meses.length} mes${meses.length === 1 ? '' : 'es'}`} />
+      <div className="p-4 sm:p-5">
+        {/* Columnas: alto proporcional, ancho fijo, 2px de aire entre barras.
+            El label va sólo en la más alta para no tapar el eje de números. */}
+        <div className="flex items-end gap-[2px] h-[130px]" role="img"
+          aria-label={`Producción mensual: ${activos.map(m => `${nombreMes(m.mes)} ${fmtG(m.seco)} gramos`).join(', ')}`}>
+          {meses.map(m => (
+            <div key={m.mes} className="flex-1 min-w-0 h-full flex flex-col justify-end items-center group relative">
+              {m.seco > 0 && (
+                <span className="absolute -top-0.5 text-[9.5px] text-[#8a8a9a] tabular-nums opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 bg-[#0a0a0f] px-1 rounded">
+                  {fmtG(m.seco)} g · {m.cosechas}
+                </span>
+              )}
+              <div className="w-full rounded-t-[4px] transition-all group-hover:brightness-125"
+                style={{
+                  height: `${Math.max(m.seco > 0 ? 3 : 1, (m.seco / max) * 100)}%`,
+                  background: m.seco > 0 ? (m.mes === mejor.mes ? '#bef264' : ACENTO) : TENUE,
+                }} />
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-[2px] mt-1.5">
+          {meses.map((m, i) => (
+            <div key={m.mes} className="flex-1 min-w-0 text-center text-[8.5px] text-[#5c5c6b] truncate">
+              {/* Con muchos meses se etiqueta uno de cada dos: si no, se pisan. */}
+              {meses.length <= 8 || i % 2 === 0 ? nombreMes(m.mes) : ''}
+            </div>
+          ))}
+        </div>
+        <p className="text-[10.5px] text-[#5c5c6b] mt-2.5 leading-relaxed">
+          El mejor mes fue <b className="text-[#a6a6b5]">{nombreMes(mejor.mes)}</b> con {fmtG(mejor.seco)} g.
+          Los meses sin cosecha se muestran igual, en cero: saltearlos haría parecer que el cultivo nunca paró.
+        </p>
+      </div>
+    </section>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Ranking por genética, con la tabla completa a un clic.
+// ---------------------------------------------------------------------------
+
+function RankingGeneticas({ gens, verTabla, onVerTabla }: {
+  gens: MetricasGenetica[]; verTabla: boolean; onVerTabla: (v: boolean) => void
+}) {
+  const max = Math.max(...gens.map(g => g.seco), 1)
+  // El color refuerza el orden del ranking, que ya es la información del gráfico.
+  const tono = (i: number) => RAMPA[Math.min(RAMPA.length - 1, RAMPA.length - 1 - Math.floor((i / Math.max(1, gens.length - 1)) * (RAMPA.length - 1)))]
+
+  return (
+    <section className={card}>
+      <Encabezado Ic={Scale} titulo="Rendimiento por genética" nota={`${gens.length} variedad${gens.length === 1 ? '' : 'es'}`}
+        extra={
+          <button onClick={() => onVerTabla(!verTabla)} className={btnSutil}>
+            <Table2 className="w-3.5 h-3.5" /> {verTabla ? 'Ver gráfico' : 'Ver tabla'}
+          </button>
+        } />
+
+      {verTabla ? (
+        <div className="overflow-x-auto">
+          <table className="w-full text-[11.5px] tabular-nums">
+            <thead>
+              <tr className="text-[9.5px] uppercase tracking-[0.1em] text-[#5c5c6b] border-b border-[#1f1f2b]">
+                <th className="text-left font-medium px-4 py-2">Genética</th>
+                <th className="text-right font-medium px-2 py-2">Total</th>
+                <th className="text-right font-medium px-2 py-2">Cosechas</th>
+                <th className="text-right font-medium px-2 py-2">Por cosecha</th>
+                <th className="text-right font-medium px-2 py-2">Merma</th>
+                <th className="text-right font-medium px-2 py-2">Ciclo</th>
+                <th className="text-right font-medium px-4 py-2">Nota</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#1f1f2b]/60">
+              {gens.map(g => (
+                <tr key={g.genetica} className="hover:bg-[#15151d]">
+                  <td className="px-4 py-2 text-[#ececf1] max-w-[160px] truncate">{g.genetica}</td>
+                  <td className="px-2 py-2 text-right text-[#d9f99d] font-medium">{fmtG(g.seco)} g</td>
+                  <td className="px-2 py-2 text-right text-[#a6a6b5]">{g.cosechas}</td>
+                  <td className="px-2 py-2 text-right text-[#a6a6b5]">{fmtG(g.porCosecha)} g</td>
+                  <td className="px-2 py-2 text-right text-[#a6a6b5]">{g.merma != null ? `${g.merma.toFixed(0)}%` : '—'}</td>
+                  <td className="px-2 py-2 text-right text-[#a6a6b5]">{g.diasCiclo != null ? `${Math.round(g.diasCiclo)} d` : '—'}</td>
+                  <td className="px-4 py-2 text-right text-[#a6a6b5]">{g.valoracion != null ? g.valoracion.toFixed(1) : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <ul className="divide-y divide-[#1f1f2b]">
+          {gens.map((g, i) => (
+            <li key={g.genetica} className="px-4 sm:px-5 py-3 group">
+              <div className="flex items-center gap-2 mb-1.5">
+                {i === 0 && <Trophy className="w-3.5 h-3.5 text-[#f59e0b] flex-shrink-0" aria-label="La que más rindió" />}
+                <span className="text-[12.5px] font-medium text-[#ececf1] truncate">{g.genetica}</span>
+                <span className="ml-auto font-display font-bold text-[14px] text-[#d9f99d] tabular-nums flex-shrink-0">
+                  {fmtG(g.seco)} g
+                </span>
+              </div>
+              <div className="h-1.5 rounded-full bg-[#15151d] overflow-hidden">
+                <div className="h-full rounded-full transition-all group-hover:brightness-125"
+                  style={{ width: `${(g.seco / max) * 100}%`, background: tono(i) }} />
+              </div>
+              <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-[10.5px] text-[#757584] tabular-nums">
+                <span>{g.cosechas} cosecha{g.cosechas === 1 ? '' : 's'}</span>
+                <span>{fmtG(g.porCosecha)} g c/u</span>
+                {g.diasCiclo != null && <span>{Math.round(g.diasCiclo)} d de ciclo</span>}
+                {g.merma != null && <span>{g.merma.toFixed(0)}% de merma</span>}
+                {g.valoracion != null && <span className="text-[#c4b5fd]">★ {g.valoracion.toFixed(1)}</span>}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Rinde contra calidad: la que decide qué se vuelve a plantar.
+// ---------------------------------------------------------------------------
+
+function RindeVsCalidad({ gens }: { gens: MetricasGenetica[] }) {
+  const conAmbos = gens.filter(g => g.valoracion != null && g.porCosecha > 0)
+  if (conAmbos.length < 2) return null
+
+  // Los dos ejes se ajustan a lo que hay. Con rendimientos de 162 a 230 g, un
+  // eje que arranca en 0 empuja todos los puntos contra el borde derecho y la
+  // diferencia entre genéticas —que es lo que el gráfico tiene que mostrar—
+  // deja de verse.
+  const rindes = conAmbos.map(g => g.porCosecha)
+  const gMin = Math.min(...rindes), gMax = Math.max(...rindes)
+  const spanG = Math.max(1, (gMax - gMin) * 1.25)
+  const baseG = Math.max(0, gMin - (gMax - gMin) * 0.12)
+  const medioG = baseG + spanG / 2
+  // El eje de notas se ajusta a lo que hay, con al menos 2 puntos de rango: si
+  // todas las genéticas puntúan entre 7 y 9, un eje 0-10 las apila arriba y el
+  // gráfico no muestra la diferencia que justamente se quiere ver.
+  const notas = conAmbos.map(g => g.valoracion ?? 0)
+  const notaMin = Math.max(0, Math.floor(Math.min(...notas) - 0.5))
+  const notaMax = Math.min(10, Math.ceil(Math.max(...notas) + 0.5))
+  const rango = Math.max(2, notaMax - notaMin)
+  const notaMedia = notaMin + rango / 2
+  const W = 100, H = 100  // se dibuja en porcentaje y escala con el contenedor
+
+  return (
+    <section className={card}>
+      <Encabezado Ic={Target} titulo="Rinde contra calidad" nota="arriba a la derecha, las que conviene repetir" />
+      <div className="p-4 sm:p-5">
+        <div className="relative w-full aspect-[16/10] sm:aspect-[2/1] mb-5">
+          <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="absolute inset-0 w-full h-full"
+            role="img" aria-label={`Rendimiento contra valoración de ${conAmbos.length} genéticas`}>
+            {/* Cuadrantes: el cruce marca la media de rinde y el 7 de nota */}
+            <line x1="50" y1="0" x2="50" y2={H} stroke={TENUE} strokeWidth="0.3" strokeDasharray="2 2" />
+            <line x1="0" y1="50" x2={W} y2="50" stroke={TENUE} strokeWidth="0.3" strokeDasharray="2 2" />
+          </svg>
+          {/* Los puntos van en HTML: así el label es texto real y no se deforma
+              con el preserveAspectRatio del SVG. */}
+          {conAmbos.map(g => {
+            const x = ((g.porCosecha - baseG) / spanG) * 100
+            const y = ((notaMax - (g.valoracion ?? 0)) / rango) * 100
+            const bueno = g.porCosecha >= medioG && (g.valoracion ?? 0) >= notaMedia
+            return (
+              <div key={g.genetica} className="absolute group"
+                style={{ left: `${Math.min(94, Math.max(2, x))}%`, top: `${Math.min(92, Math.max(4, y))}%`, transform: 'translate(-50%,-50%)' }}>
+                <div className="w-2.5 h-2.5 rounded-full ring-2 ring-[#101016] transition-transform group-hover:scale-150"
+                  style={{ background: bueno ? '#bef264' : '#65a30d' }} />
+                <span className="absolute left-1/2 -translate-x-1/2 top-full mt-1 text-[9px] text-[#8a8a9a] whitespace-nowrap
+                                 opacity-0 group-hover:opacity-100 transition-opacity bg-[#0a0a0f] px-1 rounded z-10 tabular-nums">
+                  {g.genetica} · {fmtG(g.porCosecha)} g · ★{g.valoracion?.toFixed(1)}
+                </span>
+              </div>
+            )
+          })}
+          <span className="absolute left-0 top-1 text-[9px] text-[#5c5c6b] tabular-nums">nota {notaMax}</span>
+          <span className="absolute left-0 bottom-1 text-[9px] text-[#5c5c6b] tabular-nums">nota {notaMin}</span>
+          <span className="absolute left-0 -bottom-4 text-[9px] text-[#5c5c6b] tabular-nums">{fmtG(baseG)} g</span>
+          <span className="absolute right-0 -bottom-4 text-[9px] text-[#5c5c6b] tabular-nums">{fmtG(baseG + spanG)} g</span>
+        </div>
+        <p className="text-[10.5px] text-[#5c5c6b] mt-3 leading-relaxed">
+          Cada punto es una genética: a la derecha las que más rinden por cosecha, arriba las que mejor puntuaste.
+          Las de <b style={{ color: '#bef264' }}>verde claro</b> están en el cuadrante bueno de las dos cosas.
+          Los dos ejes se ajustan al rango real de tus datos ({fmtG(baseG)}–{fmtG(baseG + spanG)} g,
+          nota {notaMin}–{notaMax}): con escalas fijas desde cero quedarían todas amontonadas en una esquina.
+          Pasá el dedo o el mouse por encima para ver cuál es cada una.
+        </p>
+      </div>
+    </section>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// El detalle corte por corte: los promedios esconden la corrida que salió mal.
+// ---------------------------------------------------------------------------
+
+function UltimasCosechas({ cosechas }: { cosechas: CosechaDetallada[] }) {
+  const [todas, setTodas] = useState(false)
+  const conPeso = cosechas.filter(c => (c.peso_seco_g ?? 0) > 0)
+  if (!conPeso.length) return null
+  const lista = todas ? conPeso : conPeso.slice(0, 6)
+  const max = Math.max(...conPeso.map(c => c.peso_seco_g ?? 0))
+
+  return (
+    <section className={card}>
+      <Encabezado Ic={CalendarRange} titulo="Cosecha por cosecha" nota={`${conPeso.length} registro${conPeso.length === 1 ? '' : 's'}`}
+        extra={conPeso.length > 6 && (
+          <button onClick={() => setTodas(!todas)} className={btnSutil}>
+            {todas ? 'Ver últimas 6' : `Ver las ${conPeso.length}`}
+          </button>
+        )} />
+      <ul className="divide-y divide-[#1f1f2b]">
+        {lista.map(c => {
+          const m = mermaSecado(c.peso_humedo_g, c.peso_seco_g)
+          return (
+            <li key={c.id} className="px-4 sm:px-5 py-2.5 flex items-center gap-3 hover:bg-[#15151d] transition-colors">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[12.5px] text-[#ececf1] truncate">{c.genetica ?? 'Sin genética'}</span>
+                  {c.valoracion != null && (
+                    <span className="text-[10px] text-[#c4b5fd] flex-shrink-0 tabular-nums">★ {c.valoracion.toFixed(1)}</span>
+                  )}
+                </div>
+                <div className="text-[10px] text-[#5c5c6b] tabular-nums flex flex-wrap gap-x-2.5">
+                  <span>{c.fecha}</span>
+                  {m != null && <span>{m.toFixed(0)}% merma</span>}
+                  {c.dias_ciclo != null && <span>{c.dias_ciclo} d</span>}
+                </div>
+              </div>
+              {/* Barra chica: ubica cada corte contra el mejor sin leer el número */}
+              <div className="hidden sm:block w-24 h-1 rounded-full bg-[#15151d] overflow-hidden flex-shrink-0">
+                <div className="h-full rounded-full" style={{ width: `${((c.peso_seco_g ?? 0) / max) * 100}%`, background: ACENTO }} />
+              </div>
+              <span className="text-[13px] font-semibold text-[#d9f99d] tabular-nums flex-shrink-0 w-16 text-right">
+                {fmtG(c.peso_seco_g ?? 0)} g
+              </span>
+            </li>
+          )
+        })}
+      </ul>
+    </section>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Qué hay hoy en el cultivo.
+// ---------------------------------------------------------------------------
+
+const ORDEN_FASE = ['Germinacion', 'Plantula', 'Vegetativo', 'Floracion'] as const
+const ETIQUETA: Record<string, string> = {
+  Germinacion: 'Germinación', Plantula: 'Plántula', Vegetativo: 'Vegetativo', Floracion: 'Floración',
+}
+
+function EstadoDelCultivo({ plantas }: { plantas: ResumenPlanta[] }) {
+  if (!plantas.length) return null
+  const conteo = ORDEN_FASE.map((f, i) => ({
+    fase: f,
+    n: plantas.filter(p => p.fase === f).length,
+    // Fases = escala ordenada (el ciclo avanza), así que rampa, no colores sueltos.
+    color: RAMPA[i + 1] ?? ACENTO,
+  })).filter(c => c.n > 0)
+  const total = conteo.reduce((s, c) => s + c.n, 0)
+  const sinRiego = plantas.filter(p => !p.ultimo_riego).length
+
+  return (
+    <section className={card}>
+      <Encabezado Ic={Sprout} titulo="El cultivo hoy" nota={`${plantas.length} planta${plantas.length === 1 ? '' : 's'} activa${plantas.length === 1 ? '' : 's'}`} />
+      <div className="p-4 sm:p-5">
+        <div className="flex h-2.5 rounded-full overflow-hidden bg-[#15151d] gap-[2px]">
+          {conteo.map(c => (
+            <div key={c.fase} style={{ width: `${(c.n / total) * 100}%`, background: c.color }}
+              title={`${ETIQUETA[c.fase]}: ${c.n}`} />
+          ))}
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
+          {conteo.map(c => (
+            <div key={c.fase} className="flex items-center gap-2 min-w-0">
+              <span className="w-2 h-2 rounded-sm flex-shrink-0" style={{ background: c.color }} />
+              <span className="text-[10.5px] text-[#8a8a9a] truncate">{ETIQUETA[c.fase]}</span>
+              <span className="ml-auto text-[12.5px] font-semibold text-[#ececf1] tabular-nums">{c.n}</span>
+            </div>
+          ))}
+        </div>
+        {sinRiego > 0 && (
+          <p className="flex items-start gap-1.5 text-[11px] text-[#f59e0b] mt-3">
+            <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-px" strokeWidth={1.8} />
+            <span>{sinRiego} planta{sinRiego === 1 ? '' : 's'} sin ningún riego registrado.</span>
+          </p>
+        )}
+      </div>
+    </section>
   )
 }
