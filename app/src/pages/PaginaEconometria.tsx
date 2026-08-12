@@ -6,10 +6,11 @@
 //  - Insumos: calculadora del valor del inventario (cantidad x precio), editable.
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
 import {
   Calculator, Plus, X, Loader2, Trash2, Pencil, Boxes, Landmark,
-  Sprout, TrendingUp, Eye, Wrench,
+  Sprout, TrendingUp, Wrench, Hammer,
 } from 'lucide-react'
 import Instalaciones from '../components/econometria/Instalaciones'
 import { CostoPorGramo, ComposicionCosto, DesgloseCostos, Indicadores } from '../components/econometria/ResumenEconomico'
@@ -23,7 +24,9 @@ import { stockService, type Insumo } from '../lib/stock'
 import { faltantesService } from '../lib/nutrientes'
 import { instalacionesService } from '../lib/instalaciones'
 import { cultivoService, FASES_COSECHABLES } from '../lib/cultivo'
-import { ModalInsumo, ModalVerInsumo } from './PaginaStockInsumos'
+// El inventario vive acá: su valor ES parte del costo, y antes esta pantalla
+// lo listaba en modo lectura mandándote a otra para editarlo.
+import PaginaStockInsumos from './PaginaStockInsumos'
 import { btnPrimario, btnSutil } from '../lib/ui'
 
 // text-[16px] en mobile: evita el zoom automático de iOS Safari al enfocar.
@@ -33,7 +36,14 @@ const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] f
 const fmt = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
 
 export default function PaginaEconometria() {
-  const [tab, setTab] = useState<'resumen' | 'costos' | 'insumos' | 'instalaciones'>('resumen')
+  // La pestaña sale de la URL: /stock es la ruta vieja del inventario y hay
+  // links y bookmarks apuntando ahí.
+  const { pathname } = useLocation()
+  const [tab, setTab] = useState<'resumen' | 'costos' | 'inventario' | 'mantenimiento' | 'instalaciones'>(
+    pathname.startsWith('/stock') ? 'inventario' : 'resumen')
+  // Alarmas de mantenimiento vencido: el badge tiene que verse desde cualquier
+  // pestaña, no sólo entrando a mirarlo.
+  const [alarmasMant, setAlarmasMant] = useState(0)
   const [costos, setCostos] = useState<Costo[]>([])
   const [insumos, setInsumos] = useState<Insumo[]>([])
   // Total pendiente de la lista de compras, para el escenario "si compro todo".
@@ -54,8 +64,6 @@ export default function PaginaEconometria() {
   const [modal, setModal] = useState(false)
   const [edit, setEdit] = useState<Costo | null>(null)
   const [tipoNuevo, setTipoNuevo] = useState<TipoCosto>('fijo')
-  const [verInsumo, setVerInsumo] = useState<Insumo | null>(null)
-  const [editInsumo, setEditInsumo] = useState<Insumo | null>(null)
 
   const cargar = useCallback(async () => {
     try {
@@ -157,10 +165,15 @@ export default function PaginaEconometria() {
         </div>
         {/* En celular las pestañas scrollean en vez de apretarse */}
         <div className="flex gap-1 px-3 sm:px-6 pt-2 overflow-x-auto ct-page-scroll [-webkit-overflow-scrolling:touch]">
-          {([['resumen', 'Resumen', TrendingUp], ['costos', 'Costos', Landmark], ['insumos', 'Insumos', Boxes], ['instalaciones', 'Instalaciones', Wrench]] as const).map(([t, lbl, Ico]) => (
+          {([['resumen', 'Resumen', TrendingUp], ['costos', 'Costos', Landmark], ['inventario', 'Inventario', Boxes], ['mantenimiento', 'Mantenimiento', Wrench], ['instalaciones', 'Instalaciones', Hammer]] as const).map(([t, lbl, Ico]) => (
             <button key={t} onClick={() => setTab(t)}
               className={`px-3 py-2.5 sm:py-2 min-h-[44px] sm:min-h-0 flex-shrink-0 text-[12px] font-medium border-b-2 -mb-px transition-colors flex items-center gap-1.5 ${tab === t ? 'border-[#a3e635] text-[#d9f99d]' : 'border-transparent text-[#5c5c6b] hover:text-[#a6a6b5]'}`}>
               <Ico className="w-3.5 h-3.5" /> {lbl}
+              {t === 'mantenimiento' && alarmasMant > 0 && (
+                <span className="ml-0.5 px-1.5 rounded-full bg-[#f59e0b]/20 border border-[#5a4a20] text-[10px] font-semibold text-[#fbbf24] tabular-nums">
+                  {alarmasMant}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -229,64 +242,23 @@ export default function PaginaEconometria() {
         </div>
       ) : (
         <div className="px-3 sm:px-6 py-4 pb-[calc(6rem+env(safe-area-inset-bottom))]">
-          <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[#1f1f2b]">
-              <div className="flex items-center gap-2">
-                <Boxes className="w-4 h-4 text-[#38bdf8]" />
-                <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Valor del inventario</h3>
+          {/* El inventario completo, no una copia de sólo lectura: acá se carga,
+              se edita y se borra, y el total alimenta el costo del ciclo. */}
+          {tab === 'inventario' && <div className="rounded-xl bg-gradient-to-br from-[#12160f] to-[#101016] border border-[#2c3a1a] px-4 py-3 mb-4 flex items-baseline justify-between gap-3 flex-wrap tabular-nums">
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.14em] text-[#7c8b5c] font-medium">Valor del inventario</div>
+              <div className="text-[11px] text-[#5c5c6b] mt-0.5">
+                {insumosConPrecio.length} de {insumos.length} insumos tienen precio cargado
               </div>
-              <div className="text-[10.5px] text-[#5c5c6b]">costo total por insumo</div>
             </div>
-            {insumosConPrecio.length === 0 ? (
-              <div className="py-12 text-center">
-                <div className="text-[12.5px] text-[#a6a6b5]">Ningún insumo tiene precio cargado.</div>
-                <div className="mt-1 text-[11px] text-[#5c5c6b]">Cargá el precio de tus insumos en Stock &amp; Insumos para que sumen acá.</div>
-              </div>
-            ) : (
-              <>
-                <div className="hidden sm:grid grid-cols-[1fr_5rem_7rem_4.5rem] gap-3 px-4 py-2 text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] border-b border-[#1f1f2b]/60">
-                  <div>Insumo</div><div className="text-right">Cantidad</div><div className="text-right">Costo</div><div />
-                </div>
-                <ul className="divide-y divide-[#1f1f2b]/60">
-                  {insumosConPrecio.map(i => (
-                    <li key={i.id} className="grid grid-cols-[1fr_7rem_4.5rem] sm:grid-cols-[1fr_5rem_7rem_4.5rem] gap-3 px-4 py-2.5 items-center group">
-                      <div className="min-w-0">
-                        <div className="text-[12.5px] text-[#ececf1] truncate">{i.nombre}</div>
-                        <div className="text-[10px] text-[#5c5c6b] truncate">{i.categoria}{i.marca ? ` · ${i.marca}` : ''}</div>
-                      </div>
-                      <div className="hidden sm:block text-right text-[12px] text-[#a6a6b5] tabular-nums">{i.cantidad} {i.unidad || 'u'}</div>
-                      <div className="text-right text-[12.5px] font-medium text-[#d9f99d] tabular-nums">{fmt(Number(i.precio))}</div>
-                      <div className="flex items-center justify-end gap-0.5">
-                        <button onClick={() => setVerInsumo(i)} title="Ver ficha"
-                          className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#38bdf8] hover:bg-[#15151d] rounded-lg transition-colors">
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
-                        <button onClick={() => setEditInsumo(i)} title="Editar ficha"
-                          className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors">
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-                {/* Mismo grid que las filas: así el total cae justo debajo de
-                    la columna Costo en vez de irse al borde de la tarjeta. */}
-                <div className="grid grid-cols-[1fr_7rem_4.5rem] sm:grid-cols-[1fr_5rem_7rem_4.5rem] gap-3 items-center px-4 py-3 border-t border-[#1f1f2b] bg-[#0d0d12]">
-                  <span className="text-[12px] text-[#a6a6b5]">Total inventario ({insumosConPrecio.length} insumos)</span>
-                  <span className="hidden sm:block" />
-                  <span className="text-right font-display font-bold text-[15px] text-[#bef264] tabular-nums">{fmt(valorInsumos)}</span>
-                  <span />
-                </div>
-              </>
-            )}
-          </div>
-          <p className="mt-3 text-[10.5px] text-[#5c5c6b]">Los precios se editan en Stock &amp; Insumos (ficha de cada insumo). Acá solo se suman.</p>
+            <div className="font-display font-bold text-[22px] text-[#bef264] leading-none">{fmt(valorInsumos)}</div>
+          </div>}
+          <PaginaStockInsumos embebida tabExterna={tab === 'mantenimiento' ? 'mantenimiento' : 'inventario'}
+            onAlarmas={setAlarmasMant} onCambio={cargar} />
         </div>
       )}
 
       {modal && <ModalCosto costo={edit} tipoInicial={tipoNuevo} onCerrar={() => setModal(false)} onGuardado={() => { setModal(false); cargar() }} />}
-      {verInsumo && <ModalVerInsumo insumo={verInsumo} onCerrar={() => setVerInsumo(null)} />}
-      {editInsumo && <ModalInsumo insumo={editInsumo} onCerrar={() => setEditInsumo(null)} onGuardado={() => { setEditInsumo(null); cargar() }} />}
     </div>
   )
 }

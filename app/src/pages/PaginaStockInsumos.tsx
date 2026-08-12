@@ -21,6 +21,7 @@ import { btnPrimario, btnSutil } from '../lib/ui'
 // menor y deja el formulario descuadrado. En desktop vuelve al tamaño real.
 const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
+const fmtPesos = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
 
 type Estilo = { text: string; bg: string; border: string; icono: any }
 const CAT: Record<CategoriaInsumo, Estilo> = {
@@ -39,8 +40,23 @@ const CAT: Record<CategoriaInsumo, Estilo> = {
 const hoyISO = () => new Date().toISOString().slice(0, 10)
 const fmtFecha = (f: string | null) => f ? new Date(f + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: '2-digit' }) : '—'
 
-export default function PaginaStockInsumos() {
-  const [tab, setTab] = useState<'inventario' | 'mantenimiento'>('inventario')
+/**
+ * `embebida`: se renderiza como pestaña de Econometría, que es donde vive el
+ * inventario ahora —el valor del stock ES parte del costo—. Pierde su scroller,
+ * su título y sus pestañas propias (las pone el contenedor, que además le dice
+ * cuál mostrar) pero conserva búsqueda, filtros y altas.
+ */
+export default function PaginaStockInsumos({ embebida = false, tabExterna, onAlarmas, onCambio }: {
+  embebida?: boolean
+  tabExterna?: 'inventario' | 'mantenimiento'
+  /** Avisa cuántas alarmas de mantenimiento hay, para el badge del contenedor. */
+  onAlarmas?: (n: number) => void
+  /** Avisa que cambió el inventario: el contenedor recalcula el costo. */
+  onCambio?: () => void
+} = {}) {
+  const [tabLocal, setTabLocal] = useState<'inventario' | 'mantenimiento'>('inventario')
+  const tab = tabExterna ?? tabLocal
+  const setTab = setTabLocal
   const [insumos, setInsumos] = useState<Insumo[]>([])
   const [mantes, setMantes] = useState<Mantenimiento[]>([])
   const [cargando, setCargando] = useState(true)
@@ -52,23 +68,26 @@ export default function PaginaStockInsumos() {
   const [modalMant, setModalMant] = useState(false)
   const [editMant, setEditMant] = useState<Mantenimiento | null>(null)
 
-  const cargar = useCallback(async () => {
+  const cargar = useCallback(async (avisar = false) => {
     try {
       const [ins, man] = await Promise.all([stockService.getInsumos(), stockService.getMantenimientos()])
       setInsumos(ins); setMantes(man)
+      // Sin esto, embebida en Econometría, agregar un insumo no movía el costo
+      // del ciclo hasta recargar la página entera.
+      if (avisar) onCambio?.()
     } catch (err) { toast.error(`Error cargando stock: ${(err as Error).message}`) }
     finally { setCargando(false) }
-  }, [])
+  }, [onCambio])
   useEffect(() => { cargar() }, [cargar])
 
   const borrarInsumo = async (i: Insumo) => {
     if (!window.confirm(`¿Borrar "${i.nombre}" del inventario?`)) return
-    try { await stockService.eliminarInsumo(i.id); toast.success('Insumo borrado'); cargar() }
+    try { await stockService.eliminarInsumo(i.id); toast.success('Insumo borrado'); cargar(true) }
     catch (err) { toast.error(`No se pudo borrar: ${(err as Error).message}`) }
   }
   const borrarMant = async (m: Mantenimiento) => {
     if (!window.confirm('¿Borrar este registro de mantenimiento?')) return
-    try { await stockService.eliminarMantenimiento(m.id); toast.success('Mantenimiento borrado'); cargar() }
+    try { await stockService.eliminarMantenimiento(m.id); toast.success('Mantenimiento borrado'); cargar(true) }
     catch (err) { toast.error(`No se pudo borrar: ${(err as Error).message}`) }
   }
   const hechoHoy = async (m: Mantenimiento) => {
@@ -97,17 +116,29 @@ export default function PaginaStockInsumos() {
   const mantPendientes = mantes.filter(m => { const d = diasParaProximo(m); return d !== null && d <= 7 }).length
   // Alarmas: actividades de mañana (1 día antes), hoy (0) o vencidas (<0)
   const alarmas = mantesOrdenados.filter(m => { const d = diasParaProximo(m); return d !== null && d <= 1 })
+  // El contenedor pinta el badge de alarmas en la pestaña: sin esto, embebida,
+  // un mantenimiento vencido queda invisible hasta que entrás a mirarlo.
+  useEffect(() => { onAlarmas?.(alarmas.length) }, [alarmas.length, onAlarmas])
   const conteoCat = (c: CategoriaInsumo) => insumos.filter(i => i.categoria === c).length
 
+  const Marco = embebida
+    ? ({ children }: { children: React.ReactNode }) => <div>{children}</div>
+    : ({ children }: { children: React.ReactNode }) =>
+        <div className="flex-1 overflow-y-auto bg-[#0a0a0f] text-[#d4d4dd] font-sans">{children}</div>
+
   return (
-    <div className="flex-1 overflow-y-auto bg-[#0a0a0f] text-[#d4d4dd] font-sans">
-      <div className="sticky top-0 z-40 bg-[#0a0a0f]/95 backdrop-blur-[2px] border-b border-[#1f1f2b]">
-        <div className="flex items-center flex-wrap gap-2 sm:gap-x-4 px-3 sm:px-6 pt-3">
+    <Marco>
+      <div className={embebida
+        ? 'rounded-xl bg-[#101016] border border-[#1f1f2b] px-3 sm:px-4 py-3 mb-4'
+        : 'sticky top-0 z-40 bg-[#0a0a0f]/95 backdrop-blur-[2px] border-b border-[#1f1f2b]'}>
+        <div className={`flex items-center flex-wrap gap-2 sm:gap-x-4 ${embebida ? '' : 'px-3 sm:px-6 pt-3'}`}>
           <div className="min-w-0">
-            <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1] flex items-center gap-2">
-              <Boxes className="w-4 h-4 text-[#bef264]" /> Stock &amp; Insumos
-            </h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+            {!embebida && (
+              <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1] flex items-center gap-2">
+                <Boxes className="w-4 h-4 text-[#bef264]" /> Stock &amp; Insumos
+              </h1>
+            )}
+            <div className={embebida ? 'text-[12.5px] text-[#a6a6b5]' : 'mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]'}>
               {insumos.length} insumos · {porReponer} por reponer · {mantPendientes} mantenimiento{mantPendientes === 1 ? '' : 's'} pendiente{mantPendientes === 1 ? '' : 's'}
             </div>
           </div>
@@ -127,7 +158,8 @@ export default function PaginaStockInsumos() {
             <Plus className="w-3.5 h-3.5" /> <span className="hidden sm:inline">{tab === 'inventario' ? 'Insumo' : 'Mantenimiento'}</span>
           </button>
         </div>
-        <div className="flex gap-1 px-3 sm:px-6 pt-2">
+        {/* El contenedor pone las pestañas cuando está embebida. */}
+        {!embebida && <div className="flex gap-1 px-3 sm:px-6 pt-2">
           {(['inventario', 'mantenimiento'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={`px-3 py-2 text-[12px] font-medium border-b-2 -mb-px transition-colors flex items-center gap-1.5 ${tab === t ? 'border-[#a3e635] text-[#d9f99d]' : 'border-transparent text-[#5c5c6b] hover:text-[#a6a6b5]'}`}>
@@ -135,15 +167,15 @@ export default function PaginaStockInsumos() {
               {t === 'inventario' ? 'Inventario' : 'Mantenimiento'}
             </button>
           ))}
-        </div>
+        </div>}
       </div>
 
       {cargando ? (
-        <div className="px-3 sm:px-6 py-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+        <div className={`grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 ${embebida ? "" : "px-3 sm:px-6 py-4"}`}>
           {Array.from({ length: 6 }).map((_, i) => <div key={i} className="rounded-xl bg-[#101016] border border-[#1f1f2b] h-[130px] animate-pulse" />)}
         </div>
       ) : tab === 'inventario' ? (
-        <div className="px-3 sm:px-6 py-4 pb-24">
+        <div className={embebida ? "" : "px-3 sm:px-6 py-4 pb-24"}>
           <div className="flex flex-wrap items-center gap-2 mb-4">
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5c5c6b]" />
@@ -203,7 +235,7 @@ export default function PaginaStockInsumos() {
                       </span>
                       {i.potencia_w != null && <span className="px-2 py-0.5 rounded-md text-[11px] bg-[#15151d] border border-[#2a2a3a] text-[#fbbf24]">{i.potencia_w} W</span>}
                       {i.dosis && <span className="px-2 py-0.5 rounded-md text-[11px] bg-[#15151d] border border-[#2a2a3a] text-[#a6a6b5]">Dosis: {i.dosis}</span>}
-                      {i.precio != null && <span className="px-2 py-0.5 rounded-md text-[11px] bg-[#15151d] border border-[#2a2a3a] text-[#5c5c6b]">${i.precio}</span>}
+                      {i.precio != null && <span className="px-2 py-0.5 rounded-md text-[11px] bg-[#15151d] border border-[#2a2a3a] text-[#5c5c6b] tabular-nums">{fmtPesos(Number(i.precio))}</span>}
                     </div>
 
                     {min > 0 && (
@@ -230,7 +262,7 @@ export default function PaginaStockInsumos() {
           )}
         </div>
       ) : (
-        <div className="px-3 sm:px-6 py-4 pb-24">
+        <div className={embebida ? "" : "px-3 sm:px-6 py-4 pb-24"}>
           {alarmas.length > 0 && (
             <div className="mb-4 rounded-xl border border-[#5a4a20] bg-gradient-to-br from-[#f59e0b]/12 to-[#ff8a7a]/[0.08] overflow-hidden">
               <div className="flex items-center gap-2 px-4 py-2.5 border-b border-[#5a4a20]/60 bg-[#f59e0b]/[0.08]">
@@ -314,10 +346,10 @@ export default function PaginaStockInsumos() {
         </div>
       )}
 
-      {modalInsumo && <ModalInsumo insumo={editInsumo} onCerrar={() => setModalInsumo(false)} onGuardado={() => { setModalInsumo(false); cargar() }} />}
-      {modalMant && <ModalMant mant={editMant} insumos={insumos} onCerrar={() => setModalMant(false)} onGuardado={() => { setModalMant(false); cargar() }} />}
+      {modalInsumo && <ModalInsumo insumo={editInsumo} onCerrar={() => setModalInsumo(false)} onGuardado={() => { setModalInsumo(false); cargar(true) }} />}
+      {modalMant && <ModalMant mant={editMant} insumos={insumos} onCerrar={() => setModalMant(false)} onGuardado={() => { setModalMant(false); cargar(true) }} />}
       {verInsumo && <ModalVerInsumo insumo={verInsumo} onCerrar={() => setVerInsumo(null)} />}
-    </div>
+    </Marco>
   )
 }
 
@@ -506,7 +538,7 @@ export function ModalVerInsumo({ insumo, onCerrar }: { insumo: Insumo; onCerrar:
             <CampoFicha label="Potencia" valor={i.potencia_w != null ? `${i.potencia_w} W` : null} />
             <CampoFicha label="Dosis / uso (fert.)" valor={i.dosis} />
             <CampoFicha label="Proveedor" valor={i.proveedor} />
-            <CampoFicha label="Precio" valor={i.precio != null ? `$${i.precio}` : null} />
+            <CampoFicha label="Precio" valor={i.precio != null ? fmtPesos(Number(i.precio)) : null} />
           </div>
           <CampoFicha label="Para qué se usa" valor={i.uso} />
           <CampoFicha label="Specs / detalle" valor={i.specs} />

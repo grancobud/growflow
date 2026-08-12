@@ -3,7 +3,7 @@
 
 import { NavLink, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { LayoutDashboard, Leaf, LogOut, Sprout, Table2, BarChart3, KeyRound, Boxes, CalendarDays, Calculator, Activity, FlaskConical, CircuitBoard, Scissors, Building2 } from 'lucide-react'
+import { LayoutDashboard, Leaf, LogOut, Sprout, Table2, BarChart3, KeyRound, CalendarDays, Calculator, Activity, FlaskConical, CircuitBoard, Scissors, Building2 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '../../hooks/useAuth'
@@ -40,10 +40,9 @@ export default function Sidebar({ colapsado: colapsadoProp }: { colapsado?: bool
     { nombre: 'Cosecha', ruta: '/cosecha', icono: Scissors },
     { nombre: 'Ambiente', ruta: '/ambiente', icono: Activity },
     { nombre: 'Calendario', ruta: '/calendario', icono: CalendarDays },
-    { nombre: 'Stock', ruta: '/stock', icono: Boxes },
     { nombre: 'Calculadora Fertilizantes', ruta: '/nutrientes', icono: FlaskConical },
     { nombre: 'Instalación', ruta: '/hardware-diy', icono: CircuitBoard, alias: ['/riego', '/tablero', '/insumos-faltantes', '/instalacion'] },
-    { nombre: 'Econometría', ruta: '/econometria', icono: Calculator },
+    { nombre: 'Econometría', ruta: '/econometria', icono: Calculator, alias: ['/stock'] },
     { nombre: 'O.N.G.', ruta: '/ong', icono: Building2, alias: ['/registro'] },
     { nombre: 'Estadísticas', ruta: '/stats', icono: BarChart3 },
     { nombre: 'Tablas', ruta: '/tablas', icono: Table2 },

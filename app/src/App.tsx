@@ -23,7 +23,6 @@ const PaginaTablas = lazyWithRetry(() => import('./pages/PaginaTablas'), 'Pagina
 const PaginaEstadisticas = lazyWithRetry(() => import('./pages/PaginaEstadisticas'), 'PaginaEstadisticas')
 const PaginaCosecha = lazyWithRetry(() => import('./pages/PaginaCosecha'), 'PaginaCosecha')
 const PaginaAsistencia = lazyWithRetry(() => import('./pages/PaginaAsistencia'), 'PaginaAsistencia')
-const PaginaStockInsumos = lazyWithRetry(() => import('./pages/PaginaStockInsumos'), 'PaginaStockInsumos')
 const PaginaCalendarioCultivo = lazyWithRetry(() => import('./pages/PaginaCalendarioCultivo'), 'PaginaCalendarioCultivo')
 const PaginaEconometria = lazyWithRetry(() => import('./pages/PaginaEconometria'), 'PaginaEconometria')
 const PaginaAmbiente = lazyWithRetry(() => import('./pages/PaginaAmbiente'), 'PaginaAmbiente')
@@ -94,6 +93,12 @@ function App() {
               <Suspense fallback={null}><PaginaONG /></Suspense>
             } />
           ))}
+          {/* El inventario es parte del costo: Stock vive dentro de Econometria. */}
+          {['econometria', 'stock'].map(r => (
+            <Route key={r} path={r} element={
+              <Suspense fallback={null}><PaginaEconometria /></Suspense>
+            } />
+          ))}
           <Route path="conocimiento" element={
             <Suspense fallback={null}><PaginaConocimiento /></Suspense>
           } />
@@ -112,14 +117,8 @@ function App() {
           <Route path="asistencia" element={
             <Suspense fallback={null}><PaginaAsistencia /></Suspense>
           } />
-          <Route path="stock" element={
-            <Suspense fallback={null}><PaginaStockInsumos /></Suspense>
-          } />
           <Route path="calendario" element={
             <Suspense fallback={null}><PaginaCalendarioCultivo /></Suspense>
-          } />
-          <Route path="econometria" element={
-            <Suspense fallback={null}><PaginaEconometria /></Suspense>
           } />
           <Route path="ambiente" element={
             <Suspense fallback={null}><PaginaAmbiente /></Suspense>
