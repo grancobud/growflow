@@ -34,6 +34,12 @@ const card = 'rounded-xl bg-[#101016] border border-[#1f1f2b]'
 const fmtG = (n: number) => Math.round(n).toLocaleString('es-AR')
 const fmtPesos = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
 const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+const MESES_LARGO = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+const nombreMesLargo = (k: string) => {
+  const [a, m] = k.split('-').map(Number)
+  return `${MESES_LARGO[m - 1]} ${a}`
+}
 const nombreMes = (k: string) => {
   const [a, m] = k.split('-').map(Number)
   return `${MESES[m - 1]} ${String(a).slice(2)}`
@@ -501,51 +507,144 @@ function RindeVsCalidad({ gens }: { gens: MetricasGenetica[] }) {
 // El detalle corte por corte: los promedios esconden la corrida que salió mal.
 // ---------------------------------------------------------------------------
 
+type Criterio = 'fecha' | 'peso' | 'nota'
+
+const CRITERIOS: { id: Criterio; label: string }[] = [
+  { id: 'fecha', label: 'Fecha' },
+  { id: 'peso', label: 'Peso' },
+  { id: 'nota', label: 'Nota' },
+]
+
+/**
+ * El detalle corte por corte. Los promedios esconden la corrida que salió mal.
+ *
+ * Ordenada por fecha se agrupa por mes, con el total del período en el
+ * encabezado: es el patrón de cualquier lista cronológica larga (un extracto
+ * bancario, un historial) y resuelve el problema real de una lista de 18 filas
+ * iguales, que es no tener dónde apoyar la vista. El encabezado además aporta
+ * un dato que antes no estaba: cuánto rindió cada mes.
+ *
+ * Ordenada por peso o por nota la agrupación se apaga sola: mezclar meses
+ * dentro de un grupo llamado "agosto" sería mentir sobre el contenido.
+ */
 function UltimasCosechas({ cosechas }: { cosechas: CosechaDetallada[] }) {
   const [todas, setTodas] = useState(false)
+  const [orden, setOrden] = useState<Criterio>('fecha')
   const conPeso = cosechas.filter(c => (c.peso_seco_g ?? 0) > 0)
+
+  const ordenadas = useMemo(() => {
+    const xs = [...conPeso]
+    if (orden === 'peso') return xs.sort((a, b) => (b.peso_seco_g ?? 0) - (a.peso_seco_g ?? 0))
+    if (orden === 'nota') return xs.sort((a, b) => (b.valoracion ?? -1) - (a.valoracion ?? -1))
+    return xs.sort((a, b) => b.fecha.localeCompare(a.fecha))
+  }, [conPeso, orden])
+
   if (!conPeso.length) return null
-  const lista = todas ? conPeso : conPeso.slice(0, 6)
+  const lista = todas ? ordenadas : ordenadas.slice(0, 8)
   const max = Math.max(...conPeso.map(c => c.peso_seco_g ?? 0))
+
+  // Grupos sólo cuando la lista está en orden cronológico.
+  const grupos: { clave: string; items: CosechaDetallada[] }[] = []
+  if (orden === 'fecha') {
+    for (const c of lista) {
+      const k = c.fecha.slice(0, 7)
+      const ultimo = grupos[grupos.length - 1]
+      if (ultimo?.clave === k) ultimo.items.push(c)
+      else grupos.push({ clave: k, items: [c] })
+    }
+  } else {
+    grupos.push({ clave: '', items: lista })
+  }
 
   return (
     <section className={card}>
-      <Encabezado Ic={CalendarRange} titulo="Cosecha por cosecha" nota={`${conPeso.length} registro${conPeso.length === 1 ? '' : 's'}`}
-        extra={conPeso.length > 6 && (
-          <button onClick={() => setTodas(!todas)} className={btnSutil}>
-            {todas ? 'Ver últimas 6' : `Ver las ${conPeso.length}`}
+      <Encabezado Ic={CalendarRange} titulo="Cosecha por cosecha"
+        nota={`${conPeso.length} registro${conPeso.length === 1 ? '' : 's'}`}
+        extra={
+          <div className="flex items-center gap-1 rounded-lg border border-[#2a2a3a] overflow-hidden">
+            {CRITERIOS.map(o => (
+              <button key={o.id} onClick={() => setOrden(o.id)}
+                className={`px-2.5 py-2 sm:py-1 min-h-[44px] sm:min-h-0 text-[11px] font-medium transition-colors ${
+                  orden === o.id ? 'bg-[#a3e635]/15 text-[#d9f99d]' : 'text-[#7d7d8e] hover:text-[#d4d4dd]'}`}>
+                {o.label}
+              </button>
+            ))}
+          </div>
+        } />
+
+      <div>
+        {grupos.map(g => (
+          <div key={g.clave || 'todos'}>
+            {g.clave && <CabeceraMes clave={g.clave} items={g.items} />}
+            <ul className="divide-y divide-[#1f1f2b]">
+              {g.items.map(c => (
+                <FilaCosecha key={c.id} c={c} max={max} conFechaCorta={orden === 'fecha'} />
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+
+      {conPeso.length > 8 && (
+        <div className="px-4 sm:px-5 py-2.5 border-t border-[#1f1f2b]">
+          <button onClick={() => setTodas(!todas)} className={`${btnSutil} w-full justify-center`}>
+            {todas ? 'Ver sólo las últimas 8' : `Ver las ${conPeso.length}`}
           </button>
-        )} />
-      <ul className="divide-y divide-[#1f1f2b]">
-        {lista.map(c => {
-          const m = mermaSecado(c.peso_humedo_g, c.peso_seco_g)
-          return (
-            <li key={c.id} className="px-4 sm:px-5 py-2.5 flex items-center gap-3 hover:bg-[#15151d] transition-colors">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-[12.5px] text-[#ececf1] truncate">{c.genetica ?? 'Sin genética'}</span>
-                  {c.valoracion != null && (
-                    <span className="text-[10px] text-[#c4b5fd] flex-shrink-0 tabular-nums">★ {c.valoracion.toFixed(1)}</span>
-                  )}
-                </div>
-                <div className="text-[10px] text-[#7d7d8e] tabular-nums flex flex-wrap gap-x-2.5">
-                  <span>{c.fecha}</span>
-                  {m != null && <span>{m.toFixed(0)}% merma</span>}
-                  {c.dias_ciclo != null && <span>{c.dias_ciclo} d</span>}
-                </div>
-              </div>
-              {/* Barra chica: ubica cada corte contra el mejor sin leer el número */}
-              <div className="hidden sm:block w-24 h-1 rounded-full bg-[#15151d] overflow-hidden flex-shrink-0">
-                <div className="h-full rounded-full" style={{ width: `${((c.peso_seco_g ?? 0) / max) * 100}%`, background: ACENTO }} />
-              </div>
-              <span className="text-[13px] font-semibold text-[#d9f99d] tabular-nums flex-shrink-0 w-16 text-right">
-                {fmtG(c.peso_seco_g ?? 0)} g
-              </span>
-            </li>
-          )
-        })}
-      </ul>
+        </div>
+      )}
     </section>
+  )
+}
+
+/** Corte de mes: da el ritmo visual y de paso dice cuánto rindió el período. */
+function CabeceraMes({ clave, items }: { clave: string; items: CosechaDetallada[] }) {
+  const total = items.reduce((s, c) => s + (c.peso_seco_g ?? 0), 0)
+  return (
+    <div className="sticky top-0 z-10 flex items-baseline gap-2 px-4 sm:px-5 py-1.5 bg-[#0d0d13] border-y border-[#1f1f2b]">
+      <span className="text-[9.5px] uppercase tracking-[0.14em] text-[#8a8a9a] font-medium">
+        {nombreMesLargo(clave)}
+      </span>
+      <span className="flex-1 border-b border-dashed border-[#1f1f2b]" />
+      <span className="text-[10.5px] text-[#7d7d8e] tabular-nums">
+        {items.length} corte{items.length === 1 ? '' : 's'}
+      </span>
+      <span className="text-[11px] font-semibold text-[#a6a6b5] tabular-nums">{fmtG(total)} g</span>
+    </div>
+  )
+}
+
+function FilaCosecha({ c, max, conFechaCorta }: {
+  c: CosechaDetallada; max: number; conFechaCorta: boolean
+}) {
+  const m = mermaSecado(c.peso_humedo_g, c.peso_seco_g)
+  const [a, mes, dia] = c.fecha.split('-')
+  return (
+    <li className="px-4 sm:px-5 py-2.5 flex items-center gap-3 hover:bg-[#15151d] transition-colors">
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <span className="text-[12.5px] text-[#ececf1] truncate">{c.genetica ?? 'Sin genética'}</span>
+          {c.valoracion != null && (
+            <span className="text-[10px] text-[#c4b5fd] flex-shrink-0 tabular-nums">★ {c.valoracion.toFixed(1)}</span>
+          )}
+        </div>
+        <div className="text-[10px] text-[#7d7d8e] tabular-nums flex flex-wrap gap-x-2.5">
+          {/* Dentro de un grupo que ya dice el mes, la fecha completa es ruido */}
+          <span>{conFechaCorta ? `${dia}/${mes}` : `${dia}/${mes}/${a.slice(2)}`}</span>
+          {c.dias_ciclo != null && <span>{c.dias_ciclo} d</span>}
+          {m != null && <span>{m.toFixed(0)}% merma</span>}
+        </div>
+      </div>
+      {/* Barra y cifra forman un solo bloque alineado a la derecha: suelta en el
+          medio de la fila no se anclaba a nada y se leía como decoración. */}
+      <div className="flex items-center gap-2.5 flex-shrink-0">
+        <div className="hidden sm:block w-20 h-1 rounded-full bg-[#1c1c27] overflow-hidden">
+          <div className="h-full rounded-full" style={{ width: `${((c.peso_seco_g ?? 0) / max) * 100}%`, background: ACENTO }} />
+        </div>
+        <span className="text-[13px] font-semibold text-[#d9f99d] tabular-nums w-16 text-right">
+          {fmtG(c.peso_seco_g ?? 0)} g
+        </span>
+      </div>
+    </li>
   )
 }
 
