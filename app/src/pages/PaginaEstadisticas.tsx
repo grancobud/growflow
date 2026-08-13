@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import {
   estadisticasService, resumir, porGenetica, porMes, gramosPorVatio, plantasCosechadas, mermaSecado,
+  compararConAnterior, serieReciente, type Comparacion,
   type CosechaDetallada, type MetricasGenetica,
 } from '../lib/estadisticas'
 import { cultivoService, type ResumenPlanta } from '../lib/cultivo'
@@ -67,7 +68,7 @@ export default function PaginaEstadisticas() {
         ])
         const gramos = cs.reduce((s, c) => s + (c.peso_seco_g ?? 0), 0)
         const eco = resumenEconomico({ insumos, costos, vida, mesesCiclo: par.meses_ciclo, gramosCosechados: gramos })
-        setCostoPorGramo(eco.costoPorGramo)
+        setCostoPorGramo(eco.costoPorGramo && eco.costoPorGramo > 0 ? eco.costoPorGramo : null)
       } catch { /* sin econometría el resto de la página funciona igual */ }
     } catch (err) {
       toast.error(`Error cargando estadísticas: ${(err as Error).message}`)
@@ -82,6 +83,11 @@ export default function PaginaEstadisticas() {
   const gPorPlanta = cosechadas > 0 ? r.totalSeco / cosechadas : null
   const gW = gramosPorVatio(r.totalSeco, vatiosLuz)
   const activas = plantas.filter(p => p.activa !== false)
+  // Contra el período anterior: un número suelto no dice si vas mejorando.
+  const cmpPeso = useMemo(() => compararConAnterior(cosechas, c => c.peso_seco_g), [cosechas])
+  const cmpNota = useMemo(() => compararConAnterior(cosechas, c => c.valoracion), [cosechas])
+  const seriePeso = useMemo(() => serieReciente(cosechas, c => c.peso_seco_g), [cosechas])
+  const serieNota = useMemo(() => serieReciente(cosechas, c => c.valoracion), [cosechas])
 
   if (cargando) {
     return (
@@ -119,54 +125,62 @@ export default function PaginaEstadisticas() {
 
   return (
     <Marco onRefrescar={cargar}>
-      {/* El número que encabeza, y las medidas que lo explican */}
-      <section className={`${card} p-4 sm:p-5 tabular-nums`}>
-        <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
+      {/* Hero + tiles. El hero va con cifras proporcionales a propósito: a 48px
+          las tabulares dejan huecos entre dígitos y el número se ve flojo. */}
+      <section className={`${card} p-4 sm:p-5`}>
+        <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
           <div>
             <div className="text-[10px] uppercase tracking-[0.14em] text-[#7c8b5c] font-medium">Total cosechado</div>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="font-display font-bold text-[40px] sm:text-[48px] leading-none text-[#bef264]">
+              <span className="font-display font-bold text-[42px] sm:text-[52px] leading-none text-[#bef264]">
                 {(r.totalSeco / 1000).toLocaleString('es-AR', { maximumFractionDigits: 2 })}
               </span>
               <span className="text-[15px] text-[#7c8b5c] font-medium">kg secos</span>
             </div>
           </div>
-          <p className="text-[11.5px] text-[#8a8a9a] leading-relaxed max-w-md">
+          <p className="text-[11.5px] text-[#8a8a9a] leading-relaxed max-w-sm">
             {r.cosechas} cosecha{r.cosechas === 1 ? '' : 's'} de {gens.length} genética{gens.length === 1 ? '' : 's'}
             {r.mejor?.genetica && <>. La mejor fue <b className="text-[#d4d4dd]">{r.mejor.genetica}</b> con {fmtG(r.mejor.peso_seco_g ?? 0)} g</>}
             {r.peor && r.peor.peso_seco_g != null && <>, la más floja {fmtG(r.peor.peso_seco_g)} g</>}.
           </p>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-3.5 mt-4 pt-4 border-t border-[#1f1f2b]">
-          <Kpi t="Por cosecha" v={r.promedioPorCosecha != null ? `${fmtG(r.promedioPorCosecha)} g` : '—'} sub="promedio" />
-          <Kpi t="Por planta" v={gPorPlanta != null ? `${fmtG(gPorPlanta)} g` : '—'}
-            sub={cosechadas > 0 ? `${cosechadas} planta${cosechadas === 1 ? '' : 's'} cosechada${cosechadas === 1 ? '' : 's'}` : 'sin plantas cosechadas'} />
-          <Kpi t="Gramos por vatio" v={gW != null ? gW.toFixed(2) : '—'}
-            sub={gW != null ? `${fmtG(vatiosLuz)} W de luz` : 'cargá la potencia en Inventario'}
-            color={gW == null ? undefined : gW >= 1 ? '#bef264' : gW >= 0.6 ? '#facc15' : '#ff8a7a'} />
-          <Kpi t="Costo por gramo" v={costoPorGramo != null ? fmtPesos(costoPorGramo) : '—'}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-[#1f1f2b] mt-4 rounded-lg overflow-hidden border border-[#1f1f2b]">
+          <Tile t="Por cosecha" v={r.promedioPorCosecha != null ? `${fmtG(r.promedioPorCosecha)} g` : '—'}
+            delta={cmpPeso} serie={seriePeso} sub="promedio" />
+          <Tile t="Por planta" v={gPorPlanta != null ? `${fmtG(gPorPlanta)} g` : '—'}
+            sub={cosechadas > 0 ? `${cosechadas} planta${cosechadas === 1 ? '' : 's'}` : 'sin plantas cosechadas'} />
+          <Tile t="Gramos por vatio" v={gW != null ? gW.toFixed(2) : '—'}
+            sub={gW != null ? `${fmtG(vatiosLuz)} W de luz` : 'cargá la potencia'}
+            color={gW == null ? undefined : gW >= 1 ? '#bef264' : gW >= 0.6 ? '#facc15' : '#ff8a7a'}
+            meta={gW != null ? { valor: gW, bueno: 1 } : undefined} />
+          <Tile t="Costo por gramo" v={costoPorGramo != null ? fmtPesos(costoPorGramo) : '—'}
             sub={costoPorGramo != null ? 'según Econometría' : 'cargá costos'} />
-          <Kpi t="Merma de secado" v={r.merma != null ? `${r.merma.toFixed(0)}%` : '—'}
+          <Tile t="Merma de secado" v={r.merma != null ? `${r.merma.toFixed(0)}%` : '—'}
             sub={r.merma != null ? (r.merma >= 70 && r.merma <= 82 ? 'en rango normal' : 'fuera de 70-82%') : 'falta peso húmedo'}
             color={r.merma == null ? undefined : r.merma >= 70 && r.merma <= 82 ? '#bef264' : '#facc15'} />
-          <Kpi t="Valoración" v={r.valoracion != null ? `${r.valoracion.toFixed(1)}/10` : '—'} sub="promedio de tus notas" />
-          <Kpi t="Ciclo" v={r.diasCicloPromedio != null ? `${Math.round(r.diasCicloPromedio)} d` : '—'}
-            sub="de germinación a corte" />
-          <Kpi t="En curso" v={String(activas.length)}
+          <Tile t="Valoración" v={r.valoracion != null ? `${r.valoracion.toFixed(1)}` : '—'}
+            delta={cmpNota} serie={serieNota} sub="sobre 10" />
+          <Tile t="Ciclo" v={r.diasCicloPromedio != null ? `${Math.round(r.diasCicloPromedio)} d` : '—'}
+            sub="germinación a corte" />
+          <Tile t="En curso" v={String(activas.length)}
             sub={`${activas.filter(p => p.fase === 'Floracion').length} en floración`} />
         </div>
       </section>
 
-      <ProduccionPorMes meses={meses} />
+      {/* En pantalla ancha la producción y el scatter van lado a lado: son dos
+          lecturas distintas del mismo período y comparten el aire. */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
+        <ProduccionPorMes meses={meses} />
+        <RindeVsCalidad gens={gens} />
+      </div>
 
       <RankingGeneticas gens={gens} verTabla={verTabla} onVerTabla={setVerTabla} />
 
-      <RindeVsCalidad gens={gens} />
-
-      <UltimasCosechas cosechas={cosechas} />
-
-      <EstadoDelCultivo plantas={activas} />
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
+        <UltimasCosechas cosechas={cosechas} />
+        <EstadoDelCultivo plantas={activas} />
+      </div>
     </Marco>
   )
 }
@@ -192,19 +206,74 @@ function Marco({ children, onRefrescar, cargando }: {
           </button>
         </div>
       </div>
-      <div className="px-3 sm:px-6 py-4 pb-[calc(6rem+env(safe-area-inset-bottom))] space-y-4 max-w-5xl mx-auto">
+      <div className="px-3 sm:px-6 py-4 pb-[calc(6rem+env(safe-area-inset-bottom))] space-y-4 max-w-6xl mx-auto">
         {children}
       </div>
     </div>
   )
 }
 
-function Kpi({ t, v, sub, color }: { t: string; v: string; sub?: string; color?: string }) {
+/**
+ * Stat tile: etiqueta, valor, y —cuando hay con qué— la variación contra el
+ * período anterior y una sparkline de las últimas cosechas. El delta es lo que
+ * convierte el número en información: "169 g" no dice nada, "169 g, 12% más que
+ * antes" sí.
+ */
+function Tile({ t, v, sub, color, delta, serie, meta }: {
+  t: string; v: string; sub?: string; color?: string
+  delta?: Comparacion | null
+  serie?: number[]
+  /** Para las métricas con un objetivo conocido (g/W): dibuja el avance. */
+  meta?: { valor: number; bueno: number }
+}) {
+  const pct = delta?.pct ?? null
+  const sube = pct != null && pct > 0
   return (
-    <div className="min-w-0">
-      <div className="text-[9.5px] uppercase tracking-[0.12em] text-[#7d7d8e]">{t}</div>
-      <div className="text-[19px] font-display font-bold leading-none mt-1" style={{ color: color ?? '#ececf1' }}>{v}</div>
-      {sub && <div className="text-[10px] text-[#7d7d8e] mt-1 truncate">{sub}</div>}
+    <div className="bg-[#101016] p-3 min-w-0">
+      <div className="text-[9.5px] uppercase tracking-[0.12em] text-[#7d7d8e] truncate">{t}</div>
+      <div className="flex items-baseline gap-1.5 mt-1 flex-wrap">
+        <span className="text-[19px] font-display font-bold leading-none" style={{ color: color ?? '#ececf1' }}>{v}</span>
+        {pct != null && Math.abs(pct) >= 1 && (
+          <span className="text-[10.5px] font-medium tabular-nums leading-none"
+            style={{ color: sube ? '#bef264' : '#ff8a7a' }}
+            title={`Últimas ${delta!.n} contra las ${delta!.n} anteriores`}>
+            {sube ? '↑' : '↓'}{Math.abs(pct).toFixed(0)}%
+          </span>
+        )}
+      </div>
+      {serie && serie.length >= 4
+        ? <Sparkline datos={serie} color={color ?? ACENTO} />
+        : meta
+          ? <Medidor valor={meta.valor} bueno={meta.bueno} color={color ?? ACENTO} />
+          : <div className="h-[14px]" />}
+      {sub && <div className="text-[10px] text-[#7d7d8e] truncate">{sub}</div>}
+    </div>
+  )
+}
+
+/** Doce puntos de tendencia. Sin ejes ni números: es contexto, no una lectura. */
+function Sparkline({ datos, color }: { datos: number[]; color: string }) {
+  const max = Math.max(...datos), min = Math.min(...datos)
+  const rango = max - min || 1
+  const pts = datos.map((d, i) =>
+    `${(i / (datos.length - 1)) * 100},${100 - ((d - min) / rango) * 100}`).join(' ')
+  return (
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-[14px] my-1 overflow-visible"
+      aria-hidden="true">
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="6"
+        vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" opacity=".55" />
+      {/* El último punto en sólido: es el valor que está arriba en grande */}
+      <circle cx="100" cy={100 - ((datos[datos.length - 1] - min) / rango) * 100} r="7"
+        fill={color} vectorEffect="non-scaling-stroke" />
+    </svg>
+  )
+}
+
+/** Avance contra un objetivo conocido, para las métricas que lo tienen. */
+function Medidor({ valor, bueno, color }: { valor: number; bueno: number; color: string }) {
+  return (
+    <div className="h-1 rounded-full bg-[#1f1f2b] my-1.5 overflow-hidden" title={`Objetivo: ${bueno}`}>
+      <div className="h-full rounded-full" style={{ width: `${Math.min(100, (valor / bueno) * 100)}%`, background: color }} />
     </div>
   )
 }
@@ -238,32 +307,34 @@ function ProduccionPorMes({ meses }: { meses: { mes: string; seco: number; cosec
       <Encabezado Ic={LineChart} titulo="Producción por mes"
         nota={`${fmtG(total)} g en ${meses.length} mes${meses.length === 1 ? '' : 'es'}`} />
       <div className="p-4 sm:p-5">
-        {/* Columnas: alto proporcional, ancho fijo, 2px de aire entre barras.
-            El label va sólo en la más alta para no tapar el eje de números. */}
-        <div className="flex items-end gap-[2px] h-[130px]" role="img"
+        {/* Ancho MÁXIMO por columna: con dos meses cargados, un flex-1 les daba
+            media pantalla a cada una y el gráfico parecía otra cosa. Se alinean
+            a la izquierda y crecen hasta 56px, como una serie temporal real. */}
+        <div className="flex items-end gap-[3px] h-[120px]" role="img"
           aria-label={`Producción mensual: ${activos.map(m => `${nombreMes(m.mes)} ${fmtG(m.seco)} gramos`).join(', ')}`}>
           {meses.map(m => (
-            <div key={m.mes} className="flex-1 min-w-0 h-full flex flex-col justify-end items-center group relative">
+            <div key={m.mes} className="flex-1 max-w-[56px] min-w-0 h-full flex flex-col justify-end items-center group relative">
               {m.seco > 0 && (
-                <span className="absolute -top-0.5 text-[9.5px] text-[#8a8a9a] tabular-nums opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 bg-[#0a0a0f] px-1 rounded">
+                <span className="absolute -top-1 text-[9.5px] text-[#a6a6b5] tabular-nums opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 bg-[#0a0a0f] px-1 rounded">
                   {fmtG(m.seco)} g · {m.cosechas}
                 </span>
               )}
               <div className="w-full rounded-t-[4px] transition-all group-hover:brightness-125"
                 style={{
-                  height: `${Math.max(m.seco > 0 ? 3 : 1, (m.seco / max) * 100)}%`,
+                  height: `${Math.max(m.seco > 0 ? 4 : 2, (m.seco / max) * 100)}%`,
                   background: m.seco > 0 ? (m.mes === mejor.mes ? '#bef264' : ACENTO) : TENUE,
                 }} />
             </div>
           ))}
+          <div className="flex-1" />
         </div>
-        <div className="flex gap-[2px] mt-1.5">
+        <div className="flex gap-[3px] mt-1.5">
           {meses.map((m, i) => (
-            <div key={m.mes} className="flex-1 min-w-0 text-center text-[8.5px] text-[#7d7d8e] truncate">
-              {/* Con muchos meses se etiqueta uno de cada dos: si no, se pisan. */}
-              {meses.length <= 8 || i % 2 === 0 ? nombreMes(m.mes) : ''}
+            <div key={m.mes} className="flex-1 max-w-[56px] min-w-0 text-center text-[9px] text-[#7d7d8e] truncate">
+              {meses.length <= 10 || i % 2 === 0 ? nombreMes(m.mes) : ''}
             </div>
           ))}
+          <div className="flex-1" />
         </div>
         <p className="text-[10.5px] text-[#7d7d8e] mt-2.5 leading-relaxed">
           El mejor mes fue <b className="text-[#a6a6b5]">{nombreMes(mejor.mes)}</b> con {fmtG(mejor.seco)} g.

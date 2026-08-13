@@ -171,6 +171,56 @@ export function gramosPorVatio(totalSeco: number, vatiosLuz: number): number | n
   return totalSeco / vatiosLuz
 }
 
+/**
+ * Comparación contra el período anterior: lo que convierte un número suelto en
+ * información accionable. "169 g por cosecha" no dice nada; "169 g, 12% más que
+ * las cinco anteriores" sí.
+ *
+ * Parte las cosechas ordenadas por fecha en dos mitades del mismo tamaño y
+ * compara. Con menos de 4 cosechas devuelve null: dos contra dos es ruido.
+ */
+export interface Comparacion {
+  actual: number
+  anterior: number
+  /** Variación porcentual. Null si el período anterior fue cero. */
+  pct: number | null
+  n: number
+}
+
+export function compararConAnterior(
+  cs: CosechaDetallada[], metrica: (c: CosechaDetallada) => number | null,
+): Comparacion | null {
+  const validas = cs
+    .filter(c => metrica(c) != null && c.fecha)
+    .sort((a, b) => a.fecha.localeCompare(b.fecha))
+  if (validas.length < 4) return null
+  const mitad = Math.floor(validas.length / 2)
+  const viejas = validas.slice(0, mitad)
+  const nuevas = validas.slice(validas.length - mitad)
+  const promedio = (xs: CosechaDetallada[]) =>
+    xs.reduce((s, c) => s + (metrica(c) ?? 0), 0) / xs.length
+  const actual = promedio(nuevas), anterior = promedio(viejas)
+  return {
+    actual, anterior,
+    pct: anterior > 0 ? ((actual - anterior) / anterior) * 100 : null,
+    n: mitad,
+  }
+}
+
+/**
+ * Serie corta para la sparkline de un stat tile. Devuelve los últimos `n`
+ * valores en orden cronológico, que es como se lee un gráfico de tendencia.
+ */
+export function serieReciente(
+  cs: CosechaDetallada[], metrica: (c: CosechaDetallada) => number | null, n = 12,
+): number[] {
+  return cs
+    .filter(c => metrica(c) != null && c.fecha)
+    .sort((a, b) => a.fecha.localeCompare(b.fecha))
+    .slice(-n)
+    .map(c => metrica(c) as number)
+}
+
 export const estadisticasService = {
   /** Cosechas con la genética y los días de ciclo ya resueltos. */
   async getCosechasDetalladas(): Promise<CosechaDetallada[]> {
