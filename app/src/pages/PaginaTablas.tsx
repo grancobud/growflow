@@ -196,6 +196,33 @@ const TABLAS: DefTabla[] = [
     ],
   },
   {
+    id: 'ong_ddjj', nombre: 'ONG · declaraciones juradas', orden: 'periodo',
+    cols: [
+      { campo: 'periodo', titulo: 'Periodo', tipo: 'text' },
+      { campo: 'fecha_presentacion', titulo: 'Presentada', tipo: 'date' },
+      { campo: 'plantas_total', titulo: 'Plantas', tipo: 'number' },
+      { campo: 'plantas_floracion', titulo: 'En flor', tipo: 'number' },
+      { campo: 'pacientes_vinculados', titulo: 'Pacientes', tipo: 'number' },
+      { campo: 'variedades', titulo: 'Variedades', tipo: 'text', ancho: 'min-w-[180px]' },
+      { campo: 'presentada', titulo: 'OK', tipo: 'bool' },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[160px]' },
+    ],
+  },
+  {
+    id: 'ong_traslados', nombre: 'ONG · traslados', orden: 'fecha',
+    cols: [
+      { campo: 'fecha', titulo: 'Fecha', tipo: 'date' },
+      { campo: 'tipo_material', titulo: 'Material', tipo: { select: ['flores', 'frascos', 'plantas'] } },
+      { campo: 'cantidad', titulo: 'Cantidad', tipo: 'number' },
+      { campo: 'origen', titulo: 'Origen', tipo: 'text' },
+      { campo: 'destino', titulo: 'Destino', tipo: 'text' },
+      { campo: 'transportista', titulo: 'Transportista', tipo: 'text' },
+      { campo: 'destinatario', titulo: 'Destinatario', tipo: 'text' },
+      { campo: 'carta_porte_presentada', titulo: 'Carta porte', tipo: 'bool' },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[160px]' },
+    ],
+  },
+  {
     id: 'ong_documentos', nombre: 'ONG · documentos', orden: 'fecha',
     cols: [
       { campo: 'tipo', titulo: 'Tipo', tipo: { select: ['emitido', 'gasto'] } },

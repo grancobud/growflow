@@ -34,6 +34,8 @@ export interface Entidad {
   /** Código que la ONG le pasa al paciente para vincularse desde Mi Argentina. */
   codigo_vinculacion?: string | null
   perfil_reprocann?: string | null
+  /** Última vez que la Comisión Revisora examinó los libros (mínimo trimestral). */
+  ultima_revision_libros?: string | null
   notas?: string | null
 }
 
@@ -45,6 +47,17 @@ export interface Autoridad {
   desde?: string | null
   hasta?: string | null
   activo?: boolean
+  /** La 1780 los pide de TODOS los miembros, no sólo de los directivos. */
+  antecedentes_penales_ok?: boolean
+  cuit_activa?: boolean
+  reprocann_activo?: boolean
+  /**
+   * Grupo familiar declarado. Dos autoridades con el mismo valor se consideran
+   * parientes: sirve para detectar el cruce prohibido entre Comisión Directiva
+   * y Comisión Revisora sin guardar datos personales de más.
+   */
+  grupo_familiar?: string | null
+  fundador?: boolean
   notas?: string | null
 }
 
@@ -80,7 +93,56 @@ export const REQUISITOS_1780: Omit<Requisito, 'id' | 'cumplido'>[] = [
     detalle: 'Aviso formal al municipio de cada predio. Antes de clausurar intiman: recién a la tercera sin respuesta pueden clausurar y sacar plantas.' },
   { clave: 'pacientes_minimos', orden: 5, titulo: 'Mínimo 5 pacientes',
     detalle: 'Listado de al menos cinco pacientes vinculados a la ONG.' },
+  { clave: 'cromatografia', orden: 6, titulo: 'Informe cromatográfico por lote',
+    detalle: 'Un análisis por lote producido. Lo pide la 1780 tanto a las ONG como a los terceros cultivadores.' },
+  { clave: 'antecedentes_penales', orden: 7, titulo: 'Antecedentes penales de todos los miembros',
+    detalle: 'De la Comisión Directiva Y de la Revisora de Cuentas, sin antecedentes por la ley de estupefacientes. La 3132 sólo pedía los de los directivos.' },
+  { clave: 'plan_cultivo', orden: 8, titulo: 'Plan de cultivo del responsable técnico',
+    detalle: 'Se presenta como declaración jurada. El responsable técnico además registra producción, guarda y movimientos internos.' },
 ]
+
+/**
+ * Declaración jurada semestral de la Resolución 1780/2025.
+ *
+ * Se guarda lo declarado y no se recalcula al vuelo: una DDJJ presentada es una
+ * foto del cultivo en ese momento y tiene que poder mostrarse igual dentro de
+ * dos años, aunque las plantas de hoy sean otras.
+ */
+export interface DDJJ {
+  id: string
+  /** 2026-S1 / 2026-S2 */
+  periodo: string
+  fecha_presentacion?: string | null
+  plantas_total?: number | null
+  plantas_floracion?: number | null
+  pacientes_vinculados?: number | null
+  variedades?: string | null
+  presentada?: boolean
+  notas?: string | null
+}
+
+/**
+ * Carta de porte: la DDJJ por TAD que la 1780 exige para cada traslado.
+ * La norma admite tres formas de mover material y cada una tiene su tope, así
+ * que el tipo determina contra qué se valida la cantidad.
+ */
+export interface Traslado {
+  id: string
+  fecha: string
+  hora_salida?: string | null
+  hora_llegada?: string | null
+  origen?: string | null
+  destino?: string | null
+  ruta?: string | null
+  transportista?: string | null
+  transportista_dni?: string | null
+  destinatario?: string | null
+  tipo_material?: 'flores' | 'frascos' | 'plantas'
+  cantidad?: number | null
+  paciente_id?: string | null
+  carta_porte_presentada?: boolean
+  notas?: string | null
+}
 
 export interface Predio {
   id: string
@@ -293,6 +355,36 @@ export const ongService = {
   },
   async borrarCuotaEmitida(id: string): Promise<void> {
     lanzar((await supabase.from('ong_cuotas_emitidas').delete().eq('id', id)).error)
+  },
+
+  async getDDJJ(): Promise<DDJJ[]> {
+    const { data, error } = await supabase.from('ong_ddjj').select('*').order('periodo', { ascending: false })
+    lanzar(error); return (data ?? []) as DDJJ[]
+  },
+  async guardarDDJJ(d: Partial<DDJJ>): Promise<void> {
+    const { data: u } = await supabase.auth.getUser()
+    const payload = { ...d, user_id: u?.user?.id ?? null }
+    lanzar((d.id
+      ? await supabase.from('ong_ddjj').update(payload).eq('id', d.id)
+      : await supabase.from('ong_ddjj').insert(payload)).error)
+  },
+  async borrarDDJJ(id: string): Promise<void> {
+    lanzar((await supabase.from('ong_ddjj').delete().eq('id', id)).error)
+  },
+
+  async getTraslados(): Promise<Traslado[]> {
+    const { data, error } = await supabase.from('ong_traslados').select('*').order('fecha', { ascending: false })
+    lanzar(error); return (data ?? []) as Traslado[]
+  },
+  async guardarTraslado(t: Partial<Traslado>): Promise<void> {
+    const { data: u } = await supabase.auth.getUser()
+    const payload = { ...t, user_id: u?.user?.id ?? null }
+    lanzar((t.id
+      ? await supabase.from('ong_traslados').update(payload).eq('id', t.id)
+      : await supabase.from('ong_traslados').insert(payload)).error)
+  },
+  async borrarTraslado(id: string): Promise<void> {
+    lanzar((await supabase.from('ong_traslados').delete().eq('id', id)).error)
   },
 
   async getDocumentos(): Promise<DocumentoONG[]> {
@@ -613,7 +705,27 @@ export function finDeMandato(desde?: string | null, anios?: number | null): stri
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-export function calcularVencimientos(e: Entidad | null): Vencimiento[] {
+/**
+ * Semestre calendario al que corresponde una fecha, en formato 2026-S1.
+ * La 1780 pide la declaración jurada cada seis meses, así que el período es la
+ * unidad con la que se lleva la cuenta.
+ */
+export function semestreDe(iso: string): string {
+  const [a, m] = iso.split('-').map(Number)
+  return `${a}-S${m <= 6 ? 1 : 2}`
+}
+
+export function semestreActual(hoy = new Date()): string {
+  return semestreDe(hoy.toISOString().slice(0, 10))
+}
+
+/** Último día del semestre: es la fecha contra la que corre el vencimiento. */
+export function finDeSemestre(periodo: string): string {
+  const [a, s] = periodo.split('-S')
+  return s === '1' ? `${a}-06-30` : `${a}-12-31`
+}
+
+export function calcularVencimientos(e: Entidad | null, ddjj: DDJJ[] = []): Vencimiento[] {
   if (!e) return []
   const v: Vencimiento[] = []
 
@@ -650,6 +762,35 @@ export function calcularVencimientos(e: Entidad | null): Vencimiento[] {
       urgencia: urgenciaDe(dias(iso)),
       queSignifica: 'Es obligatorio todos los años, incluso en cero si no diste de alta los impuestos.',
       comoSeResuelve: 'Contador arma → lo trata la Comisión Directiva → lo aprueba la Asamblea → se presenta en el organismo de control.',
+    })
+  }
+
+  // Declaración jurada semestral (Res. 1780/2025). Es la obligación periódica
+  // que más se pasa por alto porque no la avisa nadie: no hay notificación, el
+  // plazo simplemente corre.
+  const periodo = semestreActual()
+  const yaPresentada = ddjj.some(d => d.periodo === periodo && d.presentada)
+  if (!yaPresentada) {
+    const fin = finDeSemestre(periodo)
+    v.push({
+      clave: 'ddjj', titulo: `Declaración jurada ${periodo}`, fecha: fin, dias: dias(fin),
+      urgencia: urgenciaDe(dias(fin)),
+      queSignifica: 'Cada seis meses hay que declarar cantidad de plantas en total y en floración, pacientes vinculados y las variedades usadas.',
+      comoSeResuelve: 'Se arma en la pestaña Declaraciones con los datos del cultivo y se presenta por TAD.',
+    })
+  }
+
+  // La Comisión Revisora tiene que examinar libros y documentación al menos
+  // cada tres meses. Si nunca se registró una revisión, la fecha queda en null
+  // y el tablero lo muestra como pendiente en vez de inventar un plazo.
+  if (e.ultima_revision_libros) {
+    const d = new Date(e.ultima_revision_libros + 'T00:00:00'); d.setMonth(d.getMonth() + 3)
+    const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    v.push({
+      clave: 'revision_libros', titulo: 'Revisión de libros', fecha: iso, dias: dias(iso),
+      urgencia: urgenciaDe(dias(iso)),
+      queSignifica: 'La Comisión Revisora de Cuentas debe examinar los libros y la documentación al menos cada tres meses.',
+      comoSeResuelve: 'Reunión de la Comisión Revisora, se deja asentada en su libro de actas y se registra la fecha acá.',
     })
   }
 
@@ -779,6 +920,90 @@ export function topeTransporteG(pacientes: number, gramosPorPaciente = 40): numb
 
 /** Tope de un traslado individual, independiente de la necesidad total. */
 export const TOPE_TRASLADO_INDIVIDUAL_G = 40
+
+/**
+ * La 1780 admite tres formas de mover material por persona representada, y cada
+ * una tiene su propio tope. Antes acá sólo estaban los 40 g de flores, así que
+ * un traslado de aceite o de plantas se marcaba mal.
+ */
+export const TOPES_TRASLADO = {
+  flores: { tope: 40, unidad: 'g', label: 'Flores secas' },
+  frascos: { tope: 6, unidad: 'frascos de 30 ml', label: 'Aceite' },
+  // Las plantas se topean contra el cupo REPROCANN de la persona, no contra un
+  // número fijo: "hasta la cantidad de plantas autorizadas por persona".
+  plantas: { tope: null as number | null, unidad: 'plantas', label: 'Plantas' },
+} as const
+
+export interface RevisionTraslado {
+  ok: boolean
+  motivos: string[]
+}
+
+/**
+ * Revisa una carta de porte contra lo que exige la 1780: el tope según el tipo
+ * de material, los datos obligatorios de la declaración y la presentación.
+ */
+export function revisarTraslado(t: Traslado, plantasAutorizadas?: number | null): RevisionTraslado {
+  const motivos: string[] = []
+  const tipo = t.tipo_material ?? 'flores'
+  const cant = Number(t.cantidad) || 0
+
+  if (tipo === 'plantas') {
+    if (plantasAutorizadas != null && cant > plantasAutorizadas) {
+      motivos.push(`${cant} plantas supera las ${plantasAutorizadas} autorizadas para esa persona.`)
+    }
+  } else {
+    const { tope, unidad } = TOPES_TRASLADO[tipo]
+    if (tope != null && cant > tope) motivos.push(`${cant} supera el tope de ${tope} ${unidad} por persona representada.`)
+  }
+
+  // La carta de porte es una declaración jurada: sin estos datos no se puede
+  // presentar, y sin presentarla el traslado no está amparado.
+  const faltan = ([
+    ['origen', 'el origen'], ['destino', 'el destino'],
+    ['transportista', 'el transportista'], ['destinatario', 'el destinatario final'],
+  ] as const).filter(([k]) => !t[k]).map(([, l]) => l)
+  if (faltan.length) motivos.push(`Falta ${faltan.join(', ')} en la carta de porte.`)
+  if (!t.carta_porte_presentada) motivos.push('La carta de porte todavía no se presentó por TAD.')
+
+  return { ok: motivos.length === 0, motivos }
+}
+
+/**
+ * Parentesco cruzado entre órganos: la Comisión Directiva y la Revisora de
+ * Cuentas no pueden compartir parientes (ni por sangre, ni por matrimonio, ni
+ * domicilio). Dentro de cada comisión sí está permitido, así que sólo se mira
+ * el cruce.
+ */
+export function parentescoCruzado(autoridades: Autoridad[]): { grupo: string; directiva: string[]; revisora: string[] }[] {
+  const activas = autoridades.filter(a => a.activo !== false && a.grupo_familiar?.trim())
+  const grupos = new Map<string, { directiva: string[]; revisora: string[] }>()
+  for (const a of activas) {
+    const k = a.grupo_familiar!.trim().toLowerCase()
+    const g = grupos.get(k) ?? { directiva: [], revisora: [] }
+    if ((a.organo ?? '').toLowerCase().includes('revisora')) g.revisora.push(a.nombre)
+    else g.directiva.push(a.nombre)
+    grupos.set(k, g)
+  }
+  return [...grupos.entries()]
+    .filter(([, g]) => g.directiva.length > 0 && g.revisora.length > 0)
+    .map(([grupo, g]) => ({ grupo, ...g }))
+}
+
+/**
+ * Cuántos fundadores necesitan REPROCANN activo según dónde se inscribió la
+ * asociación: en CABA más de la mitad, en Provincia de Buenos Aires todos.
+ */
+export function exigenciaReprocannFundadores(jurisdiccion?: string | null): { minimo: (n: number) => number; texto: string } {
+  const j = (jurisdiccion ?? '').toLowerCase()
+  if (j.includes('buenos aires') && !j.includes('ciudad') && !j.includes('caba')) {
+    return { minimo: n => n, texto: 'En Provincia de Buenos Aires se exige que TODOS los fundadores tengan REPROCANN activo.' }
+  }
+  return {
+    minimo: n => Math.floor(n / 2) + 1,
+    texto: 'En CABA se exige que más de la mitad de los fundadores tengan REPROCANN activo, y el resto en trámite o con un curso de cannabis medicinal.',
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Libros, actas y coherencia.
@@ -975,6 +1200,9 @@ export function chequeosCoherencia(datos: {
   gramosCosechados?: number
   cuotasEmitidas?: CuotaEmitida[]
   periodo?: string
+  autoridades?: Autoridad[]
+  ddjj?: DDJJ[]
+  traslados?: Traslado[]
 }): Chequeo[] {
   const { entidad, actas, libros, asociados, categorias, cuotas, pacientes, plantasFloracion } = datos
   const c: Chequeo[] = []
@@ -1129,6 +1357,70 @@ export function chequeosCoherencia(datos: {
         : { clave: 'cuotas_periodo', titulo: 'Cuotas del período', estado: 'ok',
             valor: `${r.pagadas}/${r.emitidas} cobradas`,
             detalle: `Todos los activos tienen cuota emitida en ${per}. Cobrado ${Math.round(r.montoCobrado).toLocaleString('es-AR')} de ${Math.round(r.montoEmitido).toLocaleString('es-AR')}.` })
+  }
+
+  // --- Resolución 1780: incompatibilidades y obligaciones periódicas ---
+
+  const autoridades = datos.autoridades ?? []
+  const activas = autoridades.filter(a => a.activo !== false)
+
+  // Parentesco cruzado entre Comisión Directiva y Revisora: está prohibido y es
+  // motivo de rechazo de la inscripción.
+  const cruces = parentescoCruzado(autoridades)
+  c.push(activas.length === 0
+    ? { clave: 'parentesco', titulo: 'Parentesco entre órganos', estado: 'sin_datos', valor: 'sin autoridades',
+        detalle: 'Cargá las autoridades con su grupo familiar para poder verificarlo.' }
+    : cruces.length === 0
+      ? { clave: 'parentesco', titulo: 'Parentesco entre órganos', estado: 'ok', valor: 'sin cruces',
+          detalle: 'Ningún pariente ocupa cargos en las dos comisiones a la vez. Dentro de una misma comisión sí está permitido.' }
+      : { clave: 'parentesco', titulo: 'Parentesco entre órganos', estado: 'error',
+          valor: `${cruces.length} cruce${cruces.length === 1 ? '' : 's'}`,
+          detalle: cruces.map(x => `${x.directiva.join(', ')} (Directiva) y ${x.revisora.join(', ')} (Revisora)`).join('; ')
+            + '. Ningún miembro de la Comisión Directiva puede tener parentesco con uno de la Revisora.' })
+
+  // Antecedentes penales: la 1780 los pide de TODOS los miembros.
+  const sinAntecedentes = activas.filter(a => a.antecedentes_penales_ok !== true)
+  c.push(activas.length === 0
+    ? { clave: 'antecedentes', titulo: 'Antecedentes penales', estado: 'sin_datos', valor: 'sin autoridades',
+        detalle: 'Se piden de la Comisión Directiva y de la Revisora de Cuentas.' }
+    : sinAntecedentes.length === 0
+      ? { clave: 'antecedentes', titulo: 'Antecedentes penales', estado: 'ok', valor: `${activas.length}/${activas.length}`,
+          detalle: 'Todos los miembros tienen el certificado sin antecedentes por la ley de estupefacientes.' }
+      : { clave: 'antecedentes', titulo: 'Antecedentes penales', estado: 'error', valor: `faltan ${sinAntecedentes.length}`,
+          detalle: `Sin certificado: ${sinAntecedentes.map(a => a.nombre).join(', ')}. La 1780 los pide de todos los miembros, no sólo de los directivos.` })
+
+  // REPROCANN de los fundadores, con la exigencia de la jurisdicción.
+  const fundadores = activas.filter(a => a.fundador)
+  if (fundadores.length > 0) {
+    const ex = exigenciaReprocannFundadores(datos.entidad?.jurisdiccion)
+    const conRep = fundadores.filter(a => a.reprocann_activo).length
+    const min = ex.minimo(fundadores.length)
+    c.push(conRep >= min
+      ? { clave: 'reprocann_fundadores', titulo: 'REPROCANN de fundadores', estado: 'ok', valor: `${conRep}/${fundadores.length}`,
+          detalle: ex.texto }
+      : { clave: 'reprocann_fundadores', titulo: 'REPROCANN de fundadores', estado: 'error',
+          valor: `${conRep} de ${min} necesarios`, detalle: ex.texto })
+  }
+
+  // Declaración jurada del semestre en curso.
+  const per = semestreActual()
+  const dd = (datos.ddjj ?? []).find(d => d.periodo === per)
+  c.push(dd?.presentada
+    ? { clave: 'ddjj', titulo: `Declaración jurada ${per}`, estado: 'ok', valor: 'presentada',
+        detalle: `Presentada${dd.fecha_presentacion ? ` el ${dd.fecha_presentacion}` : ''}.` }
+    : { clave: 'ddjj', titulo: `Declaración jurada ${per}`, estado: dd ? 'alerta' : 'error',
+        valor: dd ? 'armada, sin presentar' : 'pendiente',
+        detalle: 'Cada seis meses hay que declarar plantas totales y en floración, pacientes vinculados y variedades usadas.' })
+
+  // Cartas de porte de los traslados registrados.
+  const tras = datos.traslados ?? []
+  if (tras.length > 0) {
+    const sinCarta = tras.filter(t => !t.carta_porte_presentada)
+    c.push(sinCarta.length === 0
+      ? { clave: 'cartas_porte', titulo: 'Cartas de porte', estado: 'ok', valor: `${tras.length}/${tras.length}`,
+          detalle: 'Todos los traslados tienen su carta de porte presentada por TAD.' }
+      : { clave: 'cartas_porte', titulo: 'Cartas de porte', estado: 'error', valor: `faltan ${sinCarta.length}`,
+          detalle: `${sinCarta.length} traslado${sinCarta.length === 1 ? '' : 's'} sin carta de porte. Sin ella el traslado no está amparado.` })
   }
 
   const orden: Record<Chequeo['estado'], number> = { error: 0, alerta: 1, sin_datos: 2, ok: 3 }

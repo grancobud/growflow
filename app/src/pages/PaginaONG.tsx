@@ -19,6 +19,7 @@ import {
   ongService, calcularVencimientos, calcularCapacidad, finDeMandato,
   topeTransporteG, TOPE_TRASLADO_INDIVIDUAL_G, CARGOS, ORGANOS,
   type Entidad, type Autoridad, type Requisito, type Predio, type Urgencia, type DocumentoONG,
+  type DDJJ, type Traslado,
   type Libro, type Acta, type Asociado, type CategoriaSocio, type Cuota, type Dispensa,
   type CuotaEmitida, periodoActual,
 } from '../lib/ong'
@@ -29,6 +30,7 @@ import { Asociados, Coherencia } from '../components/ong/AsociadosYCoherencia'
 import { Dispensas } from '../components/ong/Dispensas'
 import { CupoReprocann } from '../components/ong/CupoReprocann'
 import { Documentos } from '../components/ong/Documentos'
+import { Declaraciones } from '../components/ong/Declaraciones'
 // El registro de pacientes vive acá: el cupo, las dispensas y los documentos
 // cuelgan de el, y tenerlo en otro item del menu obligaba a saltar de pantalla.
 import PaginaPacientes from './PaginaPacientes'
@@ -59,7 +61,7 @@ const fmtPeso = (g: number) => g < 1000
 const textoDias = (d: number | null) =>
   d == null ? 'sin fecha cargada' : d < 0 ? `hace ${Math.abs(d)} días` : d === 0 ? 'hoy' : `en ${d} días`
 
-type Tab = 'estado' | 'coherencia' | 'pacientes' | 'cupo' | 'dispensas' | 'documentos' | 'entidad' | 'autoridades' | 'predios' | 'libros' | 'actas' | 'asociados'
+type Tab = 'estado' | 'coherencia' | 'pacientes' | 'cupo' | 'declaraciones' | 'dispensas' | 'documentos' | 'entidad' | 'autoridades' | 'predios' | 'libros' | 'actas' | 'asociados'
 
 export default function PaginaONG() {
   // /registro es un alias que entra directo por Pacientes: es la URL vieja del
@@ -90,6 +92,8 @@ export default function PaginaONG() {
   const [gramosCosechados, setGramosCosechados] = useState(0)
   const [cuotasEmitidas, setCuotasEmitidas] = useState<CuotaEmitida[]>([])
   const [documentos, setDocumentos] = useState<DocumentoONG[]>([])
+  const [ddjj, setDDJJ] = useState<DDJJ[]>([])
+  const [traslados, setTraslados] = useState<Traslado[]>([])
 
   const cargar = useCallback(async () => {
     try {
@@ -104,6 +108,8 @@ export default function PaginaONG() {
       ])
       setDispensas(disp); setGeneticas(gen); setCuotasEmitidas(cem)
       setDocumentos(await ongService.getDocumentos())
+      const [dj, tr] = await Promise.all([ongService.getDDJJ(), ongService.getTraslados()])
+      setDDJJ(dj); setTraslados(tr)
       try {
         const [ins, cos, vida, par, cose] = await Promise.all([
           stockService.getInsumos(), econometriaService.getCostos(),
@@ -130,7 +136,7 @@ export default function PaginaONG() {
   }, [])
   useEffect(() => { cargar() }, [cargar])
 
-  const vencimientos = useMemo(() => calcularVencimientos(entidad), [entidad])
+  const vencimientos = useMemo(() => calcularVencimientos(entidad, ddjj), [entidad, ddjj])
   const capacidad = useMemo(
     () => calcularCapacidad(entidad, nPacientes, nPlantas, predios.filter(p => p.activo !== false).length),
     [entidad, nPacientes, nPlantas, predios])
@@ -141,6 +147,7 @@ export default function PaginaONG() {
     { id: 'pacientes', label: 'Pacientes' },
     { id: 'cupo', label: 'Cupo REPROCANN' },
     { id: 'dispensas', label: 'Dispensas' },
+    { id: 'declaraciones', label: 'Declaraciones' },
     { id: 'documentos', label: 'Documentos' },
     { id: 'libros', label: 'Libros' },
     { id: 'actas', label: 'Actas' },
@@ -182,13 +189,22 @@ export default function PaginaONG() {
         ) : tab === 'coherencia' ? (
           <Coherencia {...{ entidad, actas, libros, asociados, categorias, cuotas,
             pacientes: nPacientes, plantasFloracion: nPlantas, dispensas, costoPorGramo,
-            gramosCosechados, cuotasEmitidas, periodo: periodoActual() }} />
+            gramosCosechados, cuotasEmitidas, periodo: periodoActual(),
+            autoridades, ddjj, traslados }} />
         ) : tab === 'pacientes' ? (
           <PaginaPacientes embebida />
         ) : tab === 'cupo' ? (
           <CupoReprocann pacientes={pacientes} plantas={plantas} onCambio={cargar} />
         ) : tab === 'dispensas' ? (
           <Dispensas {...{ dispensas, pacientes, asociados, geneticas, costoPorGramo, gramosCosechados }} onCambio={cargar} />
+        ) : tab === 'declaraciones' ? (
+          <Declaraciones {...{ ddjj, traslados, pacientes }} onCambio={cargar}
+            cultivo={{
+              plantasTotal: plantas.filter(x => x.activa !== false).length,
+              plantasFloracion: nPlantas,
+              pacientesVinculados: pacientes.filter(x => x.reprocann_estado === 'Vigente').length,
+              variedades: [...new Set(plantas.filter(x => x.activa !== false && x.genetica).map(x => x.genetica!))],
+            }} />
         ) : tab === 'documentos' ? (
           <Documentos {...{ documentos, asociados, pacientes, dispensas }} onCambio={cargar} />
         ) : tab === 'libros' ? (
@@ -451,7 +467,16 @@ function FormEntidad({ entidad, onGuardado }: { entidad: Entidad | null; onGuard
           <label><span className={labelCls}>Inscripción</span>
             <input type="date" className={inputCls} value={f.reprocann_inscripcion ?? ''} onChange={e => set('reprocann_inscripcion')(e.target.value)} /></label>
           <label><span className={labelCls}>Vencimiento</span>
-            <input type="date" className={inputCls} value={f.reprocann_vencimiento ?? ''} onChange={e => set('reprocann_vencimiento')(e.target.value)} /></label>
+            <input type="date" className={inputCls} value={f.reprocann_vencimiento ?? ''} onChange={e => set('reprocann_vencimiento')(e.target.value)} />
+            <span className="block text-[10.5px] text-[#5c5c6b] mt-1">
+              Para la ONG el permiso dura 1 año. Los 3 años son sólo para autocultivadores.
+            </span></label>
+          <label className="sm:col-span-2"><span className={labelCls}>Última revisión de libros</span>
+            <input type="date" className={inputCls} value={f.ultima_revision_libros ?? ''} onChange={e => set('ultima_revision_libros')(e.target.value)} />
+            <span className="block text-[10.5px] text-[#5c5c6b] mt-1">
+              La Comisión Revisora debe examinar libros y documentación al menos cada tres meses. Desde acá se
+              calcula cuándo toca la próxima.
+            </span></label>
         </div>
       </div>
 
@@ -551,6 +576,24 @@ function Autoridades({ autoridades, entidad, onCambio }: {
               <select className={inputCls} value={form.organo ?? ORGANOS[0]} onChange={e => setForm({ ...form, organo: e.target.value })}>
                 {ORGANOS.map(o => <option key={o} value={o}>{o}</option>)}
               </select></label>
+            <label><span className={labelCls}>Grupo familiar</span>
+              <input className={inputCls} value={form.grupo_familiar ?? ''} placeholder="Ej: familia Pérez"
+                onChange={e => setForm({ ...form, grupo_familiar: e.target.value || null })} />
+              <span className="block text-[10.5px] text-[#5c5c6b] mt-1 leading-snug">
+                Poné la misma etiqueta a quienes sean parientes o compartan domicilio. Sirve para detectar el
+                cruce prohibido entre Comisión Directiva y Revisora; dentro de una misma comisión sí está permitido.
+              </span></label>
+            <div className="space-y-0.5 pt-1 border-t border-[#1f1f2b]">
+              <span className={labelCls}>Requisitos de la Resolución 1780</span>
+              <Check label="Antecedentes penales sin observaciones" v={!!form.antecedentes_penales_ok}
+                on={v => setForm({ ...form, antecedentes_penales_ok: v })} />
+              <Check label="CUIT activa, sin quiebra ni Base APOC" v={!!form.cuit_activa}
+                on={v => setForm({ ...form, cuit_activa: v })} />
+              <Check label="REPROCANN activo" v={!!form.reprocann_activo}
+                on={v => setForm({ ...form, reprocann_activo: v })} />
+              <Check label="Es miembro fundador" v={!!form.fundador}
+                on={v => setForm({ ...form, fundador: v })} />
+            </div>
             <button onClick={guardar} className={`${btnPrimario} w-full justify-center`}>Guardar</button>
           </div>
         </Modal>
