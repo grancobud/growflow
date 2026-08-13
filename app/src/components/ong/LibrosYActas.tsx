@@ -11,8 +11,8 @@ import {
 } from '../../lib/ong'
 import { btnPrimario, btnSutil } from '../../lib/ui'
 
-const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
-const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1'
 const card = 'rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4'
 
 const nombreLibro = (t: string) => TIPOS_LIBRO.find(x => x.id === t)?.nombre ?? t
@@ -47,7 +47,7 @@ export function Libros({ libros, onCambio }: { libros: Libro[]; onCambio: () => 
             <Plus className="w-3.5 h-3.5" /> Agregar
           </button>
         </div>
-        <p className="text-[11.5px] text-[#5c5c6b] mt-2">
+        <p className="text-[11.5px] text-[#7d7d8e] mt-2">
           La rúbrica es la autorización del registro de comercio para usar ese libro. Sin rúbrica, lo que asentás no se
           inscribe en ningún lado. Al <b className="text-[#a6a6b5]">75%</b> de ocupación conviene rubricar el siguiente.
         </p>
@@ -68,7 +68,7 @@ export function Libros({ libros, onCambio }: { libros: Libro[]; onCambio: () => 
                 <div className="flex items-start gap-2">
                   <div className="min-w-0 flex-1">
                     <p className="font-display font-semibold text-[13.5px] text-[#ececf1]">
-                      {nombreLibro(l.tipo)} <span className="text-[#5c5c6b]">Nº {l.numero ?? 1}</span>
+                      {nombreLibro(l.tipo)} <span className="text-[#7d7d8e]">Nº {l.numero ?? 1}</span>
                     </p>
                     <div className="flex flex-wrap gap-2 mt-1.5">
                       <span className="text-[10.5px] px-1.5 py-0.5 rounded border inline-flex items-center gap-1"
@@ -83,7 +83,7 @@ export function Libros({ libros, onCambio }: { libros: Libro[]; onCambio: () => 
                     {ocup != null && (
                       <div className="mt-2">
                         <div className="flex items-baseline justify-between">
-                          <span className="text-[11px] text-[#757584]">{l.folios_usados ?? 0} de {l.folios_totales} folios</span>
+                          <span className="text-[11px] text-[#7d7d8e]">{l.folios_usados ?? 0} de {l.folios_totales} folios</span>
                           <span className="text-[11.5px] font-mono tabular-nums" style={{ color: lleno ? '#f59e0b' : '#a6a6b5' }}>
                             {Math.round(ocup * 100)}%
                           </span>
@@ -170,7 +170,7 @@ export function Actas({ actas, libros, onCambio }: { actas: Acta[]; libros: Libr
           <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Actas</h3>
           <span className="text-[12px] font-mono tabular-nums text-[#a6a6b5]">{actas.length}</span>
         </div>
-        <p className="text-[11.5px] text-[#5c5c6b] mt-2">
+        <p className="text-[11.5px] text-[#7d7d8e] mt-2">
           Cada órgano lleva su propia serie correlativa. Pasar un acta de un órgano al libro de otro es uno de los
           errores más observados.
         </p>
@@ -203,7 +203,7 @@ export function Actas({ actas, libros, onCambio }: { actas: Acta[]; libros: Libr
       )}
 
       {actas.length === 0 ? (
-        <p className="text-[13px] text-[#5c5c6b] text-center py-8">Sin actas cargadas.</p>
+        <p className="text-[13px] text-[#7d7d8e] text-center py-8">Sin actas cargadas.</p>
       ) : (
         <div className="space-y-2">
           {actas.map(a => (
@@ -212,7 +212,7 @@ export function Actas({ actas, libros, onCambio }: { actas: Acta[]; libros: Libr
                 <div className="min-w-0 flex-1">
                   <p className="font-display font-semibold text-[13.5px] text-[#ececf1]">
                     {nombreActa(a.tipo)} <span className="text-[#d9f99d]">Nº {a.numero}</span>
-                    <span className="text-[#5c5c6b] font-normal"> · {fmtFecha(a.fecha)}</span>
+                    <span className="text-[#7d7d8e] font-normal"> · {fmtFecha(a.fecha)}</span>
                   </p>
                   <div className="flex flex-wrap gap-2 mt-1.5 text-[10.5px]">
                     <span className="px-1.5 py-0.5 rounded border border-[#2a2a3a] bg-[#15151d] text-[#a6a6b5]">{a.estado}</span>
@@ -225,7 +225,7 @@ export function Actas({ actas, libros, onCambio }: { actas: Acta[]; libros: Libr
                       {a.orden_del_dia!.map((p, i) => (
                         <li key={i} className="text-[11.5px] text-[#a6a6b5]">
                           {p.punto}
-                          {p.resultado && <span className="ml-1" style={{ color: p.resultado === 'aprobado' ? '#bef264' : p.resultado === 'rechazado' ? '#ff8a7a' : '#757584' }}>· {p.resultado}</span>}
+                          {p.resultado && <span className="ml-1" style={{ color: p.resultado === 'aprobado' ? '#bef264' : p.resultado === 'rechazado' ? '#ff8a7a' : '#7d7d8e' }}>· {p.resultado}</span>}
                         </li>
                       ))}
                     </ol>
@@ -294,7 +294,7 @@ function OrdenDelDia({ puntos, onChange }: {
       <div className="space-y-1.5 mb-2">
         {puntos.map((p, i) => (
           <div key={i} className="flex items-center gap-2 rounded-lg bg-[#15151d] border border-[#1f1f2b] px-2.5 py-2">
-            <span className="text-[11px] text-[#5c5c6b] font-mono">{i + 1}.</span>
+            <span className="text-[11px] text-[#7d7d8e] font-mono">{i + 1}.</span>
             <span className="text-[12.5px] text-[#d4d4dd] flex-1 min-w-0 truncate">{p.punto}</span>
             <select value={p.resultado ?? 'pendiente'}
               onChange={e => onChange(puntos.map((x, j) => j === i ? { ...x, resultado: e.target.value as 'aprobado' | 'rechazado' | 'pendiente' } : x))}
@@ -304,7 +304,7 @@ function OrdenDelDia({ puntos, onChange }: {
               <option value="rechazado">rechazado</option>
             </select>
             <button onClick={() => onChange(puntos.filter((_, j) => j !== i))}
-              className="text-[#757584] hover:text-[#ff8a7a] min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center" aria-label="Quitar punto">
+              className="text-[#7d7d8e] hover:text-[#ff8a7a] min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center" aria-label="Quitar punto">
               <Trash2 className="w-3.5 h-3.5" />
             </button>
           </div>

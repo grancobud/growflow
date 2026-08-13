@@ -123,14 +123,14 @@ export default function PlanTab({ salesTodas, proveedores, onUsarPreset }: {
         <div className="px-4 py-3 border-b border-[#1f1f2b] flex items-center gap-2">
           <Beaker className="w-3.5 h-3.5 text-[#a78bfa]" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Calendario</h3>
-          <span className="ml-auto text-[11.5px] text-[#5c5c6b]">tocá una etapa para cargarla</span>
+          <span className="ml-auto text-[11.5px] text-[#7d7d8e]">tocá una etapa para cargarla</span>
         </div>
 
         {/* Desktop */}
         <div className="hidden lg:block overflow-x-auto">
           <table className="w-full text-[13px]">
             <thead>
-              <tr className="text-[11px] uppercase tracking-wide text-[#5c5c6b] border-b border-[#1f1f2b]">
+              <tr className="text-[11px] uppercase tracking-wide text-[#7d7d8e] border-b border-[#1f1f2b]">
                 <th className="text-left font-medium px-4 py-2">Etapa</th>
                 <th className="text-center font-medium px-2 py-2">Sem</th>
                 <th className="text-center font-medium px-2 py-2">EC</th>
@@ -154,7 +154,7 @@ export default function PlanTab({ salesTodas, proveedores, onUsarPreset }: {
                   <td className="px-2 py-2 text-right text-[#a6a6b5] tabular-nums">{f.mikro.toFixed(2)}</td>
                   <td className="px-2 py-2 text-right text-[#a6a6b5] tabular-nums">{f.calcis?.toFixed(2) ?? '—'}</td>
                   <td className="px-2 py-2 text-right text-[#c4b5fd] tabular-nums">{f.finis ? `${f.finis} g` : '—'}</td>
-                  <td className="px-2 py-2 text-right text-[#5c5c6b] tabular-nums">{f.litrosDia}</td>
+                  <td className="px-2 py-2 text-right text-[#7d7d8e] tabular-nums">{f.litrosDia}</td>
                   <td className="px-3 py-2 text-right text-[#ff8a7a] tabular-nums">{money(f.costoComercial)}</td>
                   <td className="px-4 py-2 text-right text-[#bef264] tabular-nums font-medium">{money(f.costoClon)}</td>
                 </tr>
@@ -178,7 +178,7 @@ export default function PlanTab({ salesTodas, proveedores, onUsarPreset }: {
               className={`w-full text-left px-4 py-3 min-h-[44px] hover:bg-[#15151d] transition-colors ${f.ec >= 3 ? 'bg-[#a3e635]/[0.04]' : ''}`}>
               <div className="flex items-baseline justify-between gap-2">
                 <span className="text-[12.5px] font-medium text-[#ececf1]">{f.etapa}</span>
-                <span className="text-[11.5px] text-[#5c5c6b] tabular-nums flex-shrink-0">sem {f.semanas}</span>
+                <span className="text-[11.5px] text-[#7d7d8e] tabular-nums flex-shrink-0">sem {f.semanas}</span>
               </div>
               <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[12px] text-[#8a8a9a] tabular-nums">
                 <span style={{ color: f.ec >= 3 ? '#bef264' : undefined }}>EC {f.ec.toFixed(1)}</span>
@@ -189,7 +189,7 @@ export default function PlanTab({ salesTodas, proveedores, onUsarPreset }: {
               </div>
               <div className="mt-1.5 flex items-baseline gap-3 text-[12.5px] tabular-nums">
                 <span className="text-[#ff8a7a]">{money(f.costoComercial)}</span>
-                <span className="text-[#5c5c6b]">vs</span>
+                <span className="text-[#7d7d8e]">vs</span>
                 <span className="text-[#bef264] font-medium">{money(f.costoClon)}</span>
               </div>
             </button>
@@ -198,7 +198,7 @@ export default function PlanTab({ salesTodas, proveedores, onUsarPreset }: {
             <span className="text-[12.5px] text-[#a6a6b5] font-medium">Total del ciclo</span>
             <span className="text-[13.5px] tabular-nums">
               <span className="text-[#ff8a7a]">{money(tot.comercial)}</span>
-              <span className="text-[#5c5c6b] mx-1.5">vs</span>
+              <span className="text-[#7d7d8e] mx-1.5">vs</span>
               <span className="text-[#bef264] font-semibold">{money(tot.clon)}</span>
             </span>
           </div>
@@ -209,7 +209,7 @@ export default function PlanTab({ salesTodas, proveedores, onUsarPreset }: {
       <section className={`${card} p-4 space-y-2`}>
         {PLAN_CO2.filter(e => e.nota).map(e => (
           <div key={e.presetId} className="flex items-start gap-2">
-            <InfoIcon className="w-3.5 h-3.5 text-[#5c5c6b] flex-shrink-0 mt-px" />
+            <InfoIcon className="w-3.5 h-3.5 text-[#7d7d8e] flex-shrink-0 mt-px" />
             <p className="text-[12.5px] text-[#8a8a9a] leading-relaxed">
               <b className="text-[#a6a6b5]">{e.etapa}:</b> {e.nota}
             </p>
@@ -228,7 +228,7 @@ export default function PlanTab({ salesTodas, proveedores, onUsarPreset }: {
           {compras.map(c => (
             <div key={c.nombre} className="flex items-center gap-3 px-4 py-2.5">
               <span className="text-[13.5px] text-[#d4d4dd] min-w-0 flex-1">{c.nombre}</span>
-              <span className="text-[12px] text-[#5c5c6b] tabular-nums">{c.cant.toFixed(1)} {c.unidad}</span>
+              <span className="text-[12px] text-[#7d7d8e] tabular-nums">{c.cant.toFixed(1)} {c.unidad}</span>
               <span className="text-[12.5px] text-[#a6a6b5] tabular-nums whitespace-nowrap">
                 {c.envases} × {c.envase}{c.unidad === 'kg' ? ' kg' : ' L'}
               </span>
@@ -253,9 +253,9 @@ export default function PlanTab({ salesTodas, proveedores, onUsarPreset }: {
 function Dato({ label, valor, sub, color }: { label: string; valor: string; sub: string; color?: string }) {
   return (
     <div className="rounded-lg bg-[#0d0d13] border border-[#1a1a24] px-3 py-2.5">
-      <div className="text-[11px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium truncate">{label}</div>
+      <div className="text-[11px] uppercase tracking-[0.12em] text-[#7d7d8e] font-medium truncate">{label}</div>
       <div className="mt-1 text-[16px] sm:text-[16px] font-semibold tabular-nums leading-none" style={{ color: color ?? '#ececf1' }}>{valor}</div>
-      <div className="text-[11.5px] text-[#5c5c6b] mt-1 truncate">{sub}</div>
+      <div className="text-[11.5px] text-[#7d7d8e] mt-1 truncate">{sub}</div>
     </div>
   )
 }

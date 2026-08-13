@@ -14,12 +14,12 @@ import {
 } from '../lib/asistencia'
 import { btnPrimario, btnSutil } from '../lib/ui'
 
-const inputCls = 'w-full px-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
-const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
+const inputCls = 'w-full px-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12.5px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1'
 
 const COLOR_ACTIVIDAD: Record<string, string> = {
   Riego: '#38bdf8', Fumigacion: '#f59e0b', Poda: '#c4b5fd', Trasplante: '#bef264',
-  Cosecha: '#a78bfa', Mantenimiento: '#8f8f9f', Limpieza: '#38bdf8', Reunion: '#f59e0b', Otro: '#5c5c6b',
+  Cosecha: '#a78bfa', Mantenimiento: '#8f8f9f', Limpieza: '#38bdf8', Reunion: '#f59e0b', Otro: '#7d7d8e',
 }
 const fmtFechaLarga = (f: string) =>
   new Date(f + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })
@@ -77,7 +77,7 @@ export default function PaginaAsistencia() {
         <div className="flex items-center flex-wrap gap-2 sm:gap-x-4 px-3 sm:px-6 py-3">
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Asistencia</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">{jornadas.length} jornada{jornadas.length === 1 ? '' : 's'} · {growers.length} growers</div>
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">{jornadas.length} jornada{jornadas.length === 1 ? '' : 's'} · {growers.length} growers</div>
           </div>
           <div className="flex-1" />
           <button onClick={() => setModalRoster(true)} className={btnSutil}><UserCog className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Growers</span></button>
@@ -92,9 +92,9 @@ export default function PaginaAsistencia() {
           </div>
         ) : jornadas.length === 0 ? (
           <div className="py-16 text-center">
-            <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><ClipboardCheck className="w-5 h-5 text-[#5c5c6b]" /></div>
+            <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><ClipboardCheck className="w-5 h-5 text-[#7d7d8e]" /></div>
             <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">Sin jornadas registradas</div>
-            <div className="mt-1 text-[11.5px] text-[#5c5c6b]">Tocá "Jornada de hoy" para arrancar la bitácora del día.</div>
+            <div className="mt-1 text-[11.5px] text-[#7d7d8e]">Tocá "Jornada de hoy" para arrancar la bitácora del día.</div>
             {growers.length === 0 && <button onClick={() => setModalRoster(true)} className={`${btnSutil} mt-3`}><Users className="w-3.5 h-3.5" /> Cargar growers primero</button>}
           </div>
         ) : (
@@ -107,9 +107,9 @@ export default function PaginaAsistencia() {
                     <div className="flex items-start gap-2">
                       <button onClick={() => setJornadaSel(j)} className="min-w-0 flex-1 text-left">
                         <div className="font-display font-semibold text-[13.5px] text-[#ececf1] capitalize hover:text-[#bef264] transition-colors">{fmtFechaLarga(j.fecha)}</div>
-                        {j.responsable && <p className="text-[11px] text-[#757584] truncate mt-0.5">Resp.: {j.responsable}</p>}
+                        {j.responsable && <p className="text-[11px] text-[#7d7d8e] truncate mt-0.5">Resp.: {j.responsable}</p>}
                       </button>
-                      <button onClick={() => borrarJornada(j)} className="p-1 text-[#46464f] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded transition-colors flex-shrink-0" title="Borrar jornada"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => borrarJornada(j)} className="p-1 text-[#7d7d8e] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded transition-colors flex-shrink-0" title="Borrar jornada"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                     <div className="mt-3 flex items-center gap-4 text-[11px] text-[#8f8f9f]">
                       <span className="inline-flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-[#bef264]" />{c.presentes} presente{c.presentes === 1 ? '' : 's'}</span>
@@ -142,7 +142,7 @@ function ModalContenedor({ titulo, ancho = 'max-w-2xl', onCerrar, children }: { 
       <div className={`relative w-full ${ancho} max-h-[90vh] overflow-y-auto rounded-xl bg-[#101016] border border-[#2a2a3a] shadow-2xl`}>
         <div className="sticky top-0 bg-[#101016] flex items-center justify-between px-5 py-3.5 border-b border-[#1f1f2b] z-10">
           <h2 className="font-display font-semibold text-[14px] text-[#ececf1] capitalize">{titulo}</h2>
-          <button onClick={onCerrar} className="p-1 text-[#5c5c6b] hover:text-[#ececf1]" aria-label="Cerrar"><X className="w-4 h-4" /></button>
+          <button onClick={onCerrar} className="p-1 text-[#7d7d8e] hover:text-[#ececf1]" aria-label="Cerrar"><X className="w-4 h-4" /></button>
         </div>
         <div className="p-5">{children}</div>
       </div>
@@ -238,10 +238,10 @@ function DetalleJornada({ jornada, growers, onCerrar, onCambio }: {
             <div className="flex items-center gap-2 mb-2">
               <Users className="w-4 h-4 text-[#bef264]" />
               <h3 className="font-display font-semibold text-[12.5px] text-[#ececf1]">Asistencia</h3>
-              <span className="text-[11px] text-[#5c5c6b]">{presentes}/{growers.length} presentes</span>
+              <span className="text-[11px] text-[#7d7d8e]">{presentes}/{growers.length} presentes</span>
             </div>
             {growers.length === 0 ? (
-              <p className="text-[11.5px] text-[#5c5c6b] py-2">No hay growers activos. Cargá el roster desde "Growers".</p>
+              <p className="text-[11.5px] text-[#7d7d8e] py-2">No hay growers activos. Cargá el roster desde "Growers".</p>
             ) : (
               <ul className="space-y-1.5">
                 {growers.map(g => {
@@ -250,16 +250,16 @@ function DetalleJornada({ jornada, growers, onCerrar, onCambio }: {
                   return (
                     <li key={g.id} className="flex items-center gap-2 rounded-lg border border-[#1f1f2b] bg-[#0d0d13] px-3 py-2">
                       <button onClick={() => togglePresente(g)} className="flex-shrink-0" title={presente ? 'Marcar ausente' : 'Marcar presente'}>
-                        {presente ? <CheckCircle2 className="w-5 h-5 text-[#bef264]" /> : <Circle className="w-5 h-5 text-[#46464f]" />}
+                        {presente ? <CheckCircle2 className="w-5 h-5 text-[#bef264]" /> : <Circle className="w-5 h-5 text-[#7d7d8e]" />}
                       </button>
                       <div className="min-w-0 flex-1">
                         <div className="text-[12.5px] text-[#ececf1] truncate">{g.nombre}</div>
-                        <div className="text-[10px] text-[#5c5c6b]">{g.rol}</div>
+                        <div className="text-[10px] text-[#7d7d8e]">{g.rol}</div>
                       </div>
                       {presente && (
                         <div className="flex items-center gap-1.5 flex-shrink-0">
                           <input type="time" value={a?.hora_entrada ?? ''} onChange={e => setHora(g, 'hora_entrada', e.target.value)} className="px-1.5 py-1 rounded bg-[#15151d] border border-[#2a2a3a] text-[11px] text-[#a6a6b5] focus:outline-none focus:border-[#a3e635]/60" title="Entrada" />
-                          <span className="text-[#46464f]">→</span>
+                          <span className="text-[#7d7d8e]">→</span>
                           <input type="time" value={a?.hora_salida ?? ''} onChange={e => setHora(g, 'hora_salida', e.target.value)} className="px-1.5 py-1 rounded bg-[#15151d] border border-[#2a2a3a] text-[11px] text-[#a6a6b5] focus:outline-none focus:border-[#a3e635]/60" title="Salida" />
                         </div>
                       )}
@@ -278,18 +278,18 @@ function DetalleJornada({ jornada, growers, onCerrar, onCambio }: {
             </div>
             <FormActividad growers={growers} onAgregar={agregarActividad} />
             {actividades.length === 0 ? (
-              <p className="text-[11.5px] text-[#5c5c6b] py-3 text-center">Sin actividades cargadas todavía.</p>
+              <p className="text-[11.5px] text-[#7d7d8e] py-3 text-center">Sin actividades cargadas todavía.</p>
             ) : (
               <ul className="mt-3 space-y-1.5">
                 {actividades.map(act => (
                   <li key={act.id} className="group flex items-start gap-2.5 rounded-lg border border-[#1f1f2b] bg-[#0d0d13] px-3 py-2">
-                    <span className="text-[11px] text-[#5c5c6b] tabular-nums font-mono mt-0.5 w-10 flex-shrink-0">{act.hora ?? '--:--'}</span>
+                    <span className="text-[11px] text-[#7d7d8e] tabular-nums font-mono mt-0.5 w-10 flex-shrink-0">{act.hora ?? '--:--'}</span>
                     <span className="px-1.5 py-0.5 rounded text-[10px] font-medium flex-shrink-0" style={{ color: COLOR_ACTIVIDAD[act.tipo], background: `${COLOR_ACTIVIDAD[act.tipo]}1a` }}>{act.tipo}</span>
                     <div className="min-w-0 flex-1">
                       {act.descripcion && <span className="text-[12px] text-[#d4d4dd]">{act.descripcion}</span>}
-                      {act.cultivador_id && <span className="text-[10.5px] text-[#5c5c6b] ml-1.5">· {nombreGrower(act.cultivador_id)}</span>}
+                      {act.cultivador_id && <span className="text-[10.5px] text-[#7d7d8e] ml-1.5">· {nombreGrower(act.cultivador_id)}</span>}
                     </div>
-                    <button onClick={() => borrarActividad(act.id)} className="p-0.5 text-[#46464f] opacity-0 group-hover:opacity-100 hover:text-[#ff8a7a] rounded transition-all flex-shrink-0"><X className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => borrarActividad(act.id)} className="p-0.5 text-[#7d7d8e] opacity-0 group-hover:opacity-100 hover:text-[#ff8a7a] rounded transition-all flex-shrink-0"><X className="w-3.5 h-3.5" /></button>
                   </li>
                 ))}
               </ul>
@@ -375,19 +375,19 @@ function ModalRoster({ growers, onCerrar, onCambio }: { growers: Cultivador[]; o
       </div>
 
       {growers.length === 0 ? (
-        <p className="text-[11.5px] text-[#5c5c6b] py-3 text-center">Todavía no hay growers. Agregá el primero arriba.</p>
+        <p className="text-[11.5px] text-[#7d7d8e] py-3 text-center">Todavía no hay growers. Agregá el primero arriba.</p>
       ) : (
         <ul className="space-y-1.5">
           {growers.map(g => (
             <li key={g.id} className="flex items-center gap-2 rounded-lg border border-[#1f1f2b] bg-[#0d0d13] px-3 py-2">
               <div className="min-w-0 flex-1">
                 <div className="text-[12.5px] text-[#ececf1] truncate">{g.nombre}</div>
-                <div className="text-[10px] text-[#5c5c6b]">{g.rol}{g.telefono ? ` · ${g.telefono}` : ''}</div>
+                <div className="text-[10px] text-[#7d7d8e]">{g.rol}{g.telefono ? ` · ${g.telefono}` : ''}</div>
               </div>
-              <button onClick={() => toggleActivo(g)} className={`px-2 py-1 rounded text-[10px] font-medium ${g.activo ? 'text-[#bef264] bg-[#a3e635]/10' : 'text-[#5c5c6b] bg-[#15151d]'}`} title="Activar/desactivar">
+              <button onClick={() => toggleActivo(g)} className={`px-2 py-1 rounded text-[10px] font-medium ${g.activo ? 'text-[#bef264] bg-[#a3e635]/10' : 'text-[#7d7d8e] bg-[#15151d]'}`} title="Activar/desactivar">
                 {g.activo ? 'Activo' : 'Inactivo'}
               </button>
-              <button onClick={() => borrar(g)} className="p-1 text-[#46464f] hover:text-[#ff8a7a] rounded transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
+              <button onClick={() => borrar(g)} className="p-1 text-[#7d7d8e] hover:text-[#ff8a7a] rounded transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
             </li>
           ))}
         </ul>

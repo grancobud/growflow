@@ -108,7 +108,7 @@ export default function PaginaPanel() {
         <div className="flex items-center gap-2 sm:gap-4 px-3 sm:px-6 py-3">
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Mi Cultivo</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
               Resumen de plantas y actividad
             </div>
           </div>
@@ -200,11 +200,11 @@ export default function PaginaPanel() {
                 className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4 hover:border-[#404d20] transition-colors">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium">{stat.label}</p>
+                    <p className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium">{stat.label}</p>
                     <p className="font-display font-bold tracking-tight text-[24px] sm:text-[28px] text-[#ececf1] mt-1.5 leading-none tabular-nums">
                       {stat.valor.toLocaleString('es-AR')}
                     </p>
-                    <p className="text-[10.5px] text-[#757584] mt-1.5">{stat.hint}</p>
+                    <p className="text-[10.5px] text-[#7d7d8e] mt-1.5">{stat.hint}</p>
                   </div>
                   <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 border"
                     style={{ background: stat.bg, borderColor: stat.border, color: stat.color }}>
@@ -244,10 +244,10 @@ export default function PaginaPanel() {
             ) : plantas.length === 0 ? (
               <div className="px-6 py-10 text-center">
                 <div className="mx-auto w-9 h-9 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-2">
-                  <Sprout className="w-4 h-4 text-[#5c5c6b]" />
+                  <Sprout className="w-4 h-4 text-[#7d7d8e]" />
                 </div>
                 <div className="font-display font-semibold text-[#d4d4dd] text-[13px]">Sin plantas todavía</div>
-                <div className="mt-1 text-[11px] text-[#5c5c6b] max-w-xs mx-auto">Cargá tu primera genética y planta, o mandale un mensaje al bot de Telegram.</div>
+                <div className="mt-1 text-[11px] text-[#7d7d8e] max-w-xs mx-auto">Cargá tu primera genética y planta, o mandale un mensaje al bot de Telegram.</div>
                 <Link to="/plantas" className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[11.5px] font-medium text-[#d9f99d]">
                   <Dna className="w-3 h-3" /> Agregar planta
                 </Link>
@@ -261,7 +261,7 @@ export default function PaginaPanel() {
                     <li key={p.id} className="flex items-center gap-3 px-4 sm:px-5 py-2.5 hover:bg-[#15151d] transition-colors">
                       <div className="flex-1 min-w-0">
                         <p className="text-[12.5px] font-medium text-[#ececf1] truncate leading-tight">{p.nombre}</p>
-                        <p className="text-[10.5px] text-[#757584] truncate mt-0.5">
+                        <p className="text-[10.5px] text-[#7d7d8e] truncate mt-0.5">
                           {p.genetica ?? 'Sin genética'}{p.banco ? ` · ${p.banco}` : ''}
                           {p.dias_de_vida != null ? ` · día ${p.dias_de_vida}` : ''}
                         </p>
@@ -298,10 +298,10 @@ export default function PaginaPanel() {
             ) : eventos.length === 0 ? (
               <div className="px-6 py-10 text-center">
                 <div className="mx-auto w-9 h-9 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-2">
-                  <FileText className="w-4 h-4 text-[#5c5c6b]" />
+                  <FileText className="w-4 h-4 text-[#7d7d8e]" />
                 </div>
                 <div className="font-display font-semibold text-[#d4d4dd] text-[13px]">Sin actividad</div>
-                <div className="mt-1 text-[11px] text-[#5c5c6b]">Los riegos, podas y notas aparecen acá.</div>
+                <div className="mt-1 text-[11px] text-[#7d7d8e]">Los riegos, podas y notas aparecen acá.</div>
               </div>
             ) : (
               <ul className="divide-y divide-[#1f1f2b]">
@@ -315,10 +315,10 @@ export default function PaginaPanel() {
                         {e.tipo} · <span className="text-[#a6a6b5]">{nombrePlanta(e.planta_id)}</span>
                       </p>
                       {e.detalle && (
-                        <p className="text-[10.5px] text-[#757584] truncate mt-0.5">{e.detalle}</p>
+                        <p className="text-[10.5px] text-[#7d7d8e] truncate mt-0.5">{e.detalle}</p>
                       )}
                     </div>
-                    <span className="text-[10.5px] text-[#5c5c6b] tabular-nums font-mono flex-shrink-0">
+                    <span className="text-[10.5px] text-[#7d7d8e] tabular-nums font-mono flex-shrink-0">
                       {new Date(e.fecha + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })}
                     </span>
                   </li>

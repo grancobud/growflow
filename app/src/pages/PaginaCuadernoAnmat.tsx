@@ -176,7 +176,7 @@ export default function PaginaCuadernoAnmat() {
           <BookOpen className="w-4 h-4 text-[#a3e635] flex-shrink-0" strokeWidth={1.8} />
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Cuaderno de Campo</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">ANMAT Res 1780/2025 · {filtradas.length} actividad{filtradas.length === 1 ? '' : 'es'} {camada ? `de ${camada}` : ''}</div>
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">ANMAT Res 1780/2025 · {filtradas.length} actividad{filtradas.length === 1 ? '' : 'es'} {camada ? `de ${camada}` : ''}</div>
           </div>
           <div className="flex-1" />
         </div>
@@ -185,7 +185,7 @@ export default function PaginaCuadernoAnmat() {
         <div className="px-3 sm:px-6 pb-3">
           <div className="flex flex-wrap items-end gap-2 sm:gap-3">
             <div>
-              <label className="block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1">Camada</label>
+              <label className="block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1">Camada</label>
               <select
                 value={camada}
                 onChange={e => setCamada(e.target.value as Camada | '')}
@@ -196,17 +196,17 @@ export default function PaginaCuadernoAnmat() {
               </select>
             </div>
             <div>
-              <label className="block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1">Desde</label>
+              <label className="block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1">Desde</label>
               <input type="date" value={desde} onChange={e => setDesde(e.target.value)}
                 className="px-3 py-1.5 bg-[#101016] border border-[#1f1f2b] rounded-lg text-xs text-[#d4d4dd] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/30" />
             </div>
             <div>
-              <label className="block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1">Hasta</label>
+              <label className="block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1">Hasta</label>
               <input type="date" value={hasta} onChange={e => setHasta(e.target.value)}
                 className="px-3 py-1.5 bg-[#101016] border border-[#1f1f2b] rounded-lg text-xs text-[#d4d4dd] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/30" />
             </div>
             <div>
-              <label className="block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1">Categoria</label>
+              <label className="block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1">Categoria</label>
               <select
                 value={categoria}
                 onChange={e => setCategoria(e.target.value)}
@@ -223,7 +223,7 @@ export default function PaginaCuadernoAnmat() {
               className="p-2 bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] rounded-lg transition-colors disabled:opacity-50"
               title="Refrescar"
             >
-              <RefreshCcw className={`w-3.5 h-3.5 text-[#5c5c6b] ${cargando ? 'animate-spin' : ''}`} />
+              <RefreshCcw className={`w-3.5 h-3.5 text-[#7d7d8e] ${cargando ? 'animate-spin' : ''}`} />
             </button>
             <button
               onClick={() => exportarCSV(filtradas, { camada, desde, hasta })}
@@ -266,13 +266,13 @@ export default function PaginaCuadernoAnmat() {
         )}
 
         {cargando && entradas.length === 0 && (
-          <div className="flex items-center justify-center py-16 text-[#5c5c6b] gap-2">
+          <div className="flex items-center justify-center py-16 text-[#7d7d8e] gap-2">
             <RefreshCcw className="w-4 h-4 animate-spin" /> Cargando cuaderno...
           </div>
         )}
 
         {!cargando && filtradas.length === 0 && (
-          <div className="text-center py-16 text-[#5c5c6b]">
+          <div className="text-center py-16 text-[#7d7d8e]">
             <Filter className="w-10 h-10 mx-auto mb-3 opacity-30" />
             <p className="text-sm">No hay actividades en el rango seleccionado.</p>
           </div>
@@ -293,7 +293,7 @@ export default function PaginaCuadernoAnmat() {
                   {formatearDia(dia)}
                 </h3>
               </div>
-              <span className="text-[10px] text-[#5c5c6b] tabular-nums">{actividades.length} actividad{actividades.length === 1 ? '' : 'es'}</span>
+              <span className="text-[10px] text-[#7d7d8e] tabular-nums">{actividades.length} actividad{actividades.length === 1 ? '' : 'es'}</span>
             </div>
             <div className="divide-y divide-[#1f1f2b]/50">
               {actividades.map(a => {
@@ -311,9 +311,9 @@ export default function PaginaCuadernoAnmat() {
                         {a.sistema && <span className="text-[10px] font-mono px-1.5 py-0.5 bg-[#15151d] border border-[#2a2a3a] rounded">{a.sistema}</span>}
                       </div>
                       <p className="text-[#b3b3c0] text-[11px]">{a.descripcion}</p>
-                      {a.observaciones && <p className="text-[10px] text-[#5c5c6b] italic">{a.observaciones}</p>}
+                      {a.observaciones && <p className="text-[10px] text-[#7d7d8e] italic">{a.observaciones}</p>}
                     </div>
-                    <div className="text-right text-[10px] text-[#5c5c6b] flex-shrink-0 space-y-0.5">
+                    <div className="text-right text-[10px] text-[#7d7d8e] flex-shrink-0 space-y-0.5">
                       {a.responsable && <p className="font-medium text-[#8f8f9f]">{a.responsable}</p>}
                       <p className="font-mono">{a.fecha.length > 10 ? a.fecha.slice(11, 16) : ''}</p>
                     </div>

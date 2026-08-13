@@ -108,7 +108,7 @@ export default function ActivityStream() {
         <div className="flex items-center gap-2 min-w-0">
           <span className="w-1.5 h-1.5 rounded-full bg-[#bef264] shadow-[0_0_6px_rgba(107,207,142,0.8)]" />
           <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Actividad reciente</h3>
-          <span className="text-[10.5px] text-[#5c5c6b] tabular-nums">{filtered.length}</span>
+          <span className="text-[10.5px] text-[#7d7d8e] tabular-nums">{filtered.length}</span>
         </div>
         <button
           onClick={() => setShowFilters(v => !v)}
@@ -142,7 +142,7 @@ export default function ActivityStream() {
                     onClick={() => toggleSector(k)}
                     className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10.5px] font-medium border transition-colors ${
                       off
-                        ? 'bg-transparent border-[#1f1f2b] text-[#5c5c6b]'
+                        ? 'bg-transparent border-[#1f1f2b] text-[#7d7d8e]'
                         : 'bg-[#15151d] border-[#2b2b3a] text-[#d4d4dd]'
                     }`}
                   >
@@ -165,7 +165,7 @@ export default function ActivityStream() {
             <Loader2 className="w-5 h-5 animate-spin text-[#bef264] mx-auto" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="p-8 text-center text-[11.5px] text-[#5c5c6b]">
+          <div className="p-8 text-center text-[11.5px] text-[#7d7d8e]">
             Sin actividad reciente en los sectores seleccionados.
           </div>
         ) : (
@@ -205,11 +205,11 @@ export default function ActivityStream() {
                         <p className="text-[12px] font-medium text-[#ececf1] leading-tight truncate">
                           {def.label}
                         </p>
-                        <p className="text-[10.5px] text-[#757584] mt-0.5 truncate font-mono">
+                        <p className="text-[10.5px] text-[#7d7d8e] mt-0.5 truncate font-mono">
                           {ev.ref || '—'}
                         </p>
                       </div>
-                      <span className="text-[10px] text-[#5c5c6b] flex-shrink-0 mt-0.5 tabular-nums whitespace-nowrap">
+                      <span className="text-[10px] text-[#7d7d8e] flex-shrink-0 mt-0.5 tabular-nums whitespace-nowrap">
                         {rel}
                       </span>
                     </button>

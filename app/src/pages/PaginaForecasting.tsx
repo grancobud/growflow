@@ -159,7 +159,7 @@ export default function PaginaForecasting() {
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">
               Forecasting de Rendimiento
             </h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b] tabular-nums">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e] tabular-nums">
               {cargando
                 ? 'Calculando...'
                 : `${cosechas.length} cosechas históricas · ${proyecciones.length} camadas con data`}
@@ -195,7 +195,7 @@ export default function PaginaForecasting() {
 
         {/* Loading spinner */}
         {cargando && (
-          <div className="py-12 text-center text-[#5c5c6b]">
+          <div className="py-12 text-center text-[#7d7d8e]">
             <RefreshCcw className="w-6 h-6 animate-spin mx-auto mb-2 text-[#bef264]" />
             <p className="text-[12px]">Calculando proyecciones...</p>
           </div>
@@ -206,7 +206,7 @@ export default function PaginaForecasting() {
             {/* KPI globales */}
             <div>
               <div className="flex items-center gap-2 mb-2.5">
-                <span className="text-[10px] uppercase tracking-[0.16em] text-[#5c5c6b] font-medium">Promedios historicos</span>
+                <span className="text-[10px] uppercase tracking-[0.16em] text-[#7d7d8e] font-medium">Promedios historicos</span>
               </div>
               <motion.div
                 className="grid grid-cols-2 lg:grid-cols-4 gap-3"
@@ -244,7 +244,7 @@ export default function PaginaForecasting() {
             {/* Proyeccion para camadas activas (C15, C16) */}
             <div>
               <div className="flex items-center gap-2 mb-2.5">
-                <span className="text-[10px] uppercase tracking-[0.16em] text-[#5c5c6b] font-medium">Proyeccion — camadas en curso</span>
+                <span className="text-[10px] uppercase tracking-[0.16em] text-[#7d7d8e] font-medium">Proyeccion — camadas en curso</span>
                 <span className="px-1.5 py-0.5 rounded-full text-[9.5px] font-bold uppercase tracking-wider border border-[#463a66]/60 bg-[#463a66]/20 text-[#c4b5fd]">
                   PRÓXIMAS
                 </span>
@@ -263,14 +263,14 @@ export default function PaginaForecasting() {
             {/* Tabla historica por camada */}
             <div>
               <div className="flex items-center gap-2 mb-2.5">
-                <span className="text-[10px] uppercase tracking-[0.16em] text-[#5c5c6b] font-medium">Historicos por camada + sistema</span>
+                <span className="text-[10px] uppercase tracking-[0.16em] text-[#7d7d8e] font-medium">Historicos por camada + sistema</span>
               </div>
 
               {proyecciones.length === 0 ? (
                 <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-8 text-center">
                   <Calendar className="w-8 h-8 mx-auto mb-2 text-[#3a4840]" />
                   <p className="text-[12.5px] text-[#8f8f9f] font-medium">Todavia no hay cosechas con camada+sistema registradas.</p>
-                  <p className="text-[11px] text-[#5c5c6b] mt-1">Carga cosechas desde /operacion para ir acumulando data historica.</p>
+                  <p className="text-[11px] text-[#7d7d8e] mt-1">Carga cosechas desde /operacion para ir acumulando data historica.</p>
                 </div>
               ) : (
                 <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-x-auto">
@@ -278,7 +278,7 @@ export default function PaginaForecasting() {
                     <thead className="border-b border-[#1f1f2b]">
                       <tr>
                         {['Camada','Sistema','N°','Ø Plantas','Ø Fresco','Ø Seco','Ø g/pl fresco','Ø g/pl seco','Ø Rend.','Ultima'].map(h => (
-                          <th key={h} className="px-3 py-2.5 text-left text-[9.5px] font-semibold uppercase tracking-[0.12em] text-[#5c5c6b] whitespace-nowrap first:text-left last:text-left text-right first:[&]:text-left">
+                          <th key={h} className="px-3 py-2.5 text-left text-[9.5px] font-semibold uppercase tracking-[0.12em] text-[#7d7d8e] whitespace-nowrap first:text-left last:text-left text-right first:[&]:text-left">
                             {h}
                           </th>
                         ))}
@@ -306,7 +306,7 @@ export default function PaginaForecasting() {
                               ? `${(p.rendimiento_seco_vs_fresco * 100).toFixed(1)}%`
                               : '—'}
                           </td>
-                          <td className="px-3 py-2 text-[#5c5c6b] font-mono tabular-nums">{p.ultima_cosecha?.slice(0, 10) ?? '—'}</td>
+                          <td className="px-3 py-2 text-[#7d7d8e] font-mono tabular-nums">{p.ultima_cosecha?.slice(0, 10) ?? '—'}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -335,7 +335,7 @@ function KpiCard({ icon: Icon, label, valor, tone }: {
       className="rounded-xl bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] transition-colors p-4"
     >
       <div className="flex items-start justify-between gap-2 mb-2">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-[#5c5c6b]">{label}</p>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-[#7d7d8e]">{label}</p>
         <div className={`w-7 h-7 rounded-lg border flex items-center justify-center flex-shrink-0 ${iconStyle}`}>
           <Icon className="w-3.5 h-3.5" strokeWidth={2} />
         </div>
@@ -372,19 +372,19 @@ function ProyeccionCamada({
           </div>
           <div>
             <p className="text-[13px] font-display font-semibold text-[#ececf1]">Proyeccion {camada}</p>
-            <p className="text-[10px] text-[#5c5c6b]">
+            <p className="text-[10px] text-[#7d7d8e]">
               {sinDataPropia ? 'Sin historicos propios — promedio general' : 'Basado en historicos propios'}
             </p>
           </div>
         </div>
-        <span className="text-[10px] text-[#5c5c6b] flex items-center gap-1 font-mono">
+        <span className="text-[10px] text-[#7d7d8e] flex items-center gap-1 font-mono">
           <Calendar className="w-3 h-3" />
           ~{CICLO_DIAS_ESTIMADO}d
         </span>
       </div>
 
       <div className="mb-3">
-        <label className="block text-[10px] font-semibold uppercase tracking-[0.12em] text-[#5c5c6b] mb-1">
+        <label className="block text-[10px] font-semibold uppercase tracking-[0.12em] text-[#7d7d8e] mb-1">
           Plantas esperadas
         </label>
         <input

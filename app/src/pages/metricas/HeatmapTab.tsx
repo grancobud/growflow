@@ -42,7 +42,7 @@ export default function HeatmapTab({ metricas }: { metricas: any }) {
           <Grid3x3 className="w-3.5 h-3.5 text-[#bef264] flex-shrink-0" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[13px] text-[#ececf1] truncate">Densidad camada × etapa</h3>
         </div>
-        <span className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium">
+        <span className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium">
           intensidad = cantidad de lotes
         </span>
       </div>
@@ -117,7 +117,7 @@ export default function HeatmapTab({ metricas }: { metricas: any }) {
 
         {/* Legend bar */}
         <div className="mt-3 flex items-center justify-end gap-2">
-          <span className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium">menos</span>
+          <span className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium">menos</span>
           <div
             className="h-1.5 w-32 rounded-full"
             style={{
@@ -125,7 +125,7 @@ export default function HeatmapTab({ metricas }: { metricas: any }) {
                 'linear-gradient(90deg, #101016 0%, #404d20 25%, #a3e635 55%, #d9f99d 80%, #c4b5fd 100%)',
             }}
           />
-          <span className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium">más</span>
+          <span className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium">más</span>
         </div>
       </div>
     </motion.div>

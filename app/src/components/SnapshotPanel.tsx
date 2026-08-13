@@ -47,8 +47,8 @@ export default function SnapshotPanel({ camada }: { camada: string }) {
     return (
       <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4">
         <div className="flex items-center gap-2">
-          <Database className="w-3.5 h-3.5 text-[#5c5c6b] animate-pulse" />
-          <span className="text-[11.5px] text-[#5c5c6b]">Cargando snapshot…</span>
+          <Database className="w-3.5 h-3.5 text-[#7d7d8e] animate-pulse" />
+          <span className="text-[11.5px] text-[#7d7d8e]">Cargando snapshot…</span>
         </div>
       </div>
     )
@@ -110,7 +110,7 @@ export default function SnapshotPanel({ camada }: { camada: string }) {
               </span>
             )}
           </div>
-          <div className="mt-0.5 text-[10.5px] text-[#5c5c6b] tabular-nums">
+          <div className="mt-0.5 text-[10.5px] text-[#7d7d8e] tabular-nums">
             <span className="font-mono text-[#a6a6b5]">{snap.codigo_cl || '—'}</span>
             <span className="mx-1.5 text-[#30303e]">·</span>
             {snap.yield_kg ? <><span className="text-[#c4b5fd]">{Number(snap.yield_kg).toFixed(2)} kg</span> · </> : null}
@@ -127,7 +127,7 @@ export default function SnapshotPanel({ camada }: { camada: string }) {
           <span className="hidden sm:inline">{recalc ? 'Calc…' : 'Recalc'}</span>
         </button>
         <ChevronDown
-          className={`w-3.5 h-3.5 text-[#5c5c6b] transition-transform flex-shrink-0 ${open ? 'rotate-180' : ''}`}
+          className={`w-3.5 h-3.5 text-[#7d7d8e] transition-transform flex-shrink-0 ${open ? 'rotate-180' : ''}`}
         />
       </button>
 
@@ -169,7 +169,7 @@ export default function SnapshotPanel({ camada }: { camada: string }) {
 
             {snap.fuente && Object.keys(snap.fuente).length > 0 && (
               <div className="px-4 pb-3 -mt-2">
-                <div className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1">Fuente / notas</div>
+                <div className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1">Fuente / notas</div>
                 <pre className="text-[10.5px] text-[#a6a6b5] font-mono bg-[#15151d] border border-[#1f1f2b] rounded p-2 overflow-x-auto">
                   {JSON.stringify(snap.fuente, null, 2)}
                 </pre>
@@ -185,11 +185,11 @@ export default function SnapshotPanel({ camada }: { camada: string }) {
 function KV({ label, value, mono, accent }: { label: string; value: any; mono?: boolean; accent?: boolean }) {
   return (
     <div>
-      <div className="text-[9.5px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium">{label}</div>
+      <div className="text-[9.5px] uppercase tracking-[0.12em] text-[#7d7d8e] font-medium">{label}</div>
       <div
         className={`mt-0.5 ${mono ? 'font-mono tabular-nums' : ''} ${accent ? 'text-[#c4b5fd]' : 'text-[#d4d4dd]'}`}
       >
-        {value ?? <span className="text-[#46464f]">—</span>}
+        {value ?? <span className="text-[#7d7d8e]">—</span>}
       </div>
     </div>
   )

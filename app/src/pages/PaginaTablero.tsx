@@ -87,7 +87,7 @@ export default function PaginaTablero() {
           <Zap className="w-4 h-4 text-[#a3e635] flex-shrink-0" strokeWidth={1.8} />
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Tablero eléctrico</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
               Documentación de tableros del cultivo<span className="hidden sm:inline"><span className="text-[#30303e] mx-1">│</span>cargas · protecciones · contactores · unifilar</span>
             </div>
           </div>
@@ -97,7 +97,7 @@ export default function PaginaTablero() {
         <div className="flex gap-1 px-3 sm:px-6 w-full">
           {([['doc', 'Documentación', FileText], ['unifilar', 'Unifilar', Cable], ['guia', 'Guía & compras', ShoppingCart]] as const).map(([id, label, Icon]) => (
             <button key={id} onClick={() => setTab(id)}
-              className={`flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium border-b-2 transition-colors ${tab === id ? 'border-[#a3e635] text-[#ececf1]' : 'border-transparent text-[#6b6b7b] hover:text-[#9a9aad]'}`}>
+              className={`flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium border-b-2 transition-colors ${tab === id ? 'border-[#a3e635] text-[#ececf1]' : 'border-transparent text-[#7d7d8e] hover:text-[#9a9aad]'}`}>
               <Icon className="w-3.5 h-3.5" strokeWidth={1.8} />{label}
             </button>
           ))}
@@ -135,7 +135,7 @@ function DocTab(p: any) {
   if (!tableros.length) return (
     <div className="text-center py-16">
       <Zap className="w-10 h-10 text-[#30303e] mx-auto mb-3" strokeWidth={1.5} />
-      <p className="text-[13px] text-[#6b6b7b] mb-4">No hay tableros cargados todavía.</p>
+      <p className="text-[13px] text-[#7d7d8e] mb-4">No hay tableros cargados todavía.</p>
       <button onClick={onNuevoTablero} className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#a3e635] text-[#0a0a0f] rounded-lg text-[12px] font-semibold hover:bg-[#bef264]">
         <Plus className="w-4 h-4" />Crear primer tablero
       </button>
@@ -152,7 +152,7 @@ function DocTab(p: any) {
             {t.nombre}
           </button>
         ))}
-        <button onClick={onNuevoTablero} className="px-2.5 py-1.5 rounded-lg text-[12px] border border-dashed border-[#2f2f3d] text-[#6b6b7b] hover:text-[#a3e635] hover:border-[#a3e635]/40">
+        <button onClick={onNuevoTablero} className="px-2.5 py-1.5 rounded-lg text-[12px] border border-dashed border-[#2f2f3d] text-[#7d7d8e] hover:text-[#a3e635] hover:border-[#a3e635]/40">
           <Plus className="w-3.5 h-3.5 inline" /> Tablero
         </button>
       </div>
@@ -164,17 +164,17 @@ function DocTab(p: any) {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h2 className="text-[15px] font-semibold text-[#ececf1]">{sel.nombre}</h2>
-                <div className="mt-1 text-[11.5px] text-[#6b6b7b] flex flex-wrap gap-x-3 gap-y-0.5">
+                <div className="mt-1 text-[11.5px] text-[#7d7d8e] flex flex-wrap gap-x-3 gap-y-0.5">
                   {sel.ubicacion && <span>📍 {sel.ubicacion}</span>}
                   <span>{sel.tension === 'tri' ? 'Trifásico' : 'Monofásico'} {TENSION_LINEA}V</span>
                   {sel.acometida_a != null && <span>Acometida {fmt(sel.acometida_a, 0)}A</span>}
                 </div>
                 {sel.proteccion_general && <div className="mt-1 text-[11px] text-[#8a8a9a]">General: {sel.proteccion_general}</div>}
-                {sel.notas && <div className="mt-1 text-[11px] text-[#6b6b7b] italic">{sel.notas}</div>}
+                {sel.notas && <div className="mt-1 text-[11px] text-[#7d7d8e] italic">{sel.notas}</div>}
               </div>
               <div className="flex gap-1">
-                <button onClick={() => onEditTablero(sel)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#6b6b7b] hover:text-[#a3e635]"><Pencil className="w-3.5 h-3.5" /></button>
-                <button onClick={() => onBorrarTablero(sel.id)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#6b6b7b] hover:text-[#ef4444]"><Trash2 className="w-3.5 h-3.5" /></button>
+                <button onClick={() => onEditTablero(sel)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#7d7d8e] hover:text-[#a3e635]"><Pencil className="w-3.5 h-3.5" /></button>
+                <button onClick={() => onBorrarTablero(sel.id)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#7d7d8e] hover:text-[#ef4444]"><Trash2 className="w-3.5 h-3.5" /></button>
               </div>
             </div>
             <div className="mt-3 grid grid-cols-3 gap-2">
@@ -199,7 +199,7 @@ function DocTab(p: any) {
           </div>
 
           {!circuitos.length ? (
-            <p className="text-[12px] text-[#6b6b7b] text-center py-6">Sin circuitos. Agregá las cargas del tablero.</p>
+            <p className="text-[12px] text-[#7d7d8e] text-center py-6">Sin circuitos. Agregá las cargas del tablero.</p>
           ) : (
             <div className="space-y-2">
               {circuitos.map((c: Circuito) => {
@@ -215,8 +215,8 @@ function DocTab(p: any) {
                         <div className="flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: COLOR_TIPO[c.tipo] }} />
                           <span className="text-[13px] font-medium text-[#ececf1] truncate">{c.nombre}</span>
-                          <span className="text-[10px] text-[#6b6b7b] px-1.5 py-0.5 bg-[#181820] rounded">{info?.label}</span>
-                          {c.sala && <span className="text-[10px] text-[#6b6b7b]">· {c.sala}</span>}
+                          <span className="text-[10px] text-[#7d7d8e] px-1.5 py-0.5 bg-[#181820] rounded">{info?.label}</span>
+                          {c.sala && <span className="text-[10px] text-[#7d7d8e]">· {c.sala}</span>}
                         </div>
                         <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-[#8a8a9a]">
                           {c.potencia_w != null && <span>{fmt(c.potencia_w, 0)} W</span>}
@@ -225,15 +225,15 @@ function DocTab(p: any) {
                           <span>Cable: <b className="text-[#d4d4dd]">{c.seccion_cable_mm2 ? `${c.seccion_cable_mm2}mm²` : (cabSug ? `${cabSug}mm² (sug.)` : '—')}</b></span>
                         </div>
                         {(c.contactor || contactor) && (
-                          <div className="mt-1 text-[10.5px] text-[#6b6b7b]">
+                          <div className="mt-1 text-[10.5px] text-[#7d7d8e]">
                             Contactor: <span className="text-[#9a9aad]">{c.contactor || (contactor ? 'requiere (carga inductiva)' : '—')}</span>
                           </div>
                         )}
-                        {c.notas && <div className="mt-1 text-[10.5px] text-[#6b6b7b] italic">{c.notas}</div>}
+                        {c.notas && <div className="mt-1 text-[10.5px] text-[#7d7d8e] italic">{c.notas}</div>}
                       </div>
                       <div className="flex gap-1 flex-shrink-0">
-                        <button onClick={() => onEditCircuito(c)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#6b6b7b] hover:text-[#a3e635]"><Pencil className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => onBorrarCircuito(c.id)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#6b6b7b] hover:text-[#ef4444]"><Trash2 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => onEditCircuito(c)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#7d7d8e] hover:text-[#a3e635]"><Pencil className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => onBorrarCircuito(c.id)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#7d7d8e] hover:text-[#ef4444]"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     </div>
                   </div>
@@ -250,7 +250,7 @@ function DocTab(p: any) {
 function Stat({ label, valor }: { label: string; valor: string }) {
   return (
     <div className="bg-[#0d0d13] border border-[#1a1a24] rounded-lg px-2.5 py-2">
-      <div className="text-[9.5px] text-[#5c5c6b] uppercase tracking-wide">{label}</div>
+      <div className="text-[9.5px] text-[#7d7d8e] uppercase tracking-wide">{label}</div>
       <div className="text-[15px] font-semibold text-[#ececf1] mt-0.5">{valor}</div>
     </div>
   )
@@ -259,8 +259,8 @@ function Stat({ label, valor }: { label: string; valor: string }) {
 // --- Unifilar (SVG generado) -------------------------------------------------
 
 function UnifilarTab({ sel, circuitos, resumen }: { sel: Tablero | null; circuitos: Circuito[]; resumen: any }) {
-  if (!sel) return <p className="text-[12px] text-[#6b6b7b] text-center py-16">Seleccioná un tablero en la pestaña Documentación.</p>
-  if (!circuitos.length) return <p className="text-[12px] text-[#6b6b7b] text-center py-16">Este tablero no tiene circuitos para diagramar.</p>
+  if (!sel) return <p className="text-[12px] text-[#7d7d8e] text-center py-16">Seleccioná un tablero en la pestaña Documentación.</p>
+  if (!circuitos.length) return <p className="text-[12px] text-[#7d7d8e] text-center py-16">Este tablero no tiene circuitos para diagramar.</p>
 
   const rowH = 62, top = 120, busX = 130, w = 900
   const h = top + circuitos.length * rowH + 30
@@ -308,7 +308,7 @@ function UnifilarTab({ sel, circuitos, resumen }: { sel: Tablero | null; circuit
           )
         })}
       </svg>
-      <p className="text-[10px] text-[#5c5c6b] mt-2 px-1">
+      <p className="text-[10px] text-[#7d7d8e] mt-2 px-1">
         KM = contactor. Valores "sug." son orientativos (AEA 90364 simplificada). El dimensionamiento final lo valida un matriculado.
       </p>
     </div>
@@ -345,7 +345,7 @@ function GuiaTab() {
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─ ÓSMOSIS<br />
           Automatización: nivel &lt;30% → ON · nivel &gt;90% → OFF
         </div>
-        <p className="mt-2 text-[11px] text-[#6b6b7b]">Con 32A el interruptor maneja la bomba directo (no hace falta contactor). El botón manual del Gralf sirve si se cae el WiFi.</p>
+        <p className="mt-2 text-[11px] text-[#7d7d8e]">Con 32A el interruptor maneja la bomba directo (no hace falta contactor). El botón manual del Gralf sirve si se cae el WiFi.</p>
       </Bloque>
 
       <Bloque titulo="Software para diseñar el tablero (gratis)">
@@ -354,7 +354,7 @@ function GuiaTab() {
           <li>• <b className="text-[#ececf1]">SIMARIS Design / ABB DOC</b> — dimensiona protecciones, cables y selectividad.</li>
           <li>• <b className="text-[#ececf1]">QElectroTech</b> — el plano definitivo (open source, no ata a marca).</li>
         </ul>
-        <p className="mt-2 text-[11px] text-[#6b6b7b]">No se integran por archivo: los datos pasan a mano. Flujo: dimensionar → simular → dibujar.</p>
+        <p className="mt-2 text-[11px] text-[#7d7d8e]">No se integran por archivo: los datos pasan a mano. Flujo: dimensionar → simular → dibujar.</p>
       </Bloque>
     </div>
   )
@@ -389,7 +389,7 @@ function ModalBase({ titulo, onCerrar, children }: { titulo: string; onCerrar: (
       <div className="bg-[#101016] border border-[#1f1f2b] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 bg-[#101016] border-b border-[#1f1f2b] px-4 py-3 flex items-center justify-between">
           <h3 className="text-[14px] font-semibold text-[#ececf1]">{titulo}</h3>
-          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#6b6b7b] hover:text-[#ececf1]"><X className="w-4 h-4" /></button>
+          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#7d7d8e] hover:text-[#ececf1]"><X className="w-4 h-4" /></button>
         </div>
         <div className="p-4 space-y-3">{children}</div>
       </div>

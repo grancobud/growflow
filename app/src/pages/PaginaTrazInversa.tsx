@@ -50,7 +50,7 @@ export default function PaginaTrazInversa() {
           <GitBranch className="w-4 h-4 text-[#a3e635] flex-shrink-0" strokeWidth={1.8} />
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Trazabilidad Inversa</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
               Del producto final al origen genetico
               <span className="hidden sm:inline"><span className="text-[#30303e] mx-1">│</span> sale-to-seed</span>
             </div>
@@ -73,13 +73,13 @@ export default function PaginaTrazInversa() {
           </p>
           <div className="flex flex-col sm:flex-row gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5c5c6b] pointer-events-none" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7d7d8e] pointer-events-none" />
               <input
                 type="text"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="25.FIS.BI1.C7.1  ·  ALM-C9-COCO  ·  25.Tr8.Ka.PM4.C11"
-                className="w-full pl-9 pr-3 py-2.5 bg-[#0a0a0f] border border-[#1f1f2b] focus:border-[#404d20] rounded-md text-[12.5px] text-[#ececf1] placeholder:text-[#5c5c6b] font-mono outline-none transition-colors"
+                className="w-full pl-9 pr-3 py-2.5 bg-[#0a0a0f] border border-[#1f1f2b] focus:border-[#404d20] rounded-md text-[12.5px] text-[#ececf1] placeholder:text-[#7d7d8e] font-mono outline-none transition-colors"
               />
             </div>
             <button
@@ -111,8 +111,8 @@ export default function PaginaTrazInversa() {
               className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-8 text-center"
             >
               <GitBranch className="w-10 h-10 text-[#2a2a3a] mx-auto mb-3" />
-              <p className="text-[12.5px] text-[#5c5c6b]">Ingresa un codigo de lote para ver la cadena inversa</p>
-              <p className="text-[11px] text-[#46464f] mt-1">Ej: 25.PM4.CL11.Li2.VG001.SF2</p>
+              <p className="text-[12.5px] text-[#7d7d8e]">Ingresa un codigo de lote para ver la cadena inversa</p>
+              <p className="text-[11px] text-[#7d7d8e] mt-1">Ej: 25.PM4.CL11.Li2.VG001.SF2</p>
             </motion.div>
           )}
 
@@ -129,11 +129,11 @@ export default function PaginaTrazInversa() {
                   <CheckCircle2 className="w-6 h-6 text-[#a3e635]" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium">Cadena encontrada</p>
+                  <p className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium">Cadena encontrada</p>
                   <p className="font-mono font-bold text-[#ececf1] text-[16px] break-all">{traza.codigo_buscado}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium">Camada</p>
+                  <p className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium">Camada</p>
                   <p className="font-bold font-display text-[22px] text-[#c4b5fd] tabular-nums">{traza.camada}</p>
                 </div>
               </div>
@@ -143,7 +143,7 @@ export default function PaginaTrazInversa() {
                 <h3 className="text-[13px] font-display font-bold text-[#ececf1] mb-4 flex items-center gap-2">
                   <ArrowDown className="w-4 h-4 text-[#a3e635]" />
                   Cadena inversa completa (sale → seed)
-                  <span className="text-[11px] font-normal text-[#5c5c6b]">{traza.cadena.length} etapas</span>
+                  <span className="text-[11px] font-normal text-[#7d7d8e]">{traza.cadena.length} etapas</span>
                 </h3>
                 <motion.ol
                   className="space-y-0"
@@ -168,7 +168,7 @@ export default function PaginaTrazInversa() {
                           </div>
                           <div className="flex-1 min-w-0 pb-3">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium">
+                              <span className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium">
                                 {e.tipo_producto.replace(/_/g, ' ')}
                               </span>
                               {e.sistema && (
@@ -183,7 +183,7 @@ export default function PaginaTrazInversa() {
                             >
                               {e.codigo_lote}
                             </Link>
-                            <p className="text-[11px] text-[#5c5c6b] mt-0.5">
+                            <p className="text-[11px] text-[#7d7d8e] mt-0.5">
                               {e.producto} · <span className="tabular-nums">{e.cantidad}</span> unid · <span className="tabular-nums">{e.fecha}</span>
                             </p>
                           </div>
@@ -200,14 +200,14 @@ export default function PaginaTrazInversa() {
                   <h3 className="text-[13px] font-display font-bold text-[#ececf1] mb-3 flex items-center gap-2">
                     <FlaskConical className="w-4 h-4 text-[#a3e635]" />
                     Analisis de laboratorio
-                    <span className="text-[11px] font-normal text-[#5c5c6b]">({traza.analisis_asociados.length})</span>
+                    <span className="text-[11px] font-normal text-[#7d7d8e]">({traza.analisis_asociados.length})</span>
                   </h3>
                   <ul className="divide-y divide-[#1f1f2b]">
                     {traza.analisis_asociados.map((a: any, i: number) => (
                       <li key={i} className="flex items-center gap-3 py-2 text-[11.5px] flex-wrap">
                         <span className="font-mono font-semibold text-[#bef264]">{a.numero_certificado}</span>
                         <span className="text-[#d4d4dd]">{a.laboratorio_nombre}</span>
-                        <span className="text-[#5c5c6b] tabular-nums">{a.fecha_analisis}</span>
+                        <span className="text-[#7d7d8e] tabular-nums">{a.fecha_analisis}</span>
                         <span className="ml-auto px-2 py-0.5 rounded-md bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] font-semibold text-[10px] uppercase">
                           {a.resultado_general}
                         </span>

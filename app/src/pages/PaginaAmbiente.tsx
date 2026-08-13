@@ -221,7 +221,7 @@ export default function PaginaAmbiente() {
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1] flex items-center gap-2">
               <Activity className="w-4 h-4 text-[#bef264]" /> Ambiente
             </h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
               En vivo · {data?.sala?.nombre || 'Sala'}{data?.ciclo ? ` · ciclo ${fmtFecha(data.ciclo.inicio)}–${fmtFecha(data.ciclo.fin)}` : ''}
             </div>
           </div>
@@ -258,7 +258,7 @@ export default function PaginaAmbiente() {
           <div className="py-16 text-center">
             <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><WifiOff className="w-5 h-5 text-[#ff8a7a]" /></div>
             <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">Sin conexión con Growcast</div>
-            <div className="mt-1 text-[11.5px] text-[#5c5c6b] max-w-sm mx-auto">{error}. Verificá que n8n y la PC estén prendidos.</div>
+            <div className="mt-1 text-[11.5px] text-[#7d7d8e] max-w-sm mx-auto">{error}. Verificá que n8n y la PC estén prendidos.</div>
             <button onClick={() => cargar(true)} className="mt-3 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[12px] font-medium text-[#d9f99d]"><RefreshCw className="w-3.5 h-3.5" /> Reintentar</button>
           </div>
         ) : (
@@ -275,7 +275,7 @@ export default function PaginaAmbiente() {
                       <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${s.color}1f`, border: `1px solid ${s.color}40` }}>
                         <s.icono className="w-3.5 h-3.5" style={{ color: s.color }} />
                       </div>
-                      <div className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] flex-1">{s.label}</div>
+                      <div className="text-[10px] uppercase tracking-[0.12em] text-[#7d7d8e] flex-1">{s.label}</div>
                       {est && est !== 'ok' && <span className="w-1.5 h-1.5 rounded-full" style={{ background: col }} title={est} />}
                     </div>
                     <div className="mt-2.5 flex items-baseline gap-1.5">
@@ -284,7 +284,7 @@ export default function PaginaAmbiente() {
                           <span className="font-display font-bold text-[30px] leading-none tabular-nums" style={{ color: est && est !== 'ok' ? col : '#ececf1' }}>
                             {v ? Number(v.value).toFixed(s.decimales) : '—'}
                           </span>
-                          <span className="text-[12px] text-[#757584]">{s.unidad}</span>
+                          <span className="text-[12px] text-[#7d7d8e]">{s.unidad}</span>
                         </>
                       )}
                     </div>
@@ -299,7 +299,7 @@ export default function PaginaAmbiente() {
               <div className="flex items-center gap-2 px-4 py-3 border-b border-[#1f1f2b]">
                 <Power className="w-4 h-4 text-[#bef264]" />
                 <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Salidas y automatizaciones</h3>
-                <span className="hidden sm:inline text-[10.5px] text-[#5c5c6b]">cómo se prende y apaga cada cosa</span>
+                <span className="hidden sm:inline text-[10.5px] text-[#7d7d8e]">cómo se prende y apaga cada cosa</span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5 p-4">
                 {SALIDAS_DEF.map(o => {
@@ -309,14 +309,14 @@ export default function PaginaAmbiente() {
                   return (
                     <div key={o.key} className="rounded-lg bg-[#15151d] border border-[#1f1f2b] px-3 py-2.5">
                       <div className="flex items-center gap-2.5">
-                        <o.icono className="w-4 h-4 flex-shrink-0" style={{ color: on ? '#bef264' : '#5c5c6b' }} />
+                        <o.icono className="w-4 h-4 flex-shrink-0" style={{ color: on ? '#bef264' : '#7d7d8e' }} />
                         <span className="text-[12.5px] text-[#ececf1] flex-1 truncate">{o.label}</span>
-                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${on ? 'text-[#d9f99d] bg-[#a3e635]/10 border border-[#404d20]' : 'text-[#757584] bg-[#1c1c27] border border-[#2a2a3a]'}`}>
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${on ? 'text-[#d9f99d] bg-[#a3e635]/10 border border-[#404d20]' : 'text-[#7d7d8e] bg-[#1c1c27] border border-[#2a2a3a]'}`}>
                           {st?.on == null ? '—' : on ? 'ON' : 'OFF'}
                         </span>
                       </div>
                       <div className="mt-1.5 flex items-center gap-1.5 text-[10.5px] text-[#a6a6b5]">
-                        <pa.icono className="w-3 h-3 flex-shrink-0 text-[#757584]" />
+                        <pa.icono className="w-3 h-3 flex-shrink-0 text-[#7d7d8e]" />
                         <span className="truncate">{pa.texto || pa.modo}</span>
                       </div>
                     </div>
@@ -331,15 +331,15 @@ export default function PaginaAmbiente() {
                 <Sparkles className="w-4 h-4 text-[#bef264]" />
                 <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Análisis y recomendaciones</h3>
                 <div className="flex-1" />
-                <span className="text-[10px] text-[#5c5c6b]">Etapa:</span>
+                <span className="text-[10px] text-[#7d7d8e]">Etapa:</span>
                 <div className="flex gap-1">
                   {(['vegetativo', 'floracion'] as Etapa[]).map(e => (
                     <button key={e} onClick={() => setEtapaManual(e)}
-                      className={`px-2 py-1 rounded-md text-[10.5px] font-medium border transition-colors ${etapa === e ? 'border-[#463a66] bg-[#a78bfa]/12 text-[#c4b5fd]' : 'border-[#2a2a3a] bg-[#15151d] text-[#757584] hover:text-[#a6a6b5]'}`}>
+                      className={`px-2 py-1 rounded-md text-[10.5px] font-medium border transition-colors ${etapa === e ? 'border-[#463a66] bg-[#a78bfa]/12 text-[#c4b5fd]' : 'border-[#2a2a3a] bg-[#15151d] text-[#7d7d8e] hover:text-[#a6a6b5]'}`}>
                       {ETAPA_LABEL[e]}
                     </button>
                   ))}
-                  {etapaManual && <button onClick={() => setEtapaManual(null)} title="Volver a automático" className="px-2 py-1 rounded-md text-[10.5px] border border-[#2a2a3a] bg-[#15151d] text-[#757584] hover:text-[#a6a6b5]">Auto</button>}
+                  {etapaManual && <button onClick={() => setEtapaManual(null)} title="Volver a automático" className="px-2 py-1 rounded-md text-[10.5px] border border-[#2a2a3a] bg-[#15151d] text-[#7d7d8e] hover:text-[#a6a6b5]">Auto</button>}
                 </div>
               </div>
               <ul className="divide-y divide-[#1f1f2b]/60">
@@ -354,12 +354,12 @@ export default function PaginaAmbiente() {
                   )
                 })}
               </ul>
-              <div className="px-4 py-2.5 border-t border-[#1f1f2b] text-[10px] text-[#5c5c6b]">
+              <div className="px-4 py-2.5 border-t border-[#1f1f2b] text-[10px] text-[#7d7d8e]">
                 Rangos para {ETAPA_LABEL[etapa]}: temp/HR/CO₂ (Athena/Pulse) y VPD calculado de temp+HR (método calculadora VPD). Vos ajustás las automatizaciones en Growcast; acá solo se sugiere.
               </div>
             </div>
 
-            <div className="text-[10.5px] text-[#5c5c6b] flex items-center gap-1.5">
+            <div className="text-[10.5px] text-[#7d7d8e] flex items-center gap-1.5">
               <RefreshCw className="w-3 h-3" /> Actualiza cada {INTERVALO_S}s · última lectura {fmtHora(ultima?.toISOString())}
               {data?.sensores?.temperatura?.ts && <span>· dato del sensor {fmtHora(data.sensores.temperatura.ts)}</span>}
             </div>
@@ -376,7 +376,7 @@ function Campo({ label, valor }: { label: string; valor: React.ReactNode }) {
   if (valor == null || valor === '') return null
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] mb-0.5">{label}</div>
+      <div className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] mb-0.5">{label}</div>
       <div className="text-[12.5px] text-[#ececf1]">{valor}</div>
     </div>
   )
@@ -388,7 +388,7 @@ function ModalFicha({ sala, ciclo, onCerrar }: { sala: Sala; ciclo: Live['ciclo'
       <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 bg-[#0d0d12] border-b border-[#1f1f2b] px-4 py-3 flex items-center justify-between">
           <h2 className="font-display font-bold text-[15px] text-[#ececf1] flex items-center gap-2"><ClipboardList className="w-4 h-4 text-[#bef264]" /> {sala.nombre || 'Sala'}</h2>
-          <button onClick={onCerrar} className="p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
+          <button onClick={onCerrar} className="p-1 text-[#7d7d8e] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4 grid grid-cols-2 gap-x-4 gap-y-3">
           <Campo label="Medio" valor={sala.medio} />
@@ -398,7 +398,7 @@ function ModalFicha({ sala, ciclo, onCerrar }: { sala: Sala; ciclo: Live['ciclo'
           <Campo label="AC" valor={sala.acBtu ? `${sala.acBtu} BTU` : null} />
           <Campo label="Ciclo" valor={ciclo ? `${fmtFecha(ciclo.inicio)} → ${fmtFecha(ciclo.fin)}` : null} />
         </div>
-        <div className="px-4 pb-4 -mt-1 text-[10.5px] text-[#5c5c6b]">Datos de la sala en Growcast (solo lectura). Para editarlos, usá la app de Growcast.</div>
+        <div className="px-4 pb-4 -mt-1 text-[10.5px] text-[#7d7d8e]">Datos de la sala en Growcast (solo lectura). Para editarlos, usá la app de Growcast.</div>
       </div>
     </div>
   )

@@ -182,7 +182,7 @@ export default function PaginaDashboard() {
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">
               Dashboard BI
             </h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
               <span className="text-[#d9f99d] tabular-nums">{opsEnPeriodo}</span> ops · {periodoActual?.subLabel}
               {ultimaSinc && (
                 <span className="hidden sm:inline">
@@ -279,7 +279,7 @@ export default function PaginaDashboard() {
                 {/* Sparkline lateral */}
                 {stockSparkline.length > 1 && !cargando && (
                   <div className="lg:col-span-2">
-                    <p className="text-[10.5px] uppercase tracking-[0.16em] text-[#5c5c6b] font-medium mb-2">
+                    <p className="text-[10.5px] uppercase tracking-[0.16em] text-[#7d7d8e] font-medium mb-2">
                       Evolución kg trim · últ. {stockSparkline.length}d
                     </p>
                     <div className="rounded-xl bg-[#0a0a0f]/40 border border-[#1f1f2b] p-3">
@@ -457,7 +457,7 @@ function Section({ title, subtitle, icon: Icono, children }: { title: string; su
           )}
           <div>
             <h2 className="font-display font-bold text-[14px] sm:text-[15px] text-[#ececf1] tracking-tight leading-tight">{title}</h2>
-            {subtitle && <p className="text-[10.5px] sm:text-[11px] text-[#5c5c6b] mt-0.5">{subtitle}</p>}
+            {subtitle && <p className="text-[10.5px] sm:text-[11px] text-[#7d7d8e] mt-0.5">{subtitle}</p>}
           </div>
         </div>
       </div>
@@ -470,7 +470,7 @@ function HeroFact({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="flex items-baseline gap-1.5">
       <span className="font-mono tabular-nums font-semibold text-[15px] sm:text-[17px] text-[#d4d4dd]">{value}</span>
-      <span className="text-[10.5px] sm:text-[11px] text-[#757584]">{label}</span>
+      <span className="text-[10.5px] sm:text-[11px] text-[#7d7d8e]">{label}</span>
     </div>
   )
 }
@@ -486,7 +486,7 @@ function KpiBig({
              style={{ background: t.glow }} aria-hidden />
         <div className="relative">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-[10.5px] uppercase tracking-[0.16em] text-[#5c5c6b] font-semibold">{label}</p>
+            <p className="text-[10.5px] uppercase tracking-[0.16em] text-[#7d7d8e] font-semibold">{label}</p>
             <div className="w-10 h-10 rounded-lg flex items-center justify-center border"
               style={{ background: t.bg, borderColor: t.border, color: t.icon }}>
               <Icono className="w-4 h-4" strokeWidth={1.8} />
@@ -504,7 +504,7 @@ function KpiBig({
               )}
             </div>
           )}
-          <p className="text-[11.5px] text-[#757584] mt-3">{hint}</p>
+          <p className="text-[11.5px] text-[#7d7d8e] mt-3">{hint}</p>
         </div>
       </div>
     </motion.div>
@@ -547,7 +547,7 @@ function RatioBig({
 
           <div className="mt-3 space-y-1">
             <p className="text-[11.5px] text-[#a6a6b5] tabular-nums">{detalle}</p>
-            <p className="text-[10.5px] text-[#5c5c6b]">
+            <p className="text-[10.5px] text-[#7d7d8e]">
               Esperado: <span className="text-[#a6a6b5] tabular-nums font-mono">{esperado}</span>
             </p>
           </div>
@@ -567,7 +567,7 @@ function ChartCard({ titulo, subtitulo, icono: Icono, children }: { titulo: stri
           </div>
           <div className="min-w-0">
             <h3 className="font-display font-semibold text-[14px] sm:text-[15px] text-[#ececf1] tracking-tight">{titulo}</h3>
-            {subtitulo && <p className="text-[10.5px] text-[#5c5c6b] mt-0.5">{subtitulo}</p>}
+            {subtitulo && <p className="text-[10.5px] text-[#7d7d8e] mt-0.5">{subtitulo}</p>}
           </div>
         </div>
         {children}

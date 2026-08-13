@@ -177,7 +177,7 @@ export default function PaginaCalendario() {
               <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">
                 Calendario cross-sector
               </h1>
-              <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+              <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
                 <span className="tabular-nums">{events.length}</span> eventos
                 <span className="text-[#30303e] mx-1">│</span>
                 <span className="hidden sm:inline">{SECTOR_KEYS.length - disabled.size} sectores activos</span>
@@ -207,7 +207,7 @@ export default function PaginaCalendario() {
                   onClick={() => toggleSector(k)}
                   className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] font-medium border transition-colors ${
                     off
-                      ? 'bg-transparent border-[#1f1f2b] text-[#5c5c6b]'
+                      ? 'bg-transparent border-[#1f1f2b] text-[#7d7d8e]'
                       : 'bg-[#101016] border-[#2b2b3a] text-[#d4d4dd]'
                   }`}
                   style={off ? undefined : { boxShadow: `inset 0 0 0 1px ${def.color}30` }}
@@ -248,7 +248,7 @@ export default function PaginaCalendario() {
             {!loading && calendarEvents.length === 0 && (
               <div className="absolute inset-x-0 bottom-4 flex justify-center pointer-events-none">
                 <div className="px-3 py-1.5 rounded-md bg-[#15151d] border border-[#1f1f2b] text-[11px] text-[#8f8f9f] flex items-center gap-2">
-                  <CalendarDays className="w-3.5 h-3.5 text-[#5c5c6b]" />
+                  <CalendarDays className="w-3.5 h-3.5 text-[#7d7d8e]" />
                   Sin actividad registrada este mes
                 </div>
               </div>
@@ -290,7 +290,7 @@ export default function PaginaCalendario() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <h3 className="font-display font-bold text-[15px] text-[#ececf1]">{def.label}</h3>
-                          <p className="text-[11px] text-[#5c5c6b] mt-0.5 font-mono truncate">{selected.table}</p>
+                          <p className="text-[11px] text-[#7d7d8e] mt-0.5 font-mono truncate">{selected.table}</p>
                         </div>
                         <button
                           onClick={() => setSelected(null)}
@@ -304,7 +304,7 @@ export default function PaginaCalendario() {
                           .filter(([, v]) => v !== null && v !== undefined && v !== '')
                           .map(([k, v]) => (
                             <div key={k} className="flex items-start gap-3 text-[12px]">
-                              <span className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium min-w-[110px] mt-0.5">
+                              <span className="text-[10px] uppercase tracking-[0.12em] text-[#7d7d8e] font-medium min-w-[110px] mt-0.5">
                                 {k}
                               </span>
                               <span className="text-[#ececf1] break-all flex-1">{String(v)}</span>

@@ -48,7 +48,7 @@ export default function PaginaConfiguracion() {
           <Settings className="w-4 h-4 text-[#a3e635] flex-shrink-0" strokeWidth={1.8} />
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Configuracion</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
               Administracion del sistema CannTrace
             </div>
           </div>
@@ -80,17 +80,17 @@ export default function PaginaConfiguracion() {
           <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden">
             <div className="px-4 py-3 border-b border-[#1f1f2b] flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Database className="w-3.5 h-3.5 text-[#5c5c6b]" strokeWidth={1.8} />
+                <Database className="w-3.5 h-3.5 text-[#7d7d8e]" strokeWidth={1.8} />
                 <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Configuracion del Sistema</h3>
               </div>
-              <span className="text-[10.5px] text-[#5c5c6b] tabular-nums">{configDemo.length} parametros</span>
+              <span className="text-[10.5px] text-[#7d7d8e] tabular-nums">{configDemo.length} parametros</span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-[12px]">
                 <thead>
                   <tr className="border-b border-[#1f1f2b]">
                     {['Clave','Valor','Tipo','Categoria'].map(h => (
-                      <th key={h} className="px-4 py-2.5 text-left text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium">{h}</th>
+                      <th key={h} className="px-4 py-2.5 text-left text-[10px] uppercase tracking-[0.12em] text-[#7d7d8e] font-medium">{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -111,8 +111,8 @@ export default function PaginaConfiguracion() {
                           <span className="text-[#d4d4dd]">{cfg.valor}</span>
                         )}
                       </td>
-                      <td className="px-4 py-2.5 text-[#757584]">{cfg.tipo}</td>
-                      <td className="px-4 py-2.5 text-[#757584]">{cfg.categoria}</td>
+                      <td className="px-4 py-2.5 text-[#7d7d8e]">{cfg.tipo}</td>
+                      <td className="px-4 py-2.5 text-[#7d7d8e]">{cfg.categoria}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -126,7 +126,7 @@ export default function PaginaConfiguracion() {
           <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden">
             <div className="px-4 py-3 border-b border-[#1f1f2b] flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Users className="w-3.5 h-3.5 text-[#5c5c6b]" strokeWidth={1.8} />
+                <Users className="w-3.5 h-3.5 text-[#7d7d8e]" strokeWidth={1.8} />
                 <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Usuarios del Sistema</h3>
               </div>
               <button className="px-3 py-1.5 bg-[#a3e635]/15 hover:bg-[#a3e635]/25 border border-[#404d20] text-[#d9f99d] rounded-lg text-[11px] font-medium transition-colors">
@@ -143,7 +143,7 @@ export default function PaginaConfiguracion() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[12px] font-medium text-[#ececf1] truncate">{u.nombre}</p>
-                      <p className="text-[10.5px] text-[#757584] truncate">{u.email}</p>
+                      <p className="text-[10.5px] text-[#7d7d8e] truncate">{u.email}</p>
                     </div>
                     <span className="px-2 py-0.5 rounded-full text-[10.5px] font-medium border flex-shrink-0"
                       style={{ color: r.color, background: r.bg, borderColor: r.border }}>
@@ -166,17 +166,17 @@ export default function PaginaConfiguracion() {
         {!['general', 'usuarios', 'seguridad'].includes(tabActivo) && (
           <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-10 text-center">
             <div className="mx-auto w-9 h-9 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-2">
-              <Settings className="w-4 h-4 text-[#5c5c6b]" strokeWidth={1.8} />
+              <Settings className="w-4 h-4 text-[#7d7d8e]" strokeWidth={1.8} />
             </div>
             <p className="font-display font-semibold text-[#d4d4dd] text-[13px]">
               {tabs.find(t => t.id === tabActivo)?.nombre}
             </p>
-            <p className="text-[11px] text-[#5c5c6b] mt-1">Modulo en desarrollo</p>
+            <p className="text-[11px] text-[#7d7d8e] mt-1">Modulo en desarrollo</p>
           </div>
         )}
 
         {/* GAMP5 footer */}
-        <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] px-4 py-2.5 text-[10px] text-[#5c5c6b] text-center">
+        <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] px-4 py-2.5 text-[10px] text-[#7d7d8e] text-center">
           Todos los cambios de configuracion se registran en historial_cambios con audit trail (SOP-003)
         </div>
       </div>

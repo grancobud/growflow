@@ -339,7 +339,7 @@ export default function PaginaChecklistCUMCS() {
           <CheckSquare className="w-4 h-4 text-[#a3e635] flex-shrink-0" strokeWidth={1.8} />
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Checklist CUMCS IMC-GAP</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">{totalCompletados}/{totalReqs} con datos ({porcentaje}%) · <span className="hidden sm:inline">cruzado con Excel CM-RE-1010</span></div>
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">{totalCompletados}/{totalReqs} con datos ({porcentaje}%) · <span className="hidden sm:inline">cruzado con Excel CM-RE-1010</span></div>
           </div>
           <div className="flex-1" />
           <button onClick={() => setMostrarCodigos(v => !v)} title="Mostrar codigos CUMCS internos"
@@ -366,7 +366,7 @@ export default function PaginaChecklistCUMCS() {
             <div className="flex-1 min-w-0">
               <h3 className="text-sm font-semibold text-[#ececf1]">Progreso CUMCS — Excel + Supabase</h3>
               {ultimaSinc && (
-                <p className="text-[10px] text-[#5c5c6b] mt-0.5">Ultima sincronizacion: {ultimaSinc.toLocaleTimeString()}</p>
+                <p className="text-[10px] text-[#7d7d8e] mt-0.5">Ultima sincronizacion: {ultimaSinc.toLocaleTimeString()}</p>
               )}
             </div>
             <span className="text-2xl font-bold text-[#a3e635] ml-3 tabular-nums">{porcentaje}%</span>
@@ -374,7 +374,7 @@ export default function PaginaChecklistCUMCS() {
           <div className="w-full bg-[#1f1f2b] rounded-full h-2.5">
             <div className="bg-[#a3e635] h-2.5 rounded-full transition-all" style={{ width: `${porcentaje}%` }} />
           </div>
-          <div className="flex flex-wrap gap-4 mt-3 text-[11px] text-[#5c5c6b]">
+          <div className="flex flex-wrap gap-4 mt-3 text-[11px] text-[#7d7d8e]">
             <span>{totalReqs} registros totales</span>
             <span className="text-[#bef264] font-medium">{totalCompletados} con datos</span>
             <span className="text-[#c4b5fd]">{totalReqs - totalCompletados} sin datos</span>
@@ -383,7 +383,7 @@ export default function PaginaChecklistCUMCS() {
 
         {/* Camadas */}
         <div className="bg-[#101016] rounded-xl border border-[#1f1f2b] p-4">
-          <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-3">Camadas rastreadas</p>
+          <p className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-3">Camadas rastreadas</p>
           <div className="flex flex-wrap gap-2">
             {CAMADAS_EN_PROCESO.map(c => (
               <div key={c} className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#404d20] bg-[#a3e635]/8 text-xs">
@@ -408,10 +408,10 @@ export default function PaginaChecklistCUMCS() {
         {/* Filtros */}
         <div className="flex gap-2 sm:gap-3">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5c5c6b]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7d7d8e]" />
             <input type="text" value={busqueda} onChange={e => setBusqueda(e.target.value)}
               placeholder="Buscar codigo o nombre..."
-              className="w-full pl-9 pr-4 py-2 bg-[#101016] border border-[#1f1f2b] rounded-lg text-[13px] text-[#d4d4dd] placeholder-[#5c5c6b] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/30 focus:border-[#404d20] transition-colors" />
+              className="w-full pl-9 pr-4 py-2 bg-[#101016] border border-[#1f1f2b] rounded-lg text-[13px] text-[#d4d4dd] placeholder-[#7d7d8e] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/30 focus:border-[#404d20] transition-colors" />
           </div>
           <div className="flex items-center gap-0.5 bg-[#101016] border border-[#1f1f2b] rounded-lg p-1">
             {(['todos', 'completados', 'pendientes'] as const).map(f => (
@@ -441,11 +441,11 @@ export default function PaginaChecklistCUMCS() {
                 <div key={area.id} className="rounded-xl border border-[#1f1f2b] bg-[#101016] overflow-hidden">
                   <button onClick={() => setAreaAbierta(isAreaOpen && !busqueda ? null : area.id)}
                     className="w-full flex items-center gap-3 p-4 hover:bg-[#15151d] transition-colors">
-                    {isAreaOpen ? <ChevronDown className="w-4 h-4 text-[#5c5c6b]" /> : <ChevronRight className="w-4 h-4 text-[#5c5c6b]" />}
+                    {isAreaOpen ? <ChevronDown className="w-4 h-4 text-[#7d7d8e]" /> : <ChevronRight className="w-4 h-4 text-[#7d7d8e]" />}
                     {AreaIcon && <AreaIcon className="w-4 h-4 text-[#a3e635]" strokeWidth={1.75} />}
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-semibold text-[#ececf1]">{area.nombre}</p>
-                      <p className="text-[10px] text-[#5c5c6b] hidden sm:block">{area.descripcion}</p>
+                      <p className="text-[10px] text-[#7d7d8e] hidden sm:block">{area.descripcion}</p>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-3">
                       <span className="text-[11px] text-[#8f8f9f] tabular-nums">{compArea}/{totalArea}</span>
@@ -492,7 +492,7 @@ export default function PaginaChecklistCUMCS() {
                 <div key={grupo.grupo} className="bg-[#101016] rounded-xl border border-[#2a2a3a] overflow-hidden">
                   <button onClick={() => setGrupoAbierto(isOpen && !busqueda ? null : grupo.grupo)}
                     className="w-full flex items-center gap-3 p-3 sm:p-4 hover:bg-[#15151d] transition-colors">
-                    {isOpen ? <ChevronDown className="w-4 h-4 text-[#5c5c6b]" /> : <ChevronRight className="w-4 h-4 text-[#5c5c6b]" />}
+                    {isOpen ? <ChevronDown className="w-4 h-4 text-[#7d7d8e]" /> : <ChevronRight className="w-4 h-4 text-[#7d7d8e]" />}
                     <div className="flex-1 text-left min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="text-[11px] font-mono font-bold text-[#a3e635] bg-[#a3e635]/10 px-2 py-0.5 rounded">{grupo.grupo}</span>
@@ -519,7 +519,7 @@ export default function PaginaChecklistCUMCS() {
                           className="w-full flex items-center gap-2 px-4 py-2.5 pl-8 hover:bg-[#15151d] bg-[#0a0a0f]/30 border-l-2 border-[#a3e635]/30 transition-colors">
                           {subOpen ? <ChevronDown className="w-3 h-3 text-[#a3e635]" /> : <ChevronRight className="w-3 h-3 text-[#a3e635]" />}
                           <span className="text-[10px] font-bold text-[#8f8f9f] uppercase tracking-[0.14em] flex-1 text-left">{sub.nombre}</span>
-                          <span className="text-[10px] font-semibold text-[#5c5c6b] bg-[#15151d] border border-[#2a2a3a] px-2 py-0.5 rounded-full">{subComp}/{subTotal}</span>
+                          <span className="text-[10px] font-semibold text-[#7d7d8e] bg-[#15151d] border border-[#2a2a3a] px-2 py-0.5 rounded-full">{subComp}/{subTotal}</span>
                         </button>
                         {subOpen && (
                           <div className="divide-y divide-surface-50">
@@ -540,7 +540,7 @@ export default function PaginaChecklistCUMCS() {
                               )}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  {mostrarCodigos && <span className="text-[11px] font-mono text-[#5c5c6b] opacity-60">{reg.codigo}</span>}
+                                  {mostrarCodigos && <span className="text-[11px] font-mono text-[#7d7d8e] opacity-60">{reg.codigo}</span>}
                                   {reg.obligatorio && <span className="text-[9px] font-bold text-[#ff8a7a] border border-[#7a2820]/50 px-1 rounded">OBL</span>}
                                   {tieneExcel && <span className="text-[9px] font-bold text-[#bef264] border border-[#404d20]/50 px-1 rounded">CON DATOS</span>}
                                   {(conteosReales[reg.codigo] || 0) > 0 && (
@@ -549,17 +549,17 @@ export default function PaginaChecklistCUMCS() {
                                     </span>
                                   )}
                                 </div>
-                                <p className={`text-sm ${tieneData ? 'text-[#ececf1]' : 'text-[#5c5c6b]'}`}>{reg.nombre}</p>
+                                <p className={`text-sm ${tieneData ? 'text-[#ececf1]' : 'text-[#7d7d8e]'}`}>{reg.nombre}</p>
                               </div>
-                              {isExpanded ? <ChevronDown className="w-3.5 h-3.5 text-[#5c5c6b]" /> : <ChevronRight className="w-3.5 h-3.5 text-[#5c5c6b]" />}
+                              {isExpanded ? <ChevronDown className="w-3.5 h-3.5 text-[#7d7d8e]" /> : <ChevronRight className="w-3.5 h-3.5 text-[#7d7d8e]" />}
                             </div>
 
                             {isExpanded && (
                               <div className="px-4 py-3 pl-16 bg-[#0a0a0f]/50 border-t border-[#1f1f2b]">
                                 {reg.procedimiento_referencia && (
-                                  <p className="text-[11px] text-[#5c5c6b] mb-2">Procedimiento: {reg.procedimiento_referencia}</p>
+                                  <p className="text-[11px] text-[#7d7d8e] mb-2">Procedimiento: {reg.procedimiento_referencia}</p>
                                 )}
-                                <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-2">Estado por camada</p>
+                                <p className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-2">Estado por camada</p>
                                 <div className="space-y-1.5">
                                   {todasCamadas.map(cam => {
                                     const estado = registroAplicaACamada(grupo.grupo, cam, CAMADAS_COMPLETADAS.includes(cam))
@@ -579,14 +579,14 @@ export default function PaginaChecklistCUMCS() {
                                         ) : estadoFinal === 'pendiente' ? (
                                           <Square className="w-3.5 h-3.5 text-[#c4b5fd]" />
                                         ) : (
-                                          <span className="text-[10px] text-[#5c5c6b]">—</span>
+                                          <span className="text-[10px] text-[#7d7d8e]">—</span>
                                         )}
                                         <span className="text-xs font-bold text-[#ececf1]">{cam}</span>
                                         {esCoco ? <Leaf className="w-3 h-3 text-[#c4b5fd]" /> : <Droplets className="w-3 h-3 text-[#a3e635]" />}
                                         <span className="text-[11px] text-[#8f8f9f]">{esCoco ? 'COCO' : 'RDWC'}</span>
                                         <span className={`text-[10px] ml-auto font-medium flex items-center gap-1 ${
                                           estadoFinal === 'registrado' ? 'text-[#bef264]' :
-                                          estadoFinal === 'pendiente' ? 'text-[#c4b5fd]' : 'text-[#5c5c6b]'
+                                          estadoFinal === 'pendiente' ? 'text-[#c4b5fd]' : 'text-[#7d7d8e]'
                                         }`}>
                                           {estadoFinal === 'registrado' ? <>Registrado <Eye className="w-3 h-3" /></> :
                                            estadoFinal === 'pendiente' ? 'Pendiente' : 'No aplica'}
@@ -616,7 +616,7 @@ export default function PaginaChecklistCUMCS() {
           </div>
         )}
 
-        <div className="p-3 bg-[#101016] border border-[#1f1f2b] rounded-xl text-[11px] text-[#5c5c6b] text-center">
+        <div className="p-3 bg-[#101016] border border-[#1f1f2b] rounded-xl text-[11px] text-[#7d7d8e] text-center">
           Estado cruzado con Excel CM-RE-1010. Los marcados "Con datos" tienen hojas con contenido en el Excel original.
         </div>
       </div>
@@ -629,11 +629,11 @@ export default function PaginaChecklistCUMCS() {
               <div className="min-w-0">
                 <p className="text-[10px] font-mono text-[#a3e635]">Camada {verRegistro.camada}{mostrarCodigos ? ` · ${verRegistro.reg.codigo}` : ''}</p>
                 <h3 className="text-base font-display font-bold text-[#ececf1] mt-0.5">{verRegistro.reg.nombre}</h3>
-                <p className="text-[11px] text-[#5c5c6b]">
+                <p className="text-[11px] text-[#7d7d8e]">
                   {verRegistro.reg.grupo_nombre} · Tabla: {tablaDelGrupo(verRegistro.reg.grupo)} · {registrosCargados.length} registro(s)
                 </p>
               </div>
-              <button onClick={() => setVerRegistro(null)} className="p-1.5 rounded-lg hover:bg-[#1c1c27] text-[#5c5c6b] hover:text-[#d4d4dd] flex-shrink-0">
+              <button onClick={() => setVerRegistro(null)} className="p-1.5 rounded-lg hover:bg-[#1c1c27] text-[#7d7d8e] hover:text-[#d4d4dd] flex-shrink-0">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -642,7 +642,7 @@ export default function PaginaChecklistCUMCS() {
               {cargandoRegistros ? (
                 <div className="text-center py-8">
                   <div className="w-8 h-8 border-2 border-[#1f1f2b] border-t-[#a3e635] rounded-full animate-spin mx-auto" />
-                  <p className="mt-3 text-sm text-[#5c5c6b]">Buscando registros para {verRegistro.camada}...</p>
+                  <p className="mt-3 text-sm text-[#7d7d8e]">Buscando registros para {verRegistro.camada}...</p>
                 </div>
               ) : registrosCargados.length === 0 ? (
                 <div className="border border-surface-200 rounded-xl overflow-hidden">
@@ -663,13 +663,13 @@ export default function PaginaChecklistCUMCS() {
                   return (
                     <div key={r.id || idx} className="border border-[#2a2a3a] bg-[#15151d] rounded-xl overflow-hidden">
                       <div className="px-4 py-2 border-b border-[#1f1f2b] flex items-center justify-between">
-                        <span className="text-[11px] font-mono text-[#5c5c6b]">#{idx + 1}</span>
-                        <span className="text-[10px] text-[#5c5c6b]">id: {String(r.id).slice(0, 8)}...</span>
+                        <span className="text-[11px] font-mono text-[#7d7d8e]">#{idx + 1}</span>
+                        <span className="text-[10px] text-[#7d7d8e]">id: {String(r.id).slice(0, 8)}...</span>
                       </div>
                       <div className="p-4 grid grid-cols-2 gap-x-4 gap-y-2">
                         {campos.map(([k, v]) => (
                           <div key={k}>
-                            <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium">{k}</p>
+                            <p className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium">{k}</p>
                             <p className="text-sm text-[#d4d4dd] break-words">{typeof v === 'object' ? JSON.stringify(v) : String(v)}</p>
                           </div>
                         ))}

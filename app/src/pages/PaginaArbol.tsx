@@ -186,7 +186,7 @@ export default function PaginaArbol() {
             </span>
             <div className="min-w-0">
               <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1] leading-none">Árbol Genealógico</h1>
-              <div className="mt-1 text-[10.5px] sm:text-[11px] text-[#5c5c6b] hidden sm:block">Cadena seed-to-sale visual · datos reales por camada</div>
+              <div className="mt-1 text-[10.5px] sm:text-[11px] text-[#7d7d8e] hidden sm:block">Cadena seed-to-sale visual · datos reales por camada</div>
             </div>
           </div>
           <div className="flex-1" />
@@ -204,7 +204,7 @@ export default function PaginaArbol() {
 
       {/* Selector camadas */}
       <div className="px-3 sm:px-6 py-3 border-b border-[#1f1f2b] flex items-center gap-2 sm:gap-3 flex-wrap bg-[#0a0a0f] flex-shrink-0">
-        <span className="text-[10px] uppercase tracking-[0.16em] text-[#5c5c6b] font-medium">Camada</span>
+        <span className="text-[10px] uppercase tracking-[0.16em] text-[#7d7d8e] font-medium">Camada</span>
         <div className="inline-flex gap-1 p-1 rounded-lg bg-[#101016] border border-[#1f1f2b]">
           {CAMADAS.map(c => {
             const active = camadaSel === c
@@ -218,7 +218,7 @@ export default function PaginaArbol() {
         </div>
         <div className="flex-1" />
         {!cargando && totalLotes > 0 && (
-          <div className="text-[11px] text-[#5c5c6b]">
+          <div className="text-[11px] text-[#7d7d8e]">
             <span className="text-[#d9f99d] font-mono font-semibold tabular-nums">{totalLotes}</span> lotes · <span className="text-[#d9f99d] font-mono font-semibold tabular-nums">{etapasUsadas.length}</span> etapas
           </div>
         )}
@@ -227,7 +227,7 @@ export default function PaginaArbol() {
       {/* Etapas legend (chips coloreadas por etapa, contador) */}
       {!cargando && etapasUsadas.length > 0 && (
         <div className="px-3 sm:px-6 py-2.5 border-b border-[#1f1f2b] flex items-center gap-2 flex-nowrap bg-[#0a0a0f] overflow-x-auto flex-shrink-0">
-          <span className="text-[10px] uppercase tracking-[0.16em] text-[#5c5c6b] font-medium mr-1 shrink-0">Etapas</span>
+          <span className="text-[10px] uppercase tracking-[0.16em] text-[#7d7d8e] font-medium mr-1 shrink-0">Etapas</span>
           {etapasUsadas.map(e => {
             const s = ETAPA_STYLE[e.tone]
             return (
@@ -235,7 +235,7 @@ export default function PaginaArbol() {
                 style={{ background: s.bg, borderColor: s.border }}>
                 <span className="w-1.5 h-1.5 rounded-full" style={{ background: s.accent }} />
                 <span className="text-[10px] font-medium tracking-wide" style={{ color: s.accent }}>{s.label}</span>
-                <span className="font-mono text-[10px] text-[#5c5c6b] tabular-nums">{e.count}</span>
+                <span className="font-mono text-[10px] text-[#7d7d8e] tabular-nums">{e.count}</span>
               </div>
             )
           })}
@@ -246,7 +246,7 @@ export default function PaginaArbol() {
       {cargando && (
         <div className="flex-1 flex items-center justify-center">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3, ease: EASE }}
-            className="flex flex-col items-center gap-3 text-[#5c5c6b]">
+            className="flex flex-col items-center gap-3 text-[#7d7d8e]">
             <Loader2 className="w-8 h-8 animate-spin text-[#bef264]" />
             <span className="text-[11.5px]">Cargando árbol genealógico de {camadaSel}…</span>
           </motion.div>
@@ -255,8 +255,8 @@ export default function PaginaArbol() {
 
       {!cargando && nodes.length === 0 && (
         <div className="flex-1 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-3 text-[#5c5c6b] text-[12px]">
-            <Sprout className="w-7 h-7 text-[#46464f]" />
+          <div className="flex flex-col items-center gap-3 text-[#7d7d8e] text-[12px]">
+            <Sprout className="w-7 h-7 text-[#7d7d8e]" />
             <span>Sin datos para la camada {camadaSel}</span>
           </div>
         </div>

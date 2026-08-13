@@ -124,39 +124,39 @@ export default function PaginaLogin({ onLogin }: Props) {
           {/* Card form */}
           <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden">
             <div className="px-5 sm:px-6 py-4 border-b border-[#1f1f2b]">
-              <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium">Bienvenido de vuelta</p>
+              <p className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium">Bienvenido de vuelta</p>
               <h2 className="font-display font-bold tracking-tight text-[18px] sm:text-[19px] text-[#ececf1] mt-1 leading-tight">Iniciar sesión</h2>
             </div>
 
             <form onSubmit={handleSubmit} className="px-5 sm:px-6 py-5 space-y-4" noValidate>
               <div>
-                <label htmlFor="email" className="block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1.5">Usuario</label>
+                <label htmlFor="email" className="block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1.5">Usuario</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5c5c6b] pointer-events-none" strokeWidth={1.8} />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#7d7d8e] pointer-events-none" strokeWidth={1.8} />
                   <input
                     id="email" type="text" value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="admin"
-                    className="w-full pl-9 pr-3 py-2.5 sm:py-2 bg-[#0a0a0f] border border-[#1f1f2b] hover:border-[#2a2a3a] focus:border-[#404d20] rounded-md text-[13px] sm:text-[12.5px] text-[#ececf1] placeholder:text-[#5c5c6b] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/40 transition-colors"
+                    className="w-full pl-9 pr-3 py-2.5 sm:py-2 bg-[#0a0a0f] border border-[#1f1f2b] hover:border-[#2a2a3a] focus:border-[#404d20] rounded-md text-[13px] sm:text-[12.5px] text-[#ececf1] placeholder:text-[#7d7d8e] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/40 transition-colors"
                     required autoComplete="email" autoFocus
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1.5">Contraseña</label>
+                <label htmlFor="password" className="block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1.5">Contraseña</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5c5c6b] pointer-events-none" strokeWidth={1.8} />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#7d7d8e] pointer-events-none" strokeWidth={1.8} />
                   <input
                     id="password" type={showPassword ? 'text' : 'password'} value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-9 pr-10 py-2.5 sm:py-2 bg-[#0a0a0f] border border-[#1f1f2b] hover:border-[#2a2a3a] focus:border-[#404d20] rounded-md text-[13px] sm:text-[12.5px] text-[#ececf1] placeholder:text-[#5c5c6b] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/40 transition-colors"
+                    className="w-full pl-9 pr-10 py-2.5 sm:py-2 bg-[#0a0a0f] border border-[#1f1f2b] hover:border-[#2a2a3a] focus:border-[#404d20] rounded-md text-[13px] sm:text-[12.5px] text-[#ececf1] placeholder:text-[#7d7d8e] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/40 transition-colors"
                     required autoComplete="current-password"
                   />
                   <button
                     type="button" onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[#5c5c6b] hover:text-[#a6a6b5] p-1.5 rounded transition-colors"
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[#7d7d8e] hover:text-[#a6a6b5] p-1.5 rounded transition-colors"
                     aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                   >
                     {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
@@ -183,7 +183,7 @@ export default function PaginaLogin({ onLogin }: Props) {
             </form>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-[#1f1f2b] text-[10px] text-[#46464f] text-center font-mono tabular-nums">
+          <div className="mt-4 pt-3 border-t border-[#1f1f2b] text-[10px] text-[#7d7d8e] text-center font-mono tabular-nums">
             GrowFlow · 100% local
           </div>
         </motion.div>

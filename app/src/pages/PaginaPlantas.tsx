@@ -45,8 +45,8 @@ function ChipTipo({ tipo }: { tipo?: string | null }) {
 
 // text-[16px] en celular: iOS Safari hace zoom sobre cualquier campo con letra
 // menor y deja el formulario descuadrado. En desktop vuelve al tamaño real.
-const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
-const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1'
 const selectFiltro = 'px-2.5 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[11.5px] text-[#a6a6b5] focus:outline-none focus:border-[#a3e635]/60 cursor-pointer max-w-[170px] min-h-[44px] sm:min-h-0'
 
 // "Tarea pendiente" derivable de los datos reales: el riego. Una planta en fase
@@ -216,7 +216,7 @@ export default function PaginaPlantas() {
         <div className="flex items-center flex-wrap gap-2 sm:gap-x-4 px-3 sm:px-6 py-3">
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Plantas</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
               {hayFiltros ? `${plantasFiltradas.length} de ${plantas.length}` : `${plantas.length} ${verInactivas ? 'en total' : 'activas'}`} · {geneticas.length} genéticas
             </div>
           </div>
@@ -237,9 +237,9 @@ export default function PaginaPlantas() {
         {!cargando && plantas.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 mb-4">
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5c5c6b]" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#7d7d8e]" />
               <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar nombre / código / genética"
-                className="pl-8 pr-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 min-h-[44px] sm:min-h-0 w-[210px]" />
+                className="pl-8 pr-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 min-h-[44px] sm:min-h-0 w-[210px]" />
             </div>
             <select value={fGenetica} onChange={e => setFGenetica(e.target.value)} className={selectFiltro} title="Filtrar por genética">
               <option value="">Toda genética</option>
@@ -267,7 +267,7 @@ export default function PaginaPlantas() {
               <Droplets className="w-3.5 h-3.5" /> Riego pendiente{riegoPendienteCount > 0 ? ` (${riegoPendienteCount})` : ''}
             </button>
             {hayFiltros && (
-              <button onClick={limpiarFiltros} className="inline-flex items-center gap-1 px-2 py-2 rounded-lg text-[11px] text-[#5c5c6b] hover:text-[#ff8a7a] transition-colors" title="Limpiar filtros">
+              <button onClick={limpiarFiltros} className="inline-flex items-center gap-1 px-2 py-2 rounded-lg text-[11px] text-[#7d7d8e] hover:text-[#ff8a7a] transition-colors" title="Limpiar filtros">
                 <X className="w-3.5 h-3.5" /> Limpiar
               </button>
             )}
@@ -282,18 +282,18 @@ export default function PaginaPlantas() {
         ) : plantas.length === 0 ? (
           <div className="py-16 text-center">
             <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3">
-              <Leaf className="w-5 h-5 text-[#5c5c6b]" />
+              <Leaf className="w-5 h-5 text-[#7d7d8e]" />
             </div>
             <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">Sin plantas cargadas</div>
-            <div className="mt-1 text-[11.5px] text-[#5c5c6b]">Arrancá creando una genética y después la planta.</div>
+            <div className="mt-1 text-[11.5px] text-[#7d7d8e]">Arrancá creando una genética y después la planta.</div>
           </div>
         ) : plantasFiltradas.length === 0 ? (
           <div className="py-16 text-center">
             <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3">
-              <Leaf className="w-5 h-5 text-[#5c5c6b]" />
+              <Leaf className="w-5 h-5 text-[#7d7d8e]" />
             </div>
             <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">Sin resultados</div>
-            <div className="mt-1 text-[11.5px] text-[#5c5c6b]">Ninguna planta coincide con los filtros.</div>
+            <div className="mt-1 text-[11.5px] text-[#7d7d8e]">Ninguna planta coincide con los filtros.</div>
             <button onClick={limpiarFiltros} className={`${btnSutil} mt-3`}><X className="w-3.5 h-3.5" /> Limpiar filtros</button>
           </div>
         ) : (
@@ -310,12 +310,12 @@ export default function PaginaPlantas() {
                         <button onClick={() => setDetalle(p)}
                           className="font-display font-semibold text-[14px] text-[#ececf1] truncate hover:text-[#bef264] transition-colors text-left py-2 -my-2 pr-3 -mr-3 sm:py-0 sm:my-0 sm:pr-0 sm:mr-0"
                           title="Ver línea de tiempo">{p.nombre}</button>
-                        <p className="text-[11px] text-[#757584] truncate mt-0.5">
+                        <p className="text-[11px] text-[#7d7d8e] truncate mt-0.5">
                           {p.genetica ?? 'Sin genética'}{p.banco ? ` · ${p.banco}` : ''}
                         </p>
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
                           <ChipTipo tipo={p.tipo} />
-                          {p.codigo && <span className="font-mono text-[9.5px] text-[#5c5c6b] bg-[#15151d] border border-[#20202c] rounded px-1.5 py-0.5">{p.codigo}</span>}
+                          {p.codigo && <span className="font-mono text-[9.5px] text-[#7d7d8e] bg-[#15151d] border border-[#20202c] rounded px-1.5 py-0.5">{p.codigo}</span>}
                           {p.paciente_nombre && <span className="text-[9.5px] text-[#a78bfa] inline-flex items-center gap-0.5">· {p.paciente_nombre}</span>}
                         </div>
                       </div>
@@ -324,7 +324,7 @@ export default function PaginaPlantas() {
                         {p.fase}
                       </span>
                       <button onClick={() => eliminarPlanta(p)}
-                        className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 -mr-1 text-[#46464f] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded transition-colors flex-shrink-0"
+                        className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 -mr-1 text-[#7d7d8e] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded transition-colors flex-shrink-0"
                         title="Borrar planta">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -363,7 +363,7 @@ export default function PaginaPlantas() {
 
                   {/* Historial expandible */}
                   <button onClick={() => toggleEventos(p.id)}
-                    className="w-full flex items-center justify-center gap-1 py-1.5 border-t border-[#1f1f2b] text-[10.5px] text-[#5c5c6b] hover:text-[#a6a6b5] hover:bg-[#15151d] transition-colors">
+                    className="w-full flex items-center justify-center gap-1 py-1.5 border-t border-[#1f1f2b] text-[10.5px] text-[#7d7d8e] hover:text-[#a6a6b5] hover:bg-[#15151d] transition-colors">
                     {abierta ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                     {abierta ? 'Ocultar historial' : `Historial (${p.total_eventos})`}
                   </button>
@@ -372,18 +372,18 @@ export default function PaginaPlantas() {
                       {!eventosPlanta[p.id] ? (
                         <div className="py-4 text-center"><Loader2 className="w-4 h-4 text-[#bef264] animate-spin mx-auto" /></div>
                       ) : eventosPlanta[p.id].length === 0 ? (
-                        <p className="py-4 text-center text-[11px] text-[#5c5c6b]">Sin eventos</p>
+                        <p className="py-4 text-center text-[11px] text-[#7d7d8e]">Sin eventos</p>
                       ) : (
                         <ul className="divide-y divide-[#1f1f2b]">
                           {eventosPlanta[p.id].map(e => (
                             <li key={e.id} className="group flex items-center gap-2.5 px-4 py-2">
-                              <span className="text-[12px] text-[#5c5c6b] tabular-nums font-mono flex-shrink-0">
+                              <span className="text-[12px] text-[#7d7d8e] tabular-nums font-mono flex-shrink-0">
                                 {new Date(e.fecha + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })}
                               </span>
                               <span className="text-[11.5px] font-medium text-[#d4d4dd] flex-shrink-0">{e.tipo}</span>
-                              {e.detalle && <span className="text-[11px] text-[#757584] truncate">{e.detalle}</span>}
+                              {e.detalle && <span className="text-[11px] text-[#7d7d8e] truncate">{e.detalle}</span>}
                               <button onClick={() => eliminarEvento(p.id, e.id)}
-                                className="ml-auto p-1 text-[#46464f] opacity-0 group-hover:opacity-100 hover:text-[#ff8a7a] rounded transition-all flex-shrink-0"
+                                className="ml-auto p-1 text-[#7d7d8e] opacity-0 group-hover:opacity-100 hover:text-[#ff8a7a] rounded transition-all flex-shrink-0"
                                 title="Borrar evento">
                                 <X className="w-3 h-3" />
                               </button>
@@ -433,7 +433,7 @@ function NotaRapida({ onGuardar }: { onGuardar: (txt: string) => void }) {
           if (e.key === 'Escape') { setTexto(''); setAbierto(false) }
         }}
         placeholder="Escribí la nota y Enter..." className={inputCls} />
-      <button onClick={() => { setTexto(''); setAbierto(false) }} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a]">
+      <button onClick={() => { setTexto(''); setAbierto(false) }} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#7d7d8e] hover:text-[#ff8a7a]">
         <X className="w-3.5 h-3.5" />
       </button>
     </div>
@@ -466,7 +466,7 @@ function CosechaRapida({ onGuardar }: { onGuardar: (pesoSeco: number, valoracion
         {Array.from({ length: 10 }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n}</option>)}
       </select>
       <button onClick={guardar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#bef264] hover:text-[#d9f99d]" title="Guardar cosecha"><Scissors className="w-3.5 h-3.5" /></button>
-      <button onClick={() => { setPeso(''); setAbierto(false) }} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a]"><X className="w-3.5 h-3.5" /></button>
+      <button onClick={() => { setPeso(''); setAbierto(false) }} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#7d7d8e] hover:text-[#ff8a7a]"><X className="w-3.5 h-3.5" /></button>
     </div>
   )
 }
@@ -478,7 +478,7 @@ function Modal({ titulo, onCerrar, children }: { titulo: string; onCerrar: () =>
       <div className="relative w-full max-w-md rounded-xl bg-[#101016] border border-[#2a2a3a] shadow-2xl">
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#1f1f2b]">
           <h2 className="font-display font-semibold text-[14px] text-[#ececf1]">{titulo}</h2>
-          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1]" aria-label="Cerrar">
+          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#7d7d8e] hover:text-[#ececf1]" aria-label="Cerrar">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -665,7 +665,7 @@ function ModalPlanta({ geneticas, pacientes, onCerrar, onCreada, onNuevaGenetica
             <option value="">Sin asignar</option>
             {pacientes.map(p => <option key={p.id} value={p.id}>{p.nombre_completo}{p.reprocann_nro ? ` (${p.reprocann_nro})` : ''}</option>)}
           </select>
-          <p className="mt-1 text-[10px] text-[#5c5c6b]">Se genera un código QR único por planta para su historia clínica.</p>
+          <p className="mt-1 text-[10px] text-[#7d7d8e]">Se genera un código QR único por planta para su historia clínica.</p>
         </div>
         <button onClick={guardar} disabled={guardando} className={`${btnPrimario} w-full justify-center`}>
           {guardando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Flower2 className="w-3.5 h-3.5" />}

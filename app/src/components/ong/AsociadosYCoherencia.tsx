@@ -20,8 +20,8 @@ import {
 import type { Paciente } from '../../lib/registro'
 import { btnPrimario, btnSutil } from '../../lib/ui'
 
-const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
-const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1'
 const card = 'rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4'
 const fmtPesos = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
 
@@ -55,7 +55,7 @@ export function Asociados({ asociados, categorias, cuotas, actas, pacientes, cuo
           <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Categorías del estatuto</h3>
           <button onClick={() => setCat({ con_voto: true })} className={`${btnSutil} ml-auto`}><Plus className="w-3.5 h-3.5" /> Agregar</button>
         </div>
-        <p className="text-[11.5px] text-[#5c5c6b] mt-2">
+        <p className="text-[11.5px] text-[#7d7d8e] mt-2">
           Cargalas tal como figuran en el estatuto. Usar una categoría que no existe ahí es uno de los errores que más
           observan. No todas requieren REPROCANN: puede haber socios sólo para eventos o talleres.
         </p>
@@ -66,7 +66,7 @@ export function Asociados({ asociados, categorias, cuotas, actas, pacientes, cuo
                 className="text-[11.5px] px-2 py-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:border-[#404d20] text-[#d4d4dd] min-h-[44px] sm:min-h-0">
                 {c.nombre}
                 {c.requiere_reprocann && <span className="ml-1.5 text-[10px] text-[#bef264]">REPROCANN</span>}
-                {!c.con_voto && <span className="ml-1.5 text-[10px] text-[#757584]">sin voto</span>}
+                {!c.con_voto && <span className="ml-1.5 text-[10px] text-[#7d7d8e]">sin voto</span>}
               </button>
             ))}
           </div>
@@ -80,7 +80,7 @@ export function Asociados({ asociados, categorias, cuotas, actas, pacientes, cuo
           <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Cuotas</h3>
           <button onClick={() => setCuo({ tipo: 'social' })} className={`${btnSutil} ml-auto`}><Plus className="w-3.5 h-3.5" /> Agregar</button>
         </div>
-        <p className="text-[11.5px] text-[#5c5c6b] mt-2">
+        <p className="text-[11.5px] text-[#7d7d8e] mt-2">
           Hay dos y conviene no mezclarlas: la <b className="text-[#a6a6b5]">social</b> (pertenencia) y la
           de <b className="text-[#a6a6b5]">cultivo</b> (prorrateo de costos). Ninguna es una venta. El valor tiene que
           estar aprobado en un acta: una charla informal no sirve como prueba.
@@ -97,7 +97,7 @@ export function Asociados({ asociados, categorias, cuotas, actas, pacientes, cuo
                     <span className="text-[10.5px] px-1.5 py-0.5 rounded bg-[#1f1f2b] text-[#a6a6b5]">{c.tipo ?? 'social'}</span>
                     <span className="ml-auto text-[13px] font-mono tabular-nums text-[#d9f99d]">{fmtPesos(c.valor)}</span>
                   </div>
-                  <p className="text-[10.5px] mt-0.5" style={{ color: acta ? '#757584' : '#ff8a7a' }}>
+                  <p className="text-[10.5px] mt-0.5" style={{ color: acta ? '#7d7d8e' : '#ff8a7a' }}>
                     {acta ? `Aprobada en acta Nº ${acta.numero} del ${acta.fecha}` : 'Sin acta que la apruebe'}
                   </p>
                 </button>
@@ -118,14 +118,14 @@ export function Asociados({ asociados, categorias, cuotas, actas, pacientes, cuo
           <span className="text-[12px] font-mono tabular-nums text-[#a6a6b5]">{activos.length} activos</span>
           <button onClick={() => setForm({ activo: true })} className={`${btnPrimario} ml-auto`}><Plus className="w-3.5 h-3.5" /> Agregar</button>
         </div>
-        <p className="text-[11.5px] text-[#5c5c6b] mt-2">
+        <p className="text-[11.5px] text-[#7d7d8e] mt-2">
           Los primeros son los fundadores. El alta se aprueba primero en acta de Comisión Directiva y recién después se
           vuelca acá: los dos registros tienen que coincidir siempre.
         </p>
       </div>
 
       {asociados.length === 0 ? (
-        <p className="text-[13px] text-[#5c5c6b] text-center py-8">Sin asociados cargados.</p>
+        <p className="text-[13px] text-[#7d7d8e] text-center py-8">Sin asociados cargados.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
           {asociados.map(a => {
@@ -137,7 +137,7 @@ export function Asociados({ asociados, categorias, cuotas, actas, pacientes, cuo
                     <p className="font-display font-semibold text-[13.5px] text-[#ececf1] truncate">
                       {a.nombre} {a.fundador && <span className="text-[10px] text-[#facc15]">fundador</span>}
                     </p>
-                    <p className="text-[11px] text-[#757584] mt-0.5">{a.categoria || 'Sin categoría'}{a.dni ? ` · DNI ${a.dni}` : ''}</p>
+                    <p className="text-[11px] text-[#7d7d8e] mt-0.5">{a.categoria || 'Sin categoría'}{a.dni ? ` · DNI ${a.dni}` : ''}</p>
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {a.vinculado_reprocann
                         ? <Mini ok txt="Vinculado en REPROCANN" />
@@ -314,7 +314,7 @@ function Cobranza({ asociados, cuotas, cuotasEmitidas, onCambio }: {
           <Plus className="w-3.5 h-3.5" /> Emitir a los activos
         </button>
       </div>
-      <p className="text-[11.5px] text-[#5c5c6b] mt-2">
+      <p className="text-[11.5px] text-[#7d7d8e] mt-2">
         Lo que un control cruza: cuántos asociados figuran registrados contra cuántas cuotas ingresaron.
         Si alguien figura como asociado, tiene que tener su cuota.
       </p>
@@ -351,7 +351,7 @@ function Cobranza({ asociados, cuotas, cuotasEmitidas, onCambio }: {
                 <span className="text-[12.5px] text-[#ececf1] truncate">{nombre(c.asociado_id)}</span>
                 <span className="text-[10.5px] px-1.5 py-0.5 rounded bg-[#1f1f2b] text-[#a6a6b5] flex-shrink-0">{c.tipo}</span>
                 <span className="ml-auto text-[12.5px] font-mono tabular-nums flex-shrink-0"
-                  style={{ color: c.pagada ? '#bef264' : '#757584' }}>{fmtPesos(c.monto)}</span>
+                  style={{ color: c.pagada ? '#bef264' : '#7d7d8e' }}>{fmtPesos(c.monto)}</span>
               </button>
               <button onClick={() => setEmit(c)} className={btnSutil} aria-label="Editar cuota"><Pencil className="w-3.5 h-3.5" /></button>
               <button onClick={() => borrarEmitida(c)} className={btnSutil} aria-label="Borrar cuota"><Trash2 className="w-3.5 h-3.5" /></button>
@@ -405,7 +405,7 @@ function Cobranza({ asociados, cuotas, cuotasEmitidas, onCambio }: {
 function Kpi({ t, v, c }: { t: string; v: string; c: string }) {
   return (
     <div>
-      <div className="text-[9.5px] uppercase tracking-[0.12em] text-[#5c5c6b]">{t}</div>
+      <div className="text-[9.5px] uppercase tracking-[0.12em] text-[#7d7d8e]">{t}</div>
       <div className="text-[15px] font-mono tabular-nums font-bold mt-0.5" style={{ color: c }}>{v}</div>
     </div>
   )
@@ -417,7 +417,7 @@ const ICONO: Record<Chequeo['estado'], { Ic: typeof CheckCircle2; color: string;
   ok: { Ic: CheckCircle2, color: '#bef264', label: 'En regla' },
   alerta: { Ic: AlertTriangle, color: '#f59e0b', label: 'Atención' },
   error: { Ic: XCircle, color: '#ff8a7a', label: 'Observable' },
-  sin_datos: { Ic: HelpCircle, color: '#5c5c6b', label: 'Sin datos' },
+  sin_datos: { Ic: HelpCircle, color: '#7d7d8e', label: 'Sin datos' },
 }
 
 export function Coherencia(props: {
@@ -435,7 +435,7 @@ export function Coherencia(props: {
           <ClipboardCheck className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Coherencia entre libros</h3>
         </div>
-        <p className="text-[11.5px] text-[#5c5c6b]">
+        <p className="text-[11.5px] text-[#7d7d8e]">
           Los organismos de control no miran sólo que estén los papeles: verifican que todos los libros cuenten la misma
           historia. Las <b className="text-[#a6a6b5]">inconsistencias entre libros</b>, más que la falta de
           documentación, son la principal causa de observaciones. Acá corren esos mismos cruces.
@@ -475,7 +475,7 @@ function Contador({ n, txt, color }: { n: number; txt: string; color: string }) 
   return (
     <div className="flex items-baseline gap-1.5">
       <span className="text-[20px] font-mono tabular-nums font-bold leading-none" style={{ color }}>{n}</span>
-      <span className="text-[11px] text-[#757584]">{txt}</span>
+      <span className="text-[11px] text-[#7d7d8e]">{txt}</span>
     </div>
   )
 }

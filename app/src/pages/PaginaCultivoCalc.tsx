@@ -61,7 +61,7 @@ export default function PaginaCultivoCalc() {
           <Calculator className="w-4 h-4 text-[#a3e635] flex-shrink-0" strokeWidth={1.8} />
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Calculadoras de Cultivo</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
               VPD + DLI
               <span className="hidden sm:inline"><span className="text-[#30303e] mx-1">│</span>Optimos por fase y sistema RDWC/COCO</span>
             </div>
@@ -76,7 +76,7 @@ export default function PaginaCultivoCalc() {
         <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4 space-y-3">
           {/* Fases */}
           <div>
-            <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-2">Fase</p>
+            <p className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-2">Fase</p>
             <div className="flex flex-wrap gap-1.5">
               {FASES.map(f => (
                 <button key={f.id} onClick={() => setFase(f.id)}
@@ -92,7 +92,7 @@ export default function PaginaCultivoCalc() {
           </div>
           {/* Sistemas */}
           <div>
-            <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-2">Sistema</p>
+            <p className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-2">Sistema</p>
             <div className="flex flex-wrap gap-1.5">
               {SISTEMAS.map(s => (
                 <button key={s.id} onClick={() => setSistema(s.id as 'COCO' | 'RDWC')}
@@ -111,7 +111,7 @@ export default function PaginaCultivoCalc() {
           {/* Nota sistema */}
           <div className="flex items-start gap-2 rounded-lg bg-[#15151d] border border-[#1f1f2b] px-3 py-2">
             <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[#a3e635]" strokeWidth={1.8} />
-            <p className="text-[10.5px] text-[#757584]">{sisSel.note}</p>
+            <p className="text-[10.5px] text-[#7d7d8e]">{sisSel.note}</p>
           </div>
         </div>
 
@@ -182,7 +182,7 @@ export default function PaginaCultivoCalc() {
                 )
               })}
             </div>
-            <p className="text-[10px] text-[#5c5c6b] mt-3 tabular-nums">
+            <p className="text-[10px] text-[#7d7d8e] mt-3 tabular-nums">
               Rango optimo: <b className="text-[#bef264]">{faseSel.vpd[0]}-{faseSel.vpd[1]} kPa</b>
             </p>
           </div>
@@ -223,7 +223,7 @@ export default function PaginaCultivoCalc() {
                 </div>
               )
             })()}
-            <p className="text-[10px] text-[#5c5c6b] mt-3 tabular-nums">
+            <p className="text-[10px] text-[#7d7d8e] mt-3 tabular-nums">
               Rango optimo: <b className="text-[#bef264]">{faseSel.dli[0]}-{faseSel.dli[1] || '—'} mol/m²/día</b>
             </p>
           </div>
@@ -240,7 +240,7 @@ export default function PaginaCultivoCalc() {
               <thead>
                 <tr className="border-b border-[#1f1f2b]">
                   {['Fase','Temp (°C)','RH (%)','VPD (kPa)','DLI (mol/m²/d)'].map(h => (
-                    <th key={h} className="px-3 py-2.5 text-left text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium">{h}</th>
+                    <th key={h} className="px-3 py-2.5 text-left text-[10px] uppercase tracking-[0.12em] text-[#7d7d8e] font-medium">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -257,7 +257,7 @@ export default function PaginaCultivoCalc() {
               </tbody>
             </table>
           </div>
-          <p className="px-4 py-2.5 text-[10px] text-[#5c5c6b] border-t border-[#1f1f2b]">
+          <p className="px-4 py-2.5 text-[10px] text-[#7d7d8e] border-t border-[#1f1f2b]">
             Fuentes: Fluence Bioengineering, Cannabis Research Initiative UCONN, Pulse Labs 2024
           </p>
         </div>

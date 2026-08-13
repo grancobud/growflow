@@ -43,7 +43,7 @@ export default function SankeyTab({ sankey, camadaSel }: { sankey: any; camadaSe
               Flujo de masa · Camada <span className="text-[#d9f99d]">{camadaSel}</span>
             </h3>
           </div>
-          <span className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium">
+          <span className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium">
             seed-to-sale · grosor = masa
           </span>
         </div>
@@ -133,11 +133,11 @@ function SankeyKpi({ label, val, unit, icono: Icono, tone }: { label: string; va
       <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] transition-colors p-3 sm:p-3.5 h-full">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="text-[9.5px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium">{label}</p>
+            <p className="text-[9.5px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium">{label}</p>
             <p className="font-display font-bold text-[20px] sm:text-[22px] tabular-nums leading-none mt-1.5" style={{ color: t.val }}>
               {val}
             </p>
-            <p className="text-[10px] text-[#757584] mt-1">{unit}</p>
+            <p className="text-[10px] text-[#7d7d8e] mt-1">{unit}</p>
           </div>
           <div
             className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 border"

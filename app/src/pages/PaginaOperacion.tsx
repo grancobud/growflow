@@ -34,7 +34,7 @@ function TabLoader({ label = 'Cargando…' }: { label?: string }) {
       <div className="w-10 h-10 rounded-lg border border-[#404d20] bg-[#a3e635]/10 flex items-center justify-center">
         <Loader2 className="w-5 h-5 text-[#bef264] animate-spin" strokeWidth={2} />
       </div>
-      <p className="text-[11.5px] text-[#5c5c6b] font-mono tabular-nums">{label}</p>
+      <p className="text-[11.5px] text-[#7d7d8e] font-mono tabular-nums">{label}</p>
     </div>
   )
 }
@@ -189,7 +189,7 @@ export default function PaginaOperacion() {
           <div className="flex items-center gap-2 sm:gap-4 px-3 sm:px-6 py-3">
             <div className="min-w-0">
               <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Nueva Operación</h1>
-              <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+              <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
                 <span className="hidden sm:inline">Registra una operación con el formulario estructurado, chat guiado o agente IA</span>
               </div>
             </div>
@@ -240,7 +240,7 @@ export default function PaginaOperacion() {
                 )
               })}
             </div>
-            <div className="hidden sm:block text-[11px] text-[#5c5c6b] ml-auto">
+            <div className="hidden sm:block text-[11px] text-[#7d7d8e] ml-auto">
               {PESTANAS.find(p => p.id === pestana)?.desc}
             </div>
           </div>
@@ -272,7 +272,7 @@ export default function PaginaOperacion() {
             </div>
           </motion.div>
 
-          <footer className="pt-4 sm:pt-6 mt-2 border-t border-[#1f1f2b] text-[10.5px] sm:text-[11px] text-[#5c5c6b] flex items-center justify-between flex-wrap gap-2">
+          <footer className="pt-4 sm:pt-6 mt-2 border-t border-[#1f1f2b] text-[10.5px] sm:text-[11px] text-[#7d7d8e] flex items-center justify-between flex-wrap gap-2">
             <div className="truncate">
               <span className="hidden sm:inline">Operaciones · audit trail SHA-256 · firma electrónica · </span>
               <span className="font-mono">CannTrace · FIS S.A.S.</span>

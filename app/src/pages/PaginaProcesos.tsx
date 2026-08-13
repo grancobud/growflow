@@ -133,7 +133,7 @@ export default function PaginaProcesos() {
           <Workflow className="w-4 h-4 text-[#a3e635] flex-shrink-0" strokeWidth={1.8} />
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Mapa de Procesos</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
               Flujo seed-to-sale
               <span className="hidden sm:inline"><span className="text-[#30303e] mx-1">│</span>BPMN 2.0 · GAMP5 Cat.5</span>
             </div>

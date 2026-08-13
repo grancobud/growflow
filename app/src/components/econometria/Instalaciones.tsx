@@ -19,8 +19,8 @@ import { btnPrimario, btnSutil } from '../../lib/ui'
 
 // text-[16px] en celular: iOS Safari hace zoom sobre cualquier campo con letra
 // menor y deja el formulario descuadrado. En desktop vuelve al tamaño real.
-const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
-const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1'
 const fmt = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
 
 const escapeHtml = (s: string) => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!))
@@ -157,7 +157,7 @@ export default function Instalaciones() {
       <div className="flex items-center gap-1 mb-4">
         {([['catalogo', 'Catálogo', Boxes], ['proveedores', 'Proveedores', Truck], ['presupuestos', 'Presupuestos', FileText]] as const).map(([v, lbl, Ico]) => (
           <button key={v} onClick={() => setVista(v)}
-            className={`px-3 py-1.5 rounded-lg text-[12px] font-medium border transition-colors flex items-center gap-1.5 ${vista === v ? 'border-[#a3e635]/50 bg-[#a3e635]/10 text-[#d9f99d]' : 'border-[#2a2a3a] bg-[#15151d] text-[#5c5c6b] hover:text-[#a6a6b5]'}`}>
+            className={`px-3 py-1.5 rounded-lg text-[12px] font-medium border transition-colors flex items-center gap-1.5 ${vista === v ? 'border-[#a3e635]/50 bg-[#a3e635]/10 text-[#d9f99d]' : 'border-[#2a2a3a] bg-[#15151d] text-[#7d7d8e] hover:text-[#a6a6b5]'}`}>
             <Ico className="w-3.5 h-3.5" /> {lbl}
           </button>
         ))}
@@ -186,7 +186,7 @@ export default function Instalaciones() {
         ) : (
           <div className="space-y-4">
             <div className="flex items-center justify-between px-1">
-              <span className="text-[11px] text-[#5c5c6b]">{items.length} ítems en {grupos.length} sistema{grupos.length === 1 ? '' : 's'}</span>
+              <span className="text-[11px] text-[#7d7d8e]">{items.length} ítems en {grupos.length} sistema{grupos.length === 1 ? '' : 's'}</span>
               <span className="text-[12px] text-[#a6a6b5]">Total catálogo <span className="font-display font-bold text-[#bef264]">{fmt(totalCatalogo)}</span></span>
             </div>
             {grupos.map(g => (
@@ -204,10 +204,10 @@ export default function Instalaciones() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-[12.5px] text-[#ececf1] truncate">{i.nombre}</span>
-                            {(i.marca || i.modelo) && <span className="text-[10.5px] text-[#5c5c6b]">{[i.marca, i.modelo].filter(Boolean).join(' · ')}</span>}
+                            {(i.marca || i.modelo) && <span className="text-[10.5px] text-[#7d7d8e]">{[i.marca, i.modelo].filter(Boolean).join(' · ')}</span>}
                           </div>
-                          <div className="mt-0.5 flex items-center gap-2 text-[10.5px] text-[#5c5c6b]">
-                            {prov ? <span className="text-[#84cc16]">{prov.nombre}</span> : <span className="text-[#5c5c6b]">sin proveedor</span>}
+                          <div className="mt-0.5 flex items-center gap-2 text-[10.5px] text-[#7d7d8e]">
+                            {prov ? <span className="text-[#84cc16]">{prov.nombre}</span> : <span className="text-[#7d7d8e]">sin proveedor</span>}
                             {of && of.n > 0 && <button onClick={() => setModalOfertas(i)} className="inline-flex items-center gap-0.5 text-[#fbbf24] hover:underline"><Tag className="w-3 h-3" /> {of.n} oferta{of.n === 1 ? '' : 's'}{of.min != null ? ` · mejor ${fmt(of.min)}` : ''}</button>}
                             {i.url && <a href={i.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 text-[#38bdf8] hover:underline"><ExternalLink className="w-3 h-3" /> link</a>}
                             {i.specs && <span className="truncate">· {i.specs}</span>}
@@ -215,12 +215,12 @@ export default function Instalaciones() {
                         </div>
                         <div className="text-right flex-shrink-0">
                           <div className="text-[12.5px] font-medium text-[#ececf1]">{i.precio != null ? fmt(Number(i.precio)) : '—'}</div>
-                          <div className="text-[9.5px] text-[#5c5c6b]">por {i.unidad || 'u'}</div>
+                          <div className="text-[9.5px] text-[#7d7d8e]">por {i.unidad || 'u'}</div>
                         </div>
                         <div className="flex flex-col gap-1 flex-shrink-0">
-                          <button onClick={() => setModalOfertas(i)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#fbbf24] hover:bg-[#15151d] rounded-lg transition-colors" title="Ofertas / comparar precios"><Tag className="w-3.5 h-3.5" /></button>
-                          <button onClick={() => setModalItem(i)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
-                          <button onClick={() => borrarItem(i)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => setModalOfertas(i)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#7d7d8e] hover:text-[#fbbf24] hover:bg-[#15151d] rounded-lg transition-colors" title="Ofertas / comparar precios"><Tag className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => setModalItem(i)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#7d7d8e] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => borrarItem(i)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#7d7d8e] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
                         </div>
                       </li>
                     )
@@ -244,17 +244,17 @@ export default function Instalaciones() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-[13px] text-[#ececf1]">{p.nombre}</span>
                         {p.zona && <span className="px-1.5 py-0.5 rounded-md text-[10px] bg-[#15151d] border border-[#2a2a3a] text-[#a6a6b5]">{p.zona}</span>}
-                        <span className="text-[10px] text-[#5c5c6b]">{nItems} ítem{nItems === 1 ? '' : 's'}</span>
+                        <span className="text-[10px] text-[#7d7d8e]">{nItems} ítem{nItems === 1 ? '' : 's'}</span>
                       </div>
-                      <div className="mt-0.5 flex items-center gap-3 text-[10.5px] text-[#5c5c6b]">
+                      <div className="mt-0.5 flex items-center gap-3 text-[10.5px] text-[#7d7d8e]">
                         {p.contacto && <span>{p.contacto}</span>}
                         {p.url && <a href={p.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 text-[#38bdf8] hover:underline"><ExternalLink className="w-3 h-3" /> {p.url.replace(/^https?:\/\//, '').slice(0, 32)}</a>}
                       </div>
-                      {p.notas && <div className="mt-0.5 text-[10.5px] text-[#5c5c6b] truncate">{p.notas}</div>}
+                      {p.notas && <div className="mt-0.5 text-[10.5px] text-[#7d7d8e] truncate">{p.notas}</div>}
                     </div>
                     <div className="flex flex-col gap-1 flex-shrink-0">
-                      <button onClick={() => setModalProv(p)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => borrarProv(p)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => setModalProv(p)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#7d7d8e] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => borrarProv(p)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#7d7d8e] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </li>
                 )
@@ -276,8 +276,8 @@ export default function Instalaciones() {
                   <FileText className="w-4 h-4 text-[#a78bfa]" />
                   <span className="font-display font-semibold text-[13.5px] text-[#ececf1]">{p.nombre}</span>
                 </div>
-                {p.notas && <div className="mt-1 text-[11px] text-[#5c5c6b] line-clamp-2">{p.notas}</div>}
-                <div className="mt-2 text-[10.5px] text-[#5c5c6b]">Abrir para ver el detalle y el total →</div>
+                {p.notas && <div className="mt-1 text-[11px] text-[#7d7d8e] line-clamp-2">{p.notas}</div>}
+                <div className="mt-2 text-[10.5px] text-[#7d7d8e]">Abrir para ver el detalle y el total →</div>
               </button>
             ))}
           </div>
@@ -331,15 +331,15 @@ function ModalOfertas({ item, proveedores, onCerrar, onCambio }: {
         <div className="sticky top-0 bg-[#0d0d12] border-b border-[#1f1f2b] px-4 py-3 flex items-center justify-between">
           <div className="min-w-0">
             <h2 className="font-display font-bold text-[15px] text-[#ececf1] truncate flex items-center gap-2"><Tag className="w-4 h-4 text-[#fbbf24]" /> Ofertas · {item.nombre}</h2>
-            <div className="text-[10.5px] text-[#5c5c6b]">Cargá cada cotización con su foto y elegí ⭐ la de mejor precio</div>
+            <div className="text-[10.5px] text-[#7d7d8e]">Cargá cada cotización con su foto y elegí ⭐ la de mejor precio</div>
           </div>
-          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
+          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#7d7d8e] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4 space-y-3">
           {cargando ? (
             <div className="h-24 rounded-xl bg-[#101016] border border-[#1f1f2b] animate-pulse" />
           ) : ofertas.length === 0 ? (
-            <p className="text-[12px] text-[#5c5c6b] text-center py-6">Todavía no hay ofertas. Agregá la primera abajo.</p>
+            <p className="text-[12px] text-[#7d7d8e] text-center py-6">Todavía no hay ofertas. Agregá la primera abajo.</p>
           ) : (
             <ul className="space-y-2">
               {ofertas.map(o => {
@@ -356,11 +356,11 @@ function ModalOfertas({ item, proveedores, onCerrar, onCambio }: {
                         {esMejor && <span className="px-1.5 py-0.5 rounded-md text-[9px] bg-[#22c55e]/15 text-[#4ade80] border border-[#22c55e]/30">mejor</span>}
                         {o.elegido && <span className="px-1.5 py-0.5 rounded-md text-[9px] bg-[#a3e635]/15 text-[#d9f99d] border border-[#a3e635]/30">referencia</span>}
                       </div>
-                      <div className="text-[10.5px] text-[#5c5c6b] truncate">{prov?.nombre ?? 'sin proveedor'}{o.presentacion ? ` · ${o.presentacion}` : ''}{o.nota ? ` · ${o.nota}` : ''}</div>
+                      <div className="text-[10.5px] text-[#7d7d8e] truncate">{prov?.nombre ?? 'sin proveedor'}{o.presentacion ? ` · ${o.presentacion}` : ''}{o.nota ? ` · ${o.nota}` : ''}</div>
                     </div>
-                    <button onClick={() => elegir(o)} title="Elegir como referencia" className={`min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 rounded-lg transition-colors ${o.elegido ? 'text-[#a3e635]' : 'text-[#5c5c6b] hover:text-[#a3e635] hover:bg-[#15151d]'}`}><Star className={`w-4 h-4 ${o.elegido ? 'fill-[#a3e635]' : ''}`} /></button>
-                    <button onClick={() => setEdit(o)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => borrar(o)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => elegir(o)} title="Elegir como referencia" className={`min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 rounded-lg transition-colors ${o.elegido ? 'text-[#a3e635]' : 'text-[#7d7d8e] hover:text-[#a3e635] hover:bg-[#15151d]'}`}><Star className={`w-4 h-4 ${o.elegido ? 'fill-[#a3e635]' : ''}`} /></button>
+                    <button onClick={() => setEdit(o)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#7d7d8e] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => borrar(o)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#7d7d8e] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
                   </li>
                 )
               })}
@@ -449,9 +449,9 @@ function ModalOferta({ item, oferta, proveedores, onCerrar, onGuardado }: {
 function Vacio({ icono: Ico, titulo, texto, accion, onAccion }: { icono: React.ComponentType<{ className?: string }>; titulo: string; texto: string; accion: string; onAccion: () => void }) {
   return (
     <div className="py-12 text-center">
-      <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><Ico className="w-5 h-5 text-[#5c5c6b]" /></div>
+      <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><Ico className="w-5 h-5 text-[#7d7d8e]" /></div>
       <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">{titulo}</div>
-      <div className="mt-1 text-[11.5px] text-[#5c5c6b] max-w-md mx-auto">{texto}</div>
+      <div className="mt-1 text-[11.5px] text-[#7d7d8e] max-w-md mx-auto">{texto}</div>
       <button onClick={onAccion} className={`${btnPrimario} mt-3`}><Plus className="w-3.5 h-3.5" /> {accion}</button>
     </div>
   )
@@ -521,13 +521,13 @@ function DetallePresupuesto({ presupuesto, items, provPorId, onVolver }: {
         <div className="space-y-4">
           <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4 flex flex-wrap items-center gap-x-5 gap-y-2">
             <div>
-              <div className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b]">Total presupuesto</div>
+              <div className="text-[10px] uppercase tracking-[0.12em] text-[#7d7d8e]">Total presupuesto</div>
               <div className="font-display font-bold text-[22px] text-[#bef264] leading-tight">{fmt(total)}</div>
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1">
               {porSist.map(s => (
                 <div key={s.sistema} className="text-[11px]">
-                  <span className="text-[#5c5c6b]">{s.sistema}: </span><span className="text-[#a6a6b5] font-medium">{fmt(s.total)}</span>
+                  <span className="text-[#7d7d8e]">{s.sistema}: </span><span className="text-[#a6a6b5] font-medium">{fmt(s.total)}</span>
                 </div>
               ))}
             </div>
@@ -544,7 +544,7 @@ function DetallePresupuesto({ presupuesto, items, provPorId, onVolver }: {
                   <li key={l.id} className="flex items-center gap-3 px-4 py-2.5">
                     <div className="min-w-0 flex-1">
                       <div className="text-[12.5px] text-[#ececf1] truncate">{l.nombre}</div>
-                      <div className="text-[10.5px] text-[#5c5c6b]">{l.proveedor || 'sin proveedor'} · {fmt(l.precio_unit)} c/u</div>
+                      <div className="text-[10.5px] text-[#7d7d8e]">{l.proveedor || 'sin proveedor'} · {fmt(l.precio_unit)} c/u</div>
                     </div>
                     <input type="number" min={0} step={1} value={l.cantidad}
                       onChange={e => setCantidad(l, Number(e.target.value) || 0)}
@@ -552,7 +552,7 @@ function DetallePresupuesto({ presupuesto, items, provPorId, onVolver }: {
                     <div className="text-right flex-shrink-0 w-24">
                       <div className="text-[12.5px] font-medium text-[#ececf1]">{fmt(totalLinea(l))}</div>
                     </div>
-                    <button onClick={() => borrarLinea(l)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors flex-shrink-0" title="Quitar"><Trash2 className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => borrarLinea(l)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#7d7d8e] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors flex-shrink-0" title="Quitar"><Trash2 className="w-3.5 h-3.5" /></button>
                   </li>
                 ))}
               </ul>
@@ -616,7 +616,7 @@ function CompararPresupuestos({ presupuestos, onAbrir }: { presupuestos: Presupu
         <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-x-auto">
           <table className="w-full text-[11.5px] border-collapse">
             <thead>
-              <tr className="text-[#5c5c6b]">
+              <tr className="text-[#7d7d8e]">
                 <th className="text-left font-medium px-3 py-2 sticky left-0 bg-[#101016]">Sistema</th>
                 {datos.map(d => <th key={d.p.id} className="text-right font-medium px-3 py-2 whitespace-nowrap max-w-[120px] truncate">{d.p.nombre}</th>)}
               </tr>
@@ -692,7 +692,7 @@ function ModalAgregarLinea({ presupuestoId, catalogo, provPorId, onCerrar, onGua
         <div>
           <label className={labelCls}>Ítem del catálogo</label>
           {catalogo.length === 0 ? (
-            <p className="text-[11.5px] text-[#5c5c6b]">El catálogo está vacío. Cargá ítems primero o usá "A mano".</p>
+            <p className="text-[11.5px] text-[#7d7d8e]">El catálogo está vacío. Cargá ítems primero o usá "A mano".</p>
           ) : (
             <select className={inputCls} value={itemId} onChange={e => setItemId(e.target.value)}>
               <option value="">— elegí —</option>
@@ -821,7 +821,7 @@ function ModalShell({ titulo, children, onCerrar, onGuardar, guardando }: { titu
       <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 bg-[#0d0d12] border-b border-[#1f1f2b] px-4 py-3 flex items-center justify-between">
           <h2 className="font-display font-bold text-[15px] text-[#ececf1]">{titulo}</h2>
-          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
+          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#7d7d8e] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4 space-y-3">{children}</div>
         <div className="sticky bottom-0 bg-[#0d0d12] border-t border-[#1f1f2b] px-4 py-3 flex justify-end gap-2">

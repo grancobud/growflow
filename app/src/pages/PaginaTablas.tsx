@@ -608,7 +608,7 @@ export default function PaginaTablas() {
     if (col.tipo === 'bool') {
       return (
         <td key={col.campo} className={`${celdaCls} text-center cursor-pointer`} onClick={() => toggleBool(fila, col)}>
-          <span className={v ? 'text-[#bef264]' : 'text-[#5c5c6b]'}>{v ? '✓' : '✗'}</span>
+          <span className={v ? 'text-[#bef264]' : 'text-[#7d7d8e]'}>{v ? '✓' : '✗'}</span>
         </td>
       )
     }
@@ -645,7 +645,7 @@ export default function PaginaTablas() {
       <td key={col.campo}
         className={`${celdaCls} ${col.ancho ?? ''} cursor-text hover:bg-[#15151d] transition-colors`}
         onClick={() => { setEditando({ fila: fila.id, campo: col.campo }); setValor(v ?? '') }}>
-        {v === null || v === undefined || v === '' ? <span className="text-[#46464f]">—</span> : String(v)}
+        {v === null || v === undefined || v === '' ? <span className="text-[#7d7d8e]">—</span> : String(v)}
       </td>
     )
   }
@@ -656,7 +656,7 @@ export default function PaginaTablas() {
         <div className="flex items-center gap-2 sm:gap-4 px-3 sm:px-6 py-3">
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Tablas</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
               {filas.length} filas · click en una celda para editar
             </div>
           </div>
@@ -688,7 +688,7 @@ export default function PaginaTablas() {
               className={`px-3.5 py-2 rounded-t-lg text-[12px] font-medium border border-b-0 transition-colors whitespace-nowrap ${
                 tabla.id === t.id
                   ? 'bg-[#101016] border-[#1f1f2b] text-[#d9f99d]'
-                  : 'bg-transparent border-transparent text-[#757584] hover:text-[#a6a6b5]'
+                  : 'bg-transparent border-transparent text-[#7d7d8e] hover:text-[#a6a6b5]'
               }`}>
               {t.nombre}
             </button>
@@ -706,23 +706,23 @@ export default function PaginaTablas() {
         ) : filas.length === 0 ? (
           <div className="py-16 text-center">
             <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3">
-              <Table2 className="w-5 h-5 text-[#5c5c6b]" />
+              <Table2 className="w-5 h-5 text-[#7d7d8e]" />
             </div>
             <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">Tabla vacía</div>
-            <div className="mt-1 text-[11.5px] text-[#5c5c6b]">Agregá una fila o pedíselo al chat.</div>
+            <div className="mt-1 text-[11.5px] text-[#7d7d8e]">Agregá una fila o pedíselo al chat.</div>
           </div>
         ) : (
           <table className="border-collapse text-left min-w-full">
             <thead className="sticky top-0 bg-[#0e0e15] z-10">
               <tr>
                 {CON_PLANTA.has(tabla.id) && (
-                  <th className="px-2.5 py-2 text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium border-b border-r border-[#1f1f2b] whitespace-nowrap">Planta</th>
+                  <th className="px-2.5 py-2 text-[10px] uppercase tracking-[0.12em] text-[#7d7d8e] font-medium border-b border-r border-[#1f1f2b] whitespace-nowrap">Planta</th>
                 )}
                 {tabla.id === 'plantas' && (
-                  <th className="px-2.5 py-2 text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium border-b border-r border-[#1f1f2b] whitespace-nowrap">Variedad</th>
+                  <th className="px-2.5 py-2 text-[10px] uppercase tracking-[0.12em] text-[#7d7d8e] font-medium border-b border-r border-[#1f1f2b] whitespace-nowrap">Variedad</th>
                 )}
                 {tabla.cols.map(c => (
-                  <th key={c.campo} className="px-2.5 py-2 text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium border-b border-r border-[#1f1f2b] whitespace-nowrap">{c.titulo}</th>
+                  <th key={c.campo} className="px-2.5 py-2 text-[10px] uppercase tracking-[0.12em] text-[#7d7d8e] font-medium border-b border-r border-[#1f1f2b] whitespace-nowrap">{c.titulo}</th>
                 ))}
                 <th className="px-2 py-2 border-b border-[#1f1f2b] w-9" />
               </tr>
@@ -739,7 +739,7 @@ export default function PaginaTablas() {
                   {tabla.cols.map(c => renderCelda(fila, c))}
                   <td className="px-2 py-1.5 border-b border-[#1f1f2b]">
                     <button onClick={() => borrarFila(fila)}
-                      className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#46464f] opacity-0 group-hover:opacity-100 hover:text-[#ff8a7a] rounded transition-all"
+                      className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#7d7d8e] opacity-0 group-hover:opacity-100 hover:text-[#ff8a7a] rounded transition-all"
                       title="Borrar fila">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -757,7 +757,7 @@ export default function PaginaTablas() {
           <div className="relative w-full max-w-lg rounded-xl bg-[#101016] border border-[#2a2a3a] shadow-2xl">
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#1f1f2b]">
               <h2 className="font-display font-semibold text-[14px] text-[#ececf1]">Importar backup</h2>
-              <button onClick={() => setModalImport(false)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1]" aria-label="Cerrar">
+              <button onClick={() => setModalImport(false)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#7d7d8e] hover:text-[#ececf1]" aria-label="Cerrar">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -769,7 +769,7 @@ export default function PaginaTablas() {
               <textarea autoFocus rows={8} value={textoImport}
                 onChange={e => setTextoImport(e.target.value)}
                 placeholder='{"formato":"growflow-full-v1","geneticas":[...],"plantas":[...]}'
-                className="w-full px-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11px] font-mono text-[#ececf1] placeholder-[#46464f] focus:outline-none focus:border-[#a3e635]/60 transition-colors resize-y" />
+                className="w-full px-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11px] font-mono text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors resize-y" />
               <button onClick={importar} disabled={procesando || !textoImport.trim()}
                 className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[12px] font-medium text-[#d9f99d] disabled:opacity-50">
                 {procesando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}

@@ -100,7 +100,7 @@ export default function PaginaFormsCumcs() {
           <ClipboardList className="w-4 h-4 text-[#a3e635] flex-shrink-0" strokeWidth={1.8} />
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Formularios CUMCS</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">G08 Personal · G10 Documental · 20 formularios CM-RE</div>
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">G08 Personal · G10 Documental · 20 formularios CM-RE</div>
           </div>
           <div className="flex-1" />
         </div>
@@ -128,12 +128,12 @@ export default function PaginaFormsCumcs() {
         <div className="grid lg:grid-cols-3 gap-4">
           {/* Lista de codigos */}
           <div className="bg-[#101016] border border-[#1f1f2b] rounded-xl p-3 space-y-1">
-            <h3 className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium px-2 py-1">Codigos CUMCS</h3>
+            <h3 className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium px-2 py-1">Codigos CUMCS</h3>
             {tipos.map(t => (
               <button key={t.codigo} onClick={() => { setCodigoSel(t.codigo); setValores({}) }}
                 className={`w-full text-left px-2.5 py-2 rounded-lg text-xs transition-colors ${codigoSel === t.codigo ? 'bg-[#a3e635]/15 border border-[#404d20] text-[#bef264]' : 'hover:bg-[#15151d] text-[#b3b3c0] border border-transparent'}`}>
                 <span className="font-mono font-bold">{t.codigo}</span>
-                <p className="text-[11px] text-[#5c5c6b] mt-0.5 leading-snug">{t.nombre}</p>
+                <p className="text-[11px] text-[#7d7d8e] mt-0.5 leading-snug">{t.nombre}</p>
               </button>
             ))}
           </div>
@@ -150,13 +150,13 @@ export default function PaginaFormsCumcs() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {campos.map(c => (
                     <label key={c.key} className={c.tipo === 'textarea' ? 'sm:col-span-2 block' : 'block'}>
-                      <span className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1.5 block">
+                      <span className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1.5 block">
                         {c.label} {c.requerido && <span className="text-[#ff8a7a]">*</span>}
                       </span>
                       {c.tipo === 'textarea' ? (
                         <textarea value={valores[c.key] || ''} onChange={e => handleChange(c.key, e.target.value)} rows={3}
                           placeholder={c.placeholder}
-                          className="w-full px-2.5 py-2 bg-[#15151d] border border-[#2a2a3a] rounded-lg text-xs text-[#d4d4dd] placeholder-[#5c5c6b] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/30 focus:border-[#404d20]" />
+                          className="w-full px-2.5 py-2 bg-[#15151d] border border-[#2a2a3a] rounded-lg text-xs text-[#d4d4dd] placeholder-[#7d7d8e] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/30 focus:border-[#404d20]" />
                       ) : c.tipo === 'select' ? (
                         <select value={valores[c.key] || c.defaultValue || ''} onChange={e => handleChange(c.key, e.target.value)}
                           className="w-full px-2.5 py-2 bg-[#15151d] border border-[#2a2a3a] rounded-lg text-xs text-[#d4d4dd] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/30 focus:border-[#404d20]">
@@ -166,7 +166,7 @@ export default function PaginaFormsCumcs() {
                       ) : (
                         <input type={c.tipo} value={valores[c.key] || ''} onChange={e => handleChange(c.key, c.tipo === 'number' ? parseFloat(e.target.value) || '' : e.target.value)}
                           placeholder={c.placeholder}
-                          className="w-full px-2.5 py-2 bg-[#15151d] border border-[#2a2a3a] rounded-lg text-xs text-[#d4d4dd] placeholder-[#5c5c6b] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/30 focus:border-[#404d20]" />
+                          className="w-full px-2.5 py-2 bg-[#15151d] border border-[#2a2a3a] rounded-lg text-xs text-[#d4d4dd] placeholder-[#7d7d8e] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/30 focus:border-[#404d20]" />
                       )}
                     </label>
                   ))}
@@ -183,7 +183,7 @@ export default function PaginaFormsCumcs() {
                   </button>
                 </div>
               </>
-            ) : <p className="text-xs text-[#5c5c6b]">Elegi un codigo de la izquierda</p>}
+            ) : <p className="text-xs text-[#7d7d8e]">Elegi un codigo de la izquierda</p>}
           </div>
         </div>
 
@@ -193,12 +193,12 @@ export default function PaginaFormsCumcs() {
             <ClipboardList className="w-4 h-4 text-[#a3e635]" /> Registros existentes ({registros.length})
           </h3>
           {cargandoReg ? <Loader2 className="w-5 h-5 animate-spin text-[#a3e635]" /> :
-            registros.length === 0 ? <p className="text-xs text-[#5c5c6b]">Sin registros aun</p> : (
+            registros.length === 0 ? <p className="text-xs text-[#7d7d8e]">Sin registros aun</p> : (
             <div className="space-y-0.5">
               {registros.map((r: any) => (
                 <div key={r.id} className="flex items-center gap-3 py-2 border-b border-[#1f1f2b] last:border-0 text-xs">
                   <span className="font-mono font-bold text-[#a3e635]">{r.tipo}</span>
-                  <span className="text-[#5c5c6b] tabular-nums">{r.fecha}</span>
+                  <span className="text-[#7d7d8e] tabular-nums">{r.fecha}</span>
                   <span className="text-[#b3b3c0] truncate flex-1">{r.titulo || r.descripcion || r.empleado_nombre || r.tema_capacitacion || r.area_limpiada || r.proveedor_nombre || '—'}</span>
                   <button onClick={() => eliminar(r.id)} className="text-[#7a2820] hover:text-[#ff8a7a] transition-colors flex-shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>

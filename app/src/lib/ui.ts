@@ -20,7 +20,7 @@ export const btnSutil = 'inline-flex items-center justify-center gap-1.5 px-2.5 
  * y en el celular se le erra. El área táctil crece sin agrandar el ícono ni
  * empujar el layout: en desktop vuelve a ser compacto.
  */
-export const btnIcono = 'inline-flex items-center justify-center flex-shrink-0 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 sm:p-1.5 rounded-lg transition-colors text-[#5c5c6b] hover:text-[#ececf1] hover:bg-[#15151d]'
+export const btnIcono = 'inline-flex items-center justify-center flex-shrink-0 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 sm:p-1.5 rounded-lg transition-colors text-[#7d7d8e] hover:text-[#ececf1] hover:bg-[#15151d]'
 
 /**
  * Campos de formulario y de filtro.
@@ -29,7 +29,7 @@ export const btnIcono = 'inline-flex items-center justify-center flex-shrink-0 m
  * cualquier input con letra menor y deja la página descuadrada. De sm: para
  * arriba baja al tamaño real de la interfaz.
  */
-export const campoBase = 'text-[16px] rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors min-h-[44px] sm:min-h-0'
+export const campoBase = 'text-[16px] rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors min-h-[44px] sm:min-h-0'
 
 export const inputFormulario = `w-full px-3 py-2.5 sm:py-2 sm:text-[12.5px] ${campoBase}`
 

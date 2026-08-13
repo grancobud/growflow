@@ -127,9 +127,9 @@ export default function PaginaLanding() {
               ].map((s) => (
                 <motion.div key={s.label} variants={fadeUp}
                   className="rounded-xl bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] transition-colors p-3.5 text-left">
-                  <p className="text-[9.5px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium">{s.label}</p>
+                  <p className="text-[9.5px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium">{s.label}</p>
                   <p className="font-display font-bold tabular-nums text-[20px] sm:text-[24px] mt-1 leading-none" style={{ color: s.color }}>{s.valor}</p>
-                  <p className="text-[10.5px] text-[#757584] mt-1">{s.hint}</p>
+                  <p className="text-[10.5px] text-[#7d7d8e] mt-1">{s.hint}</p>
                 </motion.div>
               ))}
             </motion.div>
@@ -315,14 +315,14 @@ export default function PaginaLanding() {
                 Plataforma de trazabilidad GAMP5 para cannabis medicinal.
                 Desarrollado por OA Consultora para FIS S.A.S.
               </p>
-              <div className="mt-3 flex items-center gap-1.5 text-[10.5px] text-[#5c5c6b]">
+              <div className="mt-3 flex items-center gap-1.5 text-[10.5px] text-[#7d7d8e]">
                 <Globe className="w-3 h-3" />
                 Argentina · LATAM
               </div>
             </div>
 
             <div>
-              <h4 className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#5c5c6b] mb-3">Producto</h4>
+              <h4 className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#7d7d8e] mb-3">Producto</h4>
               <ul className="space-y-2 text-[12px]">
                 <li><a href="#features" className="text-[#a6a6b5] hover:text-[#d9f99d] transition-colors">Features</a></li>
                 <li><a href="#roles" className="text-[#a6a6b5] hover:text-[#d9f99d] transition-colors">Roles</a></li>
@@ -332,7 +332,7 @@ export default function PaginaLanding() {
             </div>
 
             <div>
-              <h4 className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#5c5c6b] mb-3">Empresa</h4>
+              <h4 className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#7d7d8e] mb-3">Empresa</h4>
               <ul className="space-y-2 text-[12px]">
                 <li><Link to="/docs" className="text-[#a6a6b5] hover:text-[#d9f99d] transition-colors">Documentación</Link></li>
                 <li><Link to="/contacto" className="text-[#a6a6b5] hover:text-[#d9f99d] transition-colors">Contacto</Link></li>
@@ -343,7 +343,7 @@ export default function PaginaLanding() {
           </div>
 
           {/* Bottom strip mismo footer pattern de /trazabilidad */}
-          <div className="mt-10 pt-5 border-t border-[#1f1f2b] flex items-center justify-between flex-wrap gap-3 text-[10.5px] text-[#5c5c6b]">
+          <div className="mt-10 pt-5 border-t border-[#1f1f2b] flex items-center justify-between flex-wrap gap-3 text-[10.5px] text-[#7d7d8e]">
             <div className="flex items-center gap-3 flex-wrap">
               <span>© 2026 CannTrace · OA Consultora · FIS S.A.S.</span>
               <Link to="/terminos" className="hover:text-[#d9f99d] transition-colors">Términos</Link>

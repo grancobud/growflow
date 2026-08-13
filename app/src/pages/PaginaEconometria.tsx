@@ -30,8 +30,8 @@ import PaginaStockInsumos from './PaginaStockInsumos'
 import { btnPrimario, btnSutil } from '../lib/ui'
 
 // text-[16px] en mobile: evita el zoom automático de iOS Safari al enfocar.
-const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
-const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1'
 
 const fmt = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
 
@@ -147,7 +147,7 @@ export default function PaginaEconometria() {
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1] flex items-center gap-2">
               <Calculator className="w-4 h-4 text-[#bef264]" /> Econometría
             </h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b] tabular-nums">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e] tabular-nums">
               {fmt(mensualTotal)}/mes · {fmt(costoPorCiclo)}/ciclo · inventario {fmt(valorInsumos)}{eco.costoPorGramo != null ? ` · ${fmt(eco.costoPorGramo)}/g` : ''}
             </div>
           </div>
@@ -167,7 +167,7 @@ export default function PaginaEconometria() {
         <div className="flex gap-1 px-3 sm:px-6 pt-2 overflow-x-auto ct-page-scroll [-webkit-overflow-scrolling:touch]">
           {([['resumen', 'Resumen', TrendingUp], ['costos', 'Costos', Landmark], ['inventario', 'Inventario', Boxes], ['mantenimiento', 'Mantenimiento', Wrench], ['instalaciones', 'Instalaciones', Hammer]] as const).map(([t, lbl, Ico]) => (
             <button key={t} onClick={() => setTab(t)}
-              className={`px-3 py-2.5 sm:py-2 min-h-[44px] sm:min-h-0 flex-shrink-0 text-[12px] font-medium border-b-2 -mb-px transition-colors flex items-center gap-1.5 ${tab === t ? 'border-[#a3e635] text-[#d9f99d]' : 'border-transparent text-[#5c5c6b] hover:text-[#a6a6b5]'}`}>
+              className={`px-3 py-2.5 sm:py-2 min-h-[44px] sm:min-h-0 flex-shrink-0 text-[12px] font-medium border-b-2 -mb-px transition-colors flex items-center gap-1.5 ${tab === t ? 'border-[#a3e635] text-[#d9f99d]' : 'border-transparent text-[#7d7d8e] hover:text-[#a6a6b5]'}`}>
               <Ico className="w-3.5 h-3.5" /> {lbl}
               {t === 'mantenimiento' && alarmasMant > 0 && (
                 <span className="ml-0.5 px-1.5 rounded-full bg-[#f59e0b]/20 border border-[#5a4a20] text-[10px] font-semibold text-[#fbbf24] tabular-nums">
@@ -217,16 +217,16 @@ export default function PaginaEconometria() {
               <input type="number" min={1} max={12} value={mesesCiclo}
                 onChange={e => { const v = Math.max(1, Math.min(12, Number(e.target.value) || 1)); setMesesCiclo(v); configService.set('parametros', { meses_ciclo: v }).catch(() => {}) }}
                 className="w-16 px-2 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] text-center focus:outline-none focus:border-[#a3e635]/60" />
-              <span className="text-[12px] text-[#5c5c6b]">meses</span>
+              <span className="text-[12px] text-[#7d7d8e]">meses</span>
             </div>
-            <span className="text-[10.5px] text-[#5c5c6b]">Reparte los consumibles y los costos "por ciclo" en su equivalente mensual.</span>
+            <span className="text-[10.5px] text-[#7d7d8e]">Reparte los consumibles y los costos "por ciclo" en su equivalente mensual.</span>
           </div>
 
           {costos.length === 0 && (
             <div className="py-10 text-center">
-              <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><Calculator className="w-5 h-5 text-[#5c5c6b]" /></div>
+              <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><Calculator className="w-5 h-5 text-[#7d7d8e]" /></div>
               <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">Todavía no cargaste costos</div>
-              <div className="mt-1 text-[11.5px] text-[#5c5c6b]">Andá a la pestaña Costos y agregá tus costos fijos (alquiler, luz) y variables (nutrientes, sustrato).</div>
+              <div className="mt-1 text-[11.5px] text-[#7d7d8e]">Andá a la pestaña Costos y agregá tus costos fijos (alquiler, luz) y variables (nutrientes, sustrato).</div>
               <button onClick={() => setTab('costos')} className={`${btnPrimario} mt-3`}><Plus className="w-3.5 h-3.5" /> Cargar costos</button>
             </div>
           )}
@@ -247,7 +247,7 @@ export default function PaginaEconometria() {
           {tab === 'inventario' && <div className="rounded-xl bg-gradient-to-br from-[#12160f] to-[#101016] border border-[#2c3a1a] px-4 py-3 mb-4 flex items-baseline justify-between gap-3 flex-wrap tabular-nums">
             <div>
               <div className="text-[10px] uppercase tracking-[0.14em] text-[#7c8b5c] font-medium">Valor del inventario</div>
-              <div className="text-[11px] text-[#5c5c6b] mt-0.5">
+              <div className="text-[11px] text-[#7d7d8e] mt-0.5">
                 {insumosConPrecio.length} de {insumos.length} insumos tienen precio cargado
               </div>
             </div>
@@ -276,11 +276,11 @@ function ListaCostos({ titulo, subtitulo, icono: Ico, color, items, totalMensual
         </div>
         <div className="min-w-0 flex-1">
           <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">{titulo}</h3>
-          <div className="text-[10.5px] text-[#5c5c6b] truncate">{subtitulo}</div>
+          <div className="text-[10.5px] text-[#7d7d8e] truncate">{subtitulo}</div>
         </div>
         <div className="text-right">
           <div className="font-display font-bold text-[14px] tabular-nums" style={{ color }}>{fmt(totalMensual)}</div>
-          <div className="text-[9.5px] text-[#5c5c6b] uppercase tracking-[0.1em]">por mes</div>
+          <div className="text-[9.5px] text-[#7d7d8e] uppercase tracking-[0.1em]">por mes</div>
         </div>
       </div>
       {items.length === 0 ? (
@@ -299,20 +299,20 @@ function ListaCostos({ titulo, subtitulo, icono: Ico, color, items, totalMensual
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-[12.5px] text-[#ececf1] truncate">{c.nombre}</span>
                     {c.categoria && <span className="px-1.5 py-0.5 rounded-md text-[10px] bg-[#15151d] border border-[#2a2a3a] text-[#a6a6b5]">{c.categoria}</span>}
-                    <span className="px-1.5 py-0.5 rounded-md text-[10px] bg-[#15151d] border border-[#2a2a3a] text-[#5c5c6b]">{labelPeriodicidad(c.periodicidad)}</span>
+                    <span className="px-1.5 py-0.5 rounded-md text-[10px] bg-[#15151d] border border-[#2a2a3a] text-[#7d7d8e]">{labelPeriodicidad(c.periodicidad)}</span>
                   </div>
-                  {c.notas && <div className="mt-0.5 text-[10.5px] text-[#5c5c6b] truncate">{c.notas}</div>}
+                  {c.notas && <div className="mt-0.5 text-[10.5px] text-[#7d7d8e] truncate">{c.notas}</div>}
                 </div>
                 <div className="text-right flex-shrink-0">
                   <div className="text-[12.5px] font-medium text-[#ececf1] tabular-nums">{fmt(total)}</div>
                   {c.periodicidad !== 'mensual' && c.periodicidad !== 'unico' && (
-                    <div className="text-[9.5px] text-[#5c5c6b]">≈ {fmt(mens)}/mes</div>
+                    <div className="text-[9.5px] text-[#7d7d8e]">≈ {fmt(mens)}/mes</div>
                   )}
-                  {(c.cantidad ?? 1) !== 1 && <div className="text-[9.5px] text-[#5c5c6b]">{c.cantidad} × {fmt(Number(c.monto))}</div>}
+                  {(c.cantidad ?? 1) !== 1 && <div className="text-[9.5px] text-[#7d7d8e]">{c.cantidad} × {fmt(Number(c.monto))}</div>}
                 </div>
                 <div className="flex flex-col gap-1 flex-shrink-0">
-                  <button onClick={() => onEdit(c)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
-                  <button onClick={() => onBorrar(c)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => onEdit(c)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#7d7d8e] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => onBorrar(c)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#7d7d8e] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
               </li>
             )
@@ -351,7 +351,7 @@ function ModalCosto({ costo, tipoInicial, onCerrar, onGuardado }: { costo: Costo
       <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 bg-[#0d0d12] border-b border-[#1f1f2b] px-4 py-3 flex items-center justify-between">
           <h2 className="font-display font-bold text-[15px] text-[#ececf1]">{costo ? 'Editar costo' : 'Nuevo costo'}</h2>
-          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
+          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#7d7d8e] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4 space-y-3">
           <div className="grid grid-cols-2 gap-2">
@@ -384,7 +384,7 @@ function ModalCosto({ costo, tipoInicial, onCerrar, onGuardado }: { costo: Costo
             <div><label className={labelCls}>Cantidad</label><input type="number" className={inputCls} value={f.cantidad ?? 1} onChange={e => set('cantidad', e.target.value === '' ? '' : Number(e.target.value))} placeholder="1" /></div>
           </div>
           <div><label className={labelCls}>Notas</label><textarea rows={2} className={inputCls + ' resize-none'} value={f.notas ?? ''} onChange={e => set('notas', e.target.value)} placeholder="Ej: incluye expensas / por bolsa de 50L" /></div>
-          <p className="text-[10.5px] text-[#5c5c6b]">El total de la fila es monto × cantidad. Los costos "por ciclo" se reparten en su equivalente mensual según la duración del ciclo que pongas en Resumen.</p>
+          <p className="text-[10.5px] text-[#7d7d8e]">El total de la fila es monto × cantidad. Los costos "por ciclo" se reparten en su equivalente mensual según la duración del ciclo que pongas en Resumen.</p>
         </div>
         <div className="sticky bottom-0 bg-[#0d0d12] border-t border-[#1f1f2b] px-4 py-3 flex justify-end gap-2">
           <button onClick={onCerrar} className={btnSutil}>Cancelar</button>

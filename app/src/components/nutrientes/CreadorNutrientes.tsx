@@ -135,7 +135,7 @@ function BarraTabs({ sub, setSub }: { sub: SubTab; setSub: (s: SubTab) => void }
           className="border-b border-[#1f1f2b] bg-[#0d0d13] px-1 pb-2 sm:grid sm:grid-cols-4 sm:gap-x-3 sm:items-start">
           {GRUPOS_TABS.map(g => (
             <div key={g.grupo}>
-              <div className="px-3 pt-3 pb-1 text-[11px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium">
+              <div className="px-3 pt-3 pb-1 text-[11px] uppercase tracking-[0.12em] text-[#7d7d8e] font-medium">
                 {g.grupo}
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-1 gap-1">
@@ -166,7 +166,7 @@ const BIDON_INFO: Record<Bidon, { label: string; color: string }> = {
 }
 
 function colorDelta(logrado: number, obj: number) {
-  if (obj <= 0) return { c: '#757584', bg: 'transparent' }
+  if (obj <= 0) return { c: '#7d7d8e', bg: 'transparent' }
   const r = logrado / obj
   if (r < 0.85) return { c: '#60a5fa', bg: 'rgba(96,165,250,0.08)' }
   if (r > 1.15) return { c: '#ff8a7a', bg: 'rgba(255,138,122,0.08)' }
@@ -585,7 +585,7 @@ function Disp({ tiene }: { tiene: boolean }) {
 
 /** Familias de presets, para no mostrarlos como una bolsa plana de 18 chips. */
 const GRUPOS_PRESET = [
-  { id: 'base', etiqueta: 'Base', color: 'text-[#5c5c6b]', test: (id: string) => !/^(ryano_|co2_)/.test(id) },
+  { id: 'base', etiqueta: 'Base', color: 'text-[#7d7d8e]', test: (id: string) => !/^(ryano_|co2_)/.test(id) },
   { id: 'ryano', etiqueta: 'Ryanodine', color: 'text-[#a78bfa]/70', test: (id: string) => id.startsWith('ryano_') },
   { id: 'co2', etiqueta: 'Mi plan', color: 'text-[#a3e635]/70', test: (id: string) => id.startsWith('co2_') },
 ]
@@ -620,8 +620,8 @@ function CalcTab(p: CalcTabProps) {
         <div className="grid gap-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           <div>
             <div className="flex items-baseline gap-2 mb-2">
-              <p className="text-[11.5px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium">
-                1 · Perfil objetivo <span className="text-[#3a3a4a] normal-case tracking-normal">— qué quiero lograr</span>
+              <p className="text-[11.5px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium">
+                1 · Perfil objetivo <span className="text-[#7d7d8e] normal-case tracking-normal">— qué quiero lograr</span>
               </p>
               {presetActivo && (
                 <span className="text-[12px] text-[#a3e635]/70 truncate hidden sm:block">{presetActivo.desc}</span>
@@ -653,15 +653,15 @@ function CalcTab(p: CalcTabProps) {
             )}
           </div>
           <div>
-            <p className="text-[11.5px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-2">
-              2 · Kit de sales <span className="text-[#3a3a4a] normal-case tracking-normal">— con qué lo hago</span>
+            <p className="text-[11.5px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-2">
+              2 · Kit de sales <span className="text-[#7d7d8e] normal-case tracking-normal">— con qué lo hago</span>
             </p>
             <div className="flex flex-col gap-1.5">
               {KITS_SALES.map(kit => (
                 <button key={kit.id} onClick={() => setActivas(new Set(kit.sales))} title={kit.desc}
                   className="text-left px-2.5 py-2 min-h-[44px] sm:min-h-0 rounded-md bg-[#15151d] border border-[#1f1f2b] hover:border-[#463a66] transition-colors group">
                   <span className="block text-[12.5px] font-medium text-[#a6a6b5] group-hover:text-[#c4b5fd]">{kit.nombre}</span>
-                  <span className="block text-[11.5px] text-[#5c5c6b] leading-snug mt-0.5 line-clamp-2">{kit.desc}</span>
+                  <span className="block text-[11.5px] text-[#7d7d8e] leading-snug mt-0.5 line-clamp-2">{kit.desc}</span>
                 </button>
               ))}
             </div>
@@ -671,9 +671,9 @@ function CalcTab(p: CalcTabProps) {
         <div className="border-t border-[#1f1f2b] pt-3">
           <div className="flex items-center gap-2 mb-2">
             <Save className="w-3.5 h-3.5 text-[#a78bfa] flex-shrink-0" strokeWidth={1.8} />
-            <p className="text-[11.5px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium">Mis perfiles</p>
+            <p className="text-[11.5px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium">Mis perfiles</p>
             <Info><b className="text-[#d9f99d]">Tus recetas guardadas</b> con nombre, para recuperarlas cuando quieras.<br /><span className="text-[#a3e635]">Ej: guardás "Flora coco sem 5" y la volvés a cargar el mes que viene.</span></Info>
-            <span className="ml-auto text-[11.5px] text-[#5c5c6b] tabular-nums">{guardados.length}</span>
+            <span className="ml-auto text-[11.5px] text-[#7d7d8e] tabular-nums">{guardados.length}</span>
           </div>
 
           {/* Guardados como chips: 4 perfiles ocupaban media pantalla en filas. */}
@@ -684,11 +684,11 @@ function CalcTab(p: CalcTabProps) {
                   className="group flex items-center gap-1 bg-[#15151d] border border-[#1f1f2b] rounded-md pl-2.5 pr-1 py-1 hover:border-[#404d20] transition-colors">
                   <button onClick={() => cargarPerfil(g)} title="Cargar este perfil"
                     className="flex items-center gap-1.5 text-[13px] text-[#d4d4dd] hover:text-[#d9f99d] min-h-[32px] max-w-[190px] truncate">
-                    <FolderOpen className="w-3.5 h-3.5 flex-shrink-0 text-[#5c5c6b] group-hover:text-[#a3e635]" strokeWidth={1.8} />
+                    <FolderOpen className="w-3.5 h-3.5 flex-shrink-0 text-[#7d7d8e] group-hover:text-[#a3e635]" strokeWidth={1.8} />
                     <span className="truncate">{g.nombre}</span>
                   </button>
                   <button onClick={() => borrarPerfil(g)} title={`Borrar "${g.nombre}"`} aria-label={`Borrar ${g.nombre}`}
-                    className="p-1.5 rounded text-[#3a3a4a] hover:text-[#ff8a7a] hover:bg-[#ff8a7a]/10 transition-colors flex-shrink-0">
+                    className="p-1.5 rounded text-[#7d7d8e] hover:text-[#ff8a7a] hover:bg-[#ff8a7a]/10 transition-colors flex-shrink-0">
                     <Trash2 className="w-3 h-3" strokeWidth={1.8} />
                   </button>
                 </div>
@@ -718,7 +718,7 @@ function CalcTab(p: CalcTabProps) {
             <Beaker className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
             <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Objetivo (ppm)</h3>
             <Info><b className="text-[#d9f99d]">La receta que querés lograr</b>, en ppm de cada nutriente. Cargalos a mano o usá un preset.<br /><span className="text-[#a3e635]">Ej: flora coco → N 150, P 55, K 200, Ca 170, Mg 55.</span></Info>
-            <span className="ml-auto text-[11.5px] text-[#5c5c6b]">N total: {nLog.toFixed(0)}</span>
+            <span className="ml-auto text-[11.5px] text-[#7d7d8e]">N total: {nLog.toFixed(0)}</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {macros.map((e: Elem) => (
@@ -729,7 +729,7 @@ function CalcTab(p: CalcTabProps) {
             ))}
           </div>
           <details className="mt-3 group" open>
-            <summary className="text-[11.5px] uppercase tracking-[0.12em] text-[#5c5c6b] cursor-pointer flex items-center gap-1">
+            <summary className="text-[11.5px] uppercase tracking-[0.12em] text-[#7d7d8e] cursor-pointer flex items-center gap-1">
               <ChevronDown className="w-3 h-3 group-open:rotate-180 transition-transform" /> Micros (ppm)
             </summary>
             <div className="grid grid-cols-3 gap-2 mt-2">
@@ -754,7 +754,7 @@ function CalcTab(p: CalcTabProps) {
 
             <div className="flex items-center gap-1 flex-shrink-0">
               <label className="flex items-center gap-1 text-[12px] text-[#a6a6b5]">
-                <span className="text-[#5c5c6b]">prepará</span>
+                <span className="text-[#7d7d8e]">prepará</span>
                 <NumField value={litros} onChange={setLitros} min={0.1}
                   className="w-14 bg-[#15151d] border border-[#1f1f2b] rounded px-1.5 py-1.5 sm:py-0.5 min-h-[36px] sm:min-h-0 text-[16px] sm:text-[13.5px] text-[#ececf1] font-mono tabular-nums text-center focus:border-[#404d20] outline-none" />
                 <span>L</span>
@@ -786,11 +786,11 @@ function CalcTab(p: CalcTabProps) {
             </button>
           </div>
           {porBidon.length === 0 ? (
-            <p className="text-[13.5px] text-[#5c5c6b] py-6 text-center">Sin sales que cubran el objetivo. Activá más en "Sustancias".</p>
+            <p className="text-[13.5px] text-[#7d7d8e] py-6 text-center">Sin sales que cubran el objetivo. Activá más en "Sustancias".</p>
           ) : (
             <div className="space-y-3">
               {/* Qué de esta receta se puede comprar hoy y qué no. */}
-              <div className="flex items-center gap-3 flex-wrap text-[12.5px] text-[#5c5c6b] -mt-1">
+              <div className="flex items-center gap-3 flex-wrap text-[12.5px] text-[#7d7d8e] -mt-1">
                 <span className="inline-flex items-center gap-1.5"><Disp tiene /> la tenés</span>
                 <span className="inline-flex items-center gap-1.5"><Disp tiene={false} /> hay que comprarla</span>
                 <span className={faltantesReceta > 0 ? 'text-[#fcd34d]' : 'text-[#a3e635]/70'}>
@@ -814,7 +814,7 @@ function CalcTab(p: CalcTabProps) {
                           <span className="flex-shrink-0 text-[10px] uppercase tracking-wide text-[#facc15] bg-[#facc15]/10 border border-[#facc15]/25 rounded px-1 py-px">falta</span>
                         )}
                         <span className="text-[13.5px] font-mono tabular-nums font-bold text-[#ececf1]">
-                          {gv >= 0.01 ? gv.toFixed(2) : gv >= 0.001 ? gv.toFixed(4) : gv.toFixed(6)} <span className="text-[#5c5c6b] font-normal">{litros === 1 ? 'g/L' : 'g'}</span>
+                          {gv >= 0.01 ? gv.toFixed(2) : gv >= 0.001 ? gv.toFixed(4) : gv.toFixed(6)} <span className="text-[#7d7d8e] font-normal">{litros === 1 ? 'g/L' : 'g'}</span>
                         </span>
                       </div>
                       )
@@ -849,13 +849,13 @@ function CalcTab(p: CalcTabProps) {
                 <div key={s.salId} className="rounded-lg bg-[#15151d] border border-[#1f1f2b] px-3 py-2">
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-[13.5px] font-semibold text-[#facc15]">{s.nombre}</span>
-                    <span className="text-[11.5px] text-[#5c5c6b] font-mono">pedía {s.gramosPorL < 0.001 ? s.gramosPorL.toFixed(6) : s.gramosPorL.toFixed(4)} g/L · impesable</span>
+                    <span className="text-[11.5px] text-[#7d7d8e] font-mono">pedía {s.gramosPorL < 0.001 ? s.gramosPorL.toFixed(6) : s.gramosPorL.toFixed(4)} g/L · impesable</span>
                   </div>
                   <div className="flex flex-wrap items-center gap-1.5 text-[12.5px]">
                     <span className="px-2 py-1 rounded bg-[#101016] border border-[#1f1f2b]">1️⃣ Pesá <b className="text-[#d9f99d] font-mono">{s.pesar} g</b></span>
-                    <span className="text-[#5c5c6b]">→</span>
+                    <span className="text-[#7d7d8e]">→</span>
                     <span className="px-2 py-1 rounded bg-[#101016] border border-[#1f1f2b]">2️⃣ Disolvé en <b className="text-[#7dd3fc] font-mono">{s.volumenStockMl} mL</b> de agua</span>
-                    <span className="text-[#5c5c6b]">→</span>
+                    <span className="text-[#7d7d8e]">→</span>
                     <span className="px-2 py-1 rounded bg-[#101016] border border-[#1f1f2b]">
                       3️⃣ Agregá <b className="text-[#a78bfa] font-mono">{s.dosisMlPorL} mL</b>/L
                       {s.litrosSugeridos > 1 && <span className="text-[#8f8f9f]"> (o <b className="text-[#a78bfa] font-mono">{s.mlTotal} mL</b> para {s.litrosSugeridos} L)</span>}
@@ -864,7 +864,7 @@ function CalcTab(p: CalcTabProps) {
                   </div>
                 </div>
               ))}
-              <p className="text-[11.5px] text-[#5c5c6b]">El stock te dura muchos lotes. Guardalo rotulado en la heladera. Ajustá la precisión de balanza en "Soluciones madre".</p>
+              <p className="text-[11.5px] text-[#7d7d8e]">El stock te dura muchos lotes. Guardalo rotulado en la heladera. Ajustá la precisión de balanza en "Soluciones madre".</p>
             </div>
           </div>
         )
@@ -884,7 +884,7 @@ function CalcTab(p: CalcTabProps) {
           <table className="w-full text-[12.5px]">
             <thead><tr className="border-b border-[#1f1f2b]">
               {['Elemento', 'Objetivo', 'Logrado', 'Rango min–max', 'Estado'].map(h => (
-                <th key={h} className="px-3 py-2 text-left text-[11.5px] uppercase tracking-[0.1em] text-[#5c5c6b] font-medium">{h}</th>
+                <th key={h} className="px-3 py-2 text-left text-[11.5px] uppercase tracking-[0.1em] text-[#7d7d8e] font-medium">{h}</th>
               ))}
             </tr></thead>
             <tbody>
@@ -904,7 +904,7 @@ function CalcTab(p: CalcTabProps) {
                       {editarRangos ? (
                         <span className="flex items-center gap-1">
                           <NumField value={rg?.min ?? 0} onChange={n => setRango(e.key, 'min', n)} min={0} className="w-14 bg-[#101016] border border-[#1f1f2b] rounded px-1 py-0.5 text-[12px] font-mono" />
-                          <span className="text-[#5c5c6b]">–</span>
+                          <span className="text-[#7d7d8e]">–</span>
                           <NumField value={rg?.max ?? 0} onChange={n => setRango(e.key, 'max', n)} min={0} className="w-14 bg-[#101016] border border-[#1f1f2b] rounded px-1 py-0.5 text-[12px] font-mono" />
                         </span>
                       ) : (obj > 0 && rg) ? `${rg.min}–${rg.max}` : '—'}
@@ -926,7 +926,7 @@ function CalcTab(p: CalcTabProps) {
 
 function SugerenciaSalesActivas({ salesTodas, activas, setActivas }: { salesTodas: Sal[]; activas: Set<string>; setActivas: SetSet }) {
   return (
-    <p className="text-[11.5px] text-[#5c5c6b] px-1">
+    <p className="text-[11.5px] text-[#7d7d8e] px-1">
       {activas.size} sustancias activas de {salesTodas.length}. Gestionalas en la pestaña "Sustancias".
       Solver NNLS · EC estimada por balance iónico. Verificá pH 5.8–6.2 en coco. Inspirado en HydroBuddy (D. Fernández).
       {activas.size === 0 && <button onClick={() => setActivas(new Set(salesTodas.map((s: Sal) => s.id)))} className="ml-1 text-[#a3e635] underline">activar todas</button>}
@@ -963,7 +963,7 @@ function SustanciasTab({ salesTodas, activas, setActivas, recargarCustoms, recar
           <FlaskRound className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Sustancias disponibles</h3>
           <Info><b className="text-[#d9f99d]">Las sales que la app puede usar</b> en la receta. Activá las que tenés, cargá su precio, o agregá las tuyas.<br /><span className="text-[#a3e635]">Ej: destildá las que no tenés para que no las use el solver.</span></Info>
-          <span className="ml-auto text-[11.5px] text-[#5c5c6b]">{visibles.length} visibles</span>
+          <span className="ml-auto text-[11.5px] text-[#7d7d8e]">{visibles.length} visibles</span>
           <button onClick={() => setSoloConPrecio(v => !v)}
             className={`flex items-center gap-1 px-2 py-1 rounded-md text-[12.5px] border transition-colors ${
               soloConPrecio ? 'bg-[#a3e635]/15 border-[#404d20] text-[#d9f99d]' : 'bg-[#15151d] border-[#1f1f2b] text-[#8f8f9f] hover:text-[#d4d4dd]'
@@ -987,7 +987,7 @@ function SustanciasTab({ salesTodas, activas, setActivas, recargarCustoms, recar
           for (const [, g] of ordenadas) g.items.sort((a, b) => a.nombre.localeCompare(b.nombre))
           return ordenadas.map(([orden, g]) => (
             <div key={orden} className="mt-3">
-              <p className="text-[11.5px] uppercase tracking-[0.14em] text-[#5c5c6b] font-semibold mb-1.5 px-0.5">{g.label} <span className="text-[#3a3a4a]">· {g.items.length}</span></p>
+              <p className="text-[11.5px] uppercase tracking-[0.14em] text-[#7d7d8e] font-semibold mb-1.5 px-0.5">{g.label} <span className="text-[#7d7d8e]">· {g.items.length}</span></p>
               <div className="space-y-1.5">
                 {g.items.map((s: Sal) => {
                   const on = activas.has(s.id)
@@ -999,7 +999,7 @@ function SustanciasTab({ salesTodas, activas, setActivas, recargarCustoms, recar
                     className={`mt-0.5 w-3.5 h-3.5 rounded flex-shrink-0 border ${on ? 'bg-[#a3e635] border-[#a3e635]' : 'border-[#3a3a4a]'}`} />
                   <button onClick={() => setAbierta(open ? null : s.id)} className="min-w-0 flex-1 text-left">
                     <span className={`block text-[13px] font-medium ${on ? 'text-[#d9f99d]' : 'text-[#a6a6b5]'}`}>
-                      {s.nombre} {s.formula && <span className="text-[#5c5c6b] font-normal">{s.formula}</span>}
+                      {s.nombre} {s.formula && <span className="text-[#7d7d8e] font-normal">{s.formula}</span>}
                       {s.custom && <span className="ml-1 text-[10.5px] px-1 rounded bg-[#a78bfa]/20 text-[#c4b5fd]">propia</span>}
                       {s.aditivo && <span className="ml-1 text-[10.5px] px-1 rounded bg-[#bef264]/15 text-[#bef264]">aditivo</span>}
                       {s.stock != null && s.stock > 0 && <span className="ml-1 text-[10.5px] px-1 rounded bg-[#60a5fa]/20 text-[#93c5fd]">stock {s.stock}{s.stockUnidad ?? ''}</span>}
@@ -1010,7 +1010,7 @@ function SustanciasTab({ salesTodas, activas, setActivas, recargarCustoms, recar
                         return null
                       })()}
                     </span>
-                    <span className="block text-[11.5px] text-[#5c5c6b] mt-0.5 line-clamp-2">{s.descripcion ?? s.nota ?? 'Sin descripción.'}</span>
+                    <span className="block text-[11.5px] text-[#7d7d8e] mt-0.5 line-clamp-2">{s.descripcion ?? s.nota ?? 'Sin descripción.'}</span>
                     {(() => {
                       const u = usos[s.id]
                       const txt = u ? (u.marcas.length >= 4 ? 'Base · casi todas las marcas'
@@ -1023,7 +1023,7 @@ function SustanciasTab({ salesTodas, activas, setActivas, recargarCustoms, recar
                       return null
                     })()}
                   </button>
-                  <ChevronDown className={`w-4 h-4 mt-0.5 text-[#5c5c6b] flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-4 h-4 mt-0.5 text-[#7d7d8e] flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
                 </div>
                       {open && <FichaSal sal={s} onSaved={recargarInventario} onDelete={recargarCustoms} />}
                     </div>
@@ -1060,20 +1060,20 @@ function FichaSal({ sal, onSaved, onDelete }: { sal: Sal; onSaved: () => void; o
   return (
     <div className="border-t border-[#1f1f2b] px-3 py-3 space-y-3">
       <div>
-        <p className="text-[11.5px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1">Qué es / para qué sirve</p>
+        <p className="text-[11.5px] uppercase tracking-[0.12em] text-[#7d7d8e] mb-1">Qué es / para qué sirve</p>
         <p className="text-[12.5px] text-[#c4c4d0]">{sal.descripcion ?? 'Sin descripción.'}</p>
       </div>
       <div>
-        <p className="text-[11.5px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1">Compatibilidad de mezcla</p>
+        <p className="text-[11.5px] uppercase tracking-[0.12em] text-[#7d7d8e] mb-1">Compatibilidad de mezcla</p>
         <p className="text-[12.5px] text-[#c4c4d0]">{compatibilidad(sal)}</p>
       </div>
       <div>
-        <p className="text-[11.5px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1">Composición</p>
-        <p className="text-[12.5px] text-[#a6a6b5] font-mono">{comp || '—'} <span className="text-[#5c5c6b]">· bidón {sal.bidon}{sal.liquido ? ' · líquido' : ''}</span></p>
+        <p className="text-[11.5px] uppercase tracking-[0.12em] text-[#7d7d8e] mb-1">Composición</p>
+        <p className="text-[12.5px] text-[#a6a6b5] font-mono">{comp || '—'} <span className="text-[#7d7d8e]">· bidón {sal.bidon}{sal.liquido ? ' · líquido' : ''}</span></p>
       </div>
       {sal.docs && sal.docs.length > 0 && (
         <div>
-          <p className="text-[11.5px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1.5">Fichas técnicas / PDF</p>
+          <p className="text-[11.5px] uppercase tracking-[0.12em] text-[#7d7d8e] mb-1.5">Fichas técnicas / PDF</p>
           <div className="space-y-1.5">
             {sal.docs.map(d => (
               <a key={d.archivo} href={`${import.meta.env.BASE_URL}docs/${d.archivo}`} target="_blank" rel="noopener noreferrer"
@@ -1085,7 +1085,7 @@ function FichaSal({ sal, onSaved, onDelete }: { sal: Sal; onSaved: () => void; o
         </div>
       )}
       <div>
-        <p className="text-[11.5px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-1.5">Mi inventario (editable)</p>
+        <p className="text-[11.5px] uppercase tracking-[0.12em] text-[#7d7d8e] mb-1.5">Mi inventario (editable)</p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <label className="text-[11.5px] text-[#8f8f9f]">Costo/kg (ARS)
             <NumField value={costo} onChange={setCosto} min={0} className={`${inp} mt-0.5`} /></label>
@@ -1102,7 +1102,7 @@ function FichaSal({ sal, onSaved, onDelete }: { sal: Sal; onSaved: () => void; o
       <div className="flex gap-2 justify-end">
         {sal.custom && (
           <button onClick={async () => { try { await sustanciasService.eliminar(sal.id); await onDelete(); toast.success('Sustancia eliminada') } catch (e) { toast.error(String(e)) } }}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[13.5px] text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#ff8a7a]/10">
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[13.5px] text-[#7d7d8e] hover:text-[#ff8a7a] hover:bg-[#ff8a7a]/10">
             <Trash2 className="w-3.5 h-3.5" /> Eliminar
           </button>
         )}
@@ -1157,7 +1157,7 @@ function NuevaSustancia({ onClose, onSaved }: { onClose: () => void; onSaved: ()
           <Package className="w-3.5 h-3.5" /> Cargar desde etiqueta comercial (óxidos)
         </label>
       </div>
-      {comercial && <p className="text-[11.5px] text-[#757584]">Cargá los números tal cual la etiqueta (N, P₂O₅, K₂O, CaO, MgO, SO₃). Se convierten a elemental solos. Ej: tu Ryanodine Maikro/Calcis.</p>}
+      {comercial && <p className="text-[11.5px] text-[#7d7d8e]">Cargá los números tal cual la etiqueta (N, P₂O₅, K₂O, CaO, MgO, SO₃). Se convierten a elemental solos. Ej: tu Ryanodine Maikro/Calcis.</p>}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <label className="block col-span-2"><span className="text-[11.5px] text-[#8f8f9f]">Nombre</span>
           <input value={nombre} onChange={e => setNombre(e.target.value)} className={inp.replace('font-mono tabular-nums', '')} /></label>
@@ -1197,7 +1197,7 @@ type Elem = (typeof ELEMENTOS)[number]
 function GrupoAgua({ titulo, items, agua, set }: { titulo: string; items: Elem[]; agua: Perfil; set: (k: ElementKey, v: number) => void }) {
   return (
     <div>
-      <p className="text-[11.5px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium mb-2">{titulo}</p>
+      <p className="text-[11.5px] uppercase tracking-[0.12em] text-[#7d7d8e] font-medium mb-2">{titulo}</p>
       <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
         {items.map(e => (
           <label key={e.key} className="block"><span className="text-[11.5px] text-[#8f8f9f]">{e.key}</span>
@@ -1215,9 +1215,9 @@ function AguaTab({ agua, setAgua, macros, micros, otros }: { agua: Perfil; setAg
         <Droplets className="w-4 h-4 text-blue-400" strokeWidth={1.8} />
         <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Análisis del agua de partida (ppm)</h3>
         <Info><b className="text-[#d9f99d]">Lo que tu agua ya trae</b> antes de agregar sales. Se descuenta del objetivo. Con ósmosis (RO) dejá todo en 0.<br /><span className="text-[#a3e635]">Ej: agua de canilla con 30 ppm Ca → la app agrega sales solo para el resto.</span></Info>
-        <span className="ml-auto text-[11.5px] text-[#5c5c6b]">RO = 0 · se descuenta del objetivo</span>
+        <span className="ml-auto text-[11.5px] text-[#7d7d8e]">RO = 0 · se descuenta del objetivo</span>
       </div>
-      <p className="text-[12.5px] text-[#757584]">Cargá lo que ya trae tu agua (remineralizador, canilla, pozo). El cálculo lo resta para no pasarte.</p>
+      <p className="text-[12.5px] text-[#7d7d8e]">Cargá lo que ya trae tu agua (remineralizador, canilla, pozo). El cálculo lo resta para no pasarte.</p>
       <GrupoAgua titulo="Macros" items={macros} agua={agua} set={set} />
       <GrupoAgua titulo="Micros" items={micros} agua={agua} set={set} />
       <GrupoAgua titulo="Otros" items={otros} agua={agua} set={set} />
@@ -1270,14 +1270,14 @@ function ConcentradosTab({ factor, setFactor, volBidon, setVolBidon, resolucion,
             <Info><b className="text-[#d9f99d]">Cuántas veces concentrada</b> es la solución madre respecto al riego final. Pesás lo mismo pero en menos agua, y después diluís.<br /><span className="text-[#a3e635]">Ej: 100x = 1 L de concentrado rinde 100 L de riego (agregás 10 mL por litro).</span></Info>
             <div className="flex items-center gap-1 mt-1">
               <NumField value={factor} onChange={setFactor} min={1} className={`${inp} w-24`} />
-              <span className="text-[#5c5c6b]">x</span>
+              <span className="text-[#7d7d8e]">x</span>
             </div>
           </label>
           <label className="text-[12.5px] text-[#a6a6b5]">Volumen de cada bidón
             <Info><b className="text-[#d9f99d]">Litros de la botella</b> concentrada que vas a preparar. Define cuántos gramos totales pesás para llenarla.<br /><span className="text-[#a3e635]">Ej: bidón de 1 L a 100x → adentro va lo que rinde 100 L de riego.</span></Info>
             <div className="flex items-center gap-1 mt-1">
               <NumField value={volBidon} onChange={setVolBidon} min={0.1} className={`${inp} w-24`} />
-              <span className="text-[#5c5c6b]">L</span>
+              <span className="text-[#7d7d8e]">L</span>
             </div>
           </label>
           <label className="text-[12.5px] text-[#a6a6b5]">Precisión de balanza
@@ -1292,7 +1292,7 @@ function ConcentradosTab({ factor, setFactor, volBidon, setVolBidon, resolucion,
               </select>
             </div>
           </label>
-          <div className="text-[12.5px] text-[#757584] self-end">
+          <div className="text-[12.5px] text-[#7d7d8e] self-end">
             1 bidón de {volBidon} L a {factor}x rinde <b className="text-[#bef264]">{(volBidon * factor).toFixed(0)} L</b> finales.
           </div>
         </div>
@@ -1300,7 +1300,7 @@ function ConcentradosTab({ factor, setFactor, volBidon, setVolBidon, resolucion,
 
       {/* Galería: una botella madre por cada clon/perfil guardado */}
       {botellasGuardadas.length === 0 ? (
-        <p className="text-[13.5px] text-[#5c5c6b] py-6 text-center">Todavía no tenés clones guardados. Cloná un producto y guardalo con un nombre en la pestaña Calculadora.</p>
+        <p className="text-[13.5px] text-[#7d7d8e] py-6 text-center">Todavía no tenés clones guardados. Cloná un producto y guardalo con un nombre en la pestaña Calculadora.</p>
       ) : (
         <div className="pt-2">
           <p className="text-[11.5px] uppercase tracking-[0.14em] text-[#a78bfa] font-semibold mb-2 px-0.5">Mis soluciones madre guardadas · {botellasGuardadas.length}</p>
@@ -1329,7 +1329,7 @@ function ConcentradosTab({ factor, setFactor, volBidon, setVolBidon, resolucion,
       {/* Matriz de compatibilidad de mezcla */}
       <MatrizCompatibilidad sales={salesEnMadres.length ? salesEnMadres : salesTodas.filter(s => !s.aditivo && Object.keys(s.comp ?? {}).length > 0).slice(0, 12)} />
 
-      <p className="text-[11.5px] text-[#5c5c6b] px-1">
+      <p className="text-[11.5px] text-[#7d7d8e] px-1">
         Regla de oro: al tanque final echá primero el bidón A (calcio), agitá, después el B. Nunca juntes A y B concentrados.
         Para tener tus clones acá, guardalos con un nombre en la pestaña Calculadora.
       </p>
@@ -1383,13 +1383,13 @@ function CompararConComercial({ salesTodas }: { salesTodas: Sal[] }) {
         <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Comprarlo hecho vs. hacerlo vos</h3>
         <Info><b className="text-[#d9f99d]">Lo que sale un litro de riego</b> con el producto comercial y con tus sales.<br /><span className="text-[#a3e635]">Ej: si el comercial sale $460/L de riego y las sales $12, el ahorro es 97%.</span></Info>
       </div>
-      <p className="text-[11.5px] text-[#5c5c6b] mb-3">
+      <p className="text-[11.5px] text-[#7d7d8e] mb-3">
         Todo llevado a <b className="text-[#a6a6b5]">un litro de riego ya diluido</b>, que es lo único comparable entre un envase de 500 mL y una bolsa de 25 kg.
       </p>
       <div className="overflow-x-auto">
         <table className="w-full text-[12.5px] border-collapse min-w-[640px]">
           <thead>
-            <tr className="text-[10.5px] uppercase tracking-[0.1em] text-[#5c5c6b] text-left">
+            <tr className="text-[10.5px] uppercase tracking-[0.1em] text-[#7d7d8e] text-left">
               <th className="py-1.5 pr-2 font-medium">Producto</th>
               <th className="py-1.5 px-2 font-medium text-right">Envase rinde</th>
               <th className="py-1.5 px-2 font-medium text-right">Comprado</th>
@@ -1404,7 +1404,7 @@ function CompararConComercial({ salesTodas }: { salesTodas: Sal[] }) {
                 <td className="py-2 pr-2">
                   <span className="text-[#ececf1]">{f.marca} {f.producto}</span>
                   {f.envase_cant && (
-                    <span className="text-[#5c5c6b]"> · {fmtNum(f.envase_cant)} {f.envase_unidad}
+                    <span className="text-[#7d7d8e]"> · {fmtNum(f.envase_cant)} {f.envase_unidad}
                       {f.precio_envase != null && <> · {fmtPesos(f.precio_envase)}</>}
                     </span>
                   )}
@@ -1419,7 +1419,7 @@ function CompararConComercial({ salesTodas }: { salesTodas: Sal[] }) {
                   {diyPorLitro != null ? `${fmtPesosFinos(diyPorLitro)}/L` : '—'}
                 </td>
                 <td className="py-2 px-2 text-right font-mono tabular-nums font-bold"
-                  style={{ color: ahorro == null ? '#5c5c6b' : ahorro > 0 ? '#bef264' : '#ff8a7a' }}>
+                  style={{ color: ahorro == null ? '#7d7d8e' : ahorro > 0 ? '#bef264' : '#ff8a7a' }}>
                   {/* Con un decimal arriba de 99%: "100%" se lee como gratis. */}
                   {ahorro == null ? '—'
                     : `${ahorro > 0 ? '' : '+'}${(Math.abs(ahorro) * 100).toLocaleString('es-AR', {
@@ -1435,7 +1435,7 @@ function CompararConComercial({ salesTodas }: { salesTodas: Sal[] }) {
           </tbody>
         </table>
       </div>
-      <p className="text-[11.5px] text-[#5c5c6b] mt-3">
+      <p className="text-[11.5px] text-[#7d7d8e] mt-3">
         <b className="text-[#c4b5fd]">Concentrado</b> es a cuántas veces tenés que armar tu solución madre para que reemplace al comercial
         litro por litro: la usás a la misma dosis de etiqueta y te queda la misma concentración en el tanque.
         {' '}Un guion significa que falta un dato (precio del envase, o el precio de alguna sal), no que sea gratis.
@@ -1476,7 +1476,7 @@ function PanelEconomiaClon({ ficha, diyPorLitro }: { ficha?: FichaComercial; diy
               maximumFractionDigits: Math.abs(ahorro) > 0.99 ? 1 : 0,
             })}%
           </div>
-          <div className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] mt-1">
+          <div className="text-[10px] uppercase tracking-[0.12em] text-[#7d7d8e] mt-1">
             {ahorro > 0 ? 'más barato' : 'más caro'} que comprarlo
           </div>
         </div>
@@ -1484,18 +1484,18 @@ function PanelEconomiaClon({ ficha, diyPorLitro }: { ficha?: FichaComercial; diy
       <dl className="space-y-1.5">
         {filas.map(f => (
           <div key={f.l} className="flex items-baseline justify-between gap-2">
-            <dt className="text-[11px] text-[#757584]">{f.l}</dt>
+            <dt className="text-[11px] text-[#7d7d8e]">{f.l}</dt>
             <dd className="text-[12.5px] font-mono tabular-nums" style={{ color: f.c }}>{f.v}</dd>
           </div>
         ))}
       </dl>
       {ficha?.precio_envase != null && ficha.envase_cant && (
-        <p className="text-[10.5px] text-[#5c5c6b] mt-2 pt-2 border-t border-[#1f1f2b] leading-snug">
+        <p className="text-[10.5px] text-[#7d7d8e] mt-2 pt-2 border-t border-[#1f1f2b] leading-snug">
           {ficha.marca} {ficha.producto} · {fmtNum(ficha.envase_cant)} {ficha.envase_unidad} · {fmtPesos(ficha.precio_envase)}
         </p>
       )}
       {!ficha && (
-        <p className="text-[10.5px] text-[#5c5c6b] mt-2 pt-2 border-t border-[#1f1f2b] leading-snug">
+        <p className="text-[10.5px] text-[#7d7d8e] mt-2 pt-2 border-t border-[#1f1f2b] leading-snug">
           Sin ficha comercial enlazada: no hay contra qué comparar.
         </p>
       )}
@@ -1524,7 +1524,7 @@ function ColMicros({ titulo, sub, dosis, litros, resolucion, acento, elegida, on
         )}
       </div>
       <div className="flex items-baseline gap-2 mb-2">
-        <p className="text-[11.5px] text-[#5c5c6b] flex-1 min-w-0">{sub}</p>
+        <p className="text-[11.5px] text-[#7d7d8e] flex-1 min-w-0">{sub}</p>
         {conProveedor && (
           <span className={`text-[11.5px] flex-shrink-0 ${faltan > 0 ? 'text-[#facc15]' : 'text-[#a3e635]/70'}`}>
             {faltan > 0 ? `te falta${faltan === 1 ? '' : 'n'} ${faltan}` : 'las tenés todas'}
@@ -1532,7 +1532,7 @@ function ColMicros({ titulo, sub, dosis, litros, resolucion, acento, elegida, on
         )}
       </div>
       {dosis.length === 0 ? (
-        <p className="text-[12px] text-[#5c5c6b] py-2">Sin micros en este perfil.</p>
+        <p className="text-[12px] text-[#7d7d8e] py-2">Sin micros en este perfil.</p>
       ) : (
         <div className="space-y-1">
           {dosis.map(d => {
@@ -1542,7 +1542,7 @@ function ColMicros({ titulo, sub, dosis, litros, resolucion, acento, elegida, on
               {conProveedor && <Disp tiene={!falta} />}
               <span className="text-[12.5px] text-[#d4d4dd] flex-1 min-w-0 truncate">{d.sal.nombre}</span>
               {falta && <span className="flex-shrink-0 text-[10px] uppercase tracking-wide text-[#facc15] bg-[#facc15]/10 border border-[#facc15]/25 rounded px-1 py-px">falta</span>}
-              <span className="text-[13px] font-mono tabular-nums font-bold text-[#ececf1]">{fmtG(d.gramosPorL, litros, resolucion)} <span className="text-[#5c5c6b] font-normal">{litros === 1 ? 'g/L' : 'g'}</span></span>
+              <span className="text-[13px] font-mono tabular-nums font-bold text-[#ececf1]">{fmtG(d.gramosPorL, litros, resolucion)} <span className="text-[#7d7d8e] font-normal">{litros === 1 ? 'g/L' : 'g'}</span></span>
             </div>
             )
           })}
@@ -1580,7 +1580,7 @@ function PanelMicros2({ perfil, salesTodas, litros, resolucion, activas, setActi
         <Info><b className="text-[#d9f99d]">Esto no es otra receta.</b> Es el mismo objetivo de micros por dos caminos, y el que esté marcado <b>Elegida</b> es el que ya está aplicado arriba en la Receta.<br />Sales sueltas = cada micro por separado. Micromix = Fetrilon Combi 2 + refuerzos para completar lo que su ratio fijo deja corto.<br /><span className="text-[#a3e635]">Tocá "Usar esta" para cambiar cuál usa la receta.</span></Info>
       </div>
       {/* Sin esta línea el panel se lee como una tercera receta suelta. */}
-      <p className="text-[12.5px] text-[#5c5c6b] mb-3 leading-relaxed">
+      <p className="text-[12.5px] text-[#7d7d8e] mb-3 leading-relaxed">
         Son dos caminos para los mismos micros. El marcado <span className="text-[#facc15]">Elegida</span> es el que
         ya está incluido en la Receta de arriba — no se suma, la reemplaza.
       </p>
@@ -1594,7 +1594,7 @@ function PanelMicros2({ perfil, salesTodas, litros, resolucion, activas, setActi
       <div className="overflow-x-auto">
         <table className="w-full text-[12.5px] border-collapse">
           <thead>
-            <tr className="text-[#5c5c6b] text-[11.5px] uppercase tracking-[0.1em]">
+            <tr className="text-[#7d7d8e] text-[11.5px] uppercase tracking-[0.1em]">
               <th className="text-left font-medium py-1">Micro</th>
               <th className="text-right font-medium py-1">Objetivo</th>
               <th className="text-right font-medium py-1 text-[#a3e635]">A · sueltos</th>
@@ -1609,7 +1609,7 @@ function PanelMicros2({ perfil, salesTodas, litros, resolucion, activas, setActi
               const eb = estado(obj, b)
               return (
                 <tr key={k} className="border-t border-[#1f1f2b]">
-                  <td className="py-1 text-[#d4d4dd]">{nombre} <span className="text-[#5c5c6b]">({k})</span></td>
+                  <td className="py-1 text-[#d4d4dd]">{nombre} <span className="text-[#7d7d8e]">({k})</span></td>
                   <td className="py-1 text-right font-mono text-[#a6a6b5]">{obj.toFixed(2)}</td>
                   <td className="py-1 text-right font-mono text-[#d9f99d]">{a.toFixed(2)}</td>
                   <td className="py-1 text-right font-mono" style={{ color: eb.c }}>{b.toFixed(2)} <span className="text-[10.5px]">{eb.t}</span></td>
@@ -1619,7 +1619,7 @@ function PanelMicros2({ perfil, salesTodas, litros, resolucion, activas, setActi
           </tbody>
         </table>
       </div>
-      <p className="text-[11.5px] text-[#5c5c6b] mt-2">La columna B usa el solver para repartir Fetrilon + refuerzos individuales (Fe-HBED, Mn-EDTA, ác. bórico, molibdato). El micromix da la base y cada refuerzo completa el micro que su ratio fijo deja corto (B y Mo son los que más faltan). El hierro es Fe-HBED (el más estable, pH 3.5–12). Si algún micro queda <span className="text-[#f87171]">falta</span>/<span className="text-[#facc15]">sobra</span> es por el tope del ratio del Fetrilon (ej. Cu suele sobrar).</p>
+      <p className="text-[11.5px] text-[#7d7d8e] mt-2">La columna B usa el solver para repartir Fetrilon + refuerzos individuales (Fe-HBED, Mn-EDTA, ác. bórico, molibdato). El micromix da la base y cada refuerzo completa el micro que su ratio fijo deja corto (B y Mo son los que más faltan). El hierro es Fe-HBED (el más estable, pH 3.5–12). Si algún micro queda <span className="text-[#f87171]">falta</span>/<span className="text-[#facc15]">sobra</span> es por el tope del ratio del Fetrilon (ej. Cu suele sobrar).</p>
     </div>
   )
 }
@@ -1634,36 +1634,36 @@ function HoclDilucionCalc() {
   return (
     <div className="mt-3 rounded-lg bg-[#101016] border border-[#2f5a72]/60 p-3">
       <p className="text-[13.5px] text-[#7dd3fc] font-semibold mb-1">🧴 Calculadora de dilución HOCl (clon de Cleanse)</p>
-      <p className="text-[12px] text-[#5c5c6b] mb-3">Con el generador de HOCl en polvo (ej. Binal BioMax) armás el stock y lo dosificás en el riego. Misma dosis que el Cleanse.</p>
+      <p className="text-[12px] text-[#7d7d8e] mb-3">Con el generador de HOCl en polvo (ej. Binal BioMax) armás el stock y lo dosificás en el riego. Misma dosis que el Cleanse.</p>
       <div className="flex flex-wrap items-end gap-4 mb-3">
         <label className="text-[12.5px] text-[#a6a6b5]">Stock a preparar
           <div className="flex items-center gap-1 mt-1">
             <NumField value={litrosStock} onChange={setLitrosStock} min={0.5} className={`${inp} w-24`} />
-            <span className="text-[#5c5c6b]">L</span>
+            <span className="text-[#7d7d8e]">L</span>
           </div>
         </label>
         <label className="text-[12.5px] text-[#a6a6b5]">Dosis en el riego
           <div className="flex items-center gap-1 mt-1">
             <NumField value={dosisMlL} onChange={setDosisMlL} min={0.1} className={`${inp} w-24`} />
-            <span className="text-[#5c5c6b]">mL/L</span>
+            <span className="text-[#7d7d8e]">mL/L</span>
           </div>
         </label>
       </div>
       <div className="grid sm:grid-cols-3 gap-2 text-center">
         <div className="rounded-md bg-[#15151d] border border-[#1f1f2b] px-2 py-2">
-          <p className="text-[11.5px] text-[#5c5c6b]">1 · Pesá polvo HOCl</p>
+          <p className="text-[11.5px] text-[#7d7d8e]">1 · Pesá polvo HOCl</p>
           <p className="text-[16px] font-mono font-bold text-[#bef264]">{num(polvo)} g</p>
         </div>
         <div className="rounded-md bg-[#15151d] border border-[#1f1f2b] px-2 py-2">
-          <p className="text-[11.5px] text-[#5c5c6b]">2 · Disolvé hasta</p>
+          <p className="text-[11.5px] text-[#7d7d8e]">2 · Disolvé hasta</p>
           <p className="text-[16px] font-mono font-bold text-[#7dd3fc]">{num(litrosStock)} L</p>
         </div>
         <div className="rounded-md bg-[#15151d] border border-[#1f1f2b] px-2 py-2">
-          <p className="text-[11.5px] text-[#5c5c6b]">3 · Rinde riego</p>
+          <p className="text-[11.5px] text-[#7d7d8e]">3 · Rinde riego</p>
           <p className="text-[16px] font-mono font-bold text-[#a78bfa]">{num(rindeL)} L</p>
         </div>
       </div>
-      <p className="text-[11.5px] text-[#5c5c6b] mt-2">Base: 0,5 g/L de polvo en el stock (= 2,5 g en 5 L) y {num(dosisMlL)} mL de stock por litro de riego. Guardá el stock al reparo de la luz.</p>
+      <p className="text-[11.5px] text-[#7d7d8e] mt-2">Base: 0,5 g/L de polvo en el stock (= 2,5 g en 5 L) y {num(dosisMlL)} mL de stock por litro de riego. Guardá el stock al reparo de la luz.</p>
     </div>
   )
 }
@@ -1674,9 +1674,9 @@ function FilaIngrediente({ nombre, cant, unidad, pct, nota }: { nombre: string; 
     <div className="flex items-center gap-2 bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2">
       <div className="flex-1 min-w-0">
         <p className="text-[13.5px] text-[#d4d4dd] truncate">{nombre}</p>
-        {nota && <p className="text-[11.5px] text-[#757584] truncate">{nota}</p>}
+        {nota && <p className="text-[11.5px] text-[#7d7d8e] truncate">{nota}</p>}
       </div>
-      {pct && <span className="text-[11.5px] text-[#5c5c6b] tabular-nums">{pct}</span>}
+      {pct && <span className="text-[11.5px] text-[#7d7d8e] tabular-nums">{pct}</span>}
       <span className="text-[14px] font-mono tabular-nums font-bold text-[#bef264] whitespace-nowrap">{cant} {unidad}</span>
     </div>
   )
@@ -1723,7 +1723,7 @@ function EnraizadoTab() {
             <Info><b className="text-[#d9f99d]">Gramos totales de gel</b> que querés hacer. Todo lo demás se calcula solo.<br /><span className="text-[#a3e635]">Ej: 100 g rinde ~350 clones. Empezá con un lote chico para calibrar la textura.</span></Info>
             <div className="flex items-center gap-1 mt-1">
               <NumField value={lote} onChange={setLote} min={10} className={`${inp} w-28`} />
-              <span className="text-[#5c5c6b]">g</span>
+              <span className="text-[#7d7d8e]">g</span>
             </div>
           </label>
           <label className="flex items-center gap-2 text-[12.5px] text-[#a6a6b5] cursor-pointer select-none">
@@ -1731,7 +1731,7 @@ function EnraizadoTab() {
             Sumar NAA (más potente, NO es fiel a Radics)
             <Info><b className="text-[#d9f99d]">NAA = ácido naftalenacético</b>, otra auxina. Muchos DIY combinan IBA+NAA para reforzar el enraizado de especies difíciles. Radics/Clonex NO lo llevan (son IBA solo). Actívalo solo si querés un gel más agresivo.</Info>
           </label>
-          <div className="text-[12.5px] text-[#757584] self-end">Rinde ~<b className="text-[#bef264]">{clonesAprox.toLocaleString('es-AR')}</b> clones</div>
+          <div className="text-[12.5px] text-[#7d7d8e] self-end">Rinde ~<b className="text-[#bef264]">{clonesAprox.toLocaleString('es-AR')}</b> clones</div>
         </div>
 
         <p className="text-[11.5px] uppercase tracking-[0.14em] text-[#a78bfa] font-semibold mb-2">Cantidades para {num(g)} g de gel</p>
@@ -1743,7 +1743,7 @@ function EnraizadoTab() {
           {conNaa && <FilaIngrediente nombre="NAA (ácido naftalenacético) — opcional" cant={num(naa)} unidad="g" pct="0,15 %" nota="refuerzo, no fiel a Radics" />}
           <FilaIngrediente nombre="Benzoato de sodio (conservante) — opcional" cant={num(benzoato)} unidad="g" pct="~0,2 %" nota="si lo guardás semanas; evita hongos" />
         </div>
-        <p className="text-[11.5px] text-[#5c5c6b] mt-2">Colorante violeta de cristal (1 gota) y trazas de antifúngico son solo estéticos/marketing — opcionales.</p>
+        <p className="text-[11.5px] text-[#7d7d8e] mt-2">Colorante violeta de cristal (1 gota) y trazas de antifúngico son solo estéticos/marketing — opcionales.</p>
       </div>
 
       {/* Paso a paso */}
@@ -1796,7 +1796,7 @@ function EnraizadoTab() {
             </li>
           ))}
         </ul>
-        <p className="text-[11.5px] text-[#5c5c6b] mt-3">Fuentes: MSDS Clonex (HEC 1,2 % / IBA 0,3 %), foros Rollitup y THCFarmer, literatura de propagación (rango óptimo 1.000–3.000 ppm IBA).</p>
+        <p className="text-[11.5px] text-[#7d7d8e] mt-3">Fuentes: MSDS Clonex (HEC 1,2 % / IBA 0,3 %), foros Rollitup y THCFarmer, literatura de propagación (rango óptimo 1.000–3.000 ppm IBA).</p>
       </div>
     </div>
   )
@@ -1839,20 +1839,20 @@ function HipoclorosoTab() {
           <label className="text-[12.5px] text-[#a6a6b5]">Stock a preparar
             <div className="flex items-center gap-1 mt-1">
               <NumField value={litros} onChange={setLitros} min={0.5} className={`${inp} w-24`} />
-              <span className="text-[#5c5c6b]">L</span>
+              <span className="text-[#7d7d8e]">L</span>
             </div>
           </label>
           <label className="text-[12.5px] text-[#a6a6b5]">Concentración objetivo
             <Info>280 ppm = igual que el Athena Cleanse (0,028 %). Si querés igualar el poder oxidante exacto (Cl₂-equivalente) usá ~378 ppm.</Info>
             <div className="flex items-center gap-1 mt-1">
               <NumField value={ppm} onChange={setPpm} min={10} className={`${inp} w-24`} />
-              <span className="text-[#5c5c6b]">ppm</span>
+              <span className="text-[#7d7d8e]">ppm</span>
             </div>
           </label>
           <label className="text-[12.5px] text-[#a6a6b5]">Dosis de riego
             <div className="flex items-center gap-1 mt-1">
               <NumField value={dosis} onChange={setDosis} min={0.1} className={`${inp} w-24`} />
-              <span className="text-[#5c5c6b]">mL/L</span>
+              <span className="text-[#7d7d8e]">mL/L</span>
             </div>
           </label>
           <div className="flex gap-1.5 self-end">
@@ -1863,8 +1863,8 @@ function HipoclorosoTab() {
 
         <div className="rounded-lg bg-[#101016] border border-[#7dd3fc]/20 p-3 mb-2">
           <p className="text-[12.5px] text-[#a6a6b5]">Poné en {num(litros)} L de agua:</p>
-          <p className="text-[22px] font-mono font-bold text-[#7dd3fc] mt-0.5">{num(gramos)} g <span className="text-[14px] text-[#5c5c6b]">de Binal BioMax</span></p>
-          <p className="text-[12px] text-[#5c5c6b] mt-0.5">= {num(gPorL)} g/L → ~{num(ppm)} ppm de HOCl</p>
+          <p className="text-[22px] font-mono font-bold text-[#7dd3fc] mt-0.5">{num(gramos)} g <span className="text-[14px] text-[#7d7d8e]">de Binal BioMax</span></p>
+          <p className="text-[12px] text-[#7d7d8e] mt-0.5">= {num(gPorL)} g/L → ~{num(ppm)} ppm de HOCl</p>
         </div>
         <div className="grid sm:grid-cols-2 gap-2">
           <FilaIngrediente nombre="Dosis en el riego" cant={num(dosis)} unidad="mL/L" nota="mL de stock por litro de agua de riego (igual que el Cleanse)" />
@@ -1966,7 +1966,7 @@ function ElicitorTab() {
             <Info><b className="text-[#d9f99d]">Litros de spray foliar</b>. Las cantidades escalan solas.<br /><span className="text-[#a3e635]">Ej: 1 L rinde para varias plantas rociando hasta que gotee.</span></Info>
             <div className="flex items-center gap-1 mt-1">
               <NumField value={litros} onChange={setLitros} min={0.25} className={`${inp} w-28`} />
-              <span className="text-[#5c5c6b]">L</span>
+              <span className="text-[#7d7d8e]">L</span>
             </div>
           </label>
         </div>
@@ -2028,7 +2028,7 @@ function ElicitorTab() {
             </li>
           ))}
         </ul>
-        <p className="text-[11.5px] text-[#5c5c6b] mt-3">Dosis de estudios en Cannabis sativa/hemp (quitosano 50–250 mg/L, salicílico ~200 µM) + recetas de foros (kelp/fúlvico/vit B). Insumos cargados en Sustancias.</p>
+        <p className="text-[11.5px] text-[#7d7d8e] mt-3">Dosis de estudios en Cannabis sativa/hemp (quitosano 50–250 mg/L, salicílico ~200 µM) + recetas de foros (kelp/fúlvico/vit B). Insumos cargados en Sustancias.</p>
       </div>
     </div>
   )
@@ -2075,7 +2075,7 @@ function BioestimulantesTab() {
         <div className="overflow-x-auto mt-3 -mx-3 px-3">
           <table className="w-full min-w-[620px] text-[12.5px] border-collapse">
             <thead>
-              <tr className="text-[#5c5c6b] text-[11.5px] uppercase tracking-[0.1em] text-left">
+              <tr className="text-[#7d7d8e] text-[11.5px] uppercase tracking-[0.1em] text-left">
                 <th className="font-medium py-1.5 pr-2">Insumo (polvo)</th>
                 <th className="font-medium py-1.5 pr-2">Qué hace</th>
                 <th className="font-medium py-1.5 pr-2">Stock</th>
@@ -2086,7 +2086,7 @@ function BioestimulantesTab() {
             <tbody>
               {BIOESTIM_INSUMOS.map((b, i) => (
                 <tr key={i} className="border-t border-[#1f1f2b] align-top">
-                  <td className="py-2 pr-2 text-[#d9f99d] font-medium">{b.nombre}<p className="text-[11.5px] text-[#5c5c6b] font-normal">{b.nota}</p></td>
+                  <td className="py-2 pr-2 text-[#d9f99d] font-medium">{b.nombre}<p className="text-[11.5px] text-[#7d7d8e] font-normal">{b.nota}</p></td>
                   <td className="py-2 pr-2 text-[#a6a6b5]">{b.que}</td>
                   <td className="py-2 pr-2 text-[#d4d4dd]">{b.stock}</td>
                   <td className="py-2 pr-2 font-mono text-[#bef264] whitespace-nowrap">{b.dosis}</td>
@@ -2135,7 +2135,7 @@ function SuperBioTab() {
           <label className="text-[12.5px] text-[#a6a6b5]">Preparar
             <div className="flex items-center gap-1 mt-1">
               <NumField value={litros} onChange={setLitros} min={0.25} className={`${inp} w-24`} />
-              <span className="text-[#5c5c6b]">L</span>
+              <span className="text-[#7d7d8e]">L</span>
             </div>
           </label>
           <div className="flex gap-1">
@@ -2209,7 +2209,7 @@ function SuperBioTab() {
         <div className="overflow-x-auto mb-2">
           <table className="w-full text-[12.5px] border-collapse">
             <thead>
-              <tr className="text-[#5c5c6b] text-[11.5px] uppercase tracking-[0.1em] text-left">
+              <tr className="text-[#7d7d8e] text-[11.5px] uppercase tracking-[0.1em] text-left">
                 <th className="font-medium py-1">Aminoácido</th>
                 <th className="font-medium py-1">Dosis final</th>
                 <th className="font-medium py-1">= concentración</th>
@@ -2255,7 +2255,7 @@ function SuperBioTab() {
             <li key={i} className="flex gap-2"><span className="text-[#facc15] flex-shrink-0">•</span><span><b className="text-[#d9f99d]">{t}:</b> {d}</span></li>
           ))}
         </ul>
-        <p className="text-[11.5px] text-[#5c5c6b] mt-3">Dosis basadas en estudios de biostimulación en Cannabis sativa (sensibilidad a aa 0,1 mM; triptófano→auxina) + literatura de vitaminas B/C en plantas. Insumos en Sustancias.</p>
+        <p className="text-[11.5px] text-[#7d7d8e] mt-3">Dosis basadas en estudios de biostimulación en Cannabis sativa (sensibilidad a aa 0,1 mM; triptófano→auxina) + literatura de vitaminas B/C en plantas. Insumos en Sustancias.</p>
       </div>
     </div>
   )
@@ -2335,7 +2335,7 @@ function MatrizCompatibilidad({ sales }: { sales: Sal[] }) {
         <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Compatibilidad de mezcla</h3>
         <Info><b className="text-[#d9f99d]">Qué sales podés juntar</b> en el mismo concentrado sin que precipite. Se calcula de la química de cada sal.<br /><span className="text-[#a3e635]">Ej: calcio + sulfato = 🔴 (forma yeso). Por eso van en bidones A y B separados.</span></Info>
       </div>
-      <p className="text-[12px] text-[#757584] mb-3">Cruzá dos sales para ver si conviven en la misma botella concentrada. Pasá el mouse por cada celda para el motivo.</p>
+      <p className="text-[12px] text-[#7d7d8e] mb-3">Cruzá dos sales para ver si conviven en la misma botella concentrada. Pasá el mouse por cada celda para el motivo.</p>
       <div className="overflow-x-auto -mx-1 px-1">
         <table className="border-collapse text-[12px]">
           <thead>
@@ -2372,7 +2372,7 @@ function MatrizCompatibilidad({ sales }: { sales: Sal[] }) {
         <span>🟡 Reduce solubilidad / cuidado de pH</span>
         <span>🔴 Incompatible — separá en bidones</span>
       </div>
-      <p className="text-[11.5px] text-[#5c5c6b] mt-1">Basada en la tabla profesional de compatibilidad de fertirriego (IPNI) + las reglas del concentrado (Ca no va con sulfatos/fosfatos/carbonatos en stock).</p>
+      <p className="text-[11.5px] text-[#7d7d8e] mt-1">Basada en la tabla profesional de compatibilidad de fertirriego (IPNI) + las reglas del concentrado (Ca no va con sulfatos/fosfatos/carbonatos en stock).</p>
     </div>
   )
 }
@@ -2388,7 +2388,7 @@ function BotellaSVG({ color, letra, volumenL }: { color: string; letra: string; 
         <rect x="10.5" y="34" width="27" height="35" rx="5" fill={color} opacity="0.32" />
         <text x="24" y="50" textAnchor="middle" fontSize="19" fontWeight="bold" fill={color} fontFamily="monospace">{letra}</text>
       </svg>
-      <span className="text-[11.5px] text-[#5c5c6b] mt-0.5 tabular-nums">{volumenL} L</span>
+      <span className="text-[11.5px] text-[#7d7d8e] mt-0.5 tabular-nums">{volumenL} L</span>
     </div>
   )
 }
@@ -2434,7 +2434,7 @@ function BotellasGrid({ concentrados, resolucion, conProveedor }: { concentrados
                   </div>
                 )
               })}
-              <p className="text-[11.5px] text-[#5c5c6b] pt-1">+ agua hasta {g.volumenL} L</p>
+              <p className="text-[11.5px] text-[#7d7d8e] pt-1">+ agua hasta {g.volumenL} L</p>
             </div>
           </div>
           {g.bidon === concentrados[0].bidon && faltantes.length > 0 && (
@@ -2671,14 +2671,14 @@ function ProveedoresTab({ salesTodas, recargarInventario, recargarProveedores }:
 
       {/* Listado agrupado por sal */}
       {provs.length === 0 ? (
-        <p className="text-[13.5px] text-[#5c5c6b] py-6 text-center">Todavía no cargaste proveedores. Agregá el primero arriba.</p>
+        <p className="text-[13.5px] text-[#7d7d8e] py-6 text-center">Todavía no cargaste proveedores. Agregá el primero arriba.</p>
       ) : provsFiltrados.length === 0 ? (
-        <p className="text-[13.5px] text-[#5c5c6b] py-6 text-center">No hay proveedores para esa sal.</p>
+        <p className="text-[13.5px] text-[#7d7d8e] py-6 text-center">No hay proveedores para esa sal.</p>
       ) : (
         <div className="space-y-3">
           {[...porSal.entries()].map(([salId, lista]) => (
             <div key={salId} className={`${card} overflow-hidden`}>
-              <p className="text-[13.5px] font-display font-semibold text-[#d9f99d] mb-2 break-words">{salNombre(salId)} <span className="text-[11.5px] text-[#5c5c6b]">· {lista.length} proveedor{lista.length > 1 ? 'es' : ''}</span></p>
+              <p className="text-[13.5px] font-display font-semibold text-[#d9f99d] mb-2 break-words">{salNombre(salId)} <span className="text-[11.5px] text-[#7d7d8e]">· {lista.length} proveedor{lista.length > 1 ? 'es' : ''}</span></p>
               <div className="grid sm:grid-cols-2 gap-2">
                 {[...lista].sort((a, b) => (ordenCal[a.calidad ?? 'baja'] ?? 3) - (ordenCal[b.calidad ?? 'baja'] ?? 3)).map(p => (
                   <div key={p.id} onClick={() => setDetalle(p)} title="Ver / editar ficha"
@@ -2689,21 +2689,21 @@ function ProveedoresTab({ salesTodas, recargarInventario, recargarProveedores }:
                         <span className="text-[13.5px] font-semibold text-[#ececf1] truncate">{p.nombre_local}</span>
                         <span className="text-[10.5px] px-1.5 py-0.5 rounded font-medium" style={{ color: calColor(p.calidad), background: `${calColor(p.calidad)}18` }}>{p.calidad}</span>
                         <button onClick={e => { e.stopPropagation(); toggleElegido(p) }} title={p.elegido ? 'Precio de referencia (clic para quitar)' : 'Usar este precio para calcular el costo'}
-                          className="ml-auto p-0.5 rounded hover:scale-110 transition-transform" style={{ color: p.elegido ? '#facc15' : '#5c5c6b' }}>
+                          className="ml-auto p-0.5 rounded hover:scale-110 transition-transform" style={{ color: p.elegido ? '#facc15' : '#7d7d8e' }}>
                           <Star className="w-4 h-4" strokeWidth={1.8} fill={p.elegido ? '#facc15' : 'none'} />
                         </button>
-                        <button onClick={e => { e.stopPropagation(); borrar(p) }} title="Borrar proveedor" className="p-0.5 rounded text-[#5c5c6b] hover:text-[#ff8a7a]"><Trash2 className="w-3.5 h-3.5" strokeWidth={1.8} /></button>
+                        <button onClick={e => { e.stopPropagation(); borrar(p) }} title="Borrar proveedor" className="p-0.5 rounded text-[#7d7d8e] hover:text-[#ff8a7a]"><Trash2 className="w-3.5 h-3.5" strokeWidth={1.8} /></button>
                       </div>
                       {p.elegido && <span className="text-[10.5px] text-[#facc15] font-semibold">★ referencia de costo</span>}
                       <div className="text-[12px] text-[#a6a6b5] mt-0.5 space-y-0.5 min-w-0">
-                        {p.precio != null && <div className="font-mono truncate"><span className="text-[#d4d4dd]">${p.precio}</span> <span className="text-[#757584]">/ {p.unidad}</span>{precioPorKg(p.precio, p.unidad) != null && <span className="text-[#a3e635]"> · ${precioPorKg(p.precio, p.unidad)}/kg</span>}{p.presentacion ? <span className="text-[#5c5c6b]"> · {p.presentacion}</span> : null}</div>}
+                        {p.precio != null && <div className="font-mono truncate"><span className="text-[#d4d4dd]">${p.precio}</span> <span className="text-[#7d7d8e]">/ {p.unidad}</span>{precioPorKg(p.precio, p.unidad) != null && <span className="text-[#a3e635]"> · ${precioPorKg(p.precio, p.unidad)}/kg</span>}{p.presentacion ? <span className="text-[#7d7d8e]"> · {p.presentacion}</span> : null}</div>}
                         {p.provincia && <div className="truncate"><MapPin className="inline w-3 h-3 mr-1 align-[-2px]" strokeWidth={1.8} />{p.provincia}</div>}
                         {p.telefono && <div className="truncate"><Phone className="inline w-3 h-3 mr-1 align-[-2px]" strokeWidth={1.8} />{p.telefono}</div>}
                         {p.email && <a onClick={e => e.stopPropagation()} href={`mailto:${p.email}`} className="block truncate text-[#7dd3fc] hover:underline"><Mail className="inline w-3 h-3 mr-1 align-[-2px]" strokeWidth={1.8} />{p.email}</a>}
                         {p.pagina && <a onClick={e => e.stopPropagation()} href={p.pagina.startsWith('http') ? p.pagina : `https://${p.pagina}`} target="_blank" rel="noreferrer" className="block truncate text-[#7dd3fc] hover:underline"><Globe className="inline w-3 h-3 mr-1 align-[-2px]" strokeWidth={1.8} />{p.pagina}</a>}
-                        {p.nota && <div className="text-[11.5px] text-[#757584] line-clamp-1">{p.nota}</div>}
+                        {p.nota && <div className="text-[11.5px] text-[#7d7d8e] line-clamp-1">{p.nota}</div>}
                       </div>
-                      <p className="text-[10.5px] text-[#5c5c6b] mt-1">Tocá para ver / editar ▸</p>
+                      <p className="text-[10.5px] text-[#7d7d8e] mt-1">Tocá para ver / editar ▸</p>
                     </div>
                   </div>
                 ))}
@@ -2712,7 +2712,7 @@ function ProveedoresTab({ salesTodas, recargarInventario, recargarProveedores }:
           ))}
         </div>
       )}
-      <p className="text-[11.5px] text-[#5c5c6b] px-1">Podés cargar varios proveedores por sal. Tocá una ficha para ver el detalle y editarla. Se ordenan por calidad (Alta primero); prioriza calidad, no precio.</p>
+      <p className="text-[11.5px] text-[#7d7d8e] px-1">Podés cargar varios proveedores por sal. Tocá una ficha para ver el detalle y editarla. Se ordenan por calidad (Alta primero); prioriza calidad, no precio.</p>
 
       {/* Modal ficha detalle / edición */}
       {detalle && (
@@ -2721,8 +2721,8 @@ function ProveedoresTab({ salesTodas, recargarInventario, recargarProveedores }:
             <div className="flex items-center gap-2 mb-3">
               <Store className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
               <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Ficha del proveedor</h3>
-              <span className="text-[11.5px] text-[#5c5c6b]">· {salNombre(detalle.sal_id)}</span>
-              <button onClick={() => setDetalle(null)} className="ml-auto p-1 rounded text-[#5c5c6b] hover:text-[#d4d4dd]"><X className="w-4 h-4" strokeWidth={1.8} /></button>
+              <span className="text-[11.5px] text-[#7d7d8e]">· {salNombre(detalle.sal_id)}</span>
+              <button onClick={() => setDetalle(null)} className="ml-auto p-1 rounded text-[#7d7d8e] hover:text-[#d4d4dd]"><X className="w-4 h-4" strokeWidth={1.8} /></button>
             </div>
 
             {/* imagen grande */}
@@ -2739,7 +2739,7 @@ function ProveedoresTab({ salesTodas, recargarInventario, recargarProveedores }:
                   )}
                 </div>
               ) : (
-                <div className="w-full h-24 rounded-lg border border-dashed border-[#2a2a38] flex items-center justify-center text-[12.5px] text-[#5c5c6b]">Sin imagen</div>
+                <div className="w-full h-24 rounded-lg border border-dashed border-[#2a2a38] flex items-center justify-center text-[12.5px] text-[#7d7d8e]">Sin imagen</div>
               )}
               <label className="mt-1.5 inline-flex items-center gap-1.5 px-2.5 py-2.5 sm:py-1 min-h-[44px] sm:min-h-0 rounded-md text-[12.5px] bg-[#15151d] border border-[#1f1f2b] text-[#a6a6b5] hover:text-[#d9f99d] cursor-pointer">
                 <Upload className="w-3.5 h-3.5" strokeWidth={1.8} /> {(detalleImg || detalle.imagen_thumb) ? 'Cambiar foto' : 'Subir foto'}
@@ -2863,65 +2863,65 @@ function ConversorTab() {
           <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Conversor químico</h3>
           <Info><b className="text-[#d9f99d]">Convertí unidades al leer etiquetas y análisis.</b> Óxidos→elemental, ppm↔%↔g/L, ppm↔meq.<br /><span className="text-[#a3e635]">Basado en Factores de Conversión (IPNI).</span></Info>
         </div>
-        <p className="text-[12.5px] text-[#757584]">Herramientas para pasar de lo que dice una etiqueta o un análisis a las unidades del objetivo (ppm elemental).</p>
+        <p className="text-[12.5px] text-[#7d7d8e]">Herramientas para pasar de lo que dice una etiqueta o un análisis a las unidades del objetivo (ppm elemental).</p>
       </div>
 
       {/* 1) Óxido → elemental */}
       <div className={card}>
-        <h4 className="text-[13.5px] font-semibold text-[#d9f99d] mb-2">Óxido → Elemental <span className="text-[11.5px] text-[#5c5c6b] font-normal">· leer etiquetas NPK</span></h4>
+        <h4 className="text-[13.5px] font-semibold text-[#d9f99d] mb-2">Óxido → Elemental <span className="text-[11.5px] text-[#7d7d8e] font-normal">· leer etiquetas NPK</span></h4>
         <div className="flex flex-wrap items-end gap-2">
           <label className="text-[11.5px] text-[#a6a6b5]">Valor (%)<input type="text" inputMode="decimal" value={oxVal} onChange={e => setOxVal(e.target.value.replace(',', '.'))} className={`${box} w-20 mt-0.5 block`} /></label>
           <label className="text-[11.5px] text-[#a6a6b5]">Forma<select value={oxIdx} onChange={e => setOxIdx(+e.target.value)} className={`${box} mt-0.5 block`}>{CONV_OXIDO.map((o, i) => <option key={i} value={i}>{o.de} → {o.a}</option>)}</select></label>
-          <span className="text-[#5c5c6b] pb-1.5">=</span>
+          <span className="text-[#7d7d8e] pb-1.5">=</span>
           <div className="pb-1">{res(oxRes != null ? `${oxRes} % ${ox.a}` : '—')}</div>
         </div>
-        <p className="text-[11.5px] text-[#5c5c6b] mt-1.5">{ox.nota}. Factor ×{ox.factor}. Ej: una etiqueta 0-15-25 → P {(+15 * 0.4364).toFixed(1)}% · K {(+25 * 0.8301).toFixed(1)}%.</p>
+        <p className="text-[11.5px] text-[#7d7d8e] mt-1.5">{ox.nota}. Factor ×{ox.factor}. Ej: una etiqueta 0-15-25 → P {(+15 * 0.4364).toFixed(1)}% · K {(+25 * 0.8301).toFixed(1)}%.</p>
       </div>
 
       {/* 2) Concentración */}
       <div className={card}>
-        <h4 className="text-[13.5px] font-semibold text-[#d9f99d] mb-2">Concentración <span className="text-[11.5px] text-[#5c5c6b] font-normal">· % ↔ g/L ↔ ppm</span></h4>
+        <h4 className="text-[13.5px] font-semibold text-[#d9f99d] mb-2">Concentración <span className="text-[11.5px] text-[#7d7d8e] font-normal">· % ↔ g/L ↔ ppm</span></h4>
         <div className="flex flex-wrap items-end gap-2 mb-2">
           <label className="text-[11.5px] text-[#a6a6b5]">Valor<input type="text" inputMode="decimal" value={concVal} onChange={e => setConcVal(e.target.value.replace(',', '.'))} className={`${box} w-24 mt-0.5 block`} /></label>
           <label className="text-[11.5px] text-[#a6a6b5]">Unidad<select value={concUnit} onChange={e => setConcUnit(e.target.value as typeof concUnit)} className={`${box} mt-0.5 block`}><option value="pct">%  (w/v)</option><option value="gl">g/L</option><option value="ppm">ppm (mg/L)</option></select></label>
         </div>
         <div className="grid grid-cols-3 gap-2">
-          <div className="bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2"><p className="text-[10.5px] text-[#757584]">%</p>{res(+(ppmBase / 10000).toFixed(4))}</div>
-          <div className="bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2"><p className="text-[10.5px] text-[#757584]">g/L</p>{res(+(ppmBase / 1000).toFixed(3))}</div>
-          <div className="bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2"><p className="text-[10.5px] text-[#757584]">ppm (mg/L)</p>{res(+ppmBase.toFixed(1))}</div>
+          <div className="bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2"><p className="text-[10.5px] text-[#7d7d8e]">%</p>{res(+(ppmBase / 10000).toFixed(4))}</div>
+          <div className="bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2"><p className="text-[10.5px] text-[#7d7d8e]">g/L</p>{res(+(ppmBase / 1000).toFixed(3))}</div>
+          <div className="bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2"><p className="text-[10.5px] text-[#7d7d8e]">ppm (mg/L)</p>{res(+ppmBase.toFixed(1))}</div>
         </div>
-        <p className="text-[11.5px] text-[#5c5c6b] mt-1.5">1% = 10 g/L = 10.000 ppm (asume solución acuosa, densidad ~1).</p>
+        <p className="text-[11.5px] text-[#7d7d8e] mt-1.5">1% = 10 g/L = 10.000 ppm (asume solución acuosa, densidad ~1).</p>
       </div>
 
       {/* 3) ppm ↔ meq */}
       <div className={card}>
-        <h4 className="text-[13.5px] font-semibold text-[#d9f99d] mb-2">Iónico <span className="text-[11.5px] text-[#5c5c6b] font-normal">· ppm ↔ meq/L (análisis de agua)</span></h4>
+        <h4 className="text-[13.5px] font-semibold text-[#d9f99d] mb-2">Iónico <span className="text-[11.5px] text-[#7d7d8e] font-normal">· ppm ↔ meq/L (análisis de agua)</span></h4>
         <div className="flex flex-wrap items-end gap-2">
           <label className="text-[11.5px] text-[#a6a6b5]">Valor<input type="text" inputMode="decimal" value={ionVal} onChange={e => setIonVal(e.target.value.replace(',', '.'))} className={`${box} w-20 mt-0.5 block`} /></label>
           <label className="text-[11.5px] text-[#a6a6b5]">Dirección<select value={ionDir} onChange={e => setIonDir(e.target.value as typeof ionDir)} className={`${box} mt-0.5 block`}><option value="ppm2meq">ppm → meq/L</option><option value="meq2ppm">meq/L → ppm</option></select></label>
           <label className="text-[11.5px] text-[#a6a6b5]">Elemento<select value={ionElem} onChange={e => setIonElem(e.target.value)} className={`${box} mt-0.5 block`}>{Object.keys(PESO_EQ).map(k => <option key={k} value={k}>{k}</option>)}</select></label>
-          <span className="text-[#5c5c6b] pb-1.5">=</span>
+          <span className="text-[#7d7d8e] pb-1.5">=</span>
           <div className="pb-1">{res(ionRes != null ? `${ionRes} ${ionDir === 'ppm2meq' ? 'meq/L' : 'ppm'}` : '—')}</div>
         </div>
-        <p className="text-[11.5px] text-[#5c5c6b] mt-1.5">Peso equivalente {ionElem} = {PESO_EQ[ionElem]} g/eq. Útil para leer dureza/bases de un análisis de agua.</p>
+        <p className="text-[11.5px] text-[#7d7d8e] mt-1.5">Peso equivalente {ionElem} = {PESO_EQ[ionElem]} g/eq. Útil para leer dureza/bases de un análisis de agua.</p>
       </div>
 
       {/* 4) Unidades */}
       <div className={card}>
-        <h4 className="text-[13.5px] font-semibold text-[#d9f99d] mb-2">Unidades <span className="text-[11.5px] text-[#5c5c6b] font-normal">· para productos importados</span></h4>
+        <h4 className="text-[13.5px] font-semibold text-[#d9f99d] mb-2">Unidades <span className="text-[11.5px] text-[#7d7d8e] font-normal">· para productos importados</span></h4>
         <div className="grid sm:grid-cols-2 gap-3">
           <div className="flex items-end gap-2">
             <label className="text-[11.5px] text-[#a6a6b5]">gramos<input type="text" inputMode="decimal" value={g} onChange={e => setG(e.target.value.replace(',', '.'))} className={`${box} w-20 mt-0.5 block`} /></label>
-            <span className="text-[#5c5c6b] pb-1.5">=</span>
+            <span className="text-[#7d7d8e] pb-1.5">=</span>
             <div className="pb-1">{res(g ? `${(+g / 28.3495).toFixed(2)} oz` : '—')}</div>
           </div>
           <div className="flex items-end gap-2">
             <label className="text-[11.5px] text-[#a6a6b5]">mL por galón (US)<input type="text" inputMode="decimal" value={ml} onChange={e => setMl(e.target.value.replace(',', '.'))} className={`${box} w-20 mt-0.5 block`} /></label>
-            <span className="text-[#5c5c6b] pb-1.5">=</span>
+            <span className="text-[#7d7d8e] pb-1.5">=</span>
             <div className="pb-1">{res(ml ? `${(+ml / 3.78541).toFixed(2)} mL/L` : '—')}</div>
           </div>
         </div>
-        <p className="text-[11.5px] text-[#5c5c6b] mt-1.5">1 oz = 28.35 g · 1 galón US = 3.785 L. Ej: una etiqueta yanqui "4 mL/gal" = {(4 / 3.78541).toFixed(2)} mL/L.</p>
+        <p className="text-[11.5px] text-[#7d7d8e] mt-1.5">1 oz = 28.35 g · 1 galón US = 3.785 L. Ej: una etiqueta yanqui "4 mL/gal" = {(4 / 3.78541).toFixed(2)} mL/L.</p>
       </div>
     </div>
   )
@@ -3051,7 +3051,7 @@ function RatiosTab({ ratios, res, costo, proveedores }: { ratios: Ratios; res: R
           {redundancias.map(r => (
             <li key={r.elemento} className="text-[13px] text-[#d4d4dd]">
               <b className="text-[#facc15]">{r.label}:</b> {r.sugerencia}
-              <span className="text-[#5c5c6b]"> ({r.fuentes.join(' + ')})</span>
+              <span className="text-[#7d7d8e]"> ({r.fuentes.join(' + ')})</span>
             </li>
           ))}
         </ul>
@@ -3070,22 +3070,22 @@ function RatiosTab({ ratios, res, costo, proveedores }: { ratios: Ratios; res: R
               <span className="text-[13px] text-[#a6a6b5]">N : P : K</span>
               <span className="text-[13.5px] font-mono tabular-nums font-bold text-[#d9f99d]">{npk}</span>
             </div>
-            <p className="text-[11.5px] text-[#6b6b7a] mt-0.5">La proporción de los 3 macros principales (siempre relativa al fósforo=1). Es la "firma" NPK de tu fórmula.</p>
+            <p className="text-[11.5px] text-[#7d7d8e] mt-0.5">La proporción de los 3 macros principales (siempre relativa al fósforo=1). Es la "firma" NPK de tu fórmula.</p>
           </div>
           {Object.entries(ratios).filter(([k]) => k !== 'N:P:K').map(([k, v]) => {
             const info = RATIO_INFO[k]
             return (
             <div key={k} className="bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2">
               <div className="flex items-center justify-between">
-                <span className="text-[13px] text-[#a6a6b5]">{k} {info && <span className="text-[11.5px] text-[#5c5c6b]">· ideal {info.ideal}</span>}</span>
+                <span className="text-[13px] text-[#a6a6b5]">{k} {info && <span className="text-[11.5px] text-[#7d7d8e]">· ideal {info.ideal}</span>}</span>
                 <span className="text-[13.5px] font-mono tabular-nums font-bold text-[#ececf1]">{(v as number) || '—'}</span>
               </div>
-              {info && <p className="text-[11.5px] text-[#6b6b7a] mt-0.5">{info.desc}</p>}
+              {info && <p className="text-[11.5px] text-[#7d7d8e] mt-0.5">{info.desc}</p>}
             </div>
             )
           })}
         </div>
-        <p className="text-[11.5px] text-[#5c5c6b] mt-2">Los ratios te avisan de antagonismos: si un elemento está muy alto respecto a otro, la planta absorbe de menos el segundo aunque sobre.</p>
+        <p className="text-[11.5px] text-[#7d7d8e] mt-2">Los ratios te avisan de antagonismos: si un elemento está muy alto respecto a otro, la planta absorbe de menos el segundo aunque sobre.</p>
       </div>
 
       <div className={card}>
@@ -3096,7 +3096,7 @@ function RatiosTab({ ratios, res, costo, proveedores }: { ratios: Ratios; res: R
           <span className="ml-auto text-[13.5px] font-mono tabular-nums font-bold text-[#d9f99d]">${totalCosto}/L</span>
         </div>
         {detalleCosto.length === 0 ? (
-          <p className="text-[12.5px] text-[#5c5c6b]">Cargá costo/kg en cada sustancia para ver el costo.</p>
+          <p className="text-[12.5px] text-[#7d7d8e]">Cargá costo/kg en cada sustancia para ver el costo.</p>
         ) : (
           <div className="space-y-1">
             {detalleCosto.map(d => (
@@ -3115,7 +3115,7 @@ function RatiosTab({ ratios, res, costo, proveedores }: { ratios: Ratios; res: R
             ))}
           </div>
         )}
-        <p className="text-[11.5px] text-[#5c5c6b] mt-2">El costo usa el proveedor ⭐ de cada sal, pero podés elegir otro en el desplegable para presupuestar sin cambiar la referencia.</p>
+        <p className="text-[11.5px] text-[#7d7d8e] mt-2">El costo usa el proveedor ⭐ de cada sal, pero podés elegir otro en el desplegable para presupuestar sin cambiar la referencia.</p>
       </div>
     </div>
 
@@ -3150,15 +3150,15 @@ function RatiosTab({ ratios, res, costo, proveedores }: { ratios: Ratios; res: R
 
       <div className="grid sm:grid-cols-3 gap-2">
         <div className="bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2">
-          <p className="text-[11.5px] text-[#757584]">Desbalance carga</p>
+          <p className="text-[11.5px] text-[#7d7d8e]">Desbalance carga</p>
           <p className="text-[14px] font-mono font-bold" style={{ color: balColor }}>{bal.desbalancePct > 0 ? '+' : ''}{bal.desbalancePct}%</p>
         </div>
         <div className="bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2">
-          <p className="text-[11.5px] text-[#757584]">NH₄ del N total</p>
+          <p className="text-[11.5px] text-[#7d7d8e]">NH₄ del N total</p>
           <p className="text-[14px] font-mono font-bold text-[#d9f99d]">{bal.nh4Pct}%</p>
         </div>
         <div className="bg-[#15151d] border border-[#1f1f2b] rounded-md px-3 py-2">
-          <p className="text-[11.5px] text-[#757584]">Tendencia pH riego</p>
+          <p className="text-[11.5px] text-[#7d7d8e]">Tendencia pH riego</p>
           <p className="text-[13.5px] font-bold" style={{ color: phInfo.c }}>{phInfo.t}</p>
         </div>
       </div>
@@ -3166,7 +3166,7 @@ function RatiosTab({ ratios, res, costo, proveedores }: { ratios: Ratios; res: R
         <p className="text-[12px] font-semibold mb-0.5" style={{ color: balColor }}>Cómo interpretarlo / corregir</p>
         <p className="text-[12px] text-[#c4c4d0] leading-relaxed">{corregir}</p>
       </div>
-      <p className="text-[11.5px] text-[#5c5c6b] mt-2">{phInfo.d} · Los cationes (⊕ Ca+Mg+K+NH₄) deben igualar a los aniones (⊖ NO₃+SO₄+H₂PO₄+Cl y otros). "otros⁻" = bicarbonato/gluconato/silicato (balancean pero no son nutrientes). Desbalance ≤5% = receta física real.</p>
+      <p className="text-[11.5px] text-[#7d7d8e] mt-2">{phInfo.d} · Los cationes (⊕ Ca+Mg+K+NH₄) deben igualar a los aniones (⊖ NO₃+SO₄+H₂PO₄+Cl y otros). "otros⁻" = bicarbonato/gluconato/silicato (balancean pero no son nutrientes). Desbalance ≤5% = receta física real.</p>
     </div>
     </div>
   )
@@ -3197,7 +3197,7 @@ function ClonarTab({ productos, onUsar, irA }: { productos: Sal[]; onUsar: (p: P
           <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Clonar un producto comercial</h3>
           <Info><b className="text-[#d9f99d]">Copiá una marca</b>: elegís el producto y la app arma la receta casera equivalente con sales baratas.<br /><span className="text-[#a3e635]">Ej: clonás Athena Fade → te da la mezcla que iguala su perfil por mucho menos.</span></Info>
         </div>
-        <p className="text-[12.5px] text-[#757584] mb-3">
+        <p className="text-[12.5px] text-[#7d7d8e] mb-3">
           Elegí un producto y su dosis: la calculadora arma el objetivo en ppm y después, en la pestaña Calculadora,
           el solver te dice qué sales sueltas usar para <b className="text-[#a6a6b5]">copiarlo</b> (más barato).
         </p>
@@ -3212,21 +3212,21 @@ function ClonarTab({ productos, onUsar, irA }: { productos: Sal[]; onUsar: (p: P
             </select>
           </label>
           <label className="text-[12.5px] text-[#a6a6b5]">Dosis ({prod?.liquido ? 'mL/L' : 'g/L'})
-            {DOSIS_REC[id] != null && <span className="text-[#5c5c6b] ml-1">· recomendada de la marca: {DOSIS_REC[id]}{prod?.liquido ? ' mL/L' : ' g/L'} (podés cambiarla)</span>}
+            {DOSIS_REC[id] != null && <span className="text-[#7d7d8e] ml-1">· recomendada de la marca: {DOSIS_REC[id]}{prod?.liquido ? ' mL/L' : ' g/L'} (podés cambiarla)</span>}
             <NumField value={dosis} onChange={setDosis} min={0} className={`${inp} mt-1`} />
           </label>
         </div>
         {prod && (
           <>
             <div className="mt-3 rounded-lg bg-[#15151d] border border-[#1f1f2b] p-3">
-              <p className="text-[11.5px] uppercase tracking-[0.12em] text-[#5c5c6b] mb-2">Perfil resultante (ppm a esa dosis)</p>
+              <p className="text-[11.5px] uppercase tracking-[0.12em] text-[#7d7d8e] mb-2">Perfil resultante (ppm a esa dosis)</p>
               <div className="flex flex-wrap gap-1.5">
                 {ELEMENTOS.filter(e => (perfil[e.key] ?? 0) > 0).map(e => (
                   <span key={e.key} className="text-[12px] font-mono tabular-nums px-2 py-0.5 rounded bg-[#101016] border border-[#1f1f2b] text-[#d4d4dd]">
                     {e.key} {perfil[e.key]}
                   </span>
                 ))}
-                {esAditivo && <span className="text-[12.5px] text-[#5c5c6b]">Este producto no aporta nutrientes (es un aditivo): no se clona con sales.</span>}
+                {esAditivo && <span className="text-[12.5px] text-[#7d7d8e]">Este producto no aporta nutrientes (es un aditivo): no se clona con sales.</span>}
               </div>
             </div>
             {esAditivo ? (
@@ -3254,7 +3254,7 @@ function ClonarTab({ productos, onUsar, irA }: { productos: Sal[]; onUsar: (p: P
                   className="mt-3 flex items-center gap-1.5 px-3 py-2 rounded-md text-[13.5px] font-medium bg-[#a3e635]/15 border border-[#404d20] text-[#d9f99d] hover:bg-[#a3e635]/25">
                   <Copy className="w-3.5 h-3.5" /> Usar como objetivo y clonar
                 </button>
-                <p className="text-[11.5px] text-[#5c5c6b] mt-2">
+                <p className="text-[11.5px] text-[#7d7d8e] mt-2">
                   Para varias partes (A+B, etc.) clonás cada una por separado y sumás las recetas. Tip: en "Sustancias" desactivá los productos comerciales y dejá solo sales sueltas para que el clon use materia prima barata.
                 </p>
               </>
@@ -3291,8 +3291,8 @@ function FilaProveedor({ costo, volumen }: { costo: CostoSustancia; volumen: num
   const { proveedor, envase, precioEnvase, porUnidadBase, rindeL, costoEnBidon } = costo
   if (!proveedor) {
     return (
-      <div className="mt-1.5 pt-1.5 border-t border-[#1f1f2b] text-[11.5px] text-[#5c5c6b]">
-        Sin proveedor cargado. Agregalo en <b className="text-[#757584]">Más herramientas › Proveedores</b> y acá aparece el precio y el rinde.
+      <div className="mt-1.5 pt-1.5 border-t border-[#1f1f2b] text-[11.5px] text-[#7d7d8e]">
+        Sin proveedor cargado. Agregalo en <b className="text-[#7d7d8e]">Más herramientas › Proveedores</b> y acá aparece el precio y el rinde.
       </div>
     )
   }
@@ -3302,11 +3302,11 @@ function FilaProveedor({ costo, volumen }: { costo: CostoSustancia; volumen: num
       <span className="text-[#a6a6b5]">{proveedor.nombre_local}</span>
       {envase && precioEnvase != null && (
         <span className="text-[#c4c4d0]">
-          {envase} <span className="text-[#5c5c6b]">·</span> <b className="font-mono tabular-nums">{fmtPesos(precioEnvase)}</b>
+          {envase} <span className="text-[#7d7d8e]">·</span> <b className="font-mono tabular-nums">{fmtPesos(precioEnvase)}</b>
         </span>
       )}
       {porUnidadBase != null && (
-        <span className="text-[#757584] font-mono tabular-nums">
+        <span className="text-[#7d7d8e] font-mono tabular-nums">
           {fmtPesos(Math.round(porUnidadBase))}/{esLiquido ? 'L' : 'kg'}
         </span>
       )}
@@ -3316,7 +3316,7 @@ function FilaProveedor({ costo, volumen }: { costo: CostoSustancia; volumen: num
         </span>
       )}
       {costoEnBidon != null && (
-        <span className="text-[#757584]">
+        <span className="text-[#7d7d8e]">
           en tu bidón de {volumen} L: <b className="font-mono tabular-nums text-[#a6a6b5]">{fmtPesos(Math.round(costoEnBidon))}</b>
         </span>
       )}
@@ -3380,14 +3380,14 @@ function EstabilizantesTab({ dosis }: { dosis: ResultadoSal[] }) {
                     {info.nivel === 'evitar' ? '— no usar —' : (cantidad != null ? `${cantidad} ${u}` : info.dosis)}
                   </span>
                 </div>
-                <div className="text-[11.5px] text-[#757584] mt-0.5">{info.funcion} · dosis {info.dosis}</div>
+                <div className="text-[11.5px] text-[#7d7d8e] mt-0.5">{info.funcion} · dosis {info.dosis}</div>
                 <div className="text-[12px] text-[#a6a6b5] mt-1">{info.porque}</div>
                 {info.nivel !== 'evitar' && <FilaProveedor costo={c} volumen={volumen} />}
               </div>
             )
           })}
         </div>
-        <p className="text-[11.5px] text-[#5c5c6b] mt-3">
+        <p className="text-[11.5px] text-[#7d7d8e] mt-3">
           Cantidades calculadas para {volumen} L de concentrado. EDDHA, HBED, DTPA y gluconato se dosifican según el Fe/Ca objetivo (ya los tenés en Sustancias).
           Los precios salen del proveedor marcado como elegido en <b className="text-[#a6a6b5]">Proveedores</b>.
           Datos: foros + patentes + scienceinhydroponics (autor de HydroBuddy).
@@ -3418,7 +3418,7 @@ function PHTab({ agua }: { agua: Perfil }) {
           <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Ajuste de pH por alcalinidad</h3>
           <Info><b className="text-[#d9f99d]">Cuánto ácido/base agregar</b> para llevar el pH al rango del coco (5.8–6.2).<br /><span className="text-[#a3e635]">Ej: agua alcalina → te dice los mL de ácido para bajarla.</span></Info>
         </div>
-        <p className="text-[12.5px] text-[#757584] mb-3">
+        <p className="text-[12.5px] text-[#7d7d8e] mb-3">
           El pH de tu solución lo gobierna la <b className="text-[#a6a6b5]">alcalinidad</b> (bicarbonatos) del agua, no el pH directo.
           Medí la alcalinidad (en ppm de CaCO₃, con kit de acuario o análisis) y esto te dice cuánto ácido/base agregar.
           {agua.Na ? '' : ''}
@@ -3442,12 +3442,12 @@ function PHTab({ agua }: { agua: Perfil }) {
               {r.cantidad} <span className="text-[15px] opacity-70">{r.unidad}</span>
             </p>
             <p className="text-[12.5px] text-[#a6a6b5] mt-2">de <b>{ag.nombre}</b> para {volumen} L</p>
-            {ag.nota && <p className="text-[12px] text-[#757584] mt-1">{ag.nota}</p>}
+            {ag.nota && <p className="text-[12px] text-[#7d7d8e] mt-1">{ag.nota}</p>}
           </div>
         )}
         <div className="flex items-start gap-2 mt-3 rounded-lg bg-[#15151d] border border-[#1f1f2b] px-3 py-2">
           <AlertTriangle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[#a3e635]" strokeWidth={1.8} />
-          <p className="text-[12px] text-[#757584]">
+          <p className="text-[12px] text-[#7d7d8e]">
             Agregá de a poco y medí: es un estimado (la alcalinidad real varía). Objetivo típico coco: dejar ~30–40 ppm de alcalinidad residual → pH ~5.8–6.2.
             Con agua RO la alcalinidad ya es ~0: casi no necesitás ácido.
           </p>
@@ -3485,7 +3485,7 @@ function CompararTab({ guardados, perfilActual, comerciales }: {
   const hayComercial = b.startsWith('c:') || a.startsWith('c:')
   const ecOf = (p?: Perfil) => p ? ecAprox(p as Record<ElementKey, number>) : 0
 
-  const Opciones = () => (
+  const opciones = (
     <>
       <option value="__actual__">Mi receta (calculadora)</option>
       {comerciales.length > 0 && (
@@ -3517,7 +3517,7 @@ function CompararTab({ guardados, perfilActual, comerciales }: {
           <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Comparar recetas</h3>
           <Info><b className="text-[#d9f99d]">Dos recetas lado a lado</b> para ver en qué se diferencian nutriente por nutriente.<br /><span className="text-[#a3e635]">Lo típico: tu receta contra el producto de marca que estás clonando.</span></Info>
         </div>
-        <p className="text-[12.5px] text-[#757584] mb-3">
+        <p className="text-[12.5px] text-[#7d7d8e] mb-3">
           Por defecto compara <b className="text-[#a6a6b5]">lo que tenés cargado en la calculadora</b> contra lo que elijas.
         </p>
 
@@ -3525,14 +3525,14 @@ function CompararTab({ guardados, perfilActual, comerciales }: {
           <label className="block">
             <span className="text-[11.5px] uppercase tracking-[0.12em] text-[#a78bfa] font-medium">A · Referencia</span>
             <select value={a} onChange={e => setA(e.target.value)} className={`${inp} mt-1`}>
-              <Opciones />
+              {opciones}
             </select>
           </label>
           <label className="block">
             <span className="text-[11.5px] uppercase tracking-[0.12em] text-[#a3e635] font-medium">B · Comparar contra</span>
             <select value={b} onChange={e => setB(e.target.value)} className={`${inp} mt-1`}>
               <option value="">— Elegí una receta —</option>
-              <Opciones />
+              {opciones}
             </select>
           </label>
         </div>
@@ -3541,7 +3541,7 @@ function CompararTab({ guardados, perfilActual, comerciales }: {
           <label className="flex flex-wrap items-center gap-2 mt-3">
             <span className="text-[12.5px] text-[#a6a6b5]">Dosis del producto comercial</span>
             <NumField value={dosis} onChange={setDosis} min={0} className={`${inp} w-24`} />
-            <span className="text-[12.5px] text-[#5c5c6b]">mL/L (o g/L) — la etiqueta suele decir 4</span>
+            <span className="text-[12.5px] text-[#7d7d8e]">mL/L (o g/L) — la etiqueta suele decir 4</span>
           </label>
         )}
       </div>
@@ -3551,12 +3551,12 @@ function CompararTab({ guardados, perfilActual, comerciales }: {
           {desvioMedio != null && (
             <div className={card}>
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <span className="text-[11.5px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium">Qué tan parecidas son</span>
+                <span className="text-[11.5px] uppercase tracking-[0.12em] text-[#7d7d8e] font-medium">Qué tan parecidas son</span>
                 <span className="font-display font-bold text-[22px] tabular-nums leading-none"
                   style={{ color: desvioMedio <= 10 ? '#bef264' : desvioMedio <= 25 ? '#fbbf24' : '#ff8a7a' }}>
                   {desvioMedio.toFixed(0)}%
                 </span>
-                <span className="text-[12.5px] text-[#757584]">de desvío promedio</span>
+                <span className="text-[12.5px] text-[#7d7d8e]">de desvío promedio</span>
               </div>
               <p className="mt-1.5 text-[12.5px] text-[#8a8a9a]">
                 {desvioMedio <= 10
@@ -3572,17 +3572,17 @@ function CompararTab({ guardados, perfilActual, comerciales }: {
             <div className="overflow-x-auto">
               <table className="w-full text-[12.5px] min-w-[420px]">
                 <thead><tr className="border-b border-[#1f1f2b]">
-                  <th className="px-3 py-2 text-left text-[11.5px] uppercase tracking-[0.1em] text-[#5c5c6b] font-medium">Elemento</th>
+                  <th className="px-3 py-2 text-left text-[11.5px] uppercase tracking-[0.1em] text-[#7d7d8e] font-medium">Elemento</th>
                   <th className="px-3 py-2 text-right text-[11.5px] uppercase tracking-[0.1em] text-[#a78bfa] font-medium">{pa.nombre}</th>
                   <th className="px-3 py-2 text-right text-[11.5px] uppercase tracking-[0.1em] text-[#a3e635] font-medium">{pb.nombre}</th>
-                  <th className="px-3 py-2 text-right text-[11.5px] uppercase tracking-[0.1em] text-[#5c5c6b] font-medium">Δ</th>
+                  <th className="px-3 py-2 text-right text-[11.5px] uppercase tracking-[0.1em] text-[#7d7d8e] font-medium">Δ</th>
                 </tr></thead>
                 <tbody>
                   <tr className="border-b border-[#1f1f2b] bg-[#15151d]">
                     <td className="px-3 py-1.5 font-medium text-[#d4d4dd]">EC aprox</td>
                     <td className="px-3 py-1.5 text-right font-mono tabular-nums text-[#c4b5fd]">{ecOf(pa.perfil)}</td>
                     <td className="px-3 py-1.5 text-right font-mono tabular-nums text-[#d9f99d]">{ecOf(pb.perfil)}</td>
-                    <td className="px-3 py-1.5 text-right font-mono tabular-nums text-[#757584]">{(ecOf(pb.perfil) - ecOf(pa.perfil)).toFixed(2)}</td>
+                    <td className="px-3 py-1.5 text-right font-mono tabular-nums text-[#7d7d8e]">{(ecOf(pb.perfil) - ecOf(pa.perfil)).toFixed(2)}</td>
                   </tr>
                   {elementos.map(e => {
                     const va = pa.perfil[e.key] ?? 0, vb = pb.perfil[e.key] ?? 0
@@ -3594,7 +3594,7 @@ function CompararTab({ guardados, perfilActual, comerciales }: {
                         <td className="px-3 py-1.5 text-right font-mono tabular-nums text-[#a6a6b5]">{va || '—'}</td>
                         <td className="px-3 py-1.5 text-right font-mono tabular-nums text-[#a6a6b5]">{vb || '—'}</td>
                         <td className="px-3 py-1.5 text-right font-mono tabular-nums"
-                          style={{ color: pctDesvio <= 10 ? '#757584' : d > 0 ? '#60a5fa' : '#ff8a7a' }}>
+                          style={{ color: pctDesvio <= 10 ? '#7d7d8e' : d > 0 ? '#60a5fa' : '#ff8a7a' }}>
                           {d > 0 ? '+' : ''}{d || '—'}
                         </td>
                       </tr>
@@ -3603,7 +3603,7 @@ function CompararTab({ guardados, perfilActual, comerciales }: {
                 </tbody>
               </table>
             </div>
-            <p className="px-3 py-2 text-[11.5px] text-[#5c5c6b] border-t border-[#1f1f2b]">
+            <p className="px-3 py-2 text-[11.5px] text-[#7d7d8e] border-t border-[#1f1f2b]">
               Δ = cuánto le falta (rojo) o le sobra (azul) a <b className="text-[#a6a6b5]">B</b> respecto de <b className="text-[#a6a6b5]">A</b>. Gris = diferencia menor al 10%.
             </p>
           </div>
@@ -3612,7 +3612,7 @@ function CompararTab({ guardados, perfilActual, comerciales }: {
 
       {!pb && (
         <div className={card}>
-          <p className="text-[13.5px] text-[#5c5c6b] py-6 text-center">Elegí en <b className="text-[#a6a6b5]">B</b> contra qué querés comparar.</p>
+          <p className="text-[13.5px] text-[#7d7d8e] py-6 text-center">Elegí en <b className="text-[#a6a6b5]">B</b> contra qué querés comparar.</p>
         </div>
       )}
     </div>

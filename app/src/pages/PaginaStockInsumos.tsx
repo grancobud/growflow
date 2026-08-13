@@ -19,8 +19,8 @@ import { btnPrimario, btnSutil } from '../lib/ui'
 
 // text-[16px] en celular: iOS Safari hace zoom sobre cualquier campo con letra
 // menor y deja el formulario descuadrado. En desktop vuelve al tamaño real.
-const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
-const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1'
 const fmtPesos = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
 
 type Estilo = { text: string; bg: string; border: string; icono: any }
@@ -121,13 +121,10 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
   useEffect(() => { onAlarmas?.(alarmas.length) }, [alarmas.length, onAlarmas])
   const conteoCat = (c: CategoriaInsumo) => insumos.filter(i => i.categoria === c).length
 
-  const Marco = embebida
-    ? ({ children }: { children: React.ReactNode }) => <div>{children}</div>
-    : ({ children }: { children: React.ReactNode }) =>
-        <div className="flex-1 overflow-y-auto bg-[#0a0a0f] text-[#d4d4dd] font-sans">{children}</div>
-
   return (
-    <Marco>
+    // Sin componente calculado en el render: remontaba el subárbol entero en
+    // cada cambio de estado y el buscador perdía el foco al escribir.
+    <div className={embebida ? '' : 'flex-1 overflow-y-auto bg-[#0a0a0f] text-[#d4d4dd] font-sans'}>
       <div className={embebida
         ? 'rounded-xl bg-[#101016] border border-[#1f1f2b] px-3 sm:px-4 py-3 mb-4'
         : 'sticky top-0 z-40 bg-[#0a0a0f]/95 backdrop-blur-[2px] border-b border-[#1f1f2b]'}>
@@ -138,7 +135,7 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
                 <Boxes className="w-4 h-4 text-[#bef264]" /> Stock &amp; Insumos
               </h1>
             )}
-            <div className={embebida ? 'text-[12.5px] text-[#a6a6b5]' : 'mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]'}>
+            <div className={embebida ? 'text-[12.5px] text-[#a6a6b5]' : 'mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]'}>
               {insumos.length} insumos · {porReponer} por reponer · {mantPendientes} mantenimiento{mantPendientes === 1 ? '' : 's'} pendiente{mantPendientes === 1 ? '' : 's'}
             </div>
           </div>
@@ -162,7 +159,7 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
         {!embebida && <div className="flex gap-1 px-3 sm:px-6 pt-2">
           {(['inventario', 'mantenimiento'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
-              className={`px-3 py-2 text-[12px] font-medium border-b-2 -mb-px transition-colors flex items-center gap-1.5 ${tab === t ? 'border-[#a3e635] text-[#d9f99d]' : 'border-transparent text-[#5c5c6b] hover:text-[#a6a6b5]'}`}>
+              className={`px-3 py-2 text-[12px] font-medium border-b-2 -mb-px transition-colors flex items-center gap-1.5 ${tab === t ? 'border-[#a3e635] text-[#d9f99d]' : 'border-transparent text-[#7d7d8e] hover:text-[#a6a6b5]'}`}>
               {t === 'inventario' ? <Boxes className="w-3.5 h-3.5" /> : <Wrench className="w-3.5 h-3.5" />}
               {t === 'inventario' ? 'Inventario' : 'Mantenimiento'}
             </button>
@@ -178,9 +175,9 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
         <div className={embebida ? "" : "px-3 sm:px-6 py-4 pb-24"}>
           <div className="flex flex-wrap items-center gap-2 mb-4">
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5c5c6b]" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#7d7d8e]" />
               <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar nombre / marca"
-                className="pl-8 pr-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 min-h-[44px] sm:min-h-0 w-[180px]" />
+                className="pl-8 pr-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 min-h-[44px] sm:min-h-0 w-[180px]" />
             </div>
             <button onClick={() => setFiltroCat('Todos')}
               className={`px-2.5 py-1.5 rounded-full text-[11px] border transition-colors ${filtroCat === 'Todos' ? 'border-[#404d20] bg-[#a3e635]/12 text-[#d9f99d]' : 'border-[#2a2a3a] bg-[#101016] text-[#a6a6b5] hover:text-[#ececf1]'}`}>
@@ -200,9 +197,9 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
 
           {insumosFiltrados.length === 0 ? (
             <div className="py-16 text-center">
-              <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><Boxes className="w-5 h-5 text-[#5c5c6b]" /></div>
+              <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><Boxes className="w-5 h-5 text-[#7d7d8e]" /></div>
               <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">{insumos.length === 0 ? 'Inventario vacío' : 'Sin resultados'}</div>
-              <div className="mt-1 text-[11.5px] text-[#5c5c6b]">{insumos.length === 0 ? 'Agregá tu primer equipo, fertilizante o herramienta.' : 'Probá con otra búsqueda o categoría.'}</div>
+              <div className="mt-1 text-[11.5px] text-[#7d7d8e]">{insumos.length === 0 ? 'Agregá tu primer equipo, fertilizante o herramienta.' : 'Probá con otra búsqueda o categoría.'}</div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-fr">
@@ -222,7 +219,7 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
                           <h3 className="font-display font-semibold text-[13.5px] text-[#ececf1] truncate">{i.nombre}</h3>
                           {bajo && <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9.5px] font-medium bg-[#ff8a7a]/12 border border-[#5a2a26] text-[#ff8a7a] flex-shrink-0"><AlertTriangle className="w-2.5 h-2.5" /> Reponer</span>}
                         </div>
-                        <div className="text-[10.5px] text-[#5c5c6b] truncate">
+                        <div className="text-[10.5px] text-[#7d7d8e] truncate">
                           <span style={{ color: e.text }}>{i.categoria}</span>
                           {(i.marca || i.modelo) && ` · ${[i.marca, i.modelo].filter(Boolean).join(' ')}`}
                         </div>
@@ -235,7 +232,7 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
                       </span>
                       {i.potencia_w != null && <span className="px-2 py-0.5 rounded-md text-[11px] bg-[#15151d] border border-[#2a2a3a] text-[#fbbf24]">{i.potencia_w} W</span>}
                       {i.dosis && <span className="px-2 py-0.5 rounded-md text-[11px] bg-[#15151d] border border-[#2a2a3a] text-[#a6a6b5]">Dosis: {i.dosis}</span>}
-                      {i.precio != null && <span className="px-2 py-0.5 rounded-md text-[11px] bg-[#15151d] border border-[#2a2a3a] text-[#5c5c6b] tabular-nums">{fmtPesos(Number(i.precio))}</span>}
+                      {i.precio != null && <span className="px-2 py-0.5 rounded-md text-[11px] bg-[#15151d] border border-[#2a2a3a] text-[#7d7d8e] tabular-nums">{fmtPesos(Number(i.precio))}</span>}
                     </div>
 
                     {min > 0 && (
@@ -243,17 +240,17 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
                         <div className="h-1.5 rounded-full bg-[#1c1c27] overflow-hidden">
                           <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: bajo ? '#ff8a7a' : '#a3e635' }} />
                         </div>
-                        <div className="mt-1 text-[9.5px] text-[#5c5c6b]">Mínimo: {min} {i.unidad || 'u'}{bajo ? ' · stock bajo' : ''}</div>
+                        <div className="mt-1 text-[9.5px] text-[#7d7d8e]">Mínimo: {min} {i.unidad || 'u'}{bajo ? ' · stock bajo' : ''}</div>
                       </div>
                     )}
 
                     {i.uso && <p className="mt-2 text-[11px] text-[#a6a6b5] leading-relaxed line-clamp-2">{i.uso}</p>}
-                    {i.specs && <p className="mt-1 text-[10.5px] text-[#5c5c6b] leading-relaxed line-clamp-2">{i.specs}</p>}
+                    {i.specs && <p className="mt-1 text-[10.5px] text-[#7d7d8e] leading-relaxed line-clamp-2">{i.specs}</p>}
 
                     <div className="mt-auto pt-3 flex gap-1.5">
                       <button onClick={() => setVerInsumo(i)} className={btnSutil}><Eye className="w-3.5 h-3.5" /> Ver ficha</button>
                       <button onClick={() => { setEditInsumo(i); setModalInsumo(true) }} className={btnSutil}><Pencil className="w-3.5 h-3.5" /> Editar ficha</button>
-                      <button onClick={() => borrarInsumo(i)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#46464f] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors ml-auto" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => borrarInsumo(i)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#7d7d8e] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors ml-auto" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </div>
                 )
@@ -296,9 +293,9 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
           )}
           {mantesOrdenados.length === 0 ? (
             <div className="py-16 text-center">
-              <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><Wrench className="w-5 h-5 text-[#5c5c6b]" /></div>
+              <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><Wrench className="w-5 h-5 text-[#7d7d8e]" /></div>
               <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">Sin mantenimientos cargados</div>
-              <div className="mt-1 text-[11.5px] text-[#5c5c6b]">Registrá limpiezas, recargas de CO2, cambios de filtro y su frecuencia.</div>
+              <div className="mt-1 text-[11.5px] text-[#7d7d8e]">Registrá limpiezas, recargas de CO2, cambios de filtro y su frecuencia.</div>
             </div>
           ) : (
             <div className="space-y-2.5">
@@ -325,7 +322,7 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
                         <span className="px-1.5 py-0.5 rounded-md text-[10px] bg-[#15151d] border border-[#2a2a3a] text-[#a6a6b5]">{m.tipo}</span>
                         <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-medium" style={{ background: badge.bg, borderColor: badge.border, color: badge.text, borderWidth: 1 }}>{badge.label}</span>
                       </div>
-                      <div className="mt-1 text-[10.5px] text-[#5c5c6b] flex flex-wrap gap-x-3 gap-y-0.5">
+                      <div className="mt-1 text-[10.5px] text-[#7d7d8e] flex flex-wrap gap-x-3 gap-y-0.5">
                         <span>Último: {fmtFecha(m.fecha_realizado)}</span>
                         {m.frecuencia_dias ? <span>Cada {m.frecuencia_dias} días</span> : null}
                         <span>Próximo: {fmtFecha(prox)}</span>
@@ -334,9 +331,9 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
                       {m.notas && <p className="mt-1.5 text-[11px] text-[#a6a6b5] leading-relaxed">{m.notas}</p>}
                     </div>
                     <div className="flex flex-col gap-1 flex-shrink-0">
-                      <button onClick={() => hechoHoy(m)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#bef264] hover:bg-[#15151d] rounded-lg transition-colors" title="Marcar hecho hoy"><CheckCircle2 className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => { setEditMant(m); setModalMant(true) }} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => borrarMant(m)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => hechoHoy(m)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#7d7d8e] hover:text-[#bef264] hover:bg-[#15151d] rounded-lg transition-colors" title="Marcar hecho hoy"><CheckCircle2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => { setEditMant(m); setModalMant(true) }} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#7d7d8e] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => borrarMant(m)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#7d7d8e] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </div>
                 )
@@ -349,7 +346,7 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
       {modalInsumo && <ModalInsumo insumo={editInsumo} onCerrar={() => setModalInsumo(false)} onGuardado={() => { setModalInsumo(false); cargar(true) }} />}
       {modalMant && <ModalMant mant={editMant} insumos={insumos} onCerrar={() => setModalMant(false)} onGuardado={() => { setModalMant(false); cargar(true) }} />}
       {verInsumo && <ModalVerInsumo insumo={verInsumo} onCerrar={() => setVerInsumo(null)} />}
-    </Marco>
+    </div>
   )
 }
 
@@ -381,7 +378,7 @@ export function ModalInsumo({ insumo, onCerrar, onGuardado }: { insumo: Insumo |
       <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 bg-[#0d0d12] border-b border-[#1f1f2b] px-4 py-3 flex items-center justify-between">
           <h2 className="font-display font-bold text-[15px] text-[#ececf1]">{insumo ? 'Editar insumo' : 'Nuevo insumo'}</h2>
-          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
+          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#7d7d8e] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4 space-y-3">
           <div>
@@ -459,7 +456,7 @@ function ModalMant({ mant, insumos, onCerrar, onGuardado }: { mant: Mantenimient
       <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 bg-[#0d0d12] border-b border-[#1f1f2b] px-4 py-3 flex items-center justify-between">
           <h2 className="font-display font-bold text-[15px] text-[#ececf1]">{mant ? 'Editar mantenimiento' : 'Nuevo mantenimiento'}</h2>
-          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
+          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#7d7d8e] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4 space-y-3">
           <div>
@@ -487,7 +484,7 @@ function ModalMant({ mant, insumos, onCerrar, onGuardado }: { mant: Mantenimient
           </div>
           <div><label className={labelCls}>Responsable</label><input className={inputCls} value={f.responsable ?? ''} onChange={e => set('responsable', e.target.value)} /></div>
           <div><label className={labelCls}>Notas</label><textarea rows={2} className={inputCls + ' resize-none'} value={f.notas ?? ''} onChange={e => set('notas', e.target.value)} placeholder="Ej: Se recargó a 50 bar, cambiar válvula la próxima" /></div>
-          <p className="text-[10.5px] text-[#5c5c6b]">Si ponés frecuencia y no fecha de próximo, se calcula sola (último + frecuencia).</p>
+          <p className="text-[10.5px] text-[#7d7d8e]">Si ponés frecuencia y no fecha de próximo, se calcula sola (último + frecuencia).</p>
         </div>
         <div className="sticky bottom-0 bg-[#0d0d12] border-t border-[#1f1f2b] px-4 py-3 flex justify-end gap-2">
           <button onClick={onCerrar} className={btnSutil}>Cancelar</button>
@@ -502,7 +499,7 @@ function CampoFicha({ label, valor }: { label: string; valor: React.ReactNode })
   if (valor == null || valor === '') return null
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] mb-0.5">{label}</div>
+      <div className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] mb-0.5">{label}</div>
       <div className="text-[12.5px] text-[#ececf1] break-words">{valor}</div>
     </div>
   )
@@ -523,7 +520,7 @@ export function ModalVerInsumo({ insumo, onCerrar }: { insumo: Insumo; onCerrar:
             </span>
             <span className="truncate">{i.nombre}</span>
           </h2>
-          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1] flex-shrink-0"><X className="w-5 h-5" /></button>
+          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#7d7d8e] hover:text-[#ececf1] flex-shrink-0"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4 space-y-4">
           <div className="flex items-center gap-2 flex-wrap">

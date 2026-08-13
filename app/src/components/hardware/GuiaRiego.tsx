@@ -20,7 +20,7 @@ function Seccion({ icon: Icon, titulo, sub, children }: { icon: LucideIcon; titu
         </div>
         <div>
           <h2 className="font-display font-semibold text-[14px] text-[#ececf1]">{titulo}</h2>
-          {sub && <p className="text-[11px] text-[#5c5c6b] mt-0.5">{sub}</p>}
+          {sub && <p className="text-[11px] text-[#7d7d8e] mt-0.5">{sub}</p>}
         </div>
       </div>
       {children}
@@ -57,9 +57,9 @@ function ComponentesReales() {
   return (
     <Seccion icon={Boxes} titulo="Componentes del riego" sub="Los insumos que cargaste en la pestaña Insumos">
       {cargando ? (
-        <p className="text-[12px] text-[#5c5c6b] py-3">Cargando…</p>
+        <p className="text-[12px] text-[#7d7d8e] py-3">Cargando…</p>
       ) : ordenados.length === 0 ? (
-        <p className="text-[12px] text-[#5c5c6b] py-3">
+        <p className="text-[12px] text-[#7d7d8e] py-3">
           Todavía no cargaste insumos. Andá a la pestaña <b className="text-[#7dd3fc]">Insumos</b> y agregá los tuyos:
           ahí aparecen acá con su descripción y precio, y los marcás con la estrella.
         </p>
@@ -70,21 +70,21 @@ function ComponentesReales() {
             return (
               <div key={it.id} className="flex items-center gap-3 bg-[#15151d] border border-[#1f1f2b] rounded-lg px-3 py-2">
                 <button title={it.favorito ? 'Quitar de elegidos' : 'Marcar como elegido'} onClick={() => toggleFav(it)} className="flex-shrink-0">
-                  <Star className="w-4 h-4" fill={it.favorito ? '#facc15' : 'none'} stroke={it.favorito ? '#facc15' : '#5c5c6b'} />
+                  <Star className="w-4 h-4" fill={it.favorito ? '#facc15' : 'none'} stroke={it.favorito ? '#facc15' : '#7d7d8e'} />
                 </button>
                 <div className="min-w-0 flex-1">
                   <p className="text-[12.5px] font-medium text-[#ececf1] truncate">{it.nombre}</p>
-                  {desc && <p className="text-[10.5px] text-[#5c5c6b] truncate">{desc}</p>}
+                  {desc && <p className="text-[10.5px] text-[#7d7d8e] truncate">{desc}</p>}
                 </div>
                 <span className="text-[12px] font-mono font-bold text-[#d9f99d] flex-shrink-0">
-                  {fmt(it.precio)}{it.unidad ? <span className="text-[10px] text-[#5c5c6b]"> /{it.unidad}</span> : null}
+                  {fmt(it.precio)}{it.unidad ? <span className="text-[10px] text-[#7d7d8e]"> /{it.unidad}</span> : null}
                 </span>
               </div>
             )
           })}
         </div>
       )}
-      <p className="text-[11px] text-[#5c5c6b] mt-2">Válvulas 220V = relé directo; la bomba = contactor (ver Hardware DIY). La estrella marca lo que ya elegiste comprar.</p>
+      <p className="text-[11px] text-[#7d7d8e] mt-2">Válvulas 220V = relé directo; la bomba = contactor (ver Hardware DIY). La estrella marca lo que ya elegiste comprar.</p>
     </Seccion>
   )
 }
@@ -98,7 +98,7 @@ export default function GuiaRiego() {
           Sección de <b className="text-[#7dd3fc]">riego</b> del controlador propio — válvulas por cama, bomba, sensores de sustrato y el motor de
           <b> crop steering (P0/P1/P2)</b> como el de Growcast. Todo controlado por el ESP32 + ESPHome, integrado al Hardware DIY.
         </p>
-        <p className="text-[11px] text-[#5c5c6b] mt-2 border-t border-[#1f1f2b] pt-2">🚧 Estructura inicial — se va completando con el detalle real de tu instalación.</p>
+        <p className="text-[11px] text-[#7d7d8e] mt-2 border-t border-[#1f1f2b] pt-2">🚧 Estructura inicial — se va completando con el detalle real de tu instalación.</p>
       </div>
 
       {/* Componentes reales cargados en Insumos */}
@@ -119,7 +119,7 @@ export default function GuiaRiego() {
             </div>
           ))}
         </div>
-        <p className="text-[11px] text-[#5c5c6b] mt-2">Sincronizado con el fotoperiodo (arranca cuando prenden las luces). No hay timer físico: el ciclado está dentro de cada fase.</p>
+        <p className="text-[11px] text-[#7d7d8e] mt-2">Sincronizado con el fotoperiodo (arranca cuando prenden las luces). No hay timer físico: el ciclado está dentro de cada fase.</p>
       </Seccion>
 
       {/* ESPHome */}
@@ -154,7 +154,7 @@ time:
     on_time:
       - hours: 7                  # cuando prenden las luces...
         then: { script.execute: ciclo_riego }   # ...arranca el riego del día`}</pre>
-        <p className="text-[11px] text-[#5c5c6b] mt-2">Para varias camas: una válvula (switch) por cama, y el script las riega en secuencia o en paralelo según prefieras. Para dryback real, se lee el sensor de humedad en vez de tiempos fijos.</p>
+        <p className="text-[11px] text-[#7d7d8e] mt-2">Para varias camas: una válvula (switch) por cama, y el script las riega en secuencia o en paralelo según prefieras. Para dryback real, se lee el sensor de humedad en vez de tiempos fijos.</p>
       </Seccion>
 
       {/* Pendiente */}
@@ -168,7 +168,7 @@ time:
         </ul>
       </Seccion>
 
-      <p className="text-[10.5px] text-[#5c5c6b] px-1 pb-4">
+      <p className="text-[10.5px] text-[#7d7d8e] px-1 pb-4">
         Sección de riego del proyecto growcast-diy. Se integra con el Hardware DIY (mismo ESP32/ESPHome). Documentación completa en el repo: <span className="font-mono">growcast-diy/</span>.
       </p>
     </div>

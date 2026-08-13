@@ -104,7 +104,7 @@ export default function PaginaEscaner() {
           <ScanLine className="w-4 h-4 text-[#a3e635] flex-shrink-0" strokeWidth={1.8} />
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Escaner QR / Barcode</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
               modo activo
               <span className="hidden sm:inline"><span className="text-[#30303e] mx-1">│</span>QR · DataMatrix · Code128 · EAN13</span>
             </div>
@@ -155,7 +155,7 @@ export default function PaginaEscaner() {
             {!escaneando && (
               <div className="text-center px-4">
                 <Camera className="w-12 h-12 text-[#404d20] mx-auto" strokeWidth={1.2} />
-                <p className="text-[#5c5c6b] mt-3 text-[12px]">
+                <p className="text-[#7d7d8e] mt-3 text-[12px]">
                   {modo === 'rango' ? 'Escanea 2 etiquetas (inicio y fin)' :
                    modo === 'lote' ? 'Escanea 1, trae todo el lote' :
                    'Apunta la camara al codigo QR o DataMatrix'}
@@ -228,7 +228,7 @@ export default function PaginaEscaner() {
                 </span>
                 <button
                   onClick={limpiar}
-                  className="text-[11px] text-[#5c5c6b] hover:text-[#ff8a7a] flex items-center gap-1"
+                  className="text-[11px] text-[#7d7d8e] hover:text-[#ff8a7a] flex items-center gap-1"
                 >
                   <Trash2 className="w-3 h-3" />
                   <span className="hidden sm:inline">Limpiar</span>
@@ -253,7 +253,7 @@ export default function PaginaEscaner() {
                   </div>
                   <button
                     onClick={() => quitar(i)}
-                    className="p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a] rounded flex-shrink-0"
+                    className="p-1.5 text-[#7d7d8e] hover:text-[#ff8a7a] rounded flex-shrink-0"
                     aria-label="Quitar codigo"
                   >
                     <Trash2 className="w-3.5 h-3.5" />

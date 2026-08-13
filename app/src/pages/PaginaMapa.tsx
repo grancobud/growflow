@@ -206,7 +206,7 @@ export default function PaginaMapa() {
         <div className="flex items-center gap-2 sm:gap-4 px-3 sm:px-6 py-3">
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Mapa de Instalaciones</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]"><span className="hidden sm:inline">Plano fisico FIS S.A.S. · </span>Clickea un area para ver lotes</div>
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]"><span className="hidden sm:inline">Plano fisico FIS S.A.S. · </span>Clickea un area para ver lotes</div>
           </div>
           <div className="flex-1" />
           <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[#a3e635]/30 bg-[#a3e635]/10 text-[#d9f99d] text-[10.5px] uppercase tracking-widest font-medium">
@@ -230,9 +230,9 @@ export default function PaginaMapa() {
                 { label: 'Instalaciones BD', value: totalInstalaciones, hint: 'fisicas registradas', tone: 'gold' },
               ].map((k, i) => (
                 <div key={i} className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4">
-                  <div className="text-[10px] uppercase tracking-[0.14em] text-[#46464f] font-medium">{k.label}</div>
+                  <div className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium">{k.label}</div>
                   <div className="mt-1 font-display font-bold tracking-tight text-[24px] text-[#ececf1] leading-none tabular-nums">{k.value}</div>
-                  <div className="mt-1 text-[11px] text-[#757584]">{k.hint}</div>
+                  <div className="mt-1 text-[11px] text-[#7d7d8e]">{k.hint}</div>
                 </div>
               ))}
             </div>
@@ -244,7 +244,7 @@ export default function PaginaMapa() {
                   <div className="text-[10px] uppercase tracking-[0.14em] text-[#bef264] font-medium">Plano arquitectonico</div>
                   <div className="mt-0.5 font-display font-semibold text-[14px] text-[#ececf1]">Indoor FIS · 9 areas operativas</div>
                 </div>
-                <div className="flex items-center gap-2 text-[10.5px] text-[#5c5c6b]">
+                <div className="flex items-center gap-2 text-[10.5px] text-[#7d7d8e]">
                   <MapPin className="w-3.5 h-3.5 text-[#bef264]" />
                   <span>Click en un area para detalle</span>
                 </div>
@@ -329,16 +329,16 @@ export default function PaginaMapa() {
               <div className="flex items-center gap-2 mb-3">
                 <Building2 className="w-4 h-4 text-[#bef264]" />
                 <span className="font-display font-semibold text-[14px] text-[#ececf1]">Instalaciones registradas</span>
-                <span className="text-[10.5px] text-[#5c5c6b] font-mono ml-auto">{datos.instalaciones.length} totales</span>
+                <span className="text-[10.5px] text-[#7d7d8e] font-mono ml-auto">{datos.instalaciones.length} totales</span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 {datos.instalaciones.map(i => (
                   <div key={i.id} className="bg-[#15151d] border border-[#1f1f2b] rounded-lg p-3 text-[12px] hover:border-[#a3e635]/30 transition-colors">
                     <div className="font-medium text-[#ececf1] truncate">{i.nombre}</div>
-                    <div className="text-[10px] text-[#5c5c6b] mt-0.5 font-mono">{i.codigo} · {i.tipo}</div>
+                    <div className="text-[10px] text-[#7d7d8e] mt-0.5 font-mono">{i.codigo} · {i.tipo}</div>
                     <div className="flex gap-3 mt-2 text-[10.5px]">
-                      <span className="text-[#5c5c6b]">Lotes <span className="text-[#d9f99d] font-mono font-semibold">{i.lotes_activos}</span></span>
-                      <span className="text-[#5c5c6b]">Unid <span className="text-[#c4b5fd] font-mono font-semibold">{i.total_unidades}</span></span>
+                      <span className="text-[#7d7d8e]">Lotes <span className="text-[#d9f99d] font-mono font-semibold">{i.lotes_activos}</span></span>
+                      <span className="text-[#7d7d8e]">Unid <span className="text-[#c4b5fd] font-mono font-semibold">{i.total_unidades}</span></span>
                     </div>
                   </div>
                 ))}
@@ -370,7 +370,7 @@ export default function PaginaMapa() {
                       <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-mono font-semibold tracking-widest" style={{ background: t.fill, color: t.text, border: `1px solid ${t.stroke}` }}>{area.short}</span>
                       <h3 className="font-display font-bold text-[15px] text-[#ececf1] truncate">{area.nombre}</h3>
                     </div>
-                    <p className="text-[10.5px] text-[#5c5c6b] mt-1 font-mono">{lotes} lote{lotes === 1 ? '' : 's'} · {area.cumcs?.length || 0} CUMCS asociados</p>
+                    <p className="text-[10.5px] text-[#7d7d8e] mt-1 font-mono">{lotes} lote{lotes === 1 ? '' : 's'} · {area.cumcs?.length || 0} CUMCS asociados</p>
                   </div>
                   <button onClick={() => setAreaSel(null)} className="p-1.5 rounded-md hover:bg-[#1c1c27] text-[#8f8f9f] shrink-0">
                     <X className="w-4 h-4" />
@@ -391,11 +391,11 @@ export default function PaginaMapa() {
                   <div>
                     <div className="text-[10px] uppercase tracking-[0.14em] text-[#bef264] font-medium mb-2">Lotes alojados</div>
                     {detalle.length === 0 ? (
-                      <div className="text-center py-8 text-[#5c5c6b] text-[11px]">Sin lotes activos en esta area.</div>
+                      <div className="text-center py-8 text-[#7d7d8e] text-[11px]">Sin lotes activos en esta area.</div>
                     ) : (
                       <table className="w-full text-[11px]">
                         <thead>
-                          <tr className="text-[#5c5c6b] text-left border-b border-[#1f1f2b]">
+                          <tr className="text-[#7d7d8e] text-left border-b border-[#1f1f2b]">
                             <th className="py-2 font-medium uppercase text-[9px] tracking-widest">Camada</th>
                             <th className="py-2 font-medium uppercase text-[9px] tracking-widest">Tipo</th>
                             <th className="py-2 font-medium uppercase text-[9px] tracking-widest">Sist</th>

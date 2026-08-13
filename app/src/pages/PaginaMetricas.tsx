@@ -76,7 +76,7 @@ export default function PaginaMetricas() {
           <BarChart3 className="w-4 h-4 text-[#a3e635] shrink-0" strokeWidth={1.8} />
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Métricas</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">Análisis visual y comparativo por camada</div>
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">Análisis visual y comparativo por camada</div>
           </div>
           <div className="flex-1" />
         </div>
@@ -101,7 +101,7 @@ export default function PaginaMetricas() {
 
           {tab !== 'kpis' && tab !== 'heatmap' && (
             <div className="flex items-center gap-1.5 ml-2 flex-wrap">
-              <span className="text-[10px] uppercase text-[#5c5c6b] font-semibold tracking-wide">Camada:</span>
+              <span className="text-[10px] uppercase text-[#7d7d8e] font-semibold tracking-wide">Camada:</span>
               {CAMADAS.map(c => (
                 <button key={c} onClick={() => setCamadaSel(c)}
                   className={`px-2 py-1 rounded-md text-[11px] font-bold font-mono tabular-nums transition-all ${
@@ -179,7 +179,7 @@ export default function PaginaMetricas() {
                           <span className={`text-[10px] uppercase tracking-wider font-medium px-2 py-0.5 rounded ${sistemaBg}`}>{c.sistema}</span>
                           <span className="text-[15px] font-display font-bold text-[#ececf1] tabular-nums">Camada {c.camada}</span>
                         </div>
-                        <div className="text-[11px] text-[#5c5c6b] font-mono tabular-nums shrink-0">
+                        <div className="text-[11px] text-[#7d7d8e] font-mono tabular-nums shrink-0">
                           {c.dias_ciclo}d · {c.total_lotes} lotes
                         </div>
                       </div>
@@ -250,7 +250,7 @@ export default function PaginaMetricas() {
           <Suspense fallback={<TabLoader />}>
             {cargando ? <TabLoader /> :
              timeline.length === 0
-               ? <p className="text-center py-12 text-[#5c5c6b]">Sin eventos para {camadaSel}</p>
+               ? <p className="text-center py-12 text-[#7d7d8e]">Sin eventos para {camadaSel}</p>
                : <TimelineTab timeline={timeline} />}
           </Suspense>
         )}
@@ -264,7 +264,7 @@ function KpiCard({ label, valor, sub, tone }: { label: string; valor: any; sub: 
   const valColor = tone === 'gold' ? 'text-[#c4b5fd]' : tone === 'warn' ? 'text-[#c4b5fd]' : 'text-[#d9f99d]'
   return (
     <div className={`bg-[#101016] border border-[#1f1f2b] border-l-[3px] ${accent} rounded-xl p-4`}>
-      <p className="text-[10px] uppercase tracking-wide font-semibold text-[#5c5c6b] mb-1">{label}</p>
+      <p className="text-[10px] uppercase tracking-wide font-semibold text-[#7d7d8e] mb-1">{label}</p>
       <p className={`text-2xl font-display font-bold font-mono tabular-nums ${valColor}`}>{valor}</p>
       <p className="text-[11px] text-[#8f8f9f] mt-1">{sub}</p>
     </div>
@@ -274,7 +274,7 @@ function KpiCard({ label, valor, sub, tone }: { label: string; valor: any; sub: 
 function MiniStat({ label, val }: { label: string; val: any }) {
   return (
     <div className="bg-[#15151d] border border-[#1f1f2b] rounded-lg p-2">
-      <p className="text-[9px] uppercase text-[#5c5c6b] font-semibold tracking-wide">{label}</p>
+      <p className="text-[9px] uppercase text-[#7d7d8e] font-semibold tracking-wide">{label}</p>
       <p className="text-[12px] font-bold font-mono tabular-nums text-[#d4d4dd]">{val}</p>
     </div>
   )
@@ -295,7 +295,7 @@ function SmoothMermaBar({ label, pct, left, right, warn, danger }: { label: stri
         <span className="text-[11px] text-[#8f8f9f]">
           {label}: <span className="font-mono tabular-nums" style={{ color: txt }}>{pct}%</span>
         </span>
-        <span className="text-[10.5px] text-[#5c5c6b] font-mono tabular-nums">{left} → {right}</span>
+        <span className="text-[10.5px] text-[#7d7d8e] font-mono tabular-nums">{left} → {right}</span>
       </div>
       <div className="h-1.5 rounded-full bg-[#1c1c27] overflow-hidden">
         <motion.div

@@ -95,22 +95,22 @@ export default function InsumosRiego() {
       {nuevoOpen && <FormItem onListo={() => { setNuevoOpen(false); cargar() }} />}
 
       {items.length === 0 && !nuevoOpen && (
-        <p className="text-[12px] text-[#5c5c6b] py-6 text-center">Todavía no cargaste insumos de riego. Tocá «Nuevo insumo».</p>
+        <p className="text-[12px] text-[#7d7d8e] py-6 text-center">Todavía no cargaste insumos de riego. Tocá «Nuevo insumo».</p>
       )}
 
       {items.map(it => (
         <div key={it.id} className={card}>
           <div className="w-full flex items-center gap-2.5">
             <button title={it.favorito ? 'Quitar de elegidos' : 'Marcar como elegido'} onClick={() => toggleFav(it)} className="flex-shrink-0">
-              <Star className="w-4 h-4" fill={it.favorito ? '#facc15' : 'none'} stroke={it.favorito ? '#facc15' : '#5c5c6b'} />
+              <Star className="w-4 h-4" fill={it.favorito ? '#facc15' : 'none'} stroke={it.favorito ? '#facc15' : '#7d7d8e'} />
             </button>
             <button onClick={() => toggle(it.id)} className="flex-1 flex items-center gap-3 text-left min-w-0">
               <div className="min-w-0 flex-1">
                 <p className="text-[13px] font-display font-semibold text-[#ececf1] truncate">{it.nombre}</p>
-                <p className="text-[10.5px] text-[#5c5c6b]">{[it.marca, it.modelo, it.specs].filter(Boolean).join(' · ') || 'Sin datos'}</p>
+                <p className="text-[10.5px] text-[#7d7d8e]">{[it.marca, it.modelo, it.specs].filter(Boolean).join(' · ') || 'Sin datos'}</p>
               </div>
-              <span className="text-[13px] font-mono font-bold text-[#d9f99d]">{fmt(it.precio)}{it.unidad ? <span className="text-[10px] text-[#5c5c6b]"> /{it.unidad}</span> : null}</span>
-              <ChevronDown className={`w-4 h-4 text-[#5c5c6b] transition-transform ${abierto === it.id ? 'rotate-180' : ''}`} />
+              <span className="text-[13px] font-mono font-bold text-[#d9f99d]">{fmt(it.precio)}{it.unidad ? <span className="text-[10px] text-[#7d7d8e]"> /{it.unidad}</span> : null}</span>
+              <ChevronDown className={`w-4 h-4 text-[#7d7d8e] transition-transform ${abierto === it.id ? 'rotate-180' : ''}`} />
             </button>
           </div>
 
@@ -129,14 +129,14 @@ export default function InsumosRiego() {
                         : <div className="w-12 h-12 rounded-lg bg-[#101016] border border-[#2a2a3a] flex items-center justify-center flex-shrink-0"><Store className="w-4 h-4 text-[#3a3a4a]" /></div>}
                       <div className="min-w-0 flex-1">
                         <p className="text-[12px] text-[#d4d4dd] truncate">{o.proveedor_id ? provNombre[o.proveedor_id] ?? 'Proveedor' : 'Proveedor'}</p>
-                        <p className="text-[10.5px] text-[#5c5c6b] truncate">{[o.presentacion, o.nota].filter(Boolean).join(' · ')}</p>
+                        <p className="text-[10.5px] text-[#7d7d8e] truncate">{[o.presentacion, o.nota].filter(Boolean).join(' · ')}</p>
                       </div>
                       <span className="text-[12px] font-mono font-bold text-[#ececf1]">{fmt(o.precio)}</span>
                       <button title="Usar este precio" className={btnIcono} onClick={async () => { await instalacionesService.elegirOferta(o.id, it.id, o.precio ?? null, o.proveedor_id ?? null); await cargar(); }}>
-                        <Star className="w-4 h-4" fill={o.elegido ? '#facc15' : 'none'} stroke={o.elegido ? '#facc15' : '#5c5c6b'} />
+                        <Star className="w-4 h-4" fill={o.elegido ? '#facc15' : 'none'} stroke={o.elegido ? '#facc15' : '#7d7d8e'} />
                       </button>
                       <button title="Editar proveedor" aria-label="Editar proveedor" className={btnIcono} onClick={() => setEditOferta(o.id)}>
-                        <Pencil className="w-3.5 h-3.5 text-[#5c5c6b]" />
+                        <Pencil className="w-3.5 h-3.5 text-[#7d7d8e]" />
                       </button>
                       <button title="Eliminar" aria-label="Eliminar proveedor" className={btnIcono} onClick={async () => {
                         if (!confirm(`¿Borrar el precio de ${o.proveedor_id ? provNombre[o.proveedor_id] ?? 'este proveedor' : 'este proveedor'}?`)) return
@@ -211,7 +211,7 @@ function FormItem({ item, onListo, onCancelar }: { item?: ItemInstalacion; onLis
         <button onClick={guardar} className="text-[11px] bg-[#7dd3fc]/15 border border-[#7dd3fc]/30 text-[#7dd3fc] rounded-md px-3 py-2 min-h-[44px] sm:min-h-0 sm:py-1.5 hover:bg-[#7dd3fc]/25">
           {item ? 'Guardar cambios' : 'Guardar insumo'}
         </button>
-        {onCancelar && <button onClick={onCancelar} className="text-[11px] text-[#5c5c6b] px-2 py-2 min-h-[44px] sm:min-h-0 hover:text-[#a6a6b5]">Cancelar</button>}
+        {onCancelar && <button onClick={onCancelar} className="text-[11px] text-[#7d7d8e] px-2 py-2 min-h-[44px] sm:min-h-0 hover:text-[#a6a6b5]">Cancelar</button>}
       </div>
     </div>
   )
@@ -280,7 +280,7 @@ function FormOferta({ itemId, provs, oferta, onListo, onCancelar }: {
         <button onClick={guardar} className="text-[11px] bg-[#7dd3fc]/15 border border-[#7dd3fc]/30 text-[#7dd3fc] rounded-md px-3 py-2 min-h-[44px] sm:min-h-0 sm:py-1 hover:bg-[#7dd3fc]/25">
           {oferta ? 'Guardar cambios' : 'Agregar proveedor'}
         </button>
-        {onCancelar && <button onClick={onCancelar} className="text-[11px] text-[#5c5c6b] px-2 py-2 min-h-[44px] sm:min-h-0 hover:text-[#a6a6b5]">Cancelar</button>}
+        {onCancelar && <button onClick={onCancelar} className="text-[11px] text-[#7d7d8e] px-2 py-2 min-h-[44px] sm:min-h-0 hover:text-[#a6a6b5]">Cancelar</button>}
         {f.imagen && <button onClick={() => set('imagen', '')} className="text-[10.5px] text-[#ff8a7a] hover:underline px-2 py-2 min-h-[44px] sm:min-h-0">Quitar foto</button>}
       </div>
     </div>

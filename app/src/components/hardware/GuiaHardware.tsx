@@ -6,7 +6,7 @@ import { Cpu, Thermometer, Zap, Boxes, Radio, Wrench, Wallet, FileCode, ChevronR
 import type { LucideIcon } from 'lucide-react'
 
 const card = 'rounded-xl bg-[#111119] border border-[#1f1f2b] p-4 sm:p-5'
-const th = 'text-left font-medium py-1.5 px-2 text-[10px] uppercase tracking-[0.08em] text-[#5c5c6b] border-b border-[#1f1f2b]'
+const th = 'text-left font-medium py-1.5 px-2 text-[10px] uppercase tracking-[0.08em] text-[#7d7d8e] border-b border-[#1f1f2b]'
 const td = 'py-1.5 px-2 text-[12px] text-[#d4d4dd] border-b border-[#17171f] align-top'
 
 function Seccion({ icon: Icon, titulo, sub, children }: { icon: LucideIcon; titulo: string; sub?: string; children: React.ReactNode }) {
@@ -18,7 +18,7 @@ function Seccion({ icon: Icon, titulo, sub, children }: { icon: LucideIcon; titu
         </div>
         <div>
           <h2 className="font-display font-semibold text-[14px] text-[#ececf1]">{titulo}</h2>
-          {sub && <p className="text-[11px] text-[#5c5c6b] mt-0.5">{sub}</p>}
+          {sub && <p className="text-[11px] text-[#7d7d8e] mt-0.5">{sub}</p>}
         </div>
       </div>
       {children}
@@ -68,7 +68,7 @@ export default function GuiaHardware() {
           <li>• <b>Salidas:</b> relés 220V on/off. <b>Automatizaciones:</b> motor de reglas (horario, comparador, oscilador) que corre en el device.</li>
           <li>• <b>Driver de sensor propio</b> (sin librería) → por eso el modelo exacto no figura, pero es la familia SCD.</li>
         </ul>
-        <p className="text-[11px] text-[#5c5c6b] mt-3">Firmware descargable: <span className="font-mono text-[#7dd3fc]">firmware.growcast.io?id=&lt;id&gt;</span> · THC = id 2.</p>
+        <p className="text-[11px] text-[#7d7d8e] mt-3">Firmware descargable: <span className="font-mono text-[#7dd3fc]">firmware.growcast.io?id=&lt;id&gt;</span> · THC = id 2.</p>
       </Seccion>
 
       {/* Cerebro y potencia */}
@@ -84,11 +84,11 @@ export default function GuiaHardware() {
             ['Gabinete estanco + riel DIN + borneras + ferrules', 'El tablero', 'IP54+, riel DIN 35mm', '≈$40.000-70.000 (ML)'],
           ]}
         />
-        <p className="text-[11px] text-[#5c5c6b] mt-2"><b>¿8 o 16 relés?</b> Esta sala usa exactamente <b>8 canales</b> (K1-K8, ver pinout) → la placa de 8 directo del ESP32 alcanza y es más simple (menos componentes = menos puntos de falla). La de 16 + MCP23017 es el upgrade cuando sumes válvulas de riego por cama o más equipos. Cada relé cierra la bobina de un contactor (o directo el CO₂/electroválvula, que son &lt;1A).</p>
+        <p className="text-[11px] text-[#7d7d8e] mt-2"><b>¿8 o 16 relés?</b> Esta sala usa exactamente <b>8 canales</b> (K1-K8, ver pinout) → la placa de 8 directo del ESP32 alcanza y es más simple (menos componentes = menos puntos de falla). La de 16 + MCP23017 es el upgrade cuando sumes válvulas de riego por cama o más equipos. Cada relé cierra la bobina de un contactor (o directo el CO₂/electroválvula, que son &lt;1A).</p>
         <div className="mt-2 rounded-lg bg-[#7dd3fc]/[0.06] border border-[#7dd3fc]/25 p-2.5">
           <p className="text-[11px] text-[#d4d4dd]"><b className="text-[#7dd3fc]">Truco de foros — jumper JD-VCC:</b> las placas optoacopladas traen un jumper que une la alimentación de las bobinas (JD-VCC) con la de la lógica (VCC). <b>Sacalo</b>: JD-VCC a los 5V de la fuente, VCC al 3.3V del ESP32, GND separados. Así el optoacoplador aísla <i>de verdad</i>: los picos que meten las bobinas al conmutar no llegan al micro (causa #1 de ESP32 que se reinician o GPIOs quemados en estos builds). De paso el LED del opto se enciende bien con lógica 3.3V.</p>
         </div>
-        <p className="text-[10.5px] text-[#5c5c6b] mt-2">Precios relevados jul 2026: Candy-HO (Villa Martelli, candy-ho.com) y MercadoLibre. Los «≈» son rangos de mercado — verificar antes de comprar.</p>
+        <p className="text-[10.5px] text-[#7d7d8e] mt-2">Precios relevados jul 2026: Candy-HO (Villa Martelli, candy-ho.com) y MercadoLibre. Los «≈» son rangos de mercado — verificar antes de comprar.</p>
       </Seccion>
 
       {/* Contactores */}
@@ -108,11 +108,11 @@ export default function GuiaHardware() {
             [<b>CO₂ (solenoide chica 220V)</b>, '1', '<1A', '— relé directo', '—'],
           ]}
         />
-        <p className="text-[11px] text-[#5c5c6b] mt-2"><b>Total: 6 contactores</b> (2 luces 25A + AC 40A + deshumi 16A + vent 16A + bomba riego 16A) + breaker por grupo + general. El CO₂ va por relé directo. <b>Total sala ≈ 13,8 kW (~63A) en MONOFÁSICO</b> — cable 16 mm²+, térmica general ~63A y cargas escalonadas desde el ESP32. La <b>2ª bomba ½HP</b> (recirculación de la cisterna) va <b>manual, NO al tablero</b> — suma a los 13,8 kW totales de la instalación pero no ocupa canal ni contactor.</p>
+        <p className="text-[11px] text-[#7d7d8e] mt-2"><b>Total: 6 contactores</b> (2 luces 25A + AC 40A + deshumi 16A + vent 16A + bomba riego 16A) + breaker por grupo + general. El CO₂ va por relé directo. <b>Total sala ≈ 13,8 kW (~63A) en MONOFÁSICO</b> — cable 16 mm²+, térmica general ~63A y cargas escalonadas desde el ESP32. La <b>2ª bomba ½HP</b> (recirculación de la cisterna) va <b>manual, NO al tablero</b> — suma a los 13,8 kW totales de la instalación pero no ocupa canal ni contactor.</p>
         <div className="mt-2 rounded-lg bg-[#e0685c]/[0.08] border border-[#e0685c]/30 p-2.5">
           <p className="text-[11px] text-[#f0a89f]"><b>Disyuntor diferencial 30mA = obligatorio, no opcional.</b> Sala de cultivo = agua + humedad + 220V. La térmica te protege el cable (sobrecarga/corto); el diferencial te protege <b>a vos</b>: corta en milisegundos ante una fuga a tierra (un equipo con carcasa electrificada, un cable pelado en el riego). BAW/Sica 2x63A 30mA ≈ <b>$23.000-32.000</b> — es lo más barato del tablero y lo más importante.</p>
         </div>
-        <p className="text-[10.5px] text-[#5c5c6b] mt-2">Precios de referencia (jul 2026): contactor 25A (Chint/BAW/Sica) ≈$25.000-40.000 · contactor 40A ≈$40.000-60.000 · térmica 2x63A ≈$20.000-35.000 · breakers de grupo (C10/C16/C32) ≈$8.000-15.000 c/u. Todo en ML / casas de electricidad; el matriculado suele conseguirlos mejor.</p>
+        <p className="text-[10.5px] text-[#7d7d8e] mt-2">Precios de referencia (jul 2026): contactor 25A (Chint/BAW/Sica) ≈$25.000-40.000 · contactor 40A ≈$40.000-60.000 · térmica 2x63A ≈$20.000-35.000 · breakers de grupo (C10/C16/C32) ≈$8.000-15.000 c/u. Todo en ML / casas de electricidad; el matriculado suele conseguirlos mejor.</p>
         <div className="mt-2 rounded-lg bg-[#f0a35e]/[0.07] border border-[#f0a35e]/25 p-3">
           <p className="text-[12px] text-[#e0b48a]"><b>Luces divididas en 2 grupos a propósito:</b> los 12 drivers de LED prendiendo TODOS juntos generan un pico de arranque (inrush) que puede soldar los contactos de un solo contactor. Se dividen en grupos y se <b>escalonan</b> — el ESP32 los prende con 1-2 seg de diferencia (fácil con <span className="font-mono">delay</span> en ESPHome). Regla: contactor = corriente × 1.5. Nunca el AC/luces directo al relé.</p>
         </div>
@@ -141,7 +141,7 @@ export default function GuiaHardware() {
         <div className="rounded-lg bg-[#f0a35e]/[0.07] border border-[#f0a35e]/25 p-3 mb-2">
           <p className="text-[12px] text-[#e0b48a]"><b>Por qué apagar la autocalibración (ASC):</b> el algoritmo asume que el punto MÁS BAJO de CO₂ que vio en 7 días es «aire exterior» (400 ppm) y se recalibra contra eso. En una sala enriquecida nunca bajás a 400 → el sensor se corre solo y te miente cada semana. En ESPHome: <span className="font-mono">automatic_self_calibration: false</span>. A cambio, calibrás a mano 1-2 veces al año con <b>FRC</b> (forced recalibration): sensor 3+ minutos al aire libre (CO₂ estable ≈420 ppm) y forzás la recalibración a ese valor desde ESPHome. El <span className="font-mono">temperature_offset</span> de fábrica es 4°C (autocalentamiento del chip) — ajustalo comparando contra un termómetro de referencia pegado al sensor.</p>
         </div>
-        <p className="text-[11px] text-[#5c5c6b]">⚠️ Algunos módulos rotulan «41» pero traen SCD40. Al conectarlo, ESPHome reporta el chip y su rango — verificar ahí.</p>
+        <p className="text-[11px] text-[#7d7d8e]">⚠️ Algunos módulos rotulan «41» pero traen SCD40. Al conectarlo, ESPHome reporta el chip y su rango — verificar ahí.</p>
       </Seccion>
 
       {/* Multi-sensor */}
@@ -216,7 +216,7 @@ export default function GuiaHardware() {
             ['Sonda EC + pH (opcional, v2)', 'Solución hidropónica', '≈$40.000-80.000 (ML)'],
           ]}
         />
-        <p className="text-[11px] text-[#5c5c6b] mt-2">El override manual va en serie con la salida (o con un toggle de 3 posiciones ON–AUTO–OFF entre el relé/contactor y la carga). Es la seguridad de poder operar la sala aunque falle la electrónica.</p>
+        <p className="text-[11px] text-[#7d7d8e] mt-2">El override manual va en serie con la salida (o con un toggle de 3 posiciones ON–AUTO–OFF entre el relé/contactor y la carga). Es la seguridad de poder operar la sala aunque falle la electrónica.</p>
       </Seccion>
 
       {/* Riego multi-cama */}
@@ -240,7 +240,7 @@ export default function GuiaHardware() {
         <div className="mt-3 rounded-lg bg-[#f0a35e]/[0.07] border border-[#f0a35e]/25 p-3">
           <p className="text-[12px] text-[#e0b48a]"><b>Ojo con la cantidad de salidas (solo si migrás a válvula por cama):</b> con TU esquema de 1 válvula sobran salidas — riego completo = 2 canales. Pero si un día vas a válvula independiente por cama, ahí sí se acaban los 8 relés → <b>expansión</b>: placa de 16 + MCP23017, o <b>nodos RS485 cerca de las camas</b> (como los módulos expansores de Growcast). Bomba y solenoides siempre por relé/MOSFET, no al GPIO.</p>
         </div>
-        <p className="text-[11px] text-[#5c5c6b] mt-2">Growcast soporta sensores de sustrato METER (TEROS 12 = humedad + temp + EC del sustrato) — la referencia si querés riego por humedad de verdad, no solo por horario.</p>
+        <p className="text-[11px] text-[#7d7d8e] mt-2">Growcast soporta sensores de sustrato METER (TEROS 12 = humedad + temp + EC del sustrato) — la referencia si querés riego por humedad de verdad, no solo por horario.</p>
         <div className="mt-3 rounded-lg bg-[#a3e635]/[0.06] border border-[#404d20] p-3">
           <p className="text-[12px] text-[#d4d4dd] mb-1.5"><b className="text-[#a3e635]">Cómo riega Growcast (de su código): CROP STEERING, no un timer.</b> Su sección de riego tiene 3 modos:</p>
           <ul className="space-y-1 text-[12px] text-[#d4d4dd]">
@@ -248,7 +248,7 @@ export default function GuiaHardware() {
             <li>• <b>Irrigation with sensor:</b> riega por <b>dryback</b> — define humedad objetivo (targetHumidity) y % de caída permitido; riega cuando el sustrato se secó ese %.</li>
             <li>• <b>SuperCycle:</b> ciclo simple On/Off (el «ciclador» básico).</li>
           </ul>
-          <p className="text-[11px] text-[#5c5c6b] mt-2">No hay timer físico: el ciclado está dentro de cada fase (On/Off/repeticiones), corriendo on-device. En ESPHome se replica con <span className="font-mono">script</span> + <span className="font-mono">interval</span> + la lectura del sensor de humedad.</p>
+          <p className="text-[11px] text-[#7d7d8e] mt-2">No hay timer físico: el ciclado está dentro de cada fase (On/Off/repeticiones), corriendo on-device. En ESPHome se replica con <span className="font-mono">script</span> + <span className="font-mono">interval</span> + la lectura del sensor de humedad.</p>
         </div>
       </Seccion>
 
@@ -301,7 +301,7 @@ export default function GuiaHardware() {
             [<b>Completa</b>, 'todo lo anterior (sin cámara térmica ni EC/pH)', <b className="text-[#d9f99d]">≈$490.000-710.000</b>],
           ]}
         />
-        <p className="text-[11px] text-[#5c5c6b] mt-2">La electrónica sola (lo que reemplaza al cerebro de Growcast) es ~$110-150 mil. El grueso es el tablero de potencia — que con CUALQUIER controlador (Growcast, TrolMaster o este) lo necesitás igual: no es costo del clon, es costo de tener 13,8 kW instalados de forma segura.</p>
+        <p className="text-[11px] text-[#7d7d8e] mt-2">La electrónica sola (lo que reemplaza al cerebro de Growcast) es ~$110-150 mil. El grueso es el tablero de potencia — que con CUALQUIER controlador (Growcast, TrolMaster o este) lo necesitás igual: no es costo del clon, es costo de tener 13,8 kW instalados de forma segura.</p>
       </Seccion>
 
       {/* Software / próximos pasos */}
@@ -356,7 +356,7 @@ climate: ...`}</pre>
             [<b>growflow (nube)</b>, 'Tu UI + trazabilidad — ya la tenés', '$0'],
           ]}
         />
-        <p className="text-[11px] text-[#5c5c6b] mt-2">Recomendación: arrancá sin Pi (ESP32 + growflow). Sumá Home Assistant en una Pi si después querés el panel local completo.</p>
+        <p className="text-[11px] text-[#7d7d8e] mt-2">Recomendación: arrancá sin Pi (ESP32 + growflow). Sumá Home Assistant en una Pi si después querés el panel local completo.</p>
       </Seccion>
 
       {/* Ensamblaje paso a paso */}
@@ -439,7 +439,7 @@ climate: ...`}</pre>
             <text x="705" y="162" textAnchor="middle" fill="#e0685c" fontSize="11" fontWeight="bold">② LADO POTENCIA — 220V, lo hace un matriculado</text>
           </svg>
         </div>
-        <p className="text-[11px] text-[#5c5c6b] mb-4">El relé chico (que dispara el ESP32) <b>solo cierra la bobina</b> del contactor. La corriente pesada (AC, luces, bomba) pasa por el <b>contactor</b>, nunca por el relé. Así el ESP32 nunca ve los 220V.</p>
+        <p className="text-[11px] text-[#7d7d8e] mb-4">El relé chico (que dispara el ESP32) <b>solo cierra la bobina</b> del contactor. La corriente pesada (AC, luces, bomba) pasa por el <b>contactor</b>, nunca por el relé. Así el ESP32 nunca ve los 220V.</p>
 
         {/* Fig 2 — tablero por dentro */}
         <p className="text-[11.5px] text-[#a6a6b5] mb-1 font-semibold">2 · El tablero por dentro — cómo ordenar el gabinete</p>
@@ -498,7 +498,7 @@ climate: ...`}</pre>
             <text x="370" y="536" textAnchor="middle" fill="#6b6b7b" fontSize="9">Electroválvula riego y CO₂ salen directo de 2 relés (no llevan contactor, son &lt;1A).</text>
           </svg>
         </div>
-        <p className="text-[11px] text-[#5c5c6b] mb-1">De arriba a abajo: <b className="text-[#7dd3fc]">breakers</b> → <b className="text-[#a3e635]">lógica (ESP32 + relés)</b> y <b className="text-[#a78bfa]">sensores</b> → <b className="text-[#f0a35e]">contactores</b> → <b>bornera + tierra</b>. Cada relé de la placa verde cierra la bobina del contactor naranja de abajo.</p>
+        <p className="text-[11px] text-[#7d7d8e] mb-1">De arriba a abajo: <b className="text-[#7dd3fc]">breakers</b> → <b className="text-[#a3e635]">lógica (ESP32 + relés)</b> y <b className="text-[#a78bfa]">sensores</b> → <b className="text-[#f0a35e]">contactores</b> → <b>bornera + tierra</b>. Cada relé de la placa verde cierra la bobina del contactor naranja de abajo.</p>
       </Seccion>
 
       {/* Esquema de conexión */}
@@ -521,7 +521,7 @@ climate: ...`}</pre>
             ['5V / GND', 'Alimentación ESP32 + placa relés', 'desde la fuente 5V'],
           ]}
         />
-        <p className="text-[11px] text-[#5c5c6b] mt-2">Todos los pines de relé son salidas seguras (no strapping, no solo-entrada). La placa de relés es activa en LOW → en ESPHome van con <span className="font-mono">inverted: true</span> y <span className="font-mono">restore_mode: ALWAYS_OFF</span>.</p>
+        <p className="text-[11px] text-[#7d7d8e] mt-2">Todos los pines de relé son salidas seguras (no strapping, no solo-entrada). La placa de relés es activa en LOW → en ESPHome van con <span className="font-mono">inverted: true</span> y <span className="font-mono">restore_mode: ALWAYS_OFF</span>.</p>
         <div className="mt-2 rounded-lg bg-[#f0a35e]/[0.07] border border-[#f0a35e]/25 p-2.5">
           <p className="text-[11px] text-[#e0b48a] font-semibold mb-1.5">Recomendaciones de la comunidad (foros HA / Random Nerd / DroneBot) — y el porqué:</p>
           <ul className="space-y-1 text-[11px] text-[#e0b48a]">
@@ -551,7 +551,7 @@ Relé K8 (32) → directo (220V, <1A) ──────────────
 
 TIERRA (PE) ── gabinete + chasis de cada equipo
 Snubber/varistor en paralelo a las cargas inductivas (AC, bomba)`}</pre>
-        <p className="text-[11px] text-[#5c5c6b] mt-2">El relé chico solo cierra la <b>bobina</b> del contactor; la potencia (29A del AC) pasa por el contactor. Multímetro ANTES de energizar: continuidad, sin cortos, tierra OK.</p>
+        <p className="text-[11px] text-[#7d7d8e] mt-2">El relé chico solo cierra la <b>bobina</b> del contactor; la potencia (29A del AC) pasa por el contactor. Multímetro ANTES de energizar: continuidad, sin cortos, tierra OK.</p>
       </Seccion>
 
       {/* ESPHome completo */}
@@ -702,7 +702,7 @@ climate:
 # ---------- Ejemplos de automatización on-device ----------
 # Luces 7:00 ON / 3:00 OFF (script.execute: prender_luces), AC si
 # Temp > 24° — con 'on_time:' (time) y 'on_value_range:' (sensor).`}</pre>
-        <p className="text-[11px] text-[#5c5c6b] mt-2">⚠️ La sintaxis de ESPHome evoluciona (ej. <span className="font-mono">one_wire</span>/<span className="font-mono">dallas_temp</span>). Validá con <span className="font-mono">esphome config</span> antes de flashear. Los <span className="font-mono">address</span> de los DS18B20 salen del log del primer arranque (I²C/1-Wire scan).</p>
+        <p className="text-[11px] text-[#7d7d8e] mt-2">⚠️ La sintaxis de ESPHome evoluciona (ej. <span className="font-mono">one_wire</span>/<span className="font-mono">dallas_temp</span>). Validá con <span className="font-mono">esphome config</span> antes de flashear. Los <span className="font-mono">address</span> de los DS18B20 salen del log del primer arranque (I²C/1-Wire scan).</p>
         <div className="mt-2 rounded-lg bg-[#7dd3fc]/[0.06] border border-[#7dd3fc]/25 p-2.5">
           <p className="text-[11px] text-[#d4d4dd]"><b className="text-[#7dd3fc]">Por qué cada línea rara:</b> <span className="font-mono">reboot_timeout: 0s</span> — el default de ESPHome reinicia el ESP32 si pasa 15 min sin cliente API conectado (está pensado para vivir pegado a Home Assistant); acá corre solo, así que se apaga esa lógica. <span className="font-mono">ap:</span> + <span className="font-mono">captive_portal:</span> — si tu WiFi muere, el ESP32 levanta su propia red y entrás igual, sin escalera ni reflasheo. <span className="font-mono">restore_mode: ALWAYS_OFF</span> — después de un corte de luz nada arranca solo; la automatización re-evalúa y prende lo que corresponda.</p>
         </div>
@@ -819,7 +819,7 @@ interval:
       - switch.turn_on: rele_vent
       - delay: 10min
       - switch.turn_off: rele_vent`}</pre>
-        <p className="text-[11px] text-[#5c5c6b] mt-2">A mano lo prendés desde el celu/growflow/Home Assistant (el botón que crea el <span className="font-mono">switch</span>). Los otros 3 son automáticos.</p>
+        <p className="text-[11px] text-[#7d7d8e] mt-2">A mano lo prendés desde el celu/growflow/Home Assistant (el botón que crea el <span className="font-mono">switch</span>). Los otros 3 son automáticos.</p>
 
         <p className="text-[12px] text-[#d4d4dd] mt-4 mb-2 font-semibold">Riego por fases (crop steering P0/P1/P2) — como Growcast:</p>
         <pre className="text-[10.5px] font-mono bg-[#0a0a0f] border border-[#1f1f2b] rounded-lg p-3 overflow-x-auto text-[#7dd3fc] leading-relaxed">{`switch:
@@ -854,10 +854,10 @@ time:
     on_time:
       - hours: 7                  # cuando prenden las luces...
         then: { script.execute: ciclo_riego }   # ...arranca el riego del dia`}</pre>
-        <p className="text-[11px] text-[#5c5c6b] mt-2">Cambiás los números (2h, 30s, 6 veces…) y tenés tu crop steering. Para riego por humedad real (dryback), en vez de tiempos fijos leés el sensor de sustrato: «si bajó del 60% → regá».</p>
+        <p className="text-[11px] text-[#7d7d8e] mt-2">Cambiás los números (2h, 30s, 6 veces…) y tenés tu crop steering. Para riego por humedad real (dryback), en vez de tiempos fijos leés el sensor de sustrato: «si bajó del 60% → regá».</p>
       </Seccion>
 
-      <p className="text-[10.5px] text-[#5c5c6b] px-1 pb-4">
+      <p className="text-[10.5px] text-[#7d7d8e] px-1 pb-4">
         Documentación completa y actualizada en el repo: <span className="font-mono">growcast-diy/</span> (BOM, reverse-engineering, motor de automatizaciones).
         Esta guía es para el proyecto propio de Gastón; el hardware se compra en Argentina (MercadoLibre / casas de electrónica).
       </p>

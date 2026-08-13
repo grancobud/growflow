@@ -122,14 +122,14 @@ export default function PaginaChat() {
         <div className="flex items-center gap-2 sm:gap-4 px-3 sm:px-6 py-3">
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Chat del Cultivo</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
 IA con los datos de tu cultivo y tus manuales
             </div>
           </div>
           <div className="flex-1" />
           {mensajes.length > 0 && (
             <button onClick={() => setMensajes([])}
-              className="p-1.5 text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors"
+              className="p-1.5 text-[#7d7d8e] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors"
               title="Limpiar conversación">
               <Trash2 className="w-4 h-4" />
             </button>
@@ -145,7 +145,7 @@ IA con los datos de tu cultivo y tus manuales
                 <Bot className="w-5 h-5 text-[#c4b5fd]" />
               </div>
               <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">Chat no disponible en esta instancia</div>
-              <div className="mt-1 text-[11.5px] text-[#5c5c6b] max-w-sm mx-auto">
+              <div className="mt-1 text-[11.5px] text-[#7d7d8e] max-w-sm mx-auto">
                 El chat usa un modelo de IA local (Ollama). Funciona cuando corres GrowFlow self-hosted con la variable VITE_CHAT_WEBHOOK_URL configurada.
               </div>
             </div>
@@ -156,7 +156,7 @@ IA con los datos de tu cultivo y tus manuales
                 <Bot className="w-5 h-5 text-[#bef264]" />
               </div>
               <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">Preguntale a tu cultivo</div>
-              <div className="mt-1 text-[11.5px] text-[#5c5c6b]">Lee tus plantas, eventos, cosechas y tus manuales de cultivo.</div>
+              <div className="mt-1 text-[11.5px] text-[#7d7d8e]">Lee tus plantas, eventos, cosechas y tus manuales de cultivo.</div>
               <div className="mt-5 flex flex-wrap justify-center gap-2">
                 {SUGERENCIAS.map(s => (
                   <button key={s} onClick={() => enviar(s)}
@@ -200,7 +200,7 @@ IA con los datos de tu cultivo y tus manuales
             placeholder={grabando ? 'Grabando... tocá ■ para terminar' : transcribiendo ? 'Transcribiendo...' : 'Escribí tu mensaje...'}
             rows={1}
             disabled={grabando}
-            className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[13px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors resize-none overflow-hidden leading-tight"
+            className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[13px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors resize-none overflow-hidden leading-tight"
           />
           {TRANSCRIBE_URL && (
             <button onClick={toggleGrabar} disabled={transcribiendo || pensando}

@@ -18,7 +18,7 @@ const coloresEstado: Record<string, { pill: string; dot: string }> = {
   cuarentena: { pill: 'bg-[#c4b5fd]/12 border-[#463a66] text-[#c4b5fd]',      dot: '#c4b5fd' },
   baja:       { pill: 'bg-[#ff6b5a]/12 border-[#5a2820] text-[#ff6b5a]',      dot: '#ff6b5a' },
   procesado:  { pill: 'bg-[#8f8f9f]/12 border-[#1f1f2b] text-[#8f8f9f]',      dot: '#8f8f9f' },
-  consumido:  { pill: 'bg-[#5c5c6b]/12 border-[#1f1f2b] text-[#757584]',      dot: '#5c5c6b' },
+  consumido:  { pill: 'bg-[#5c5c6b]/12 border-[#1f1f2b] text-[#7d7d8e]',      dot: '#7d7d8e' },
 }
 
 const coloresSistema: Record<string, { pill: string; icon: string }> = {
@@ -60,7 +60,7 @@ type OrdenCampo = 'fecha' | 'cantidad' | 'codigo' | 'camada'
 
 // ─── Pill de estado dark ─────────────────────────────────────────────────────
 function EstadoPill({ estado }: { estado: string }) {
-  const cls = coloresEstado[estado]?.pill ?? 'bg-[#5c5c6b]/12 border-[#1f1f2b] text-[#757584]'
+  const cls = coloresEstado[estado]?.pill ?? 'bg-[#5c5c6b]/12 border-[#1f1f2b] text-[#7d7d8e]'
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-medium border ${cls}`}>
       {estado}
@@ -70,7 +70,7 @@ function EstadoPill({ estado }: { estado: string }) {
 
 // ─── Sistema pill ────────────────────────────────────────────────────────────
 function SistemaPill({ sistema }: { sistema?: string }) {
-  if (!sistema) return <span className="text-[11px] text-[#5c5c6b]">—</span>
+  if (!sistema) return <span className="text-[11px] text-[#7d7d8e]">—</span>
   const cls = coloresSistema[sistema] ?? { pill: 'bg-[#5c5c6b]/10 border-[#1f1f2b] text-[#8f8f9f]', icon: '#8f8f9f' }
   const Icon = sistema === 'RDWC' ? Droplets : Leaf
   return (
@@ -235,10 +235,10 @@ export default function PaginaStock() {
         const Icon = ICONOS_TIPO[item.productos?.tipo_producto] || Package
         return (
           <div className="flex items-center gap-2.5">
-            <Icon className="w-4 h-4 text-[#5c5c6b] flex-shrink-0" strokeWidth={1.75} />
+            <Icon className="w-4 h-4 text-[#7d7d8e] flex-shrink-0" strokeWidth={1.75} />
             <div>
               <p className="text-[12.5px] font-medium text-[#ececf1]">{item.productos?.nombre || '-'}</p>
-              <p className="text-[10px] text-[#5c5c6b]">{ETIQUETAS_TIPO[item.productos?.tipo_producto] || item.productos?.tipo_producto}</p>
+              <p className="text-[10px] text-[#7d7d8e]">{ETIQUETAS_TIPO[item.productos?.tipo_producto] || item.productos?.tipo_producto}</p>
             </div>
           </div>
         )
@@ -252,7 +252,7 @@ export default function PaginaStock() {
         <div>
           <p className="text-[12px] font-mono tabular-nums text-[#d4d4dd]">{row.original.codigo_lote}</p>
           {row.original.datos_extra?.camada && (
-            <p className="text-[10px] text-[#5c5c6b]">Camada: {row.original.datos_extra.camada}</p>
+            <p className="text-[10px] text-[#7d7d8e]">Camada: {row.original.datos_extra.camada}</p>
           )}
         </div>
       ),
@@ -276,7 +276,7 @@ export default function PaginaStock() {
       cell: ({ row }) => (
         <span className="text-[12.5px] font-semibold text-[#ececf1] tabular-nums font-mono">
           {parseFloat(row.original.cantidad).toLocaleString('es-AR')}
-          <span className="font-normal text-[#5c5c6b] ml-1 text-[10px]">{unidadCorrecta(row.original.productos?.tipo_producto)}</span>
+          <span className="font-normal text-[#7d7d8e] ml-1 text-[10px]">{unidadCorrecta(row.original.productos?.tipo_producto)}</span>
         </span>
       ),
     },
@@ -290,7 +290,7 @@ export default function PaginaStock() {
       id: 'acciones',
       header: '',
       enableSorting: false,
-      cell: () => <ChevronRight className="w-4 h-4 text-[#46464f]" />,
+      cell: () => <ChevronRight className="w-4 h-4 text-[#7d7d8e]" />,
     },
   ], [])
 
@@ -346,13 +346,13 @@ export default function PaginaStock() {
             <Package className="w-4 h-4 text-[#a3e635] flex-shrink-0" strokeWidth={1.8} />
             <div className="min-w-0">
               <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Inventario</h1>
-              <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+              <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
                 {cargando ? 'Cargando…' : `${stock.length} lotes · ${camadasDisponibles.length} camadas · ${kpis.activos} activos`}
               </div>
             </div>
             <div className="flex-1" />
             {ultimaSinc && (
-              <span className="hidden sm:inline text-[10px] text-[#5c5c6b] tabular-nums">
+              <span className="hidden sm:inline text-[10px] text-[#7d7d8e] tabular-nums">
                 {ultimaSinc.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
               </span>
             )}
@@ -405,11 +405,11 @@ export default function PaginaStock() {
             {/* modo toggle solo en desktop */}
             <div className="hidden sm:flex items-center gap-1 bg-[#0a0a0f] border border-[#1f1f2b] rounded-lg p-0.5">
               <button onClick={() => setModo('tabla')}
-                className={`p-1.5 rounded-md transition-colors ${modo === 'tabla' ? 'bg-[#15151d] text-[#d9f99d]' : 'text-[#5c5c6b] hover:text-[#d4d4dd]'}`}>
+                className={`p-1.5 rounded-md transition-colors ${modo === 'tabla' ? 'bg-[#15151d] text-[#d9f99d]' : 'text-[#7d7d8e] hover:text-[#d4d4dd]'}`}>
                 <List className="w-3.5 h-3.5" />
               </button>
               <button onClick={() => setModo('cards')}
-                className={`p-1.5 rounded-md transition-colors ${modo === 'cards' ? 'bg-[#15151d] text-[#d9f99d]' : 'text-[#5c5c6b] hover:text-[#d4d4dd]'}`}>
+                className={`p-1.5 rounded-md transition-colors ${modo === 'cards' ? 'bg-[#15151d] text-[#d9f99d]' : 'text-[#7d7d8e] hover:text-[#d4d4dd]'}`}>
                 <Grid3x3 className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -420,11 +420,11 @@ export default function PaginaStock() {
             <div className="flex flex-wrap gap-2 p-3">
               {/* Buscador */}
               <div className="flex-1 min-w-[200px] relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5c5c6b]" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7d7d8e]" />
                 <input
                   type="text" value={busqueda} onChange={e => setBusqueda(e.target.value)}
                   placeholder="Buscar código, producto, camada, traza…"
-                  className="w-full pl-9 pr-4 py-2 bg-[#0a0a0f] border border-[#1f1f2b] focus:border-[#404d20] rounded-lg text-[12px] text-[#d4d4dd] placeholder-[#5c5c6b] focus:outline-none transition-colors"
+                  className="w-full pl-9 pr-4 py-2 bg-[#0a0a0f] border border-[#1f1f2b] focus:border-[#404d20] rounded-lg text-[12px] text-[#d4d4dd] placeholder-[#7d7d8e] focus:outline-none transition-colors"
                 />
               </div>
               {/* Filtros toggle */}
@@ -440,13 +440,13 @@ export default function PaginaStock() {
               </button>
               {filtrosActivos > 0 && (
                 <button onClick={limpiarFiltros}
-                  className="flex items-center gap-1 px-2 py-2 text-[11px] text-[#5c5c6b] hover:text-[#ff6b5a] transition-colors">
+                  className="flex items-center gap-1 px-2 py-2 text-[11px] text-[#7d7d8e] hover:text-[#ff6b5a] transition-colors">
                   <X className="w-3.5 h-3.5" /> Limpiar
                 </button>
               )}
               {/* Orden */}
               <div className="flex items-center gap-1 bg-[#0a0a0f] border border-[#1f1f2b] rounded-lg p-1 ml-auto">
-                <span className="text-[10px] text-[#5c5c6b] px-1.5">Orden</span>
+                <span className="text-[10px] text-[#7d7d8e] px-1.5">Orden</span>
                 {([
                   { v: 'fecha', label: 'Fecha' },
                   { v: 'cantidad', label: 'Cant.' },
@@ -455,7 +455,7 @@ export default function PaginaStock() {
                 ] as { v: OrdenCampo; label: string }[]).map(o => (
                   <button key={o.v} onClick={() => { if (ordenCampo === o.v) setOrdenAsc(!ordenAsc); else setOrdenCampo(o.v) }}
                     className={`flex items-center gap-0.5 px-2 py-1 rounded-md text-[10.5px] font-medium transition-colors ${
-                      ordenCampo === o.v ? 'bg-[#15151d] text-[#d9f99d]' : 'text-[#5c5c6b] hover:text-[#d4d4dd]'
+                      ordenCampo === o.v ? 'bg-[#15151d] text-[#d9f99d]' : 'text-[#7d7d8e] hover:text-[#d4d4dd]'
                     }`}>
                     {o.label}{ordenCampo === o.v && <ArrowUpDown className="w-2.5 h-2.5 ml-0.5" />}
                   </button>
@@ -475,7 +475,7 @@ export default function PaginaStock() {
               <div className="border-t border-[#1f1f2b] p-4 bg-[#0a0a0f] space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-[10px] font-semibold text-[#5c5c6b] uppercase tracking-[0.12em] mb-2">Sistema</p>
+                    <p className="text-[10px] font-semibold text-[#7d7d8e] uppercase tracking-[0.12em] mb-2">Sistema</p>
                     <div className="flex gap-1.5">
                       {['todos', 'RDWC', 'COCO'].map(s => (
                         <button key={s} onClick={() => setFiltroSistema(s)}
@@ -492,7 +492,7 @@ export default function PaginaStock() {
                     </div>
                   </div>
                   <div>
-                    <p className="text-[10px] font-semibold text-[#5c5c6b] uppercase tracking-[0.12em] mb-2">Estado</p>
+                    <p className="text-[10px] font-semibold text-[#7d7d8e] uppercase tracking-[0.12em] mb-2">Estado</p>
                     <div className="flex flex-wrap gap-1.5">
                       {['todos', 'activo', 'cuarentena', 'procesado', 'baja', 'consumido'].map(e => (
                         <button key={e} onClick={() => setFiltroEstado(e)}
@@ -509,7 +509,7 @@ export default function PaginaStock() {
                 </div>
 
                 <div>
-                  <p className="text-[10px] font-semibold text-[#5c5c6b] uppercase tracking-[0.12em] mb-2">Tipo de producto</p>
+                  <p className="text-[10px] font-semibold text-[#7d7d8e] uppercase tracking-[0.12em] mb-2">Tipo de producto</p>
                   <div className="flex flex-wrap gap-1.5">
                     {tiposDisponibles.map(t => {
                       const Icon = ICONOS_TIPO[t] || Package
@@ -528,7 +528,7 @@ export default function PaginaStock() {
                 </div>
 
                 <div>
-                  <p className="text-[10px] font-semibold text-[#5c5c6b] uppercase tracking-[0.12em] mb-2">Camada</p>
+                  <p className="text-[10px] font-semibold text-[#7d7d8e] uppercase tracking-[0.12em] mb-2">Camada</p>
                   <div className="flex flex-wrap gap-1.5">
                     {camadasDisponibles.map(c => {
                       const sel = filtroCamadas.has(c)
@@ -551,7 +551,7 @@ export default function PaginaStock() {
                     { label: 'Cantidad mínima', val: cantidadMin, set: setCantidadMin, type: 'number' },
                   ].map(f => (
                     <div key={f.label}>
-                      <p className="text-[10px] font-semibold text-[#5c5c6b] uppercase tracking-[0.12em] mb-1.5">{f.label}</p>
+                      <p className="text-[10px] font-semibold text-[#7d7d8e] uppercase tracking-[0.12em] mb-1.5">{f.label}</p>
                       <input type={f.type} value={f.val} onChange={e => f.set(e.target.value)}
                         placeholder={f.type === 'number' ? 'ej: 100' : ''}
                         className="w-full px-3 py-2 bg-[#0a0a0f] border border-[#1f1f2b] focus:border-[#404d20] rounded-lg text-[11.5px] text-[#d4d4dd] focus:outline-none transition-colors [color-scheme:dark]" />
@@ -573,7 +573,7 @@ export default function PaginaStock() {
           {cargando ? (
             <div className="text-center py-14">
               <Loader2 className="w-8 h-8 text-[#a3e635] animate-spin mx-auto" />
-              <p className="mt-3 text-[12px] text-[#5c5c6b]">Cargando stock…</p>
+              <p className="mt-3 text-[12px] text-[#7d7d8e]">Cargando stock…</p>
             </div>
           ) : stockFiltrado.length === 0 ? (
             <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-12 text-center">
@@ -597,7 +597,7 @@ export default function PaginaStock() {
                         <span className="font-display font-bold text-[14px] text-[#ececf1]">{cam}</span>
                         {sistemaCam && <SistemaPill sistema={sistemaCam} />}
                       </div>
-                      <span className="text-[10.5px] text-[#5c5c6b]">
+                      <span className="text-[10.5px] text-[#7d7d8e]">
                         {lotes.length} lotes · {totalCantidad.toFixed(0)} total
                       </span>
                     </div>
@@ -636,7 +636,7 @@ export default function PaginaStock() {
                         pageSize={50}
                         onRowClick={(item) => setSeleccionado(item)}
                         emptyState={
-                          <div className="text-[#5c5c6b] py-6 text-center">
+                          <div className="text-[#7d7d8e] py-6 text-center">
                             <Package className="w-7 h-7 mx-auto mb-2 text-[#404d20]" />
                             Sin lotes que coincidan con los filtros
                           </div>
@@ -644,7 +644,7 @@ export default function PaginaStock() {
                       />
                     </div>
                     {stockFiltrado.length > 0 && (
-                      <div className="mt-2 flex items-center justify-between px-1 text-[11px] text-[#5c5c6b]">
+                      <div className="mt-2 flex items-center justify-between px-1 text-[11px] text-[#7d7d8e]">
                         <span>{stockFiltrado.length} lotes</span>
                         <span className="font-semibold text-[#8f8f9f] tabular-nums font-mono">
                           Σ {stockFiltrado.reduce((a, s) => a + (parseFloat(s.cantidad) || 0), 0).toLocaleString('es-AR')}
@@ -663,7 +663,7 @@ export default function PaginaStock() {
                           className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-3.5 text-left hover:border-[#404d20] hover:-translate-y-0.5 transition-all duration-200">
                           <div className="flex items-start justify-between gap-2 mb-2">
                             <div className="flex items-center gap-2">
-                              <Icon className="w-4 h-4 text-[#5c5c6b]" strokeWidth={1.75} />
+                              <Icon className="w-4 h-4 text-[#7d7d8e]" strokeWidth={1.75} />
                               <p className="text-[10.5px] font-medium text-[#8f8f9f]">{ETIQUETAS_TIPO[item.productos?.tipo_producto] || '-'}</p>
                             </div>
                             <EstadoPill estado={item.estado} />
@@ -672,12 +672,12 @@ export default function PaginaStock() {
                           <div className="flex items-center justify-between mt-2">
                             <p className="text-[22px] font-bold font-mono tabular-nums text-[#ececf1] leading-none">
                               {parseFloat(item.cantidad).toLocaleString('es-AR')}
-                              <span className="text-[10px] text-[#5c5c6b] ml-1 font-normal">{unidadCorrecta(item.productos?.tipo_producto)}</span>
+                              <span className="text-[10px] text-[#7d7d8e] ml-1 font-normal">{unidadCorrecta(item.productos?.tipo_producto)}</span>
                             </p>
                             {sistema && <SistemaPill sistema={sistema} />}
                           </div>
                           {item.datos_extra?.camada && (
-                            <p className="text-[10px] text-[#5c5c6b] mt-2">
+                            <p className="text-[10px] text-[#7d7d8e] mt-2">
                               {item.datos_extra.camada} · {item.instalaciones?.nombre || ''}
                             </p>
                           )}
@@ -714,7 +714,7 @@ export default function PaginaStock() {
                 <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[#1f1f2b] sticky top-0 z-10 bg-[#101016]">
                   <div className="min-w-0">
                     <h3 className="font-display font-bold text-[15px] text-[#ececf1] truncate">{seleccionado.productos?.nombre}</h3>
-                    <p className="text-[11.5px] font-mono tabular-nums text-[#5c5c6b] truncate mt-0.5">{seleccionado.codigo_lote}</p>
+                    <p className="text-[11.5px] font-mono tabular-nums text-[#7d7d8e] truncate mt-0.5">{seleccionado.codigo_lote}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <a href={`/traza/${encodeURIComponent(seleccionado.codigo_lote)}`} target="_blank" rel="noopener noreferrer"
@@ -724,7 +724,7 @@ export default function PaginaStock() {
                     </a>
                     <button onClick={() => setSeleccionado(null)}
                       className="p-2 hover:bg-[#15151d] rounded-lg transition-colors">
-                      <X className="w-5 h-5 text-[#5c5c6b]" />
+                      <X className="w-5 h-5 text-[#7d7d8e]" />
                     </button>
                   </div>
                 </div>
@@ -743,18 +743,18 @@ export default function PaginaStock() {
 
                   {seleccionado.datos_extra?.sistema && (
                     <div className="p-3 rounded-xl bg-[#15151d] border border-[#1f1f2b]">
-                      <p className="text-[10px] font-semibold text-[#5c5c6b] uppercase tracking-[0.12em] mb-2.5">Sistema de producción</p>
+                      <p className="text-[10px] font-semibold text-[#7d7d8e] uppercase tracking-[0.12em] mb-2.5">Sistema de producción</p>
                       <SistemaPill sistema={seleccionado.datos_extra.sistema} />
                     </div>
                   )}
 
                   {seleccionado.datos_extra && Object.keys(seleccionado.datos_extra).length > 0 && (
                     <div className="p-3 rounded-xl bg-[#15151d] border border-[#1f1f2b]">
-                      <p className="text-[10px] font-semibold text-[#5c5c6b] uppercase tracking-[0.12em] mb-2.5">Datos adicionales</p>
+                      <p className="text-[10px] font-semibold text-[#7d7d8e] uppercase tracking-[0.12em] mb-2.5">Datos adicionales</p>
                       <div className="grid grid-cols-2 gap-2.5">
                         {Object.entries(seleccionado.datos_extra).map(([key, value]) => (
                           <div key={key}>
-                            <p className="text-[10px] text-[#5c5c6b]">{key.replace(/_/g, ' ')}</p>
+                            <p className="text-[10px] text-[#7d7d8e]">{key.replace(/_/g, ' ')}</p>
                             <p className="text-[12px] font-medium text-[#d4d4dd] break-words">{String(value)}</p>
                           </div>
                         ))}
@@ -765,16 +765,16 @@ export default function PaginaStock() {
                   {/* Historial movimientos */}
                   <div>
                     <div className="flex items-center gap-2 mb-3">
-                      <Clock className="w-3.5 h-3.5 text-[#5c5c6b]" />
-                      <p className="text-[10px] font-semibold text-[#5c5c6b] uppercase tracking-[0.12em]">Historial de movimientos</p>
+                      <Clock className="w-3.5 h-3.5 text-[#7d7d8e]" />
+                      <p className="text-[10px] font-semibold text-[#7d7d8e] uppercase tracking-[0.12em]">Historial de movimientos</p>
                     </div>
                     {cargandoMov ? (
-                      <div className="flex items-center gap-2 text-[12px] text-[#5c5c6b] py-6 justify-center">
+                      <div className="flex items-center gap-2 text-[12px] text-[#7d7d8e] py-6 justify-center">
                         <Loader2 className="w-4 h-4 animate-spin text-[#a3e635]" /> Cargando…
                       </div>
                     ) : movimientos.length === 0 ? (
                       <div className="text-center py-6 rounded-xl bg-[#15151d] border border-[#1f1f2b]">
-                        <p className="text-[12px] text-[#5c5c6b]">Sin operaciones registradas</p>
+                        <p className="text-[12px] text-[#7d7d8e]">Sin operaciones registradas</p>
                       </div>
                     ) : (
                       <div className="space-y-0">
@@ -797,13 +797,13 @@ export default function PaginaStock() {
                                                                 : 'bg-[#ff6b5a]/12 border-[#5a2820] text-[#ff6b5a]'
                                   }`}>{mov.estado}</span>
                                 </div>
-                                <div className="flex flex-wrap gap-x-3 text-[10.5px] text-[#5c5c6b] mt-0.5 font-mono tabular-nums">
+                                <div className="flex flex-wrap gap-x-3 text-[10.5px] text-[#7d7d8e] mt-0.5 font-mono tabular-nums">
                                   <span>{new Date(mov.fecha_operacion).toLocaleDateString('es-AR')}</span>
                                   {mov.cantidad_entrada && <span>Cant: {mov.cantidad_entrada}</span>}
                                   {mov.peso_fresco_kg && <span>Peso: {mov.peso_fresco_kg}kg</span>}
                                   {mov.responsable && <span className="font-sans">{mov.responsable}</span>}
                                 </div>
-                                {mov.observaciones && <p className="text-[10.5px] text-[#757584] mt-0.5 truncate">{mov.observaciones}</p>}
+                                {mov.observaciones && <p className="text-[10.5px] text-[#7d7d8e] mt-0.5 truncate">{mov.observaciones}</p>}
                               </div>
                             </div>
                           )
@@ -831,7 +831,7 @@ function KpiDark({ icono: Icon, label, valor, tone }: { icono: LucideIcon; label
     <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-3.5 hover:border-[#404d20] transition-colors">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium leading-tight">{label}</p>
+          <p className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium leading-tight">{label}</p>
           <p className="font-display font-bold text-[22px] sm:text-[26px] text-[#ececf1] mt-1 leading-none tabular-nums">{valor}</p>
         </div>
         <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 border"
@@ -848,17 +848,17 @@ function FilaDark({ item, onClick }: { item: any; onClick: () => void }) {
   const Icon = ICONOS_TIPO[item.productos?.tipo_producto] || Package
   return (
     <div onClick={onClick} className="flex items-center gap-3 px-4 py-2.5 hover:bg-[#15151d] cursor-pointer transition-colors">
-      <Icon className="w-4 h-4 text-[#5c5c6b] flex-shrink-0" strokeWidth={1.75} />
+      <Icon className="w-4 h-4 text-[#7d7d8e] flex-shrink-0" strokeWidth={1.75} />
       <div className="flex-1 min-w-0">
         <p className="text-[12px] font-mono tabular-nums text-[#d4d4dd] truncate">{item.codigo_lote}</p>
-        <p className="text-[10px] text-[#5c5c6b]">{ETIQUETAS_TIPO[item.productos?.tipo_producto]} · {item.instalaciones?.nombre || 'sin ubicación'}</p>
+        <p className="text-[10px] text-[#7d7d8e]">{ETIQUETAS_TIPO[item.productos?.tipo_producto]} · {item.instalaciones?.nombre || 'sin ubicación'}</p>
       </div>
       <span className="text-[12.5px] font-semibold font-mono tabular-nums text-[#ececf1]">
         {parseFloat(item.cantidad).toLocaleString('es-AR')}
-        <span className="text-[10px] text-[#5c5c6b] ml-1 font-normal">{unidadCorrecta(item.productos?.tipo_producto)}</span>
+        <span className="text-[10px] text-[#7d7d8e] ml-1 font-normal">{unidadCorrecta(item.productos?.tipo_producto)}</span>
       </span>
       <EstadoPill estado={item.estado} />
-      <ChevronRight className="w-4 h-4 text-[#46464f]" />
+      <ChevronRight className="w-4 h-4 text-[#7d7d8e]" />
     </div>
   )
 }
@@ -877,7 +877,7 @@ function CardMobile({ item, onClick }: { item: any; onClick: () => void }) {
       </div>
       {/* Producto */}
       <div className="flex items-center gap-2 mb-2.5">
-        <Icon className="w-3.5 h-3.5 text-[#5c5c6b] flex-shrink-0" strokeWidth={1.75} />
+        <Icon className="w-3.5 h-3.5 text-[#7d7d8e] flex-shrink-0" strokeWidth={1.75} />
         <span className="text-[11.5px] text-[#8f8f9f]">{item.productos?.nombre || ETIQUETAS_TIPO[item.productos?.tipo_producto] || '-'}</span>
         {sistema && <SistemaPill sistema={sistema} />}
       </div>
@@ -885,9 +885,9 @@ function CardMobile({ item, onClick }: { item: any; onClick: () => void }) {
       <div className="flex items-end justify-between gap-2">
         <span className="font-display font-bold text-[26px] text-[#ececf1] leading-none tabular-nums font-mono">
           {parseFloat(item.cantidad).toLocaleString('es-AR')}
-          <span className="text-[11px] text-[#5c5c6b] ml-1 font-normal">{unidadCorrecta(item.productos?.tipo_producto)}</span>
+          <span className="text-[11px] text-[#7d7d8e] ml-1 font-normal">{unidadCorrecta(item.productos?.tipo_producto)}</span>
         </span>
-        <div className="text-right text-[10px] text-[#5c5c6b] leading-tight">
+        <div className="text-right text-[10px] text-[#7d7d8e] leading-tight">
           <div>{item.instalaciones?.nombre || 'sin ubicación'}</div>
           {item.datos_extra?.camada && <div>Cam. {item.datos_extra.camada}</div>}
         </div>
@@ -899,7 +899,7 @@ function CardMobile({ item, onClick }: { item: any; onClick: () => void }) {
 function InfoDark({ label, valor }: { label: string; valor?: string | null }) {
   return (
     <div>
-      <p className="text-[10px] text-[#5c5c6b] uppercase tracking-[0.10em]">{label}</p>
+      <p className="text-[10px] text-[#7d7d8e] uppercase tracking-[0.10em]">{label}</p>
       <p className="text-[12.5px] font-medium text-[#d4d4dd] mt-0.5">{valor || '—'}</p>
     </div>
   )

@@ -53,13 +53,13 @@ export default function PaginaConocimiento() {
           <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1] flex items-center gap-2">
             <Brain className="w-4 h-4 text-[#bef264]" /> Base de conocimiento
           </h1>
-          <span className="text-[10.5px] sm:text-[11px] text-[#5c5c6b]">{docs.length} documentos · {totalChunks} fragmentos</span>
+          <span className="text-[10.5px] sm:text-[11px] text-[#7d7d8e]">{docs.length} documentos · {totalChunks} fragmentos</span>
         </div>
       </div>
 
       <div className="px-3 sm:px-6 py-5 pb-24 max-w-3xl mx-auto space-y-5">
         {!KB_DISPONIBLE ? (
-          <div className="py-16 text-center text-[12px] text-[#5c5c6b]">
+          <div className="py-16 text-center text-[12px] text-[#7d7d8e]">
             La base de conocimiento no está configurada (falta <code className="text-[#a6a6b5]">VITE_KB_URL</code>).
           </div>
         ) : (
@@ -82,9 +82,9 @@ export default function PaginaConocimiento() {
                 </div>
               ) : (
                 <div className="space-y-1.5">
-                  <UploadCloud className="w-8 h-8 text-[#5c5c6b] mx-auto" />
+                  <UploadCloud className="w-8 h-8 text-[#7d7d8e] mx-auto" />
                   <div className="text-[13px] font-medium text-[#ececf1]">Arrastrá PDFs o tocá para subir</div>
-                  <div className="text-[11px] text-[#5c5c6b]">Manuales, guías de riego/fertilización, etc. El chat los va a usar como fuente.</div>
+                  <div className="text-[11px] text-[#7d7d8e]">Manuales, guías de riego/fertilización, etc. El chat los va a usar como fuente.</div>
                 </div>
               )}
             </label>
@@ -98,18 +98,18 @@ export default function PaginaConocimiento() {
               {cargando ? (
                 <div className="py-10 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-[#bef264]" /></div>
               ) : docs.length === 0 ? (
-                <div className="py-10 text-center text-[12px] text-[#5c5c6b]">Todavía no subiste documentos.</div>
+                <div className="py-10 text-center text-[12px] text-[#7d7d8e]">Todavía no subiste documentos.</div>
               ) : (
                 <ul className="divide-y divide-[#1f1f2b]/60">
                   {docs.map(d => (
                     <li key={d.fuente} className="flex items-center gap-3 px-4 py-3">
-                      <FileText className="w-4 h-4 text-[#757584] flex-shrink-0" />
+                      <FileText className="w-4 h-4 text-[#7d7d8e] flex-shrink-0" />
                       <div className="min-w-0 flex-1">
                         <div className="text-[12.5px] text-[#ececf1] truncate">{d.fuente}</div>
-                        <div className="text-[10.5px] text-[#5c5c6b]">{d.chunks} fragmentos</div>
+                        <div className="text-[10.5px] text-[#7d7d8e]">{d.chunks} fragmentos</div>
                       </div>
                       <button onClick={() => borrar(d.fuente)} title="Borrar"
-                        className="p-1.5 rounded-lg text-[#5c5c6b] hover:text-[#ff8a7a] hover:bg-[#15151d] transition-colors">
+                        className="p-1.5 rounded-lg text-[#7d7d8e] hover:text-[#ff8a7a] hover:bg-[#15151d] transition-colors">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </li>
@@ -117,7 +117,7 @@ export default function PaginaConocimiento() {
                 </ul>
               )}
             </div>
-            <p className="text-[10.5px] text-[#5c5c6b]">
+            <p className="text-[10.5px] text-[#7d7d8e]">
               Los documentos se vectorizan y el chat recupera solo los fragmentos relevantes a cada pregunta (no gasta tokens de más).
             </p>
           </>

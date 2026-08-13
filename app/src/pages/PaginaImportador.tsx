@@ -108,7 +108,7 @@ export default function PaginaImportador() {
           <FileSpreadsheet className="w-4 h-4 text-[#a3e635] flex-shrink-0" strokeWidth={1.8} />
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Importador de Datos</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
               Carga masiva desde Excel
               <span className="hidden sm:inline"><span className="text-[#30303e] mx-1">│</span>.xlsx</span>
             </div>
@@ -123,7 +123,7 @@ export default function PaginaImportador() {
         <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4 space-y-3">
           <div className="flex flex-wrap items-end gap-3">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1.5">Destino</p>
+              <p className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1.5">Destino</p>
               <div className="relative">
                 <select
                   value={tabla}
@@ -132,7 +132,7 @@ export default function PaginaImportador() {
                 >
                   {TABLAS.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
                 </select>
-                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5c5c6b] pointer-events-none" />
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#7d7d8e] pointer-events-none" />
               </div>
             </div>
 
@@ -153,7 +153,7 @@ export default function PaginaImportador() {
           </div>
 
           <div className="rounded-lg bg-[#15151d] border border-[#1f1f2b] px-3 py-2">
-            <p className="text-[10px] text-[#5c5c6b]">
+            <p className="text-[10px] text-[#7d7d8e]">
               <span className="text-[#8f8f9f] font-medium">Columnas esperadas:</span>{' '}
               <span className="font-mono text-[#bef264]">{tSel.columnas.join(', ')}</span>
             </p>
@@ -178,7 +178,7 @@ export default function PaginaImportador() {
             <Upload className="w-8 h-8 text-[#404d20]" strokeWidth={1.5} />
             <div className="text-center">
               <p className="text-[13px] font-medium text-[#d4d4dd]">Click o arrastra el archivo Excel</p>
-              <p className="text-[11px] text-[#5c5c6b] mt-0.5">.xlsx · .xls</p>
+              <p className="text-[11px] text-[#7d7d8e] mt-0.5">.xlsx · .xls</p>
             </div>
             <input type="file" accept=".xlsx,.xls" className="hidden" disabled={procesando}
               onChange={e => e.target.files?.[0] && leerArchivo(e.target.files[0])} />
@@ -186,7 +186,7 @@ export default function PaginaImportador() {
         )}
 
         {procesando && !preview && (
-          <div className="flex items-center justify-center gap-2 py-10 text-[#5c5c6b]">
+          <div className="flex items-center justify-center gap-2 py-10 text-[#7d7d8e]">
             <Loader2 className="w-5 h-5 animate-spin text-[#a3e635]" />
             <span className="text-[12px]">Leyendo archivo…</span>
           </div>
@@ -203,7 +203,7 @@ export default function PaginaImportador() {
                     {preview.hoja} · <span className="tabular-nums">{preview.total}</span> filas
                   </h3>
                 </div>
-                <p className="text-[10.5px] text-[#5c5c6b] mt-0.5">{archivo?.name}</p>
+                <p className="text-[10.5px] text-[#7d7d8e] mt-0.5">{archivo?.name}</p>
               </div>
               <button
                 onClick={importar}
@@ -236,7 +236,7 @@ export default function PaginaImportador() {
                 </tbody>
               </table>
               {preview.total > 20 && (
-                <p className="px-3 py-2 text-[10.5px] text-[#5c5c6b] border-t border-[#1f1f2b]">
+                <p className="px-3 py-2 text-[10.5px] text-[#7d7d8e] border-t border-[#1f1f2b]">
                   …y {preview.total - 20} filas mas
                 </p>
               )}

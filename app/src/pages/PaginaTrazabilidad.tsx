@@ -613,7 +613,7 @@ function LotCode({ code, size = 'sm', dim = false }: { code: string; size?: 'xs'
   const cls = size === 'xs' ? 'text-[11px]' : size === 'md' ? 'text-[13px]' : 'text-[12px]'
   const [tip, setTip] = useState<number | null>(null)
   return (
-    <span className={`font-mono tabular-nums tracking-tight ${cls} ${dim ? 'text-[#46464f]' : 'text-[#8f8f9f]'} inline-flex flex-wrap items-baseline leading-[1.4]`}>
+    <span className={`font-mono tabular-nums tracking-tight ${cls} ${dim ? 'text-[#7d7d8e]' : 'text-[#8f8f9f]'} inline-flex flex-wrap items-baseline leading-[1.4]`}>
       {parts.map((p, i) => {
         const tok = CODE_TOKENS[p]
         if (tok) return (
@@ -625,7 +625,7 @@ function LotCode({ code, size = 'sm', dim = false }: { code: string; size?: 'xs'
                 transition={{ duration: 0.12, ease: EASE }}
                 className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 pointer-events-none whitespace-nowrap">
                 <span className="block px-2.5 py-1.5 rounded-md bg-[#0a0a0f] border border-[#2b2b3a] shadow-[0_8px_24px_rgba(0,0,0,0.6)]">
-                  <span className="block text-[9px] uppercase tracking-widest text-[#46464f] font-sans font-medium mb-0.5">{tok.label}</span>
+                  <span className="block text-[9px] uppercase tracking-widest text-[#7d7d8e] font-sans font-medium mb-0.5">{tok.label}</span>
                   <span className="block text-[11px] text-[#d4d4dd] font-sans font-medium">{tok.detail}</span>
                 </span>
               </motion.span>
@@ -657,7 +657,7 @@ function DurationPill({ days }: { days: number }) {
 }
 
 function Label({ children, tone = 'ink-40', className = '' }: { children: React.ReactNode; tone?: 'ink-40' | 'ink-50' | 'gold' | 'primary'; className?: string }) {
-  const map = { 'ink-40': 'text-[#46464f]', 'ink-50': 'text-[#5c5c6b]', gold: 'text-[#a78bfa]', primary: 'text-[#bef264]' }
+  const map = { 'ink-40': 'text-[#7d7d8e]', 'ink-50': 'text-[#7d7d8e]', gold: 'text-[#a78bfa]', primary: 'text-[#bef264]' }
   return <span className={`block text-[10px] uppercase tracking-[0.14em] font-medium ${map[tone]} ${className}`}>{children}</span>
 }
 
@@ -668,13 +668,13 @@ function ProgressBar({ current, total = 10, completed = false, showLabel = true 
     <div className="w-full">
       {showLabel && (
         <div className="flex items-baseline justify-between mb-1.5">
-          <span className="font-mono tabular-nums text-[11px] text-[#5c5c6b]">
+          <span className="font-mono tabular-nums text-[11px] text-[#7d7d8e]">
             <span className={completed ? 'text-[#c4b5fd]' : 'text-[#d9f99d]'}>{current}</span>
-            <span className="text-[#46464f]">/{total}</span>
-            <span className="text-[#46464f] mx-1.5">·</span>
+            <span className="text-[#7d7d8e]">/{total}</span>
+            <span className="text-[#7d7d8e] mx-1.5">·</span>
             <span className="text-[#b3b3c0] font-medium"><CountUp to={pct} />%</span>
           </span>
-          <span className="text-[10px] uppercase tracking-[0.14em] font-medium text-[#46464f]">{completed ? 'Completada' : 'En progreso'}</span>
+          <span className="text-[10px] uppercase tracking-[0.14em] font-medium text-[#7d7d8e]">{completed ? 'Completada' : 'En progreso'}</span>
         </div>
       )}
       <div className="relative w-full h-[5px] rounded-full bg-[#0f1714] border border-[#1f1f2b] overflow-hidden">
@@ -713,7 +713,7 @@ function CircleProgress({ current, total = 10, completed = false, size = 54 }: {
           transition={{ ...SPRING_PROGRESS, delay: 0.2 }} style={{ filter: `drop-shadow(0 0 3px ${color}66)` }} />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="font-mono tabular-nums text-[12px] font-semibold text-[#ececf1]">{current}<span className="text-[#46464f]">/{total}</span></span>
+        <span className="font-mono tabular-nums text-[12px] font-semibold text-[#ececf1]">{current}<span className="text-[#7d7d8e]">/{total}</span></span>
       </div>
     </div>
   )
@@ -726,7 +726,7 @@ function TopBar({ totalChains }: { totalChains: number }) {
       <div className="flex items-center gap-2 sm:gap-4 px-3 sm:px-6 py-3">
         <div className="min-w-0">
           <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Trazabilidad Inversa</h1>
-          <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+          <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
             <span className="tabular-nums">{totalChains}</span> cadenas
             <span className="hidden sm:inline"><span className="text-[#30303e] mx-1">│</span> Sale-to-Seed <span className="text-[#30303e] mx-1">│</span> Datos reales por etapa</span>
           </div>
@@ -750,7 +750,7 @@ function EstadoBar({ activas, total, onSync, onExport, syncing, exporting, onNue
         <div className="flex items-center gap-2">
           <span className="font-display font-semibold text-[14px] text-[#ececf1]">Estado de cadenas</span>
         </div>
-        <div className="mt-0.5 text-[11.5px] text-[#5c5c6b]">
+        <div className="mt-0.5 text-[11.5px] text-[#7d7d8e]">
           Última sincronización: <span className="font-mono text-[#b3b3c0]">{horaSync}</span>
           <span className="text-[#30303e] mx-1.5">/</span>
           <span className="text-[#d9f99d]">{activas} cadenas activas</span>
@@ -835,7 +835,7 @@ function CodeAccordion() {
   return (
     <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden">
       <button onClick={() => setOpen(v => !v)} className="w-full flex items-center gap-3 px-5 py-4 hover:bg-[#15151d] transition-colors text-left">
-        <motion.span animate={{ rotate: open ? 90 : 0 }} transition={{ duration: 0.2, ease: EASE }} className="text-[#5c5c6b]">
+        <motion.span animate={{ rotate: open ? 90 : 0 }} transition={{ duration: 0.2, ease: EASE }} className="text-[#7d7d8e]">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="m4.5 3 3 3-3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </motion.span>
         <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[#a3e635]/10 border border-[#a3e635]/20">
@@ -843,13 +843,13 @@ function CodeAccordion() {
         </span>
         <span className="font-display font-semibold text-[14px] text-[#ececf1]">Tabla Maestra de Códigos</span>
         <span className="flex-1" />
-        <span className="text-[12px] text-[#5c5c6b] hidden md:inline">Cómo se forman los códigos de trazabilidad</span>
+        <span className="text-[12px] text-[#7d7d8e] hidden md:inline">Cómo se forman los códigos de trazabilidad</span>
       </button>
       <AnimatePresence initial={false}>{open && (
         <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
           transition={{ duration: 0.3, ease: EASE }} className="overflow-hidden border-t border-[#1f1f2b]">
           <div className="px-5 py-5">
-            <div className="text-[10px] uppercase tracking-[0.16em] text-[#5c5c6b] font-medium mb-2 text-center">Planta individual · vegetativo y floración</div>
+            <div className="text-[10px] uppercase tracking-[0.16em] text-[#7d7d8e] font-medium mb-2 text-center">Planta individual · vegetativo y floración</div>
             <div className="flex justify-center mb-4">
               <div className="font-mono tabular-nums text-[13px] sm:text-[18px] tracking-tight flex items-baseline flex-wrap justify-center gap-y-1">
                 {example.map((seg, i) => (
@@ -863,13 +863,13 @@ function CodeAccordion() {
             <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mb-6">
               {example.map((seg, i) => (
                 <div key={i} className="rounded-md bg-[#15151d] border border-[#20202c] px-3 py-3 flex flex-col items-center justify-between min-h-[78px]">
-                  <div className="text-[9px] uppercase tracking-[0.14em] text-[#46464f] font-medium text-center leading-tight">{seg.l}</div>
+                  <div className="text-[9px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium text-center leading-tight">{seg.l}</div>
                   <div className={`my-1 font-mono font-semibold text-[12px] text-center ${colorMap[seg.c].split(' ')[2]}`}>{seg.v}</div>
-                  <div className="text-[10px] text-[#757584] leading-tight text-center">{seg.d}</div>
+                  <div className="text-[10px] text-[#7d7d8e] leading-tight text-center">{seg.d}</div>
                 </div>
               ))}
             </div>
-            <div className="text-[10px] uppercase tracking-[0.16em] text-[#5c5c6b] font-medium mb-2 text-center">Post-cosecha · cuadro de secado</div>
+            <div className="text-[10px] uppercase tracking-[0.16em] text-[#7d7d8e] font-medium mb-2 text-center">Post-cosecha · cuadro de secado</div>
             <div className="flex justify-center mb-4">
               <div className="font-mono tabular-nums text-[13px] sm:text-[18px] tracking-tight flex items-baseline flex-wrap justify-center gap-y-1">
                 {examplePost.map((seg, i) => (
@@ -883,14 +883,14 @@ function CodeAccordion() {
             <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mb-6">
               {examplePost.map((seg, i) => (
                 <div key={i} className="rounded-md bg-[#15151d] border border-[#20202c] px-3 py-3 flex flex-col items-center justify-between min-h-[78px]">
-                  <div className="text-[9px] uppercase tracking-[0.14em] text-[#46464f] font-medium text-center leading-tight">{seg.l}</div>
+                  <div className="text-[9px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium text-center leading-tight">{seg.l}</div>
                   <div className={`my-1 font-mono font-semibold text-[12px] text-center ${colorMap[seg.c].split(' ')[2]}`}>{seg.v}</div>
-                  <div className="text-[10px] text-[#757584] leading-tight text-center">{seg.d}</div>
+                  <div className="text-[10px] text-[#7d7d8e] leading-tight text-center">{seg.d}</div>
                 </div>
               ))}
             </div>
 
-            <div className="text-[10px] uppercase tracking-[0.16em] text-[#5c5c6b] font-medium mb-2 text-center">Fraccionamiento · lote almacén + bolsas</div>
+            <div className="text-[10px] uppercase tracking-[0.16em] text-[#7d7d8e] font-medium mb-2 text-center">Fraccionamiento · lote almacén + bolsas</div>
             <div className="flex justify-center mb-4">
               <div className="font-mono tabular-nums text-[13px] sm:text-[18px] tracking-tight flex items-baseline flex-wrap justify-center gap-y-1">
                 {exampleFracDep.map((seg, i) => (
@@ -904,14 +904,14 @@ function CodeAccordion() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6">
               {exampleFracDep.map((seg, i) => (
                 <div key={i} className="rounded-md bg-[#15151d] border border-[#20202c] px-3 py-3 flex flex-col items-center justify-between min-h-[78px]">
-                  <div className="text-[9px] uppercase tracking-[0.14em] text-[#46464f] font-medium text-center leading-tight">{seg.l}</div>
+                  <div className="text-[9px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium text-center leading-tight">{seg.l}</div>
                   <div className={`my-1 font-mono font-semibold text-[12px] text-center ${colorMap[seg.c].split(' ')[2]}`}>{seg.v}</div>
-                  <div className="text-[10px] text-[#757584] leading-tight text-center">{seg.d}</div>
+                  <div className="text-[10px] text-[#7d7d8e] leading-tight text-center">{seg.d}</div>
                 </div>
               ))}
             </div>
 
-            <div className="text-[10px] uppercase tracking-[0.16em] text-[#5c5c6b] font-medium mb-2 text-center">Depósito final · bolsa comercial</div>
+            <div className="text-[10px] uppercase tracking-[0.16em] text-[#7d7d8e] font-medium mb-2 text-center">Depósito final · bolsa comercial</div>
             <div className="flex justify-center mb-4">
               <div className="font-mono tabular-nums text-[13px] sm:text-[18px] tracking-tight flex items-baseline flex-wrap justify-center gap-y-1">
                 {exampleFis.map((seg, i) => (
@@ -925,21 +925,21 @@ function CodeAccordion() {
             <div className="grid grid-cols-3 gap-2 mb-5">
               {exampleFis.map((seg, i) => (
                 <div key={i} className="rounded-md bg-[#15151d] border border-[#20202c] px-3 py-3 flex flex-col items-center justify-between min-h-[78px]">
-                  <div className="text-[9px] uppercase tracking-[0.14em] text-[#46464f] font-medium text-center leading-tight">{seg.l}</div>
+                  <div className="text-[9px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium text-center leading-tight">{seg.l}</div>
                   <div className={`my-1 font-mono font-semibold text-[12px] text-center ${colorMap[seg.c].split(' ')[2]}`}>{seg.v}</div>
-                  <div className="text-[10px] text-[#757584] leading-tight text-center">{seg.d}</div>
+                  <div className="text-[10px] text-[#7d7d8e] leading-tight text-center">{seg.d}</div>
                 </div>
               ))}
             </div>
             <div className="rounded-lg bg-[#0a0a0f] border border-[#1f1f2b] p-4 mb-5">
-              <div className="text-[10px] uppercase tracking-[0.16em] text-[#5c5c6b] font-medium mb-3">Código por etapa del ciclo</div>
+              <div className="text-[10px] uppercase tracking-[0.16em] text-[#7d7d8e] font-medium mb-3">Código por etapa del ciclo</div>
               <div className="flex flex-col gap-1.5">
                 {patterns.map((p, i) => (
                   <div key={p.stage} className="flex items-baseline gap-3 py-0.5">
-                    <span className="font-mono text-[#46464f] text-[11px] w-[18px] shrink-0 text-right">{i + 1}.</span>
+                    <span className="font-mono text-[#7d7d8e] text-[11px] w-[18px] shrink-0 text-right">{i + 1}.</span>
                     <span className="text-[#a6a6b5] text-[12px] w-[140px] shrink-0">{p.stage}</span>
                     <span className="font-mono text-[#d9f99d] text-[11.5px] flex-1">{p.code}</span>
-                    {p.note && <span className="text-[10px] text-[#5c5c6b] italic">{p.note}</span>}
+                    {p.note && <span className="text-[10px] text-[#7d7d8e] italic">{p.note}</span>}
                   </div>
                 ))}
               </div>
@@ -979,8 +979,8 @@ function CodeAccordion() {
                 },
               ].map(g => (
                 <div key={g.titulo}>
-                  <div className="text-[10px] uppercase tracking-[0.16em] text-[#5c5c6b] font-medium mb-1">{g.titulo}</div>
-                  <div className="text-[11px] text-[#757584] mb-2.5 leading-snug">{g.desc}</div>
+                  <div className="text-[10px] uppercase tracking-[0.16em] text-[#7d7d8e] font-medium mb-1">{g.titulo}</div>
+                  <div className="text-[11px] text-[#7d7d8e] mb-2.5 leading-snug">{g.desc}</div>
                   <div className="flex flex-col gap-1.5">
                     {g.items.map(([k, v]) => (
                       <div key={k} className="flex items-baseline gap-3 py-0.5">
@@ -1006,9 +1006,9 @@ function FilterTabs({ filter, setFilter, system, setSystem, counts }: { filter: 
   return (
     <div className="flex items-center gap-3 flex-wrap">
       <div className="inline-flex gap-1 p-1 rounded-lg bg-[#101016] border border-[#1f1f2b]">
-        {btn(filter === 'todas', () => setFilter('todas'), <>Todas <span className={filter === 'todas' ? 'opacity-70' : 'text-[#46464f]'}>({counts.todas})</span></>)}
-        {btn(filter === 'proceso', () => setFilter('proceso'), <>En proceso <span className={filter === 'proceso' ? 'opacity-70' : 'text-[#46464f]'}>({counts.proceso})</span></>)}
-        {btn(filter === 'completadas', () => setFilter('completadas'), <>Completadas <span className={filter === 'completadas' ? 'opacity-70' : 'text-[#46464f]'}>({counts.completadas})</span></>)}
+        {btn(filter === 'todas', () => setFilter('todas'), <>Todas <span className={filter === 'todas' ? 'opacity-70' : 'text-[#7d7d8e]'}>({counts.todas})</span></>)}
+        {btn(filter === 'proceso', () => setFilter('proceso'), <>En proceso <span className={filter === 'proceso' ? 'opacity-70' : 'text-[#7d7d8e]'}>({counts.proceso})</span></>)}
+        {btn(filter === 'completadas', () => setFilter('completadas'), <>Completadas <span className={filter === 'completadas' ? 'opacity-70' : 'text-[#7d7d8e]'}>({counts.completadas})</span></>)}
       </div>
       <div className="inline-flex gap-1 p-1 rounded-lg bg-[#101016] border border-[#1f1f2b]">
         {btn(system === 'todos', () => setSystem('todos'), 'Todos')}
@@ -1038,7 +1038,7 @@ function ChainCard({ chain, idx, selected, onSelect }: { chain: Chain; idx: numb
               ? <span className="inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#7a5abf]/15 text-[#c9b7ff] border border-[#7a5abf]/30">Completada</span>
               : <span className="inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#a3e635]/15 text-[#d9f99d] border border-[#a3e635]/25">En proceso</span>}
           </div>
-          <div className="mt-2 flex items-center gap-1 text-[11px] text-[#757584]">
+          <div className="mt-2 flex items-center gap-1 text-[11px] text-[#7d7d8e]">
             <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 1.5C7 3 8 3.7 9.5 4 9.2 5.4 8.2 6.3 6 6.6M6 1.5C5 3 4 3.7 2.5 4c.3 1.4 1.3 2.3 3.5 2.6M6 1.5v9" stroke="currentColor" strokeWidth="0.9" strokeLinecap="round" /></svg>
             <span className="text-[#8f8f9f]">{chain.system}</span>
           </div>
@@ -1074,14 +1074,14 @@ function TimelineNode({ stage, idx, isLast, onClick }: { stage: Stage; idx: numb
       </div>
       <div className="min-w-0">
         <div className="flex items-baseline gap-2">
-          <span className="font-mono tabular-nums text-[10.5px] text-[#46464f]">{num}</span>
-          <h4 className={`font-display font-semibold text-[13.5px] ${isPending ? 'text-[#46464f]' : 'text-[#ececf1]'}`}>{stageLabel}</h4>
+          <span className="font-mono tabular-nums text-[10.5px] text-[#7d7d8e]">{num}</span>
+          <h4 className={`font-display font-semibold text-[13.5px] ${isPending ? 'text-[#7d7d8e]' : 'text-[#ececf1]'}`}>{stageLabel}</h4>
           {isActive && <Pill tone="primary">en curso</Pill>}
-          {clickable && <span className="text-[9px] text-[#46464f] uppercase tracking-widest ml-1">click ver detalle</span>}
+          {clickable && <span className="text-[9px] text-[#7d7d8e] uppercase tracking-widest ml-1">click ver detalle</span>}
         </div>
         {stage.code ? <div className="mt-1"><LotCode code={stage.code} /></div> : <div className="mt-1 text-[11px] text-[#30303e]">sin registro</div>}
-        {stage.detail && <div className="mt-1 text-[11.5px] text-[#757584]">{stage.detail}</div>}
-        {stage.range && <div className="mt-1 font-mono tabular-nums text-[10.5px] text-[#46464f]">{stage.range}</div>}
+        {stage.detail && <div className="mt-1 text-[11.5px] text-[#7d7d8e]">{stage.detail}</div>}
+        {stage.range && <div className="mt-1 font-mono tabular-nums text-[10.5px] text-[#7d7d8e]">{stage.range}</div>}
       </div>
       <div className="pt-0.5">{stage.days != null && stage.state !== 'pending' && <DurationPill days={stage.days} />}</div>
     </motion.li>
@@ -1115,7 +1115,7 @@ function StageDetailModal({ stage, chain, onClose }: { stage: Stage | null; chai
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
             </button>
             <div className="flex items-baseline gap-2 sm:gap-3 flex-wrap pr-10 sm:pr-0 mt-1.5 sm:mt-0">
-              <span className="font-mono tabular-nums text-[10.5px] sm:text-[11px] text-[#46464f]">STAGE {num}</span>
+              <span className="font-mono tabular-nums text-[10.5px] sm:text-[11px] text-[#7d7d8e]">STAGE {num}</span>
               <h3 className="font-display font-bold text-[17px] sm:text-[20px] text-[#ececf1]">{stageLabel}</h3>
               <Pill tone={stage.state === 'done' ? 'gold' : stage.state === 'active' ? 'primary' : 'neutral'}>{stage.state === 'done' ? 'completada' : stage.state === 'active' ? 'en curso' : 'pendiente'}</Pill>
             </div>
@@ -1149,7 +1149,7 @@ function StageDetailModal({ stage, chain, onClose }: { stage: Stage | null; chai
                   {meta.fechaIngreso && <KV label="Fecha ingreso PM" value={meta.fechaIngreso} mono />}
                   {meta.fechaClonacion && <KV label={`Fecha clonación a C${chain.id.replace(/^C/i, '')}`} value={meta.fechaClonacion} mono />}
                 </div>
-                <div className="mt-3 text-[11px] text-[#5c5c6b] italic">
+                <div className="mt-3 text-[11px] text-[#7d7d8e] italic">
                   Nota: la planta madre <span className="font-mono text-[#b3b3c0]">{meta.cod}</span> sigue activa después de clonar a esta camada. Otras camadas también derivan de ella.
                 </div>
               </section>
@@ -1175,12 +1175,12 @@ function StageDetailModal({ stage, chain, onClose }: { stage: Stage | null; chai
                       <div className="text-[#d9f99d]">{meta.codigosFmt.first}</div>
                       {meta.codigosFmt.last && (
                         <>
-                          <div className="text-[#5c5c6b] my-0.5">↓ <span className="not-italic text-[#46464f]">+{Math.max(0, meta.codigosFmt.count - 2)} códigos intermedios</span></div>
+                          <div className="text-[#7d7d8e] my-0.5">↓ <span className="not-italic text-[#7d7d8e]">+{Math.max(0, meta.codigosFmt.count - 2)} códigos intermedios</span></div>
                           <div className="text-[#c4b5fd]">{meta.codigosFmt.last}</div>
                         </>
                       )}
                     </div>
-                    <div className="mt-2 text-[11px] text-[#5c5c6b]">
+                    <div className="mt-2 text-[11px] text-[#7d7d8e]">
                       {meta.tipo === 'vegetativa'
                         ? 'Cada planta vegetativa hereda el código jerárquico Año.PM.CL.Línea y suma su número de posición VG.'
                         : 'En floración se agrega el sufijo .SF{n} indicando la sala donde florece, manteniendo el VG{n} de la planta.'}
@@ -1216,7 +1216,7 @@ function StageDetailModal({ stage, chain, onClose }: { stage: Stage | null; chai
                   {meta.cosechaReal?.responsable && <KV label="Responsable" value={meta.cosechaReal.responsable} />}
                   {meta.cosechaReal?.cumple_bpa && <KV label="Cumple BPA" value={meta.cosechaReal.cumple_bpa} />}
                 </div>
-                <div className="mt-2 text-[11px] text-[#5c5c6b]">Cosecha no genera traza nueva: las plantas mantienen su código de floración.</div>
+                <div className="mt-2 text-[11px] text-[#7d7d8e]">Cosecha no genera traza nueva: las plantas mantienen su código de floración.</div>
               </section>
             )}
 
@@ -1266,10 +1266,10 @@ function StageDetailModal({ stage, chain, onClose }: { stage: Stage | null; chai
                       <div key={c.id} className="px-2 py-1.5 bg-[#15151d] rounded border border-[#1f1f2b]">
                         <div className="flex items-baseline gap-2">
                           <span className="font-mono text-[#d9f99d]">{c.numero_certificado || c.tipo}</span>
-                          <span className="font-mono text-[10px] text-[#5c5c6b]">{c.fecha}</span>
+                          <span className="font-mono text-[10px] text-[#7d7d8e]">{c.fecha}</span>
                           {c.resultado && <Pill tone={c.resultado === 'aprobado' ? 'ok' : 'warn'}>{c.resultado}</Pill>}
                         </div>
-                        {c.datos_extra?.lote_codigo && <div className="mt-0.5 font-mono text-[10px] text-[#5c5c6b]">lote: {c.datos_extra.lote_codigo}</div>}
+                        {c.datos_extra?.lote_codigo && <div className="mt-0.5 font-mono text-[10px] text-[#7d7d8e]">lote: {c.datos_extra.lote_codigo}</div>}
                       </div>
                     ))}
                   </div>
@@ -1299,7 +1299,7 @@ function StageDetailModal({ stage, chain, onClose }: { stage: Stage | null; chai
                 {meta.trazas?.length > 0 && (
                   <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-1.5 text-[11px] font-mono text-[#b3b3c0]">
                     {meta.trazas.slice(0, 12).map((t: any) => <div key={t.id} className="px-2 py-1 bg-[#15151d] rounded border border-[#1f1f2b]">{t.cod_comercial}</div>)}
-                    {meta.trazas.length > 12 && <div className="px-2 py-1 text-[#5c5c6b] italic">...y {meta.trazas.length - 12} más</div>}
+                    {meta.trazas.length > 12 && <div className="px-2 py-1 text-[#7d7d8e] italic">...y {meta.trazas.length - 12} más</div>}
                   </div>
                 )}
               </section>
@@ -1307,7 +1307,7 @@ function StageDetailModal({ stage, chain, onClose }: { stage: Stage | null; chai
           </div>
 
           <div className="px-6 py-3 border-t border-[#1f1f2b] bg-[#15151d] flex items-center justify-between">
-            <div className="text-[10.5px] text-[#5c5c6b] font-mono">Stage {num} · {stageLabel}</div>
+            <div className="text-[10.5px] text-[#7d7d8e] font-mono">Stage {num} · {stageLabel}</div>
             <button onClick={onClose} className="px-3 py-1.5 rounded-md border border-[#1f1f2b] text-[12px] text-[#d4d4dd] hover:bg-[#1c1c27]">Cerrar</button>
           </div>
         </motion.div>
@@ -1319,7 +1319,7 @@ function StageDetailModal({ stage, chain, onClose }: { stage: Stage | null; chai
 function KV({ label, value, mono }: { label: string; value: any; mono?: boolean }) {
   return (
     <div>
-      <div className="text-[9.5px] uppercase tracking-[0.14em] text-[#5c5c6b]">{label}</div>
+      <div className="text-[9.5px] uppercase tracking-[0.14em] text-[#7d7d8e]">{label}</div>
       <div className={`mt-0.5 text-[12.5px] text-[#ececf1] ${mono ? 'font-mono tabular-nums' : ''}`}>{value ?? '—'}</div>
     </div>
   )
@@ -1346,11 +1346,11 @@ function AmbientalesSummary({ ambs }: { ambs: any[] }) {
     <div className="mt-2 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
       {stats.map(s => (
         <div key={s.key} className="px-3 py-2 rounded-md bg-[#15151d] border border-[#1f1f2b]">
-          <div className="text-[9.5px] uppercase tracking-widest text-[#5c5c6b]">{s.label}</div>
+          <div className="text-[9.5px] uppercase tracking-widest text-[#7d7d8e]">{s.label}</div>
           <div className="mt-0.5 font-mono tabular-nums text-[11.5px]">
-            <span className="text-[#c4b5fd] font-semibold">{s.avg}</span><span className="text-[#5c5c6b]"> {s.unit}</span>
+            <span className="text-[#c4b5fd] font-semibold">{s.avg}</span><span className="text-[#7d7d8e]"> {s.unit}</span>
           </div>
-          <div className="text-[9.5px] font-mono tabular-nums text-[#5c5c6b]">{s.min} – {s.max}</div>
+          <div className="text-[9.5px] font-mono tabular-nums text-[#7d7d8e]">{s.min} – {s.max}</div>
         </div>
       ))}
     </div>
@@ -1372,15 +1372,15 @@ function DetailPanel({ chain, onStageClick }: { chain: Chain | undefined; onStag
               {chain.note && <Pill tone="warn">{chain.note}</Pill>}
             </div>
             <h2 className="font-display font-bold tracking-tight text-[22px] text-[#ececf1] leading-none">
-              Camada <span className="text-[#d9f99d]">{chain.id}</span><span className="text-[#46464f] font-medium ml-1.5">· {chain.system}</span>
+              Camada <span className="text-[#d9f99d]">{chain.id}</span><span className="text-[#7d7d8e] font-medium ml-1.5">· {chain.system}</span>
             </h2>
-            <div className="mt-1.5 text-[12px] text-[#757584]">
+            <div className="mt-1.5 text-[12px] text-[#7d7d8e]">
               <span className="text-[#b3b3c0]">{chain.genetic}</span>
               {chain.start && (
                 <> · <span className="font-mono tabular-nums text-[#b3b3c0]">{chain.start}</span>
                   {chain.end && chain.end !== chain.start
                     ? <> → <span className="font-mono tabular-nums text-[#b3b3c0]">{chain.end}</span></>
-                    : (chain.completed ? null : <span className="text-[#5c5c6b]"> → vigente</span>)}
+                    : (chain.completed ? null : <span className="text-[#7d7d8e]"> → vigente</span>)}
                 </>
               )}
               {' · '}<span>{totalDays}d totales</span>
@@ -1412,7 +1412,7 @@ function ComparisonPanel({ chains }: { chains: Chain[] }) {
           <Label tone="primary">Comparación</Label>
           <div className="mt-0.5 font-display font-semibold text-[13.5px] text-[#ececf1]">Rendimiento histórico</div>
         </div>
-        <span className="text-[10.5px] text-[#5c5c6b] font-mono">{completed.length} camadas</span>
+        <span className="text-[10.5px] text-[#7d7d8e] font-mono">{completed.length} camadas</span>
       </div>
       <div className="p-5 space-y-4">
         {completed.map((c, i) => {
@@ -1423,14 +1423,14 @@ function ComparisonPanel({ chains }: { chains: Chain[] }) {
             <div key={c.id}>
               <div className="flex items-baseline justify-between mb-1">
                 <span className="font-display font-semibold text-[12.5px] text-[#ececf1]">Camada {c.id}</span>
-                <span className="font-mono tabular-nums text-[11.5px] text-[#c4b5fd] font-medium">{(c.yieldKg || 0).toFixed(1)}<span className="text-[#5c5c6b] text-[10px] ml-0.5">kg</span></span>
+                <span className="font-mono tabular-nums text-[11.5px] text-[#c4b5fd] font-medium">{(c.yieldKg || 0).toFixed(1)}<span className="text-[#7d7d8e] text-[10px] ml-0.5">kg</span></span>
               </div>
               <div className="relative h-[6px] rounded-full bg-[#15151d] overflow-hidden">
                 <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ ...SPRING_PROGRESS, delay: 0.2 + i * 0.05 }}
                   className="h-full rounded-full" style={{ background: 'linear-gradient(90deg, #a3e635, #c4b5fd)' }} />
               </div>
               <div className="mt-1 flex items-center justify-between text-[10.5px]">
-                <span className="text-[#5c5c6b] font-mono">{c.system} · {c.start.slice(0, 7)}</span>
+                <span className="text-[#7d7d8e] font-mono">{c.system} · {c.start.slice(0, 7)}</span>
                 {delta !== null && (
                   <span className={`font-mono tabular-nums ${delta >= 0 ? 'text-[#bef264]' : 'text-[#e08282]'}`}>
                     {delta >= 0 ? '▲' : '▼'} {Math.abs(delta).toFixed(1)}%
@@ -1469,11 +1469,11 @@ function QuickStats({ chains }: { chains: Chain[] }) {
         {items.map((k, i) => (
           <div key={i} className="px-5 py-3 flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-[0.14em] text-[#46464f] font-medium">{k.label}</div>
-              <div className="mt-0.5 text-[11px] text-[#757584]">{k.hint}</div>
+              <div className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium">{k.label}</div>
+              <div className="mt-0.5 text-[11px] text-[#7d7d8e]">{k.hint}</div>
             </div>
             <div className="font-display font-bold tracking-tight text-[20px] text-[#ececf1] leading-none text-right shrink-0">
-              {k.valueText !== undefined ? <span>{k.valueText}</span> : <><CountUp to={k.value || 0} decimals={k.decimals || 0} />{k.suffix && <span className="text-[#5c5c6b] font-medium text-[13px]">{k.suffix}</span>}</>}
+              {k.valueText !== undefined ? <span>{k.valueText}</span> : <><CountUp to={k.value || 0} decimals={k.decimals || 0} />{k.suffix && <span className="text-[#7d7d8e] font-medium text-[13px]">{k.suffix}</span>}</>}
             </div>
           </div>
         ))}
@@ -1623,10 +1623,10 @@ export default function PaginaTrazabilidad() {
                   {filtered.length === 0 && (
                     <div className="col-span-full rounded-xl border border-dashed border-[#20202c] bg-[#15151d]/50 px-6 py-10 text-center">
                       <div className="mx-auto w-9 h-9 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-2">
-                        <svg width="16" height="16" viewBox="0 0 18 18" fill="none"><path d="M9 3v12M3 9h12" stroke="currentColor" strokeWidth="1.2" className="text-[#5c5c6b]" /></svg>
+                        <svg width="16" height="16" viewBox="0 0 18 18" fill="none"><path d="M9 3v12M3 9h12" stroke="currentColor" strokeWidth="1.2" className="text-[#7d7d8e]" /></svg>
                       </div>
                       <div className="font-display font-semibold text-[#d4d4dd] text-[13px]">Sin cadenas</div>
-                      <div className="mt-0.5 text-[11px] text-[#5c5c6b]">Ajustá los filtros.</div>
+                      <div className="mt-0.5 text-[11px] text-[#7d7d8e]">Ajustá los filtros.</div>
                     </div>
                   )}
                 </div>
@@ -1639,7 +1639,7 @@ export default function PaginaTrazabilidad() {
             </div>
           )}
 
-          <footer className="pt-6 mt-2 border-t border-[#1f1f2b] text-[11px] text-[#5c5c6b] flex items-center justify-between flex-wrap gap-2">
+          <footer className="pt-6 mt-2 border-t border-[#1f1f2b] text-[11px] text-[#7d7d8e] flex items-center justify-between flex-wrap gap-2">
             <div>Trazabilidad sale-to-seed · firma electrónica + audit trail · <span className="font-mono">CannTrace · FIS S.A.S.</span></div>
             <div className="font-mono tabular-nums">{new Date().toLocaleDateString('es-AR')} · {new Date().toLocaleTimeString('es-AR')}</div>
           </footer>
@@ -1788,7 +1788,7 @@ function NuevaCadenaDrawer({ open, onOpenChange, onCreated }: { open: boolean; o
           <div className="flex items-center justify-between p-5 border-b border-[#1f1f2b] sticky top-0 bg-[#101016] z-10">
             <div>
               <h3 className="font-display font-bold text-[16px] text-[#ececf1]">Nueva cadena</h3>
-              <p className="text-[11.5px] text-[#5c5c6b] mt-0.5">Crear lote raíz (planta madre) e iniciar la trazabilidad.</p>
+              <p className="text-[11.5px] text-[#7d7d8e] mt-0.5">Crear lote raíz (planta madre) e iniciar la trazabilidad.</p>
             </div>
             <button onClick={() => onOpenChange(false)} className="p-2 rounded-md hover:bg-[#1c1c27] text-[#8f8f9f]">
               <X className="w-4 h-4" />
@@ -1803,7 +1803,7 @@ function NuevaCadenaDrawer({ open, onOpenChange, onCreated }: { open: boolean; o
                 {...register('codigo_lote')}
                 placeholder="Ej: 26.PM10"
                 autoComplete="off"
-                className="w-full px-3 py-2 bg-[#0a0a0f] border border-[#1f1f2b] rounded-md text-[13px] font-mono tabular-nums text-[#ececf1] placeholder:text-[#46464f] focus:outline-none focus:border-[#a3e635]/60"
+                className="w-full px-3 py-2 bg-[#0a0a0f] border border-[#1f1f2b] rounded-md text-[13px] font-mono tabular-nums text-[#ececf1] placeholder:text-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60"
               />
               {sugerenciasLote.length > 0 && (
                 <div className="mt-1.5 rounded-md border border-[#1f1f2b] bg-[#0a0a0f] divide-y divide-[#1f1f2b]">
@@ -1880,7 +1880,7 @@ function NuevaCadenaDrawer({ open, onOpenChange, onCreated }: { open: boolean; o
                 {...register('notas')}
                 rows={3}
                 placeholder="Origen genético, observaciones iniciales…"
-                className="w-full px-3 py-2 bg-[#0a0a0f] border border-[#1f1f2b] rounded-md text-[13px] text-[#d4d4dd] placeholder:text-[#46464f] focus:outline-none focus:border-[#a3e635]/60 resize-none"
+                className="w-full px-3 py-2 bg-[#0a0a0f] border border-[#1f1f2b] rounded-md text-[13px] text-[#d4d4dd] placeholder:text-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 resize-none"
               />
               {errors.notas && <p className="mt-1 text-[11px] text-[#e08282]">{errors.notas.message}</p>}
             </div>

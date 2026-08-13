@@ -17,8 +17,8 @@ import { btnPrimario, btnSutil } from '../lib/ui'
 
 // text-[16px] en celular: iOS Safari hace zoom sobre cualquier campo con letra
 // menor y deja el formulario descuadrado. En desktop vuelve al tamaño real.
-const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
-const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1'
 
 const COLOR_GENOTIPO: Record<string, { text: string; bg: string; border: string }> = {
   Indica:    { text: '#c4b5fd', bg: 'rgba(139,92,246,0.12)', border: '#463a66' },
@@ -59,13 +59,13 @@ export default function PaginaGeneticas() {
         <div className="flex items-center flex-wrap gap-2 sm:gap-x-4 px-3 sm:px-6 py-3">
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Genéticas</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">{geneticas.length} en el banco</div>
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">{geneticas.length} en el banco</div>
           </div>
           <div className="flex-1" />
           <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5c5c6b]" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#7d7d8e]" />
             <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar nombre / banco"
-              className="pl-8 pr-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 w-[170px] min-h-[44px] sm:min-h-0" />
+              className="pl-8 pr-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 w-[170px] min-h-[44px] sm:min-h-0" />
           </div>
           <button onClick={() => { setEditar(null); setModalForm(true) }} className={btnPrimario}>
             <Plus className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Genética</span>
@@ -80,9 +80,9 @@ export default function PaginaGeneticas() {
           </div>
         ) : filtradas.length === 0 ? (
           <div className="py-16 text-center">
-            <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><Dna className="w-5 h-5 text-[#5c5c6b]" /></div>
+            <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><Dna className="w-5 h-5 text-[#7d7d8e]" /></div>
             <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">{geneticas.length === 0 ? 'Sin genéticas cargadas' : 'Sin resultados'}</div>
-            <div className="mt-1 text-[11.5px] text-[#5c5c6b]">{geneticas.length === 0 ? 'Creá la primera ficha de genética.' : 'Probá con otra búsqueda.'}</div>
+            <div className="mt-1 text-[11.5px] text-[#7d7d8e]">{geneticas.length === 0 ? 'Creá la primera ficha de genética.' : 'Probá con otra búsqueda.'}</div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-fr">
@@ -98,7 +98,7 @@ export default function PaginaGeneticas() {
                           className="font-display font-semibold text-[14px] text-[#ececf1] truncate hover:text-[#bef264] transition-colors text-left block max-w-full" title="Ver / editar ficha">
                           {g.nombre}
                         </button>
-                        <p className="text-[11px] text-[#757584] truncate mt-0.5">
+                        <p className="text-[11px] text-[#7d7d8e] truncate mt-0.5">
                           {g.banco ?? 'Sin banco'}{g.tipo ? ` · ${g.tipo}` : ''}
                         </p>
                       </div>
@@ -116,7 +116,7 @@ export default function PaginaGeneticas() {
 
                     {g.usos_medicinales && (
                       <div className="mt-2.5 pt-2.5 border-t border-[#1f1f2b]">
-                        <span className="text-[9.5px] uppercase tracking-[0.14em] text-[#5c5c6b]">Usos</span>
+                        <span className="text-[9.5px] uppercase tracking-[0.14em] text-[#7d7d8e]">Usos</span>
                         <p className="text-[11px] text-[#a6a6b5] mt-0.5 line-clamp-2">{g.usos_medicinales}</p>
                       </div>
                     )}
@@ -124,7 +124,7 @@ export default function PaginaGeneticas() {
                     <div className="mt-auto pt-3 flex gap-1.5">
                       <button onClick={() => setVerFicha(g)} className={btnSutil}><Eye className="w-3.5 h-3.5" /> Ver ficha</button>
                       <button onClick={() => { setEditar(g); setModalForm(true) }} className={btnSutil}><Pencil className="w-3.5 h-3.5" /> Editar ficha</button>
-                      <button onClick={() => borrar(g)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#46464f] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors ml-auto" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => borrar(g)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#7d7d8e] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors ml-auto" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </div>
                 </div>
@@ -147,7 +147,7 @@ function Modal({ titulo, onCerrar, children }: { titulo: string; onCerrar: () =>
       <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl bg-[#101016] border border-[#2a2a3a] shadow-2xl">
         <div className="sticky top-0 bg-[#101016] flex items-center justify-between px-5 py-3.5 border-b border-[#1f1f2b]">
           <h2 className="font-display font-semibold text-[14px] text-[#ececf1]">{titulo}</h2>
-          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1]" aria-label="Cerrar"><X className="w-4 h-4" /></button>
+          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#7d7d8e] hover:text-[#ececf1]" aria-label="Cerrar"><X className="w-4 h-4" /></button>
         </div>
         <div className="p-5">{children}</div>
       </div>
@@ -286,7 +286,7 @@ function CampoFicha({ label, valor }: { label: string; valor: React.ReactNode })
   if (valor == null || valor === '') return null
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] mb-0.5">{label}</div>
+      <div className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] mb-0.5">{label}</div>
       <div className="text-[12.5px] text-[#ececf1] break-words">{valor}</div>
     </div>
   )
@@ -301,7 +301,7 @@ function ModalVerFicha({ genetica, onCerrar }: { genetica: Genetica; onCerrar: (
     <Modal titulo={`Ficha: ${g.nombre}`} onCerrar={onCerrar}>
       <div className="space-y-4">
         {g.foto_url && <FotoPrivada valor={g.foto_url} className="w-full max-h-52 rounded-lg object-cover border border-[#2a2a3a]" />}
-        <div className="flex items-center gap-2 flex-wrap text-[11.5px] text-[#757584]">
+        <div className="flex items-center gap-2 flex-wrap text-[11.5px] text-[#7d7d8e]">
           {cg && <span className="px-2 py-0.5 rounded-full border text-[11px] font-medium" style={{ color: cg.text, background: cg.bg, borderColor: cg.border }}>{g.genotipo}</span>}
           {g.tipo && <span>{g.tipo}</span>}
           {g.banco && <span>· {g.banco}</span>}

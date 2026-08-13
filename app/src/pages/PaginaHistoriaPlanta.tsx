@@ -29,7 +29,7 @@ function Chip({ label, valor }: { label: string; valor: React.ReactNode }) {
   if (valor == null || valor === '' ) return null
   return (
     <div className="rounded-lg border border-[#1f1f2b] bg-[#0d0d13] px-3 py-2">
-      <div className="text-[9.5px] uppercase tracking-[0.14em] text-[#5c5c6b]">{label}</div>
+      <div className="text-[9.5px] uppercase tracking-[0.14em] text-[#7d7d8e]">{label}</div>
       <div className="text-[12.5px] text-[#d4d4dd] mt-0.5">{valor}</div>
     </div>
   )
@@ -75,9 +75,9 @@ export default function PaginaHistoriaPlanta() {
   if (noExiste || !planta) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-[#0a0a0f] text-center px-6">
-        <div className="w-12 h-12 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><Leaf className="w-6 h-6 text-[#5c5c6b]" /></div>
+        <div className="w-12 h-12 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><Leaf className="w-6 h-6 text-[#7d7d8e]" /></div>
         <div className="font-display font-semibold text-[#d4d4dd]">Código no encontrado</div>
-        <div className="mt-1 text-[12px] text-[#5c5c6b]">No existe ninguna planta con el código <span className="font-mono text-[#a6a6b5]">{codigo}</span>.</div>
+        <div className="mt-1 text-[12px] text-[#7d7d8e]">No existe ninguna planta con el código <span className="font-mono text-[#a6a6b5]">{codigo}</span>.</div>
         <Link to="/plantas" className="mt-4 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#2a2a3a] bg-[#15151d] text-[12px] text-[#a6a6b5] hover:text-[#ececf1]"><ArrowLeft className="w-3.5 h-3.5" /> Volver a Plantas</Link>
       </div>
     )
@@ -88,10 +88,10 @@ export default function PaginaHistoriaPlanta() {
     <div className="flex-1 overflow-y-auto bg-[#0a0a0f] text-[#d4d4dd] font-sans">
       <div className="sticky top-0 z-40 bg-[#0a0a0f]/95 backdrop-blur-[2px] border-b border-[#1f1f2b]">
         <div className="flex items-center gap-3 px-3 sm:px-6 py-3">
-          <Link to="/plantas" className="p-1.5 rounded-lg text-[#5c5c6b] hover:text-[#ececf1] hover:bg-[#15151d]"><ArrowLeft className="w-4 h-4" /></Link>
+          <Link to="/plantas" className="p-1.5 rounded-lg text-[#7d7d8e] hover:text-[#ececf1] hover:bg-[#15151d]"><ArrowLeft className="w-4 h-4" /></Link>
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1] truncate">Historia clínica</h1>
-            <div className="mt-0.5 text-[10.5px] text-[#5c5c6b] font-mono">{planta.codigo}</div>
+            <div className="mt-0.5 text-[10.5px] text-[#7d7d8e] font-mono">{planta.codigo}</div>
           </div>
         </div>
       </div>
@@ -118,7 +118,7 @@ export default function PaginaHistoriaPlanta() {
           </div>
           <div className="flex flex-col items-center gap-1 mx-auto sm:mx-0">
             <QR value={urlQR} size={120} />
-            <span className="text-[9.5px] text-[#5c5c6b]">Escaneá para esta historia</span>
+            <span className="text-[9.5px] text-[#7d7d8e]">Escaneá para esta historia</span>
           </div>
         </div>
 
@@ -129,12 +129,12 @@ export default function PaginaHistoriaPlanta() {
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <div className="text-[13px] text-[#ececf1] truncate">{paciente.nombre_completo}</div>
-                <div className="text-[11px] text-[#757584]">{paciente.reprocann_nro ? `REPROCANN ${paciente.reprocann_nro}` : 'Sin N° REPROCANN'} · {paciente.reprocann_estado}</div>
+                <div className="text-[11px] text-[#7d7d8e]">{paciente.reprocann_nro ? `REPROCANN ${paciente.reprocann_nro}` : 'Sin N° REPROCANN'} · {paciente.reprocann_estado}</div>
               </div>
               <Link to="/registro" className="text-[11px] text-[#bef264] hover:underline flex-shrink-0">Ver registro</Link>
             </div>
           ) : (
-            <p className="text-[11.5px] text-[#5c5c6b]">Esta planta todavía no está asignada a ningún paciente.</p>
+            <p className="text-[11.5px] text-[#7d7d8e]">Esta planta todavía no está asignada a ningún paciente.</p>
           )}
         </div>
 
@@ -156,7 +156,7 @@ export default function PaginaHistoriaPlanta() {
         <div className="mt-3 rounded-xl bg-[#101016] border border-[#1f1f2b] p-4">
           <h3 className="font-display font-semibold text-[12.5px] text-[#ececf1] mb-3">Línea de tiempo ({items.length})</h3>
           {items.length === 0 ? (
-            <p className="text-[11.5px] text-[#5c5c6b] py-4 text-center">Sin registros todavía.</p>
+            <p className="text-[11.5px] text-[#7d7d8e] py-4 text-center">Sin registros todavía.</p>
           ) : (
             <ol className="relative border-l border-[#2a2a3a] ml-2">
               {items.map(it => {
@@ -168,7 +168,7 @@ export default function PaginaHistoriaPlanta() {
                     </span>
                     <div className="flex items-baseline gap-2">
                       <span className="text-[12.5px] font-semibold text-[#ececf1]">{it.esCosecha ? 'Cosecha' : it.tipo}</span>
-                      <span className="text-[10.5px] text-[#5c5c6b] tabular-nums font-mono">{fmt(it.fecha)}</span>
+                      <span className="text-[10.5px] text-[#7d7d8e] tabular-nums font-mono">{fmt(it.fecha)}</span>
                     </div>
                     {it.detalle && <p className="text-[11.5px] text-[#a6a6b5] mt-0.5 leading-snug">{it.detalle}</p>}
                     {it.foto_url && <FotoPrivada valor={it.foto_url} onClick={() => setVisor(it.foto_url)} className="mt-2 rounded-lg border border-[#1f1f2b] max-h-44 object-cover cursor-zoom-in" />}

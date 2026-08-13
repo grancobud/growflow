@@ -95,7 +95,7 @@ export default function PaginaEtiquetasQR() {
           <QrCode className="w-4 h-4 text-[#a3e635] shrink-0" strokeWidth={1.8} />
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Etiquetas QR</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">{lotes.length} lotes con código QR público para escanear</div>
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">{lotes.length} lotes con código QR público para escanear</div>
           </div>
           <div className="flex-1" />
         </div>
@@ -106,10 +106,10 @@ export default function PaginaEtiquetasQR() {
         {/* Filtros */}
         <div className="flex flex-wrap gap-3 bg-[#101016] border border-[#1f1f2b] rounded-xl p-3">
           <div className="flex-1 min-w-[200px] relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5c5c6b]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7d7d8e]" />
             <input type="text" value={busqueda} onChange={e => setBusqueda(e.target.value)}
               placeholder="Buscar por código, producto o camada..."
-              className="w-full pl-10 pr-4 py-2.5 bg-[#0a0a0f] border border-[#1f1f2b] rounded-lg text-[13px] text-[#d4d4dd] placeholder-[#5c5c6b] focus:outline-none focus:border-[#404d20] transition-colors" />
+              className="w-full pl-10 pr-4 py-2.5 bg-[#0a0a0f] border border-[#1f1f2b] rounded-lg text-[13px] text-[#d4d4dd] placeholder-[#7d7d8e] focus:outline-none focus:border-[#404d20] transition-colors" />
           </div>
           <select value={filtroTipo} onChange={e => setFiltroTipo(e.target.value)}
             className="px-3 py-2 bg-[#0a0a0f] border border-[#1f1f2b] rounded-lg text-[13px] text-[#d4d4dd] focus:outline-none focus:border-[#404d20] transition-colors">
@@ -132,7 +132,7 @@ export default function PaginaEtiquetasQR() {
                 <div key={l.id} className="bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] rounded-xl p-4 space-y-3 transition-colors">
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0 flex-1">
-                      <p className="text-[10px] uppercase text-[#5c5c6b] font-semibold tracking-wide">{l.productos?.tipo_producto?.replace(/_/g, ' ')}</p>
+                      <p className="text-[10px] uppercase text-[#7d7d8e] font-semibold tracking-wide">{l.productos?.tipo_producto?.replace(/_/g, ' ')}</p>
                       <p className="text-[13px] font-mono font-bold text-[#ececf1] truncate tabular-nums">{l.codigo_lote}</p>
                       {l.datos_extra?.camada && <p className="text-[10px] text-[#8f8f9f] mt-0.5">Camada {l.datos_extra.camada}</p>}
                     </div>
@@ -168,7 +168,7 @@ export default function PaginaEtiquetasQR() {
         )}
 
         {filtrados.length === 0 && !cargando && (
-          <div className="text-center py-16 text-[#5c5c6b]">
+          <div className="text-center py-16 text-[#7d7d8e]">
             <Filter className="w-10 h-10 mx-auto mb-2 opacity-40" />
             <p className="text-[13px]">No hay lotes con esos filtros</p>
           </div>
@@ -188,11 +188,11 @@ export default function PaginaEtiquetasQR() {
           <div className="bg-[#101016] border border-[#1f1f2b] rounded-2xl shadow-2xl max-w-md w-full p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-start justify-between mb-4">
               <div>
-                <p className="text-[10px] uppercase font-semibold text-[#5c5c6b] tracking-wide">Código QR público</p>
+                <p className="text-[10px] uppercase font-semibold text-[#7d7d8e] tracking-wide">Código QR público</p>
                 <h3 className="text-[16px] font-bold text-[#ececf1] font-mono tabular-nums mt-0.5">{verQR.codigo_lote}</h3>
                 <p className="text-[11px] text-[#8f8f9f] mt-1">{verQR.productos?.nombre} · {verQR.datos_extra?.camada}</p>
               </div>
-              <button onClick={() => setVerQR(null)} className="text-[#5c5c6b] hover:text-[#d4d4dd] transition-colors">
+              <button onClick={() => setVerQR(null)} className="text-[#7d7d8e] hover:text-[#d4d4dd] transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -200,7 +200,7 @@ export default function PaginaEtiquetasQR() {
             <div className="flex justify-center bg-white p-5 rounded-xl">
               <QRCode value={urlDe(verQR.codigo_lote)} size={260} />
             </div>
-            <p className="text-[11px] text-center text-[#5c5c6b] mt-3 font-mono break-all">{urlDe(verQR.codigo_lote)}</p>
+            <p className="text-[11px] text-center text-[#7d7d8e] mt-3 font-mono break-all">{urlDe(verQR.codigo_lote)}</p>
             <div className="flex gap-2 mt-4">
               <button onClick={() => copiar(urlDe(verQR.codigo_lote))}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[#0a0a0f] border border-[#1f1f2b] hover:border-[#2a2a3a] text-[#8f8f9f] hover:text-[#d4d4dd] rounded-xl text-[13px] font-medium transition-colors">

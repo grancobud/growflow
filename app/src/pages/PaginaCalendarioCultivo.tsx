@@ -19,8 +19,8 @@ import { btnPrimario, btnSutil } from '../lib/ui'
 
 // text-[16px] en celular: iOS Safari hace zoom sobre cualquier campo con letra
 // menor y deja el formulario descuadrado. En desktop vuelve al tamaño real.
-const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
-const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1'
 
 const hoyISO = () => new Date().toISOString().slice(0, 10)
 
@@ -33,12 +33,12 @@ const CAL_CSS = `
 .gf-cal .fc { color:#cfcfda; font-family:inherit; }
 .gf-cal .fc .fc-toolbar.fc-header-toolbar { margin-bottom:12px; }
 .gf-cal .fc .fc-toolbar-title { font-size:15px; font-weight:500; color:#ececf1; text-transform:capitalize; letter-spacing:0.2px; }
-.gf-cal .fc .fc-col-header-cell-cushion { color:#6b6b7a; font-size:10.5px; font-weight:500; text-transform:uppercase; letter-spacing:0.7px; text-decoration:none; padding:6px 4px; }
+.gf-cal .fc .fc-col-header-cell-cushion { color:#7d7d8e; font-size:10.5px; font-weight:500; text-transform:uppercase; letter-spacing:0.7px; text-decoration:none; padding:6px 4px; }
 .gf-cal .fc .fc-daygrid-day-number { color:#c4c4d0; font-size:11.5px; text-decoration:none; padding:5px 7px; }
 .gf-cal .fc .fc-day-today .fc-daygrid-day-number { color:#c9b8e8; font-weight:600; }
 /* Dias de otros meses: atenuados y diferenciados para que no se mezclen con el mes actual */
 .gf-cal .fc .fc-day-other { background:#08080c; }
-.gf-cal .fc .fc-day-other .fc-daygrid-day-number { color:#3a3a46; }
+.gf-cal .fc .fc-day-other .fc-daygrid-day-number { color:#7d7d8e; }
 .gf-cal .fc .fc-day-other .fc-daygrid-day-events { opacity:.4; }
 .gf-cal .fc .fc-button { background:transparent; border:1px solid #26262f; color:#a6a6b5; font-size:12px; text-transform:none; box-shadow:none; padding:4px 10px; border-radius:8px; }
 .gf-cal .fc .fc-button:hover { background:#15151d; border-color:#33333f; color:#ececf1; }
@@ -131,7 +131,7 @@ export default function PaginaCalendarioCultivo() {
           <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1] flex items-center gap-2">
             <CalendarDays className="w-4 h-4 text-[#bef264]" /> Calendario
           </h1>
-          <span className="text-[10.5px] sm:text-[11px] text-[#5c5c6b]">{eventos.length} eventos este mes</span>
+          <span className="text-[10.5px] sm:text-[11px] text-[#7d7d8e]">{eventos.length} eventos este mes</span>
           <div className="flex-1" />
           <button onClick={() => { setEditRec(null); setFechaPre(hoyISO()); setModal(true) }} className={btnPrimario}>
             <Plus className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Recordatorio</span>
@@ -143,10 +143,10 @@ export default function PaginaCalendarioCultivo() {
             const off = ocultos.has(t)
             return (
               <button key={t} onClick={() => toggleTipo(t)}
-                className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10.5px] border transition-colors ${off ? 'border-[#1f1f2b] bg-transparent text-[#5c5c6b]' : 'border-[#2a2a3a] bg-[#101016] text-[#a6a6b5] hover:text-[#ececf1]'}`}
+                className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10.5px] border transition-colors ${off ? 'border-[#1f1f2b] bg-transparent text-[#7d7d8e]' : 'border-[#2a2a3a] bg-[#101016] text-[#a6a6b5] hover:text-[#ececf1]'}`}
                 title={off ? 'Mostrar' : 'Ocultar'}>
                 <span className="w-2.5 h-2.5 rounded-[3px]" style={{ background: off ? '#2a2a3a' : COLOR_CAL[t] }} />
-                {t} {conteo(t) > 0 && <span className="text-[#5c5c6b]">({conteo(t)})</span>}
+                {t} {conteo(t) > 0 && <span className="text-[#7d7d8e]">({conteo(t)})</span>}
               </button>
             )
           })}
@@ -169,7 +169,7 @@ export default function PaginaCalendarioCultivo() {
           dayMaxEvents={3}
           fixedWeekCount={false}
         />
-        <p className="mt-3 text-[10.5px] text-[#5c5c6b]">Tocá un día para agregar un recordatorio. Los riegos, podas, cosechas y mantenimientos aparecen solos desde lo que cargás en la app.</p>
+        <p className="mt-3 text-[10.5px] text-[#7d7d8e]">Tocá un día para agregar un recordatorio. Los riegos, podas, cosechas y mantenimientos aparecen solos desde lo que cargás en la app.</p>
       </div>
 
       {modal && <ModalRecordatorio rec={editRec} fechaPre={fechaPre} onCerrar={() => setModal(false)} onGuardado={() => { setModal(false); recargar() }} />}
@@ -181,17 +181,17 @@ export default function PaginaCalendarioCultivo() {
               <span className="w-3 h-3 rounded-[4px] flex-shrink-0" style={{ background: detalle.color }} />
               <div className="min-w-0 flex-1">
                 <div className="font-display font-semibold text-[14px] text-[#ececf1] truncate">{detalle.titulo}</div>
-                <div className="text-[11px] text-[#5c5c6b] capitalize">{detalle.tipo} · {new Date(detalle.fecha + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: '2-digit', month: 'long' })}</div>
+                <div className="text-[11px] text-[#7d7d8e] capitalize">{detalle.tipo} · {new Date(detalle.fecha + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: '2-digit', month: 'long' })}</div>
               </div>
-              <button onClick={() => setDetalle(null)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
+              <button onClick={() => setDetalle(null)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#7d7d8e] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
             </div>
             <div className="px-4 py-3 space-y-1.5">
               {detalle.detalle && <p className="text-[12.5px] text-[#d4d4dd] leading-relaxed">{detalle.detalle}</p>}
-              <p className="text-[10.5px] text-[#5c5c6b]">Origen: {({ evento: 'Evento de planta', riego: 'Riego / escorrentía', aplicacion: 'Aplicación', cosecha: 'Cosecha', mantenimiento: 'Mantenimiento (Stock)', recordatorio: 'Recordatorio propio', planta: 'Ficha de planta (germinación / cosecha)' })[detalle.fuente]}</p>
+              <p className="text-[10.5px] text-[#7d7d8e]">Origen: {({ evento: 'Evento de planta', riego: 'Riego / escorrentía', aplicacion: 'Aplicación', cosecha: 'Cosecha', mantenimiento: 'Mantenimiento (Stock)', recordatorio: 'Recordatorio propio', planta: 'Ficha de planta (germinación / cosecha)' })[detalle.fuente]}</p>
             </div>
             <div className="px-4 py-3 border-t border-[#1f1f2b] flex justify-between gap-2">
               {detalle.fuente === 'planta'
-                ? <span className="text-[10.5px] text-[#5c5c6b] self-center">Se edita desde la ficha de la planta</span>
+                ? <span className="text-[10.5px] text-[#7d7d8e] self-center">Se edita desde la ficha de la planta</span>
                 : <button onClick={borrarDetalle} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#5a2a26] bg-[#ff8a7a]/10 hover:bg-[#ff8a7a]/20 transition-colors text-[11px] text-[#ff8a7a]"><Trash2 className="w-3.5 h-3.5" /> Borrar</button>}
               {detalle.fuente === 'recordatorio'
                 ? <button onClick={editarDetalle} className={btnPrimario}><Pencil className="w-3.5 h-3.5" /> Editar</button>
@@ -237,7 +237,7 @@ function ModalRecordatorio({ rec, fechaPre, onCerrar, onGuardado }: { rec: Recor
       <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 bg-[#0d0d12] border-b border-[#1f1f2b] px-4 py-3 flex items-center justify-between">
           <h2 className="font-display font-bold text-[15px] text-[#ececf1]">{rec ? 'Editar recordatorio' : 'Nuevo recordatorio'}</h2>
-          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
+          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#7d7d8e] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4 space-y-3">
           <div><label className={labelCls}>Título *</label><input className={inputCls} value={f.titulo ?? ''} onChange={e => set('titulo', e.target.value)} placeholder="Ej: Regar carpa, Cambiar solución, Revisar pH" /></div>

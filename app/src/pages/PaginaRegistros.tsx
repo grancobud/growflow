@@ -453,7 +453,7 @@ export default function PaginaRegistros() {
           <ClipboardList className="w-4 h-4 text-[#a3e635] flex-shrink-0" strokeWidth={1.8} />
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Registros CUMCS</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">{tipos.length} planillas · 10 grupos · <span className="hidden sm:inline">conservacion 7 años</span></div>
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">{tipos.length} planillas · 10 grupos · <span className="hidden sm:inline">conservacion 7 años</span></div>
           </div>
           <div className="flex-1" />
         </div>
@@ -463,13 +463,13 @@ export default function PaginaRegistros() {
         {/* Barra de busqueda y filtro */}
         <div className="flex flex-wrap gap-2 sm:gap-3">
           <div className="flex-1 min-w-[180px] relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5c5c6b]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7d7d8e]" />
             <input
               type="text"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               placeholder="Buscar codigo o nombre..."
-              className="w-full pl-9 pr-4 py-2 bg-[#101016] border border-[#1f1f2b] rounded-lg text-[13px] text-[#d4d4dd] placeholder-[#5c5c6b] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/30 focus:border-[#404d20] transition-colors"
+              className="w-full pl-9 pr-4 py-2 bg-[#101016] border border-[#1f1f2b] rounded-lg text-[13px] text-[#d4d4dd] placeholder-[#7d7d8e] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/30 focus:border-[#404d20] transition-colors"
             />
           </div>
 
@@ -489,7 +489,7 @@ export default function PaginaRegistros() {
 
         {/* Breadcrumb cuando hay area o grupo seleccionado */}
         {(areaFiltro !== 'todas' || grupoFiltro !== 'todos') && !busqueda && (
-          <div className="flex items-center gap-2 text-xs text-[#5c5c6b]">
+          <div className="flex items-center gap-2 text-xs text-[#7d7d8e]">
             <button onClick={() => { setAreaFiltro('todas'); setGrupoFiltro('todos') }} className="hover:text-[#a3e635] transition-colors font-medium">
               Todas las areas
             </button>
@@ -523,11 +523,11 @@ export default function PaginaRegistros() {
                 >
                   <div className="flex items-center gap-3 mb-2">
                     {Icon && <Icon className="w-5 h-5 text-[#a3e635] transition-transform group-hover:scale-110" strokeWidth={1.5} />}
-                    <span className="text-[10px] font-semibold text-[#5c5c6b] tracking-widest uppercase">{area.grupos.length} grupos</span>
+                    <span className="text-[10px] font-semibold text-[#7d7d8e] tracking-widest uppercase">{area.grupos.length} grupos</span>
                   </div>
                   <p className="text-sm font-semibold text-[#ececf1]">{area.nombre}</p>
                   <p className="text-[11px] text-[#8f8f9f] mt-1 leading-snug">{area.descripcion}</p>
-                  <p className="text-[10px] text-[#5c5c6b] mt-2">{count} registros</p>
+                  <p className="text-[10px] text-[#7d7d8e] mt-2">{count} registros</p>
                 </button>
               )
             })}
@@ -556,7 +556,7 @@ export default function PaginaRegistros() {
                     </div>
                     <p className="text-xs font-semibold text-[#ececf1] tracking-wide">{g}</p>
                     <p className="text-[10px] text-[#8f8f9f] mt-1 leading-tight line-clamp-2">{nombre}</p>
-                    <p className="text-[10px] text-[#5c5c6b] mt-1">{count} reg · {obligatorios} oblig</p>
+                    <p className="text-[10px] text-[#7d7d8e] mt-1">{count} reg · {obligatorios} oblig</p>
                   </button>
                 )
               })}
@@ -567,7 +567,7 @@ export default function PaginaRegistros() {
         {cargando ? (
           <div className="text-center py-12">
             <div className="w-8 h-8 border-2 border-[#1f1f2b] border-t-[#a3e635] rounded-full animate-spin mx-auto" />
-            <p className="mt-3 text-sm text-[#5c5c6b]">Cargando registros CUMCS...</p>
+            <p className="mt-3 text-sm text-[#7d7d8e]">Cargando registros CUMCS...</p>
           </div>
         ) : !mostrarLista ? null : (
           /* Lista por grupo + subcategorias */
@@ -593,13 +593,13 @@ export default function PaginaRegistros() {
               >
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-[#ececf1] truncate">{reg.nombre}</p>
-                  <p className="text-[11px] text-[#5c5c6b] hidden sm:block">{reg.conservacion}</p>
+                  <p className="text-[11px] text-[#7d7d8e] hidden sm:block">{reg.conservacion}</p>
                 </div>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
                   {reg.obligatorio && <span className="text-[9px] font-medium border border-[#7a2820]/50 text-[#ff8a7a] px-1.5 py-0.5 rounded hidden sm:inline">OBL</span>}
                   {reg.requiere_firma && <span className="text-[9px] font-medium border border-[#2a2a3a] text-[#bef264] px-1.5 py-0.5 rounded hidden sm:inline">FIRMA</span>}
                 </div>
-                <ChevronRight className="w-4 h-4 text-[#5c5c6b] flex-shrink-0" />
+                <ChevronRight className="w-4 h-4 text-[#7d7d8e] flex-shrink-0" />
               </div>
             )
 
@@ -608,7 +608,7 @@ export default function PaginaRegistros() {
                 <div className="flex items-center gap-2 mb-2">
                   {Icon && <Icon className="w-4 h-4 text-[#a3e635]" strokeWidth={1.75} />}
                   <h3 className="text-sm font-semibold text-[#ececf1]">{registros[0]?.grupo_nombre}</h3>
-                  <span className="text-xs text-[#5c5c6b]">({registros.length})</span>
+                  <span className="text-xs text-[#7d7d8e]">({registros.length})</span>
                 </div>
 
                 {busqueda || porSub.length === 0 ? (
@@ -619,7 +619,7 @@ export default function PaginaRegistros() {
                   <div className="space-y-3">
                     {porSub.map(sub => (
                       <div key={sub.nombre}>
-                        <p className="text-[10px] font-semibold text-[#5c5c6b] uppercase tracking-[0.14em] mb-1.5 pl-1">{sub.nombre}</p>
+                        <p className="text-[10px] font-semibold text-[#7d7d8e] uppercase tracking-[0.14em] mb-1.5 pl-1">{sub.nombre}</p>
                         <div className="bg-[#101016] rounded-xl border border-[#1f1f2b] overflow-hidden">
                           {sub.regs.map((reg, i) => renderItem(reg, i === sub.regs.length - 1))}
                         </div>
@@ -642,11 +642,11 @@ export default function PaginaRegistros() {
             <div className="px-5 py-4 border-b border-[#1f1f2b] flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <h3 className="text-base font-display font-bold text-[#ececf1]">{registroActivo.nombre}</h3>
-                <p className="text-[11px] text-[#5c5c6b] mt-0.5">
+                <p className="text-[11px] text-[#7d7d8e] mt-0.5">
                   {registroActivo.grupo_nombre}
                 </p>
               </div>
-              <button onClick={() => setRegistroActivo(null)} className="p-1.5 rounded-lg hover:bg-[#1c1c27] text-[#5c5c6b] hover:text-[#d4d4dd] transition-colors flex-shrink-0">
+              <button onClick={() => setRegistroActivo(null)} className="p-1.5 rounded-lg hover:bg-[#1c1c27] text-[#7d7d8e] hover:text-[#d4d4dd] transition-colors flex-shrink-0">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -657,28 +657,28 @@ export default function PaginaRegistros() {
               {msgError && <div className="p-3 bg-[#7a2820]/20 border border-[#7a2820]/50 text-[#ff8a7a] rounded-xl text-sm font-medium">{msgError}</div>}
 
               <div>
-                <label className="block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1.5">Fecha</label>
+                <label className="block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1.5">Fecha</label>
                 <input type="date" value={formFecha} onChange={e => setFormFecha(e.target.value)}
                   className="w-full px-3 py-2.5 bg-[#15151d] border border-[#2a2a3a] rounded-lg text-sm text-[#d4d4dd] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/30 focus:border-[#404d20]" />
               </div>
 
               <div>
-                <label className="block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1.5">Responsable *</label>
+                <label className="block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1.5">Responsable *</label>
                 <input type="text" value={formResponsable} onChange={e => setFormResponsable(e.target.value)} placeholder="Nombre del responsable"
-                  className="w-full px-3 py-2.5 bg-[#15151d] border border-[#2a2a3a] rounded-lg text-sm text-[#d4d4dd] placeholder-[#5c5c6b] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/30 focus:border-[#404d20]" />
+                  className="w-full px-3 py-2.5 bg-[#15151d] border border-[#2a2a3a] rounded-lg text-sm text-[#d4d4dd] placeholder-[#7d7d8e] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/30 focus:border-[#404d20]" />
               </div>
 
               {/* Campos especificos por codigo CUMCS */}
               <CamposCumcs grupo={registroActivo.grupo} codigo={registroActivo.codigo} formCampos={formCampos} setFormCampo={setFormCampo} />
 
               <div>
-                <label className="block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1.5">Observaciones</label>
+                <label className="block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1.5">Observaciones</label>
                 <textarea rows={3} placeholder="Observaciones adicionales..." value={formObs} onChange={e => setFormObs(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-[#15151d] border border-[#2a2a3a] rounded-lg text-sm text-[#d4d4dd] placeholder-[#5c5c6b] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/30 focus:border-[#404d20] resize-none" />
+                  className="w-full px-3 py-2.5 bg-[#15151d] border border-[#2a2a3a] rounded-lg text-sm text-[#d4d4dd] placeholder-[#7d7d8e] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/30 focus:border-[#404d20] resize-none" />
               </div>
 
               {/* Info GAMP5 */}
-              <div className="p-3 bg-[#15151d] border border-[#1f1f2b] rounded-xl text-[11px] text-[#5c5c6b] space-y-1">
+              <div className="p-3 bg-[#15151d] border border-[#1f1f2b] rounded-xl text-[11px] text-[#7d7d8e] space-y-1">
                 <p>Conservacion: {registroActivo.conservacion} | Medio: {registroActivo.medio_archivo}</p>
                 <p>Obligatorio: {registroActivo.obligatorio ? 'Si' : 'No'} | Firma: {registroActivo.requiere_firma ? 'Requerida' : 'No requerida'}</p>
                 <p className="text-[#a3e635]/60">Audit trail inmutable + firma SHA-256</p>

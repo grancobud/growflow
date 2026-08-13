@@ -171,7 +171,7 @@ export default function PaginaExploradorRegistros() {
           <Database className="w-4 h-4 text-[#a3e635] flex-shrink-0" strokeWidth={1.8} />
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Explorador de Registros</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">Vista admin · edicion + firma 21 CFR Part 11</div>
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">Vista admin · edicion + firma 21 CFR Part 11</div>
           </div>
           <div className="flex-1" />
           <PresenciaAvatars pageKey="admin-registros" contexto={tablaSel.key} />
@@ -190,7 +190,7 @@ export default function PaginaExploradorRegistros() {
                   className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium whitespace-nowrap transition-colors flex-shrink-0 ${
                     activa
                       ? 'bg-[#a3e635]/15 border border-[#404d20] text-[#bef264]'
-                      : 'text-[#5c5c6b] hover:text-[#b3b3c0] hover:bg-[#15151d]'
+                      : 'text-[#7d7d8e] hover:text-[#b3b3c0] hover:bg-[#15151d]'
                   }`}
                   title={`${t.grupo} — ${t.label}`}
                 >
@@ -215,14 +215,14 @@ export default function PaginaExploradorRegistros() {
             </div>
             <div>
               <h2 className="text-base font-display font-bold text-[#ececf1]">{tablaSel.label}</h2>
-              <p className="text-[11px] text-[#5c5c6b] font-mono">
+              <p className="text-[11px] text-[#7d7d8e] font-mono">
                 {tablaSel.key} · {tablaSel.grupo}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <div className="px-3 py-1.5 bg-[#101016] border border-[#1f1f2b] rounded-lg text-xs">
-              <span className="text-[#5c5c6b]">Total: </span>
+              <span className="text-[#7d7d8e]">Total: </span>
               <span className="font-bold text-[#ececf1] tabular-nums">{total.toLocaleString('es-AR')}</span>
             </div>
             <button
@@ -231,7 +231,7 @@ export default function PaginaExploradorRegistros() {
               className="p-2 bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] rounded-lg transition-colors disabled:opacity-50"
               title="Refrescar"
             >
-              <RefreshCcw className={`w-3.5 h-3.5 text-[#5c5c6b] ${cargando ? 'animate-spin' : ''}`} />
+              <RefreshCcw className={`w-3.5 h-3.5 text-[#7d7d8e] ${cargando ? 'animate-spin' : ''}`} />
             </button>
             <button
               onClick={() => setMostrarBusqueda(true)}
@@ -276,11 +276,11 @@ export default function PaginaExploradorRegistros() {
             onRowClick={(r) => setRegistroSel(r)}
             emptyState={
               cargando ? (
-                <div className="flex items-center justify-center gap-2 py-12 text-[#5c5c6b]">
+                <div className="flex items-center justify-center gap-2 py-12 text-[#7d7d8e]">
                   <RefreshCcw className="w-4 h-4 animate-spin" /> Cargando registros...
                 </div>
               ) : (
-                <div className="text-center py-12 text-[#5c5c6b]">
+                <div className="text-center py-12 text-[#7d7d8e]">
                   <Hash className="w-8 h-8 mx-auto mb-2 opacity-30" />
                   <p className="text-sm">No hay registros en {tablaSel.label} todavia.</p>
                 </div>
@@ -400,7 +400,7 @@ function ModalDetalle({
                 {tabla.label}
                 {typeof registro.tipo === 'string' && <span className="ml-2 text-[11px] font-mono text-[#a3e635]">{registro.tipo}</span>}
               </h3>
-              <p className="text-[10px] text-[#5c5c6b] font-mono truncate">
+              <p className="text-[10px] text-[#7d7d8e] font-mono truncate">
                 ID: {String(registro.id)}
               </p>
             </div>
@@ -425,14 +425,14 @@ function ModalDetalle({
             ) : (
               <button
                 onClick={() => { setEditando(false); setCambios({}) }}
-                className="px-3 py-1.5 text-xs text-[#5c5c6b] hover:text-[#ff8a7a] transition-colors"
+                className="px-3 py-1.5 text-xs text-[#7d7d8e] hover:text-[#ff8a7a] transition-colors"
               >
                 Cancelar
               </button>
             )}
             <button
               onClick={onClose}
-              className="p-1.5 text-[#5c5c6b] hover:text-[#d4d4dd] transition-colors"
+              className="p-1.5 text-[#7d7d8e] hover:text-[#d4d4dd] transition-colors"
               aria-label="Cerrar"
             >
               <X className="w-4 h-4" />
@@ -450,7 +450,7 @@ function ModalDetalle({
               const cambiado = k in cambios
               return (
                 <div key={k} className="grid grid-cols-[130px_1fr] gap-3 items-start py-1.5 border-b border-[#1f1f2b]/60">
-                  <div className="text-[11px] text-[#5c5c6b] pt-1.5 flex items-center gap-1">
+                  <div className="text-[11px] text-[#7d7d8e] pt-1.5 flex items-center gap-1">
                     {prettyLabel(k)}
                     {cambiado && <span className="w-1.5 h-1.5 rounded-full bg-[#c4b5fd]" title="Modificado" />}
                   </div>
@@ -476,7 +476,7 @@ function ModalDetalle({
           {/* datos_extra JSON */}
           {registro.datos_extra != null && typeof registro.datos_extra === 'object' && (
             <div>
-              <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-2">datos_extra</p>
+              <p className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-2">datos_extra</p>
               <pre className="text-[10px] bg-[#0a0a0f] border border-[#1f1f2b] rounded-lg p-3 overflow-x-auto font-mono max-h-64 overflow-y-auto text-[#8f8f9f]">
                 {JSON.stringify(registro.datos_extra, null, 2)}
               </pre>
@@ -499,7 +499,7 @@ function ModalDetalle({
         {/* Footer guardar */}
         {editando && (
           <div className="px-5 py-3 border-t border-[#1f1f2b] flex items-center justify-between gap-3">
-            <p className="text-[11px] text-[#5c5c6b]">
+            <p className="text-[11px] text-[#7d7d8e]">
               {Object.keys(cambios).length === 0
                 ? 'No hay cambios pendientes'
                 : `${Object.keys(cambios).length} campo${Object.keys(cambios).length === 1 ? '' : 's'} modificado${Object.keys(cambios).length === 1 ? '' : 's'}`}
@@ -673,24 +673,24 @@ function ModalBusquedaInteligente({
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-display font-bold text-[#ececf1]">Busqueda inteligente</h3>
-            <p className="text-[11px] text-[#5c5c6b]">Full-text castellano sobre todos los registros (pgroonga)</p>
+            <p className="text-[11px] text-[#7d7d8e]">Full-text castellano sobre todos los registros (pgroonga)</p>
           </div>
           <button onClick={onClose} className="p-1.5 hover:bg-[#15151d] rounded-lg transition-colors">
-            <X className="w-4 h-4 text-[#5c5c6b]" />
+            <X className="w-4 h-4 text-[#7d7d8e]" />
           </button>
         </div>
 
         {/* Input */}
         <form onSubmit={buscar} className="p-4 border-b border-[#1f1f2b]">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5c5c6b]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7d7d8e]" />
             <input
               type="text"
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder='Ej: "control plagas flora 2", "fertilizacion CO2"...'
               autoFocus
-              className="w-full pl-9 pr-24 py-2.5 bg-[#15151d] border border-[#2a2a3a] rounded-lg text-sm text-[#d4d4dd] placeholder-[#5c5c6b] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/30 focus:border-[#404d20]"
+              className="w-full pl-9 pr-24 py-2.5 bg-[#15151d] border border-[#2a2a3a] rounded-lg text-sm text-[#d4d4dd] placeholder-[#7d7d8e] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/30 focus:border-[#404d20]"
             />
             <button
               type="submit"
@@ -710,13 +710,13 @@ function ModalBusquedaInteligente({
             </div>
           )}
           {!error && buscado && resultados.length === 0 && !buscando && (
-            <div className="text-center py-12 text-[#5c5c6b]">
+            <div className="text-center py-12 text-[#7d7d8e]">
               <Search className="w-8 h-8 mx-auto mb-2 opacity-30" />
               <p className="text-sm">Sin resultados para "{q}"</p>
             </div>
           )}
           {!buscado && !buscando && (
-            <div className="text-center py-12 text-[#5c5c6b]">
+            <div className="text-center py-12 text-[#7d7d8e]">
               <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-30" />
               <p className="text-sm">Escribi una consulta y presiona Buscar</p>
               <p className="text-[11px] mt-1 opacity-70">Busca en fitosanitarios, personal, ambientales, sops y mas</p>
@@ -732,7 +732,7 @@ function ModalBusquedaInteligente({
                 <span className="inline-flex items-center px-2 py-0.5 bg-[#a3e635]/10 text-[#bef264] rounded-md text-[10px] font-mono font-medium">
                   {r.origen}
                 </span>
-                <span className="text-[10px] text-[#5c5c6b] font-mono tabular-nums flex-shrink-0">
+                <span className="text-[10px] text-[#7d7d8e] font-mono tabular-nums flex-shrink-0">
                   rank {r.rank.toFixed(3)}
                 </span>
               </div>

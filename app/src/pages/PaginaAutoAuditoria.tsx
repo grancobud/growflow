@@ -435,7 +435,7 @@ export default function PaginaAutoAuditoria() {
           <ClipboardCheck className="w-4 h-4 text-[#a3e635] flex-shrink-0" strokeWidth={1.8} />
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Auto-Auditoria del Sistema</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
               {checks.length > 0
                 ? <><span className="tabular-nums text-[#d9f99d]">{porcentaje}%</span> cumplimiento · <span className="tabular-nums">{totalOk}</span> OK · <span className="tabular-nums text-[#c4b5fd]">{totalAlerta}</span> alertas · <span className="tabular-nums text-[#ff8a7a]">{totalFallo}</span> fallos</>
                 : 'Verificacion automatica GAMP5'}
@@ -449,7 +449,7 @@ export default function PaginaAutoAuditoria() {
             className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10.5px] uppercase tracking-widest font-medium transition-colors ${
               mostrarCodigos
                 ? 'border-[#a3e635]/30 bg-[#a3e635]/10 text-[#d9f99d]'
-                : 'border-[#1f1f2b] bg-transparent text-[#5c5c6b] hover:text-[#d9f99d] hover:border-[#a3e635]/30'
+                : 'border-[#1f1f2b] bg-transparent text-[#7d7d8e] hover:text-[#d9f99d] hover:border-[#a3e635]/30'
             }`}
             title="Mostrar/ocultar referencias CM-RE"
           >
@@ -496,7 +496,7 @@ export default function PaginaAutoAuditoria() {
           <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
             <div>
               <h3 className="text-[13px] font-display font-semibold text-[#ececf1]">Score de Cumplimiento</h3>
-              <p className="text-[11px] text-[#5c5c6b]">
+              <p className="text-[11px] text-[#7d7d8e]">
                 {ultimaEjecucion && `Ultima ejecucion: ${ultimaEjecucion.toLocaleString('es-AR')}`}
               </p>
             </div>
@@ -526,10 +526,10 @@ export default function PaginaAutoAuditoria() {
               <span className="absolute inset-0 flex items-center justify-center text-[22px] font-bold font-display text-[#ececf1] tabular-nums">{porcentaje}%</span>
             </div>
             <div className="flex gap-5">
-              <div className="text-center"><p className="text-[22px] font-bold font-display text-[#a3e635] tabular-nums">{totalOk}</p><p className="text-[10px] text-[#5c5c6b] uppercase tracking-[0.12em]">Correctos</p></div>
-              <div className="text-center"><p className="text-[22px] font-bold font-display text-[#c4b5fd] tabular-nums">{totalAlerta}</p><p className="text-[10px] text-[#5c5c6b] uppercase tracking-[0.12em]">Alertas</p></div>
-              <div className="text-center"><p className="text-[22px] font-bold font-display text-[#ff8a7a] tabular-nums">{totalFallo}</p><p className="text-[10px] text-[#5c5c6b] uppercase tracking-[0.12em]">Fallos</p></div>
-              <div className="text-center"><p className="text-[22px] font-bold font-display text-[#757584] tabular-nums">{checks.length}</p><p className="text-[10px] text-[#5c5c6b] uppercase tracking-[0.12em]">Total</p></div>
+              <div className="text-center"><p className="text-[22px] font-bold font-display text-[#a3e635] tabular-nums">{totalOk}</p><p className="text-[10px] text-[#7d7d8e] uppercase tracking-[0.12em]">Correctos</p></div>
+              <div className="text-center"><p className="text-[22px] font-bold font-display text-[#c4b5fd] tabular-nums">{totalAlerta}</p><p className="text-[10px] text-[#7d7d8e] uppercase tracking-[0.12em]">Alertas</p></div>
+              <div className="text-center"><p className="text-[22px] font-bold font-display text-[#ff8a7a] tabular-nums">{totalFallo}</p><p className="text-[10px] text-[#7d7d8e] uppercase tracking-[0.12em]">Fallos</p></div>
+              <div className="text-center"><p className="text-[22px] font-bold font-display text-[#7d7d8e] tabular-nums">{checks.length}</p><p className="text-[10px] text-[#7d7d8e] uppercase tracking-[0.12em]">Total</p></div>
             </div>
           </div>
         </div>
@@ -550,7 +550,7 @@ export default function PaginaAutoAuditoria() {
         {ejecutando ? (
           <div className="text-center py-12 no-print">
             <Loader2 className="w-10 h-10 text-[#a3e635] animate-spin mx-auto" />
-            <p className="mt-3 text-[12.5px] text-[#5c5c6b]">Ejecutando verificaciones...</p>
+            <p className="mt-3 text-[12.5px] text-[#7d7d8e]">Ejecutando verificaciones...</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -562,7 +562,7 @@ export default function PaginaAutoAuditoria() {
                 <div key={cat} className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden print-block no-print">
                   <div className="px-4 py-3 bg-[#15151d] border-b border-[#1f1f2b] flex items-center justify-between">
                     <h4 className="text-[12.5px] font-display font-semibold text-[#ececf1]"><span className="print-show" style={{display:'inline'}}>2.{idx + 1}. </span>{cat}</h4>
-                    <span className="text-[10.5px] text-[#5c5c6b] tabular-nums">{okCat}/{checksCategoria.length} OK</span>
+                    <span className="text-[10.5px] text-[#7d7d8e] tabular-nums">{okCat}/{checksCategoria.length} OK</span>
                   </div>
 
                   {/* Intro de categoria SOLO en PDF */}
@@ -588,13 +588,13 @@ export default function PaginaAutoAuditoria() {
                               check.resultado === 'alerta' ? <AlertTriangle className="w-3.5 h-3.5 text-[#c4b5fd]" /> :
                               <XCircle className="w-4 h-4 text-[#ff6b5a]" />}
                             </div>
-                            {Icono && <Icono className="w-4 h-4 text-[#46464f] flex-shrink-0 mt-1 no-print" strokeWidth={1.75} />}
+                            {Icono && <Icono className="w-4 h-4 text-[#7d7d8e] flex-shrink-0 mt-1 no-print" strokeWidth={1.75} />}
                             <div className="flex-1 min-w-0">
                               <p className="text-[12.5px] font-medium text-[#d4d4dd]">{check.nombre}</p>
-                              <p className="text-[11px] text-[#5c5c6b] mt-0.5 leading-snug">{check.detalle}</p>
+                              <p className="text-[11px] text-[#7d7d8e] mt-0.5 leading-snug">{check.detalle}</p>
                             </div>
                             {mostrarCodigos && (
-                              <span className="text-[10px] font-mono text-[#46464f] flex-shrink-0 mt-1">{check.referencia}</span>
+                              <span className="text-[10px] font-mono text-[#7d7d8e] flex-shrink-0 mt-1">{check.referencia}</span>
                             )}
                           </div>
 

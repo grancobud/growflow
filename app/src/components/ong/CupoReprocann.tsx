@@ -45,7 +45,7 @@ export function CupoReprocann({ pacientes, plantas, onCambio }: {
           <IdCard className="w-4 h-4 text-[#38bdf8]" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Cupo por REPROCANN</h3>
         </div>
-        <p className="text-[11.5px] text-[#5c5c6b] mt-2">
+        <p className="text-[11.5px] text-[#7d7d8e] mt-2">
           El cultivo no tiene un cupo propio: tiene la suma de los permisos que aportó cada persona.
           Por eso cada planta se imputa al REPROCANN de alguien, y en floración es donde se cuenta.
         </p>
@@ -89,7 +89,7 @@ export function CupoReprocann({ pacientes, plantas, onCambio }: {
             <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Sin imputar</h3>
             <span className="text-[12px] font-mono tabular-nums text-[#a6a6b5]">{huerfanas.length}</span>
           </div>
-          <p className="text-[11.5px] text-[#5c5c6b] mt-2">
+          <p className="text-[11.5px] text-[#7d7d8e] mt-2">
             Estas plantas no cuelgan del permiso de nadie. En vegetativo no es un problema; en floración sí.
           </p>
           <div className="mt-3 space-y-1.5">
@@ -124,7 +124,7 @@ function Persona({ p, plantas, pacientes, abierto, onToggle, asignando, onAsigna
       <button onClick={onToggle} className="w-full flex items-center gap-2 text-left min-h-[44px] sm:min-h-0">
         <div className="min-w-0 flex-1">
           <p className="font-display font-semibold text-[13.5px] text-[#ececf1] truncate">{p.nombre}</p>
-          <p className="text-[10.5px] mt-0.5" style={{ color: sinPermiso ? '#ff8a7a' : '#757584' }}>
+          <p className="text-[10.5px] mt-0.5" style={{ color: sinPermiso ? '#ff8a7a' : '#7d7d8e' }}>
             {p.reprocann
               ? `${p.reprocann}${p.vencido ? ` · vencido el ${p.vencimiento}` : p.vencimiento ? ` · vence ${p.vencimiento}` : ''}`
               : 'Sin REPROCANN cargado: no aporta cupo'}
@@ -132,12 +132,12 @@ function Persona({ p, plantas, pacientes, abierto, onToggle, asignando, onAsigna
         </div>
         <div className="text-right flex-shrink-0">
           <p className="text-[14px] font-mono tabular-nums font-bold"
-            style={{ color: p.excedida ? '#ff8a7a' : p.enFloracion > 0 ? '#bef264' : '#5c5c6b' }}>
-            {p.enFloracion}<span className="text-[11px] text-[#5c5c6b]">/{p.cupo}</span>
+            style={{ color: p.excedida ? '#ff8a7a' : p.enFloracion > 0 ? '#bef264' : '#7d7d8e' }}>
+            {p.enFloracion}<span className="text-[11px] text-[#7d7d8e]">/{p.cupo}</span>
           </p>
-          <p className="text-[9.5px] uppercase tracking-[0.1em] text-[#5c5c6b]">en floración</p>
+          <p className="text-[9.5px] uppercase tracking-[0.1em] text-[#7d7d8e]">en floración</p>
         </div>
-        <ChevronDown className={`w-4 h-4 text-[#5c5c6b] flex-shrink-0 transition-transform ${abierto ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-[#7d7d8e] flex-shrink-0 transition-transform ${abierto ? 'rotate-180' : ''}`} />
       </button>
 
       <div className="mt-2 h-1 rounded-full bg-[#15151d] overflow-hidden">
@@ -154,7 +154,7 @@ function Persona({ p, plantas, pacientes, abierto, onToggle, asignando, onAsigna
       {abierto && (
         <div className="mt-3 pt-3 border-t border-[#1f1f2b] space-y-1.5">
           {plantas.length === 0
-            ? <p className="text-[11.5px] text-[#5c5c6b]">Sin plantas imputadas. Tiene {p.libres} lugares libres.</p>
+            ? <p className="text-[11.5px] text-[#7d7d8e]">Sin plantas imputadas. Tiene {p.libres} lugares libres.</p>
             : plantas.map(pl => (
               <FilaPlanta key={pl.id} pl={pl} pacientes={pacientes} asignando={asignando} onAsignar={onAsignar} />
             ))}
@@ -171,13 +171,13 @@ function FilaPlanta({ pl, pacientes, asignando, onAsignar }: {
   const flor = pl.fase === 'Floracion'
   return (
     <div className="flex items-center gap-2 rounded-lg bg-[#15151d] border border-[#1f1f2b] px-2 sm:px-3 py-2 min-h-[44px]">
-      <Sprout className="w-3.5 h-3.5 flex-shrink-0" style={{ color: flor ? '#bef264' : '#5c5c6b' }} strokeWidth={1.8} />
+      <Sprout className="w-3.5 h-3.5 flex-shrink-0" style={{ color: flor ? '#bef264' : '#7d7d8e' }} strokeWidth={1.8} />
       <div className="min-w-0 flex-1">
         <p className="text-[12.5px] text-[#ececf1] truncate">{pl.nombre}</p>
-        <p className="text-[10.5px] text-[#5c5c6b] truncate">{[pl.genetica, pl.fase].filter(Boolean).join(' · ')}</p>
+        <p className="text-[10.5px] text-[#7d7d8e] truncate">{[pl.genetica, pl.fase].filter(Boolean).join(' · ')}</p>
       </div>
       {asignando === pl.id
-        ? <Check className="w-3.5 h-3.5 text-[#5c5c6b] animate-pulse flex-shrink-0" />
+        ? <Check className="w-3.5 h-3.5 text-[#7d7d8e] animate-pulse flex-shrink-0" />
         : (
           <select value={pl.paciente_id ?? SIN}
             onChange={e => onAsignar(pl.id, e.target.value === SIN ? null : e.target.value)}
@@ -197,7 +197,7 @@ function FilaPlanta({ pl, pacientes, asignando, onAsignar }: {
 function Kpi({ t, v, c }: { t: string; v: string; c: string }) {
   return (
     <div>
-      <div className="text-[9.5px] uppercase tracking-[0.12em] text-[#5c5c6b]">{t}</div>
+      <div className="text-[9.5px] uppercase tracking-[0.12em] text-[#7d7d8e]">{t}</div>
       <div className="text-[15px] font-mono tabular-nums font-bold mt-0.5" style={{ color: c }}>{v}</div>
     </div>
   )

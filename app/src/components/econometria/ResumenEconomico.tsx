@@ -82,7 +82,7 @@ export function CostoPorGramo({ eco, nCosechas, plantasActivas, plantasEnFlora, 
             <b className="text-[#d4d4dd]">{fmt(eco.totalCiclo)}</b> que cuesta el ciclo de {mesesCiclo} meses,
             dividido <b className="text-[#d4d4dd]">{fmtG(eco.gramos)}g</b> secos cosechados
             {nCosechas > 0 && <> en {nCosechas} cosecha{nCosechas === 1 ? '' : 's'}</>}.
-            {' '}<span className="text-[#5c5c6b]">Es lo efectivamente gastado: no incluye la lista de compras pendiente.</span>
+            {' '}<span className="text-[#7d7d8e]">Es lo efectivamente gastado: no incluye la lista de compras pendiente.</span>
           </>
         ) : (
           <>Cargá cosechas con peso seco para que se calcule. El ciclo de {mesesCiclo} meses
@@ -130,7 +130,7 @@ export function CostoPorGramo({ eco, nCosechas, plantasActivas, plantasEnFlora, 
               <div key={t}
                 className="rounded-lg bg-[#0d0d13] border border-[#1f1f2b] px-2.5 py-1.5
                            flex items-baseline justify-between gap-2 sm:flex-col sm:items-stretch sm:gap-0">
-                <div className="text-[10px] sm:text-[9.5px] text-[#5c5c6b] leading-tight">{t}</div>
+                <div className="text-[10px] sm:text-[9.5px] text-[#7d7d8e] leading-tight">{t}</div>
                 <div className="text-[13px] font-semibold text-[#d4d4dd] tabular-nums
                                 text-right sm:text-left whitespace-nowrap sm:mt-auto sm:pt-1">
                   {fmt(v)}
@@ -138,9 +138,9 @@ export function CostoPorGramo({ eco, nCosechas, plantasActivas, plantasEnFlora, 
               </div>
             ))}
           </div>
-          <p className="text-[10.5px] text-[#5c5c6b] leading-snug mt-2">
+          <p className="text-[10.5px] text-[#7d7d8e] leading-snug mt-2">
             Es un escenario, no tu costo real. Cada item se clasifica en la lista de
-            {' '}<b className="text-[#757584]">Insumos faltantes</b>: lo que marques como equipo se amortiza según su
+            {' '}<b className="text-[#7d7d8e]">Insumos faltantes</b>: lo que marques como equipo se amortiza según su
             categoría, y los pagos únicos (honorarios, trámites) caen enteros porque no son un bien.
           </p>
         </div>
@@ -176,10 +176,10 @@ export function CostoPorGramo({ eco, nCosechas, plantasActivas, plantasEnFlora, 
       {escenarios.length > 0 && (
         <div className="mt-3.5">
           <div className="flex items-baseline gap-2 mb-2">
-            <span className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium">
+            <span className="text-[10px] uppercase tracking-[0.12em] text-[#7d7d8e] font-medium">
               Cómo puede cerrar el ciclo
             </span>
-            <span className="text-[10.5px] text-[#3a3a4a]">según cómo rindan las {plantasEnFlora} que faltan</span>
+            <span className="text-[10.5px] text-[#7d7d8e]">según cómo rindan las {plantasEnFlora} que faltan</span>
           </div>
           {/* Los cuatro son la misma medida a distinto supuesto, así que el
               costo —lo que se compara— va a la misma altura en los cuatro:
@@ -192,16 +192,16 @@ export function CostoPorGramo({ eco, nCosechas, plantasActivas, plantasEnFlora, 
                 <div className={`text-[11px] font-medium ${e.destacado ? 'text-[#d9f99d]' : 'text-[#a6a6b5]'}`}>
                   {e.nombre}
                 </div>
-                <div className="text-[10px] text-[#5c5c6b] tabular-nums mt-0.5">{fmtG(e.rinde)}g por planta</div>
+                <div className="text-[10px] text-[#7d7d8e] tabular-nums mt-0.5">{fmtG(e.rinde)}g por planta</div>
                 <div className={`text-[17px] font-semibold tabular-nums leading-none mt-auto pt-1.5 ${
                   e.destacado ? 'text-[#bef264]' : 'text-[#d4d4dd]'}`}>
-                  {fmt(e.costo)}<span className="text-[11px] font-normal text-[#5c5c6b] ml-px">/g</span>
+                  {fmt(e.costo)}<span className="text-[11px] font-normal text-[#7d7d8e] ml-px">/g</span>
                 </div>
-                <div className="text-[10px] text-[#5c5c6b] tabular-nums mt-1">{fmtG(e.total)}g el ciclo</div>
+                <div className="text-[10px] text-[#7d7d8e] tabular-nums mt-1">{fmtG(e.total)}g el ciclo</div>
               </div>
             ))}
           </div>
-          <p className="text-[10.5px] text-[#5c5c6b] mt-2 leading-relaxed">
+          <p className="text-[10.5px] text-[#7d7d8e] mt-2 leading-relaxed">
             Sale de tus {nCosechas} cosechas: la peor dio {fmtG(rindes[0] ?? 0)}g y la mejor{' '}
             {fmtG(rindes[rindes.length - 1] ?? 0)}g.
           </p>
@@ -213,7 +213,7 @@ export function CostoPorGramo({ eco, nCosechas, plantasActivas, plantasEnFlora, 
           aporte del paciente cubre el prorrateo de costos. Poner "precio" acá
           es usar el vocabulario que después te expone. */}
       <details className="mt-3 group">
-        <summary className="text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium cursor-pointer hover:text-[#8a8a9a] list-none flex items-center gap-1">
+        <summary className="text-[10px] uppercase tracking-[0.12em] text-[#7d7d8e] font-medium cursor-pointer hover:text-[#8a8a9a] list-none flex items-center gap-1">
           <span className="group-open:rotate-90 transition-transform inline-block">›</span>
           Cuánto producir para bajar el costo a…
         </summary>
@@ -224,11 +224,11 @@ export function CostoPorGramo({ eco, nCosechas, plantasActivas, plantasEnFlora, 
               <div className="text-[15px] font-semibold text-[#d9f99d] tabular-nums leading-tight mt-0.5">
                 {fmtG(m.gramos)}g
               </div>
-              <div className="text-[9.5px] text-[#5c5c6b] mt-0.5">por ciclo</div>
+              <div className="text-[9.5px] text-[#7d7d8e] mt-0.5">por ciclo</div>
             </div>
           ))}
         </div>
-        <p className="text-[10.5px] text-[#5c5c6b] mt-2 leading-snug">
+        <p className="text-[10.5px] text-[#7d7d8e] mt-2 leading-snug">
           Este es tu <b className="text-[#a6a6b5]">costo</b>, no un precio de lista. La asociación no vende: el aporte
           del paciente cubre el prorrateo de estos costos, y por encima del costo real deja de ser un aporte solidario.
           El registro de dispensas en <b className="text-[#a6a6b5]">O.N.G.</b> compara los dos números.
@@ -279,7 +279,7 @@ export function ComposicionCosto({ eco }: { eco: ResumenEconomico }) {
             <div className="mt-1 text-[14px] font-semibold text-[#ececf1] tabular-nums leading-none">
               {fmt(p.valor)}
             </div>
-            <div className="text-[10px] text-[#5c5c6b] mt-0.5 tabular-nums">
+            <div className="text-[10px] text-[#7d7d8e] mt-0.5 tabular-nums">
               {pct(p.valor, total).toFixed(0)}% del total
             </div>
           </div>
@@ -310,13 +310,13 @@ function Bloque({ titulo, subtitulo, icono: Ico, color, total, sufijo, children,
         </span>
         <span className="min-w-0 flex-1">
           <span className="block font-display font-semibold text-[12.5px] text-[#ececf1] truncate">{titulo}</span>
-          <span className="block text-[10.5px] text-[#5c5c6b] truncate">{subtitulo}</span>
+          <span className="block text-[10.5px] text-[#7d7d8e] truncate">{subtitulo}</span>
         </span>
         <span className="text-right flex-shrink-0">
           <span className="block text-[13.5px] font-semibold text-[#ececf1] tabular-nums leading-none">{fmt(total)}</span>
-          <span className="block text-[9.5px] text-[#5c5c6b] mt-0.5">{sufijo ?? '/mes'}</span>
+          <span className="block text-[9.5px] text-[#7d7d8e] mt-0.5">{sufijo ?? '/mes'}</span>
         </span>
-        <ChevronDown className={`w-4 h-4 text-[#5c5c6b] flex-shrink-0 transition-transform ${abierto ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-[#7d7d8e] flex-shrink-0 transition-transform ${abierto ? 'rotate-180' : ''}`} />
       </button>
       {abierto && <div className="border-t border-[#1f1f2b]">{children}</div>}
     </div>
@@ -332,11 +332,11 @@ function Fila({ nombre, nota, valor, porMes, mesesCiclo }: {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="text-[12px] text-[#d4d4dd] leading-snug">{nombre}</div>
-          {nota && <div className="text-[10px] text-[#5c5c6b] mt-0.5">{nota}</div>}
+          {nota && <div className="text-[10px] text-[#7d7d8e] mt-0.5">{nota}</div>}
         </div>
         <div className="text-right flex-shrink-0">
-          <div className="text-[12px] text-[#ececf1] tabular-nums font-medium">{fmt(porMes)}<span className="text-[9.5px] text-[#5c5c6b]">/mes</span></div>
-          <div className="text-[10px] text-[#5c5c6b] tabular-nums mt-0.5">
+          <div className="text-[12px] text-[#ececf1] tabular-nums font-medium">{fmt(porMes)}<span className="text-[9.5px] text-[#7d7d8e]">/mes</span></div>
+          <div className="text-[10px] text-[#7d7d8e] tabular-nums mt-0.5">
             {valor != null && valor !== porMes ? <>de {fmt(valor)} · </> : null}
             {fmt(porMes * mesesCiclo)} al ciclo
           </div>
@@ -352,7 +352,7 @@ function TotalBloque({ label, valor, mesesCiclo }: { label: string; valor: numbe
       <span className="text-[11px] text-[#8a8a9a] font-medium">{label}</span>
       <span className="text-right">
         <span className="block text-[12.5px] font-semibold text-[#ececf1] tabular-nums">{fmt(valor)}/mes</span>
-        <span className="block text-[10px] text-[#5c5c6b] tabular-nums">{fmt(valor * mesesCiclo)} al ciclo</span>
+        <span className="block text-[10px] text-[#7d7d8e] tabular-nums">{fmt(valor * mesesCiclo)} al ciclo</span>
       </span>
     </div>
   )
@@ -382,7 +382,7 @@ export function DesgloseCostos({ eco, vida }: { eco: ResumenEconomico; vida: Vid
         <Bloque titulo="Amortización del equipo" subtitulo="Lo invertido, repartido en su vida útil"
           icono={Wrench} color="#a78bfa" total={eco.amortizacionMes}>
           <div className="px-4 py-2.5 bg-[#0d0d13] border-b border-[#1f1f2b] flex items-start gap-2">
-            <Info className="w-3.5 h-3.5 text-[#5c5c6b] flex-shrink-0 mt-px" />
+            <Info className="w-3.5 h-3.5 text-[#7d7d8e] flex-shrink-0 mt-px" />
             <p className="text-[10.5px] text-[#7a7a8a] leading-relaxed">
               Lo que ya compraste no se cuenta de golpe: cada equipo aporta una fracción por mes
               mientras dure. Invertido: <b className="text-[#a6a6b5]">{fmt(eco.capexInvertido)}</b>.
@@ -437,16 +437,16 @@ function CategoriaAmortizada({ linea, vida, mesesCiclo }: {
     <div className="border-b border-[#16161e] last:border-0">
       <button onClick={() => setAbierto(a => !a)}
         className="w-full flex items-center gap-2.5 px-4 py-2.5 min-h-[48px] text-left hover:bg-[#15151d] transition-colors">
-        <ChevronDown className={`w-3.5 h-3.5 text-[#5c5c6b] flex-shrink-0 transition-transform ${abierto ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-3.5 h-3.5 text-[#7d7d8e] flex-shrink-0 transition-transform ${abierto ? 'rotate-180' : ''}`} />
         <span className="min-w-0 flex-1">
           <span className="block text-[12px] text-[#d4d4dd] truncate">{linea.categoria}</span>
-          <span className="block text-[10px] text-[#5c5c6b]">
+          <span className="block text-[10px] text-[#7d7d8e]">
             {fmt(linea.valor)} · {linea.items} ítem{linea.items === 1 ? '' : 's'} · dura {meses} meses
           </span>
         </span>
         <span className="text-right flex-shrink-0">
-          <span className="block text-[12px] text-[#c4b5fd] font-medium tabular-nums">{fmt(linea.porMes)}<span className="text-[9.5px] text-[#5c5c6b]">/mes</span></span>
-          <span className="block text-[10px] text-[#5c5c6b] tabular-nums mt-0.5">{fmt(linea.porMes * mesesCiclo)} al ciclo</span>
+          <span className="block text-[12px] text-[#c4b5fd] font-medium tabular-nums">{fmt(linea.porMes)}<span className="text-[9.5px] text-[#7d7d8e]">/mes</span></span>
+          <span className="block text-[10px] text-[#7d7d8e] tabular-nums mt-0.5">{fmt(linea.porMes * mesesCiclo)} al ciclo</span>
         </span>
       </button>
       {abierto && (
@@ -456,7 +456,7 @@ function CategoriaAmortizada({ linea, vida, mesesCiclo }: {
               <span className="text-[11.5px] text-[#a6a6b5] min-w-0 flex-1 leading-snug">{i.nombre}</span>
               <span className="text-right flex-shrink-0">
                 <span className="block text-[11.5px] text-[#c4b5fd] tabular-nums">{fmt(i.porMes)}/mes</span>
-                <span className="block text-[9.5px] text-[#5c5c6b] tabular-nums">de {fmt(i.valor)}</span>
+                <span className="block text-[9.5px] text-[#7d7d8e] tabular-nums">de {fmt(i.valor)}</span>
               </span>
             </div>
           ))}
@@ -483,9 +483,9 @@ export function Indicadores({ eco, plantasActivas }: { eco: ResumenEconomico; pl
     <section className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
       {items.map(i => (
         <div key={i.label} className="rounded-xl bg-[#101016] border border-[#1f1f2b] px-3 py-2.5">
-          <div className="text-[9.5px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium">{i.label}</div>
+          <div className="text-[9.5px] uppercase tracking-[0.12em] text-[#7d7d8e] font-medium">{i.label}</div>
           <div className="mt-1 text-[16px] sm:text-[17px] font-semibold text-[#ececf1] tabular-nums leading-none">{i.valor}</div>
-          <div className="text-[10px] text-[#5c5c6b] mt-1 leading-snug">{i.nota}</div>
+          <div className="text-[10px] text-[#7d7d8e] mt-1 leading-snug">{i.nota}</div>
         </div>
       ))}
     </section>

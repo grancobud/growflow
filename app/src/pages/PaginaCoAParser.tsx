@@ -155,7 +155,7 @@ export default function PaginaCoAParser() {
           <FlaskConical className="w-4 h-4 text-[#a3e635] flex-shrink-0" strokeWidth={1.8} />
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">CoA Parser</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
               Parser PDF laboratorio
               <span className="hidden sm:inline"><span className="text-[#30303e] mx-1">│</span>cannabinoides · terpenos · controles</span>
             </div>
@@ -178,7 +178,7 @@ export default function PaginaCoAParser() {
             </div>
             <div>
               <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">Certificado de analisis</h3>
-              <p className="text-[10.5px] text-[#757584]">PDF emitido por laboratorio acreditado</p>
+              <p className="text-[10.5px] text-[#7d7d8e]">PDF emitido por laboratorio acreditado</p>
             </div>
           </div>
 
@@ -190,13 +190,13 @@ export default function PaginaCoAParser() {
               <>
                 <Loader2 className="w-7 h-7 text-[#a3e635] animate-spin" />
                 <p className="text-[12px] text-[#d4d4dd] font-semibold">Procesando {fileName}...</p>
-                <p className="text-[10.5px] text-[#5c5c6b]">Extrayendo texto + parseando</p>
+                <p className="text-[10.5px] text-[#7d7d8e]">Extrayendo texto + parseando</p>
               </>
             ) : (
               <>
                 <Upload className="w-7 h-7 text-[#404d20]" strokeWidth={1.5} />
                 <p className="text-[12px] text-[#d4d4dd] font-semibold">Click para subir PDF</p>
-                <p className="text-[10.5px] text-[#5c5c6b]">o arrastra aqui</p>
+                <p className="text-[10.5px] text-[#7d7d8e]">o arrastra aqui</p>
                 {fileName && <p className="text-[10.5px] text-[#bef264] mt-1">Ultimo: {fileName}</p>}
               </>
             )}
@@ -251,7 +251,7 @@ export default function PaginaCoAParser() {
             <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4 space-y-3">
               <div>
                 <p className="font-display font-semibold text-[13px] text-[#ececf1]">Guardar en resultados_laboratorio</p>
-                <p className="text-[10.5px] text-[#757584] mt-0.5">Asocia el CoA a un lote para la traza publica y auditoria.</p>
+                <p className="text-[10.5px] text-[#7d7d8e] mt-0.5">Asocia el CoA a un lote para la traza publica y auditoria.</p>
               </div>
               <div className="flex flex-col sm:flex-row gap-2">
                 <div className="relative flex-1">
@@ -268,7 +268,7 @@ export default function PaginaCoAParser() {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5c5c6b] pointer-events-none" />
+                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#7d7d8e] pointer-events-none" />
                 </div>
                 <button
                   onClick={guardarEnBD}

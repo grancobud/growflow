@@ -124,13 +124,13 @@ export default function PaginaAlertas() {
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">
               Alertas operativas
             </h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b] tabular-nums">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e] tabular-nums">
               {subtitulo}
             </div>
           </div>
           <div className="flex-1" />
           {alertas && (
-            <span className="hidden sm:inline text-[10.5px] text-[#5c5c6b] tabular-nums">
+            <span className="hidden sm:inline text-[10.5px] text-[#7d7d8e] tabular-nums">
               {new Date(alertas.resumen.actualizado).toLocaleTimeString('es-AR')}
             </span>
           )}
@@ -214,7 +214,7 @@ export default function PaginaAlertas() {
 function SevBadge({ sev, count }: { sev: Severidad; count: number }) {
   const label = sev === 'critica' ? 'Criticas' : sev === 'alta' ? 'Altas' : 'Medias'
   const dotCls = sev === 'critica' ? 'bg-[#ff6b5a]' : sev === 'alta' ? 'bg-[#c4b5fd]' : 'bg-[#bef264]'
-  const textCls = count > 0 ? 'text-[#ececf1] font-semibold' : 'text-[#5c5c6b]'
+  const textCls = count > 0 ? 'text-[#ececf1] font-semibold' : 'text-[#7d7d8e]'
   return (
     <div className="flex items-center gap-1.5 text-[11.5px]">
       <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotCls}`} />
@@ -292,7 +292,7 @@ function CategoriaCard({ cat, items }: { cat: Categoria; items: any[] }) {
               <span className="text-[#8f8f9f] truncate flex-1">{item.descripcion_hallazgo}</span>
             )}
             {item.tipo && (
-              <span className="text-[#5c5c6b] text-[10px] italic">{item.tipo.replace(/_/g, ' ')}</span>
+              <span className="text-[#7d7d8e] text-[10px] italic">{item.tipo.replace(/_/g, ' ')}</span>
             )}
           </li>
         ))}

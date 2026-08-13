@@ -29,7 +29,7 @@ export default function BottomNav() {
             className={({ isActive }) =>
               `relative flex flex-col items-center justify-center gap-0.5 flex-1 h-full min-w-[44px] transition-colors ${
                 isActive || item.alias?.some(a => pathname.startsWith(a))
-                  ? 'text-[#bef264]' : 'text-[#5c5c6b] hover:text-[#a6a6b5]'
+                  ? 'text-[#bef264]' : 'text-[#7d7d8e] hover:text-[#a6a6b5]'
               }`
             }
             aria-label={item.label}
@@ -40,7 +40,7 @@ export default function BottomNav() {
         ))}
         <button
           onClick={() => (window as any).__toggleSidebar?.()}
-          className="relative flex flex-col items-center justify-center gap-0.5 flex-1 h-full min-w-[44px] text-[#5c5c6b] hover:text-[#a6a6b5] transition-colors"
+          className="relative flex flex-col items-center justify-center gap-0.5 flex-1 h-full min-w-[44px] text-[#7d7d8e] hover:text-[#a6a6b5] transition-colors"
           aria-label="Más secciones"
         >
           <Menu className="w-5 h-5" />

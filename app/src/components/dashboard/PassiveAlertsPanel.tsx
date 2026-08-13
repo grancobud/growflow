@@ -54,12 +54,12 @@ export default function PassiveAlertsPanel() {
           <p className="text-[12.5px] font-display font-semibold text-[#ececf1] leading-tight">
             Atención pasiva ({alerts.length})
           </p>
-          <p className="text-[10.5px] text-[#757584] mt-0.5 truncate">
+          <p className="text-[10.5px] text-[#7d7d8e] mt-0.5 truncate">
             Silos sin actividad reciente
           </p>
         </div>
         <ChevronDown
-          className={`w-4 h-4 text-[#5c5c6b] flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 text-[#7d7d8e] flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
         />
       </button>
 
@@ -89,7 +89,7 @@ export default function PassiveAlertsPanel() {
                         <p className="text-[12px] font-medium text-[#ececf1] leading-tight">
                           {a.title}
                         </p>
-                        <p className="text-[10.5px] text-[#757584] mt-0.5">
+                        <p className="text-[10.5px] text-[#7d7d8e] mt-0.5">
                           {a.detail}
                         </p>
                       </div>

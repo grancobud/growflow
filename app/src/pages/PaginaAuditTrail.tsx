@@ -74,7 +74,7 @@ export default function PaginaAuditTrail() {
           <ShieldCheck className="w-4 h-4 text-[#a3e635] flex-shrink-0" strokeWidth={1.8} />
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Audit Trail</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
               {datos?.lote?.codigo_lote
                 ? <span className="font-mono tabular-nums text-[#b3b3c0]">{datos.lote.codigo_lote}</span>
                 : 'Cargando...'}
@@ -91,7 +91,7 @@ export default function PaginaAuditTrail() {
       <div className="px-3 sm:px-6 py-4 sm:py-5 pb-20 space-y-4 sm:space-y-5">
         <Link
           to="/trazabilidad"
-          className="inline-flex items-center gap-2 text-[11.5px] text-[#5c5c6b] hover:text-[#d9f99d] font-medium transition-colors"
+          className="inline-flex items-center gap-2 text-[11.5px] text-[#7d7d8e] hover:text-[#d9f99d] font-medium transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Volver a Trazabilidad
         </Link>
@@ -126,7 +126,7 @@ export default function PaginaAuditTrail() {
                     <ShieldCheck className="w-6 h-6 text-[#a3e635]" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium">Lote</p>
+                    <p className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium">Lote</p>
                     <p className="font-display text-[18px] font-bold text-[#ececf1] font-mono tabular-nums break-all">{datos.lote.codigo_lote}</p>
                   </div>
                 </div>
@@ -164,7 +164,7 @@ export default function PaginaAuditTrail() {
                 <h3 className="text-[13px] font-display font-bold text-[#ececf1] mb-3 flex items-center gap-2">
                   <Activity className="w-4 h-4 text-[#a3e635]" />
                   Operaciones seed-to-sale
-                  <span className="text-[11px] font-normal text-[#5c5c6b]">({datos.operaciones.length})</span>
+                  <span className="text-[11px] font-normal text-[#7d7d8e]">({datos.operaciones.length})</span>
                 </h3>
                 <ul className="divide-y divide-[#1f1f2b]">
                   {datos.operaciones.map((o) => (
@@ -179,7 +179,7 @@ export default function PaginaAuditTrail() {
                         {o.cantidad_entrada ? `+${o.cantidad_entrada}` : ''}
                         {o.cantidad_salida ? ` -${o.cantidad_salida}` : ''}
                       </span>
-                      {o.responsable && <span className="text-[#5c5c6b] truncate hidden sm:inline">· {o.responsable}</span>}
+                      {o.responsable && <span className="text-[#7d7d8e] truncate hidden sm:inline">· {o.responsable}</span>}
                       {o.estado === 'confirmado' && <CheckCircle2 className="w-3.5 h-3.5 text-[#a3e635] ml-auto flex-shrink-0" aria-label="Confirmada" />}
                     </li>
                   ))}
@@ -195,7 +195,7 @@ export default function PaginaAuditTrail() {
               <h3 className="text-[13px] font-display font-bold text-[#ececf1] mb-3 flex items-center gap-2">
                 <Hash className="w-4 h-4 text-[#a3e635]" />
                 Historial de cambios
-                <span className="text-[11px] font-normal text-[#5c5c6b]">({datos.registros.length})</span>
+                <span className="text-[11px] font-normal text-[#7d7d8e]">({datos.registros.length})</span>
               </h3>
               {datos.registros.length === 0 ? (
                 <EmptyState
@@ -218,7 +218,7 @@ export default function PaginaAuditTrail() {
                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold flex-shrink-0 ${opStyle(r.operacion)}`}>{r.operacion}</span>
                         <span className="text-[#d4d4dd] font-mono tabular-nums flex-shrink-0 hidden sm:inline">{r.tabla_nombre}</span>
                         <span className="text-[#8f8f9f] tabular-nums flex-shrink-0">{new Date(r.fecha).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' })}</span>
-                        <span className="text-[#5c5c6b] truncate flex-1 text-left hidden md:inline">{r.usuario_email}</span>
+                        <span className="text-[#7d7d8e] truncate flex-1 text-left hidden md:inline">{r.usuario_email}</span>
                         <span className="text-[10px] text-[#bef264] font-mono tabular-nums flex-shrink-0">{r.hash_sha256?.slice(0, 8)}…{r.hash_sha256?.slice(-4)}</span>
                       </button>
                       {expandido === r.id && (
@@ -230,16 +230,16 @@ export default function PaginaAuditTrail() {
                           className="bg-[#0a0a0f] p-3 text-[11px] space-y-2 border-t border-[#1f1f2b]"
                         >
                           <div>
-                            <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1">Hash SHA-256</p>
+                            <p className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1">Hash SHA-256</p>
                             <p className="font-mono text-[10px] text-[#bef264] break-all">{r.hash_sha256}</p>
                           </div>
                           <div>
-                            <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1">Hash anterior (encadenado)</p>
-                            <p className="font-mono text-[10px] text-[#757584] break-all">{r.hash_anterior || '(primer registro de la cadena)'}</p>
+                            <p className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1">Hash anterior (encadenado)</p>
+                            <p className="font-mono text-[10px] text-[#7d7d8e] break-all">{r.hash_anterior || '(primer registro de la cadena)'}</p>
                           </div>
                           {r.campos_modificados && Array.isArray(r.campos_modificados) && r.campos_modificados.length > 0 && (
                             <div>
-                              <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1">Campos modificados</p>
+                              <p className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1">Campos modificados</p>
                               <div className="flex flex-wrap gap-1">
                                 {r.campos_modificados.map((c: string) => (
                                   <span key={c} className="px-2 py-0.5 bg-[#a78bfa]/15 text-[#c4b5fd] border border-[#463a66] rounded text-[10px] font-mono">{c}</span>
@@ -249,14 +249,14 @@ export default function PaginaAuditTrail() {
                           )}
                           {r.datos_nuevos && (
                             <details>
-                              <summary className="cursor-pointer text-[#5c5c6b] hover:text-[#b3b3c0] font-medium text-[10.5px]">
+                              <summary className="cursor-pointer text-[#7d7d8e] hover:text-[#b3b3c0] font-medium text-[10.5px]">
                                 Ver JSON completo
                               </summary>
                               <pre className="mt-2 p-2 bg-[#060908] rounded text-[10px] text-[#d9f99d] overflow-x-auto max-h-60">{JSON.stringify(r.datos_nuevos, null, 2)}</pre>
                             </details>
                           )}
                           {r.ip_origen && (
-                            <p className="text-[#5c5c6b] flex items-center gap-1 text-[10.5px]">
+                            <p className="text-[#7d7d8e] flex items-center gap-1 text-[10.5px]">
                               IP: <code className="font-mono text-[#b3b3c0]">{r.ip_origen}</code>
                             </p>
                           )}
@@ -293,7 +293,7 @@ export default function PaginaAuditTrail() {
 function InfoMini({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
   return (
     <div>
-      <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium">{label}</p>
+      <p className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium">{label}</p>
       <p className={`text-[12.5px] font-medium text-[#d4d4dd] ${mono ? 'font-mono tabular-nums' : ''}`}>
         {value}
       </p>
@@ -312,7 +312,7 @@ function HashChainBadge({ valido }: { valido: boolean }) {
           <p className="text-[13px] font-semibold text-[#d9f99d]">
             Cadena de hash SHA-256 valida
           </p>
-          <p className="text-[11px] text-[#5c5c6b] mt-0.5">
+          <p className="text-[11px] text-[#7d7d8e] mt-0.5">
             Todos los registros estan integros. 21 CFR Part 11 · EU-GMP Annex 11 · ALCOA+ compliance.
           </p>
         </div>
@@ -351,7 +351,7 @@ function Stat({ icon: Icon, label, value, color }: {
         <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${s.bg}`}>
           <Icon className={`w-3.5 h-3.5 ${s.icon}`} />
         </div>
-        <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium">{label}</p>
+        <p className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium">{label}</p>
       </div>
       <p className="text-[18px] font-bold font-display text-[#ececf1] tabular-nums">{value}</p>
     </div>

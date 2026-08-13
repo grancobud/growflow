@@ -39,8 +39,8 @@ import { stockService } from '../lib/stock'
 import { btnPrimario, btnSutil } from '../lib/ui'
 
 // text-[16px] en mobile: evita el zoom automático de iOS Safari al enfocar.
-const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
-const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1'
 const card = 'rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4'
 
 const COLOR_URGENCIA: Record<Urgencia, { txt: string; bg: string; borde: string; label: string }> = {
@@ -165,7 +165,7 @@ export default function PaginaONG() {
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1] flex items-center gap-2">
               <Building2 className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} /> O.N.G.
             </h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
               {entidad?.razon_social || 'Asociación civil'} · vida institucional y habilitaciones
             </div>
           </div>
@@ -239,10 +239,10 @@ function Estado({ entidad, vencimientos, capacidad, requisitos, nPacientes, reca
     return (
       <div className={`${card} text-center py-12`}>
         <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3">
-          <Building2 className="w-5 h-5 text-[#5c5c6b]" />
+          <Building2 className="w-5 h-5 text-[#7d7d8e]" />
         </div>
         <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">Todavía no cargaste la entidad</div>
-        <p className="mt-1 text-[11.5px] text-[#5c5c6b] max-w-md mx-auto">
+        <p className="mt-1 text-[11.5px] text-[#7d7d8e] max-w-md mx-auto">
           Cargá los datos del estatuto en la pestaña <b className="text-[#a6a6b5]">La entidad</b> —
           sobre todo el cierre de ejercicio y la duración del mandato— y acá aparecen los vencimientos.
         </p>
@@ -287,11 +287,11 @@ function Estado({ entidad, vencimientos, capacidad, requisitos, nPacientes, reca
                     {v.fecha ? c.label : 'sin cargar'}
                   </span>
                   <span className="ml-auto text-[12.5px] font-mono tabular-nums" style={{ color: c.txt }}>
-                    {fmtFecha(v.fecha)} <span className="text-[#5c5c6b]">· {textoDias(v.dias)}</span>
+                    {fmtFecha(v.fecha)} <span className="text-[#7d7d8e]">· {textoDias(v.dias)}</span>
                   </span>
                 </div>
                 <p className="text-[11.5px] text-[#a6a6b5] mt-1.5">{v.queSignifica}</p>
-                <p className="text-[11px] text-[#5c5c6b] mt-0.5">Se resuelve así: {v.comoSeResuelve}</p>
+                <p className="text-[11px] text-[#7d7d8e] mt-0.5">Se resuelve así: {v.comoSeResuelve}</p>
               </div>
             )
           })}
@@ -304,7 +304,7 @@ function Estado({ entidad, vencimientos, capacidad, requisitos, nPacientes, reca
           <Gauge className="w-4 h-4 text-[#a78bfa]" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Capacidad habilitada</h3>
         </div>
-        <p className="text-[11.5px] text-[#5c5c6b] mb-3">
+        <p className="text-[11.5px] text-[#7d7d8e] mb-3">
           Los topes de la Resolución 1780, cruzados contra lo que tenés cargado de verdad en la app.
         </p>
         <div className="space-y-3">
@@ -317,13 +317,13 @@ function Estado({ entidad, vencimientos, capacidad, requisitos, nPacientes, reca
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="text-[12.5px] text-[#d4d4dd]">{l.titulo}</span>
                   <span className="text-[13px] font-mono tabular-nums font-bold" style={{ color }}>
-                    {l.usado} <span className="text-[#5c5c6b]">/ {l.tope}</span>
+                    {l.usado} <span className="text-[#7d7d8e]">/ {l.tope}</span>
                   </span>
                 </div>
                 <div className="mt-1 h-1.5 rounded-full bg-[#1f1f2b] overflow-hidden">
                   <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
                 </div>
-                <p className="text-[10.5px] text-[#5c5c6b] mt-1">{l.detalle}</p>
+                <p className="text-[10.5px] text-[#7d7d8e] mt-1">{l.detalle}</p>
                 {excedido && (
                   <p className="text-[11px] text-[#ff8a7a] mt-0.5">
                     Estás por encima del tope. Revisalo antes de que lo vea un control.
@@ -333,7 +333,7 @@ function Estado({ entidad, vencimientos, capacidad, requisitos, nPacientes, reca
             )
           })}
         </div>
-        <p className="text-[11px] text-[#5c5c6b] mt-3 pt-3 border-t border-[#1f1f2b]">
+        <p className="text-[11px] text-[#7d7d8e] mt-3 pt-3 border-t border-[#1f1f2b]">
           Transporte: con {nPacientes} paciente{nPacientes === 1 ? '' : 's'} vinculado{nPacientes === 1 ? '' : 's'} podés
           mover hasta <b className="text-[#a6a6b5] font-mono">{fmtPeso(topeTransporteG(nPacientes))}</b> entre
           tus predios, tomando 40 g por paciente. Aparte de eso, un traslado individual no puede superar
@@ -352,7 +352,7 @@ function Estado({ entidad, vencimientos, capacidad, requisitos, nPacientes, reca
             {cumplidos}/{requisitos.length}
           </span>
         </div>
-        <p className="text-[11.5px] text-[#5c5c6b] mb-3">Lo que hay que tener para pedir el botón de REPROCANN.</p>
+        <p className="text-[11.5px] text-[#7d7d8e] mb-3">Lo que hay que tener para pedir el botón de REPROCANN.</p>
         <div className="space-y-1.5">
           {requisitos.map(r => (
             <button key={r.clave}
@@ -366,10 +366,10 @@ function Estado({ entidad, vencimientos, capacidad, requisitos, nPacientes, reca
               <div className="flex items-start gap-2">
                 {r.cumplido
                   ? <CheckCircle2 className="w-4 h-4 text-[#bef264] flex-shrink-0 mt-0.5" />
-                  : <Circle className="w-4 h-4 text-[#5c5c6b] flex-shrink-0 mt-0.5" />}
+                  : <Circle className="w-4 h-4 text-[#7d7d8e] flex-shrink-0 mt-0.5" />}
                 <div className="min-w-0">
                   <span className={`text-[13px] ${r.cumplido ? 'text-[#d9f99d]' : 'text-[#d4d4dd]'}`}>{r.titulo}</span>
-                  {r.detalle && <p className="text-[11px] text-[#757584] mt-0.5 leading-snug">{r.detalle}</p>}
+                  {r.detalle && <p className="text-[11px] text-[#7d7d8e] mt-0.5 leading-snug">{r.detalle}</p>}
                 </div>
               </div>
             </button>
@@ -423,7 +423,7 @@ function FormEntidad({ entidad, onGuardado }: { entidad: Entidad | null; onGuard
 
       <div className={card}>
         <h3 className="font-display font-semibold text-[14px] text-[#ececf1] mb-1">Sede social</h3>
-        <p className="text-[11.5px] text-[#5c5c6b] mb-3">
+        <p className="text-[11.5px] text-[#7d7d8e] mb-3">
           Es declarativa, sirve para notificaciones. Puede estar en una jurisdicción distinta a la del cultivo.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -438,7 +438,7 @@ function FormEntidad({ entidad, onGuardado }: { entidad: Entidad | null; onGuard
 
       <div className={card}>
         <h3 className="font-display font-semibold text-[14px] text-[#ececf1] mb-1">Fechas que fija el estatuto</h3>
-        <p className="text-[11.5px] text-[#5c5c6b] mb-3">
+        <p className="text-[11.5px] text-[#7d7d8e] mb-3">
           De acá salen los vencimientos. El cierre de ejercicio y la duración del mandato están en tu estatuto: no se eligen.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -460,7 +460,7 @@ function FormEntidad({ entidad, onGuardado }: { entidad: Entidad | null; onGuard
 
       <div className={card}>
         <h3 className="font-display font-semibold text-[14px] text-[#ececf1] mb-1">REPROCANN de la entidad</h3>
-        <p className="text-[11.5px] text-[#5c5c6b] mb-3">
+        <p className="text-[11.5px] text-[#7d7d8e] mb-3">
           Dura 1 año. Si no se reinscribe a tiempo no se vence: <b className="text-[#ff8a7a]">se cae</b> y hay que rehacer el trámite.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -468,12 +468,12 @@ function FormEntidad({ entidad, onGuardado }: { entidad: Entidad | null; onGuard
             <input type="date" className={inputCls} value={f.reprocann_inscripcion ?? ''} onChange={e => set('reprocann_inscripcion')(e.target.value)} /></label>
           <label><span className={labelCls}>Vencimiento</span>
             <input type="date" className={inputCls} value={f.reprocann_vencimiento ?? ''} onChange={e => set('reprocann_vencimiento')(e.target.value)} />
-            <span className="block text-[10.5px] text-[#5c5c6b] mt-1">
+            <span className="block text-[10.5px] text-[#7d7d8e] mt-1">
               Para la ONG el permiso dura 1 año. Los 3 años son sólo para autocultivadores.
             </span></label>
           <label className="sm:col-span-2"><span className={labelCls}>Última revisión de libros</span>
             <input type="date" className={inputCls} value={f.ultima_revision_libros ?? ''} onChange={e => set('ultima_revision_libros')(e.target.value)} />
-            <span className="block text-[10.5px] text-[#5c5c6b] mt-1">
+            <span className="block text-[10.5px] text-[#7d7d8e] mt-1">
               La Comisión Revisora debe examinar libros y documentación al menos cada tres meses. Desde acá se
               calcula cuándo toca la próxima.
             </span></label>
@@ -482,7 +482,7 @@ function FormEntidad({ entidad, onGuardado }: { entidad: Entidad | null; onGuard
 
       <div className={card}>
         <h3 className="font-display font-semibold text-[14px] text-[#ececf1] mb-1">Topes</h3>
-        <p className="text-[11.5px] text-[#5c5c6b] mb-3">
+        <p className="text-[11.5px] text-[#7d7d8e] mb-3">
           Los de la 1780 vienen por defecto. El de pacientes es ampliable por solicitud, por eso se puede editar.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -533,7 +533,7 @@ function Autoridades({ autoridades, entidad, onCambio }: {
           </button>
         </div>
         {fin && (
-          <p className="text-[11.5px] text-[#5c5c6b] mt-2">
+          <p className="text-[11.5px] text-[#7d7d8e] mt-2">
             El mandato vigente vence el <b className="text-[#a6a6b5] font-mono">{fmtFecha(fin)}</b>.
             Con las autoridades vencidas no se puede hacer ningún trámite.
           </p>
@@ -541,7 +541,7 @@ function Autoridades({ autoridades, entidad, onCambio }: {
       </div>
 
       {autoridades.length === 0 ? (
-        <p className="text-[13px] text-[#5c5c6b] text-center py-8">Sin autoridades cargadas.</p>
+        <p className="text-[13px] text-[#7d7d8e] text-center py-8">Sin autoridades cargadas.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
           {autoridades.map(a => (
@@ -550,7 +550,7 @@ function Autoridades({ autoridades, entidad, onCambio }: {
                 <div className="min-w-0 flex-1">
                   <p className="font-display font-semibold text-[14px] text-[#ececf1] truncate">{a.nombre}</p>
                   <p className="text-[11.5px] text-[#d9f99d] mt-0.5">{a.cargo}</p>
-                  <p className="text-[10.5px] text-[#757584] mt-0.5">{a.organo}</p>
+                  <p className="text-[10.5px] text-[#7d7d8e] mt-0.5">{a.organo}</p>
                 </div>
                 <div className="flex gap-1 flex-shrink-0">
                   <button onClick={() => setForm(a)} className={btnSutil} aria-label="Editar"><Pencil className="w-3.5 h-3.5" /></button>
@@ -579,7 +579,7 @@ function Autoridades({ autoridades, entidad, onCambio }: {
             <label><span className={labelCls}>Grupo familiar</span>
               <input className={inputCls} value={form.grupo_familiar ?? ''} placeholder="Ej: familia Pérez"
                 onChange={e => setForm({ ...form, grupo_familiar: e.target.value || null })} />
-              <span className="block text-[10.5px] text-[#5c5c6b] mt-1 leading-snug">
+              <span className="block text-[10.5px] text-[#7d7d8e] mt-1 leading-snug">
                 Poné la misma etiqueta a quienes sean parientes o compartan domicilio. Sirve para detectar el
                 cruce prohibido entre Comisión Directiva y Revisora; dentro de una misma comisión sí está permitido.
               </span></label>
@@ -632,13 +632,13 @@ function Predios({ predios, entidad, onCambio }: {
             <Plus className="w-3.5 h-3.5" /> Agregar
           </button>
         </div>
-        <p className="text-[11.5px] text-[#5c5c6b] mt-2">
+        <p className="text-[11.5px] text-[#7d7d8e] mt-2">
           La georreferenciación y la notificación al municipio son <b className="text-[#a6a6b5]">por predio</b>, no por entidad.
         </p>
       </div>
 
       {predios.length === 0 ? (
-        <p className="text-[13px] text-[#5c5c6b] text-center py-8">Sin predios cargados.</p>
+        <p className="text-[13px] text-[#7d7d8e] text-center py-8">Sin predios cargados.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {predios.map(p => (
@@ -646,7 +646,7 @@ function Predios({ predios, entidad, onCambio }: {
               <div className="flex items-start gap-2">
                 <div className="min-w-0 flex-1">
                   <p className="font-display font-semibold text-[14px] text-[#ececf1] truncate">{p.nombre}</p>
-                  <p className="text-[11.5px] text-[#757584] mt-0.5 truncate">
+                  <p className="text-[11.5px] text-[#7d7d8e] mt-0.5 truncate">
                     {[p.direccion, p.localidad, p.provincia].filter(Boolean).join(', ') || 'Sin dirección'}
                   </p>
                   <div className="flex flex-wrap gap-2 mt-2">
@@ -708,7 +708,7 @@ function Check({ label, v, on }: { label: string; v: boolean; on: (v: boolean) =
   return (
     <button type="button" onClick={() => on(!v)}
       className="inline-flex items-center gap-2 text-[12.5px] text-[#d4d4dd] min-h-[44px] sm:min-h-0">
-      {v ? <CheckCircle2 className="w-4 h-4 text-[#bef264]" /> : <Circle className="w-4 h-4 text-[#5c5c6b]" />}
+      {v ? <CheckCircle2 className="w-4 h-4 text-[#bef264]" /> : <Circle className="w-4 h-4 text-[#7d7d8e]" />}
       {label}
     </button>
   )

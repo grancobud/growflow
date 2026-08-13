@@ -39,7 +39,7 @@ export default function PinLock({ modo, onListo, onCancelar }: {
   return (
     <div className="fixed inset-0 z-[60] bg-[#0a0a0f] flex flex-col items-center justify-center p-6 font-sans">
       {onCancelar && (
-        <button onClick={onCancelar} className="absolute top-4 right-4 p-2 text-[#5c5c6b] hover:text-[#ececf1]" aria-label="Cancelar">
+        <button onClick={onCancelar} className="absolute top-4 right-4 p-2 text-[#7d7d8e] hover:text-[#ececf1]" aria-label="Cancelar">
           <X className="w-5 h-5" />
         </button>
       )}
@@ -74,7 +74,7 @@ export default function PinLock({ modo, onListo, onCancelar }: {
           0
         </button>
         <button onClick={() => { setError(false); setPin(p => p.slice(0, -1)) }}
-          className="w-[72px] h-[72px] rounded-full flex items-center justify-center text-[#757584] hover:text-[#ececf1] transition-colors"
+          className="w-[72px] h-[72px] rounded-full flex items-center justify-center text-[#7d7d8e] hover:text-[#ececf1] transition-colors"
           aria-label="Borrar">
           <Delete className="w-6 h-6" />
         </button>

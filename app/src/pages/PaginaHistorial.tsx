@@ -48,7 +48,7 @@ export default function PaginaHistorial() {
           <History className="w-4 h-4 text-[#a3e635] flex-shrink-0" strokeWidth={1.8} />
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Historial de Operaciones</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
               <span className="tabular-nums">{operaciones.length}</span> operaciones
               <span className="hidden sm:inline"><span className="text-[#30303e] mx-1">│</span>audit trail SHA-256</span>
             </div>
@@ -70,13 +70,13 @@ export default function PaginaHistorial() {
         <div className="flex flex-wrap gap-2">
           {/* Buscador */}
           <div className="flex-1 min-w-[180px] relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5c5c6b]" strokeWidth={1.8} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#7d7d8e]" strokeWidth={1.8} />
             <input
               type="text"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               placeholder="Buscar lote, responsable…"
-              className="w-full pl-9 pr-4 py-2 bg-[#101016] border border-[#1f1f2b] hover:border-[#2a2a3a] focus:border-[#404d20] rounded-lg text-[12px] text-[#d4d4dd] placeholder-[#5c5c6b] outline-none transition-colors"
+              className="w-full pl-9 pr-4 py-2 bg-[#101016] border border-[#1f1f2b] hover:border-[#2a2a3a] focus:border-[#404d20] rounded-lg text-[12px] text-[#d4d4dd] placeholder-[#7d7d8e] outline-none transition-colors"
             />
           </div>
 
@@ -92,7 +92,7 @@ export default function PaginaHistorial() {
                 <option key={key} value={key}>{label}</option>
               ))}
             </select>
-            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5c5c6b] pointer-events-none" />
+            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#7d7d8e] pointer-events-none" />
           </div>
 
           {/* Export */}
@@ -120,12 +120,12 @@ export default function PaginaHistorial() {
         ) : operacionesFiltradas.length === 0 ? (
           <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-10 text-center">
             <div className="mx-auto w-9 h-9 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-2">
-              <History className="w-4 h-4 text-[#5c5c6b]" strokeWidth={1.8} />
+              <History className="w-4 h-4 text-[#7d7d8e]" strokeWidth={1.8} />
             </div>
             <p className="font-display font-semibold text-[#d4d4dd] text-[13px]">
               {operaciones.length === 0 ? 'Sin operaciones aun' : 'Sin resultados'}
             </p>
-            <p className="mt-1 text-[11px] text-[#5c5c6b] max-w-xs mx-auto">
+            <p className="mt-1 text-[11px] text-[#7d7d8e] max-w-xs mx-auto">
               {operaciones.length === 0
                 ? 'Usa "Nueva Operacion" en el sidebar para registrar la primera'
                 : 'Intenta cambiar los filtros de busqueda'}
@@ -139,7 +139,7 @@ export default function PaginaHistorial() {
                 <thead>
                   <tr className="border-b border-[#1f1f2b]">
                     {['Operacion','Lote','Cantidad','Estado','Fecha','Operador'].map(h => (
-                      <th key={h} className="px-4 py-2.5 text-left text-[10px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium">{h}</th>
+                      <th key={h} className="px-4 py-2.5 text-left text-[10px] uppercase tracking-[0.12em] text-[#7d7d8e] font-medium">{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -173,7 +173,7 @@ export default function PaginaHistorial() {
                         <td className="px-4 py-3 text-[#8f8f9f] font-mono tabular-nums">
                           {new Date(op.fecha_operacion).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' })}
                           {' '}
-                          <span className="text-[#5c5c6b]">
+                          <span className="text-[#7d7d8e]">
                             {new Date(op.fecha_operacion).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </td>
@@ -211,13 +211,13 @@ export default function PaginaHistorial() {
                             {est.label}
                           </span>
                         </div>
-                        <p className="text-[10.5px] text-[#757584] font-mono tabular-nums mt-0.5">
+                        <p className="text-[10.5px] text-[#7d7d8e] font-mono tabular-nums mt-0.5">
                           {lote} · {cantidad}
                         </p>
                         {op.observaciones && (
-                          <p className="text-[10.5px] text-[#5c5c6b] mt-0.5 truncate">{op.observaciones}</p>
+                          <p className="text-[10.5px] text-[#7d7d8e] mt-0.5 truncate">{op.observaciones}</p>
                         )}
-                        <p className="text-[10px] text-[#5c5c6b] mt-1 font-mono tabular-nums">
+                        <p className="text-[10px] text-[#7d7d8e] mt-1 font-mono tabular-nums">
                           {new Date(op.fecha_operacion).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                           {op.perfiles_creador?.nombre_completo ? ` · ${op.perfiles_creador.nombre_completo}` : ''}
                         </p>
@@ -231,7 +231,7 @@ export default function PaginaHistorial() {
         )}
 
         {/* Footer */}
-        <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] px-4 py-2.5 text-[10px] text-[#5c5c6b] text-center">
+        <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] px-4 py-2.5 text-[10px] text-[#7d7d8e] text-center">
           Audit trail inmutable SHA-256 encadenado en todas las operaciones (RR-010, RR-011, RR-012)
         </div>
       </div>

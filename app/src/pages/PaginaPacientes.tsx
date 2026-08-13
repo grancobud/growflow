@@ -28,8 +28,8 @@ const COLOR_ESTADO: Record<EstadoReprocann, { text: string; bg: string; border: 
 
 // text-[16px] en celular: iOS Safari hace zoom sobre cualquier campo con letra
 // menor y deja el formulario descuadrado. En desktop vuelve al tamaño real.
-const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
-const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1'
 
 const fmtFecha = (f: string | null) =>
   f ? new Date(f + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'
@@ -39,7 +39,7 @@ function BadgeVencimiento({ p }: { p: Paciente }) {
   if (d == null) return null
   if (d < 0) return <span className="inline-flex items-center gap-1 text-[10px] text-[#ff8a7a]"><AlertTriangle className="w-3 h-3" />Vencida hace {Math.abs(d)}d</span>
   if (d <= 30) return <span className="inline-flex items-center gap-1 text-[10px] text-[#f59e0b]"><AlertTriangle className="w-3 h-3" />Vence en {d}d</span>
-  return <span className="inline-flex items-center gap-1 text-[10px] text-[#5c5c6b]"><ShieldCheck className="w-3 h-3" />Vence {fmtFecha(p.reprocann_vencimiento)}</span>
+  return <span className="inline-flex items-center gap-1 text-[10px] text-[#7d7d8e]"><ShieldCheck className="w-3 h-3" />Vence {fmtFecha(p.reprocann_vencimiento)}</span>
 }
 
 /**
@@ -87,13 +87,11 @@ export default function PaginaPacientes({ embebida = false }: { embebida?: boole
     return (p.nombre_completo.toLowerCase().includes(q) || (p.dni ?? '').toLowerCase().includes(q) || (p.reprocann_nro ?? '').toLowerCase().includes(q))
   })
 
-  const Marco = embebida
-    ? ({ children }: { children: React.ReactNode }) => <div className="space-y-4">{children}</div>
-    : ({ children }: { children: React.ReactNode }) =>
-        <div className="flex-1 overflow-y-auto bg-[#0a0a0f] text-[#d4d4dd] font-sans">{children}</div>
-
   return (
-    <Marco>
+    // Ojo: acá NO va un componente calculado en el render. Definirlo adentro hace
+    // que React lo trate como un tipo nuevo en cada pasada, remonte todo el
+    // subárbol y el buscador pierda el foco en cada tecla.
+    <div className={embebida ? 'space-y-4' : 'flex-1 overflow-y-auto bg-[#0a0a0f] text-[#d4d4dd] font-sans'}>
       <div className={embebida
         ? 'rounded-xl bg-[#101016] border border-[#1f1f2b] px-3 sm:px-4 py-3'
         : 'sticky top-0 z-40 bg-[#0a0a0f]/95 backdrop-blur-[2px] border-b border-[#1f1f2b]'}>
@@ -102,16 +100,16 @@ export default function PaginaPacientes({ embebida = false }: { embebida?: boole
             {!embebida && <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Registro</h1>}
             <div className={embebida
               ? 'text-[12.5px] text-[#a6a6b5]'
-              : 'mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]'}>
+              : 'mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]'}>
               {pacientes.length} paciente{pacientes.length === 1 ? '' : 's'} · REPROCANN
             </div>
           </div>
           <div className="flex-1" />
           <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5c5c6b]" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#7d7d8e]" />
             <input value={busqueda} onChange={e => setBusqueda(e.target.value)}
               placeholder="Buscar nombre / DNI / N°"
-              className="pl-8 pr-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 w-[180px] min-h-[44px] sm:min-h-0" />
+              className="pl-8 pr-3 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 w-[180px] min-h-[44px] sm:min-h-0" />
           </div>
           <select value={filtroEstado} onChange={e => setFiltroEstado(e.target.value as any)}
             className="px-2.5 py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[11.5px] text-[#a6a6b5] focus:outline-none focus:border-[#a3e635]/60 cursor-pointer min-h-[44px] sm:min-h-0">
@@ -137,12 +135,12 @@ export default function PaginaPacientes({ embebida = false }: { embebida?: boole
         ) : filtrados.length === 0 ? (
           <div className="py-16 text-center">
             <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3">
-              <IdCard className="w-5 h-5 text-[#5c5c6b]" />
+              <IdCard className="w-5 h-5 text-[#7d7d8e]" />
             </div>
             <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">
               {pacientes.length === 0 ? 'Sin pacientes cargados' : 'Sin resultados'}
             </div>
-            <div className="mt-1 text-[11.5px] text-[#5c5c6b]">
+            <div className="mt-1 text-[11.5px] text-[#7d7d8e]">
               {pacientes.length === 0 ? 'Agregá la primera ficha de paciente REPROCANN.' : 'Probá con otro filtro o búsqueda.'}
             </div>
           </div>
@@ -164,7 +162,7 @@ export default function PaginaPacientes({ embebida = false }: { embebida?: boole
                         <button onClick={() => setDetalle(p)}
                           className="font-display font-semibold text-[14px] text-[#ececf1] truncate hover:text-[#bef264] transition-colors text-left block max-w-full"
                           title="Ver ficha">{p.nombre_completo}</button>
-                        <p className="text-[11px] text-[#757584] truncate mt-0.5">
+                        <p className="text-[11px] text-[#7d7d8e] truncate mt-0.5">
                           {p.dni ? `DNI ${p.dni}` : 'Sin DNI'}{p.reprocann_nro ? ` · N° ${p.reprocann_nro}` : ''}
                         </p>
                       </div>
@@ -185,7 +183,7 @@ export default function PaginaPacientes({ embebida = false }: { embebida?: boole
                     <div className="mt-3 flex flex-wrap gap-1.5">
                       <button onClick={() => setDetalle(p)} className={btnSutil}><User className="w-3.5 h-3.5" /> Ver ficha</button>
                       <button onClick={() => { setEditar(p); setModalForm(true) }} className={btnSutil}><Pencil className="w-3.5 h-3.5" /> Editar</button>
-                      <button onClick={() => borrar(p)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#46464f] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors ml-auto" title="Borrar ficha">
+                      <button onClick={() => borrar(p)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#7d7d8e] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors ml-auto" title="Borrar ficha">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -206,7 +204,7 @@ export default function PaginaPacientes({ embebida = false }: { embebida?: boole
           onEditar={() => { setEditar(detalle); setDetalle(null); setModalForm(true) }}
           onBorrar={() => borrar(detalle)} />
       )}
-    </Marco>
+    </div>
   )
 }
 
@@ -219,7 +217,7 @@ function ResumenHabilitaciones({ pacientes }: { pacientes: Paciente[] }) {
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <div className="text-[10px] uppercase tracking-[0.14em] text-[#a78bfa] font-medium">Habilitación REPROCANN total</div>
-          <div className="text-[11px] text-[#5c5c6b] mt-0.5">Suma de lo habilitado a {conHabilitacion} de {pacientes.length} pacientes</div>
+          <div className="text-[11px] text-[#7d7d8e] mt-0.5">Suma de lo habilitado a {conHabilitacion} de {pacientes.length} pacientes</div>
         </div>
         <div className="flex items-center gap-6">
           <div className="text-center">
@@ -250,7 +248,7 @@ function Modal({ titulo, ancho = 'max-w-lg', onCerrar, children }: { titulo: str
       <div className={`relative w-full ${ancho} max-h-[90vh] overflow-y-auto rounded-xl bg-[#101016] border border-[#2a2a3a] shadow-2xl`}>
         <div className="sticky top-0 bg-[#101016] flex items-center justify-between px-5 py-3.5 border-b border-[#1f1f2b]">
           <h2 className="font-display font-semibold text-[14px] text-[#ececf1]">{titulo}</h2>
-          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1]" aria-label="Cerrar"><X className="w-4 h-4" /></button>
+          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#7d7d8e] hover:text-[#ececf1]" aria-label="Cerrar"><X className="w-4 h-4" /></button>
         </div>
         <div className="p-5">{children}</div>
       </div>
@@ -262,9 +260,9 @@ function Dato({ icono: Icono, label, valor }: { icono?: any; label: string; valo
   if (valor == null || valor === '' || valor === '—') return null
   return (
     <div className="flex items-start gap-2 py-1.5">
-      {Icono && <Icono className="w-3.5 h-3.5 text-[#5c5c6b] mt-0.5 flex-shrink-0" />}
+      {Icono && <Icono className="w-3.5 h-3.5 text-[#7d7d8e] mt-0.5 flex-shrink-0" />}
       <div className="min-w-0">
-        <div className="text-[9.5px] uppercase tracking-[0.14em] text-[#5c5c6b]">{label}</div>
+        <div className="text-[9.5px] uppercase tracking-[0.14em] text-[#7d7d8e]">{label}</div>
         <div className="text-[12.5px] text-[#d4d4dd] break-words">{valor}</div>
       </div>
     </div>
@@ -296,7 +294,7 @@ function ModalDetalle({ paciente: p, onCerrar, onEditar, onBorrar }: {
         <span className="px-2 py-0.5 rounded-full border text-[10.5px] font-medium"
           style={{ color: ce.text, background: ce.bg, borderColor: ce.border }}>{p.reprocann_estado}</span>
         {p.socio && <span className="px-2 py-0.5 rounded-full border border-[#463a66] bg-[#8b5cf6]/12 text-[10.5px] text-[#c4b5fd]">Socio</span>}
-        {p.modalidad && <span className="text-[11px] text-[#757584]">{p.modalidad}</span>}
+        {p.modalidad && <span className="text-[11px] text-[#7d7d8e]">{p.modalidad}</span>}
         <div className="flex-1" />
         <BadgeVencimiento p={p} />
       </div>
@@ -320,12 +318,12 @@ function ModalDetalle({ paciente: p, onCerrar, onEditar, onBorrar }: {
 
       {/* Credencial PDF */}
       <div className="mt-4 pt-4 border-t border-[#1f1f2b]">
-        <div className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] mb-2">Credencial REPROCANN</div>
+        <div className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] mb-2">Credencial REPROCANN</div>
         {p.credencial_url ? (
           cred === 'error' ? (
             <p className="text-[11.5px] text-[#f0a5a5]">No se pudo abrir la credencial. Recargá la página o volvé a subir el archivo.</p>
           ) : !cred ? (
-            <p className="text-[11.5px] text-[#5c5c6b]">Abriendo la credencial…</p>
+            <p className="text-[11.5px] text-[#7d7d8e]">Abriendo la credencial…</p>
           ) : (
             <div>
               <div className="rounded-lg overflow-hidden border border-[#2a2a3a] bg-[#15151d]">
@@ -337,15 +335,15 @@ function ModalDetalle({ paciente: p, onCerrar, onEditar, onBorrar }: {
             </div>
           )
         ) : (
-          <p className="text-[11.5px] text-[#5c5c6b]">Sin credencial cargada. Editá la ficha para subir el PDF.</p>
+          <p className="text-[11.5px] text-[#7d7d8e]">Sin credencial cargada. Editá la ficha para subir el PDF.</p>
         )}
       </div>
 
       {/* Plantas asignadas */}
       <div className="mt-4 pt-4 border-t border-[#1f1f2b]">
-        <div className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] mb-2">Plantas en cultivo para este paciente ({plantasPac.length})</div>
+        <div className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] mb-2">Plantas en cultivo para este paciente ({plantasPac.length})</div>
         {plantasPac.length === 0 ? (
-          <p className="text-[11.5px] text-[#5c5c6b]">Todavía no hay plantas asignadas. Asigná el paciente desde la planta (Plantas → ver ficha).</p>
+          <p className="text-[11.5px] text-[#7d7d8e]">Todavía no hay plantas asignadas. Asigná el paciente desde la planta (Plantas → ver ficha).</p>
         ) : (
           <ul className="space-y-1.5">
             {plantasPac.map(pl => (
@@ -353,9 +351,9 @@ function ModalDetalle({ paciente: p, onCerrar, onEditar, onBorrar }: {
                 <Sprout className="w-3.5 h-3.5 text-[#bef264] flex-shrink-0" />
                 <div className="min-w-0 flex-1">
                   <span className="text-[12px] text-[#ececf1]">{pl.nombre}</span>
-                  {pl.codigo && <span className="ml-2 font-mono text-[10px] text-[#5c5c6b]">{pl.codigo}</span>}
+                  {pl.codigo && <span className="ml-2 font-mono text-[10px] text-[#7d7d8e]">{pl.codigo}</span>}
                 </div>
-                <span className="text-[10px] text-[#757584]">{pl.fase}</span>
+                <span className="text-[10px] text-[#7d7d8e]">{pl.fase}</span>
                 {pl.codigo && <Link to={`/p/${pl.codigo}`} className="text-[10.5px] text-[#bef264] hover:underline flex-shrink-0">Historia</Link>}
               </li>
             ))}

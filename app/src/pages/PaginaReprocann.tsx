@@ -150,7 +150,7 @@ export default function PaginaReprocann() {
           <Shield className="w-4 h-4 text-[#a3e635] flex-shrink-0" strokeWidth={1.8} />
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">REPROCANN — Reporte Semestral</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
               Res. ANMAT 1780/2025
               <span className="hidden sm:inline"><span className="text-[#30303e] mx-1">│</span>Decreto 27/2026</span>
             </div>
@@ -165,24 +165,24 @@ export default function PaginaReprocann() {
         <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4">
           <div className="flex flex-wrap items-end gap-3">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1.5">Año</p>
+              <p className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1.5">Año</p>
               <div className="relative">
                 <select value={anio} onChange={e => setAnio(parseInt(e.target.value))}
                   className="appearance-none pl-3 pr-8 py-2 bg-[#15151d] border border-[#1f1f2b] hover:border-[#2a2a3a] rounded-lg text-[12px] text-[#d4d4dd] outline-none cursor-pointer">
                   {[2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
                 </select>
-                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5c5c6b] pointer-events-none" />
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#7d7d8e] pointer-events-none" />
               </div>
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1.5">Semestre</p>
+              <p className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1.5">Semestre</p>
               <div className="relative">
                 <select value={semestre} onChange={e => setSemestre(parseInt(e.target.value) as 1|2)}
                   className="appearance-none pl-3 pr-8 py-2 bg-[#15151d] border border-[#1f1f2b] hover:border-[#2a2a3a] rounded-lg text-[12px] text-[#d4d4dd] outline-none cursor-pointer">
                   <option value={1}>S1 (Ene-Jun)</option>
                   <option value={2}>S2 (Jul-Dic)</option>
                 </select>
-                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5c5c6b] pointer-events-none" />
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#7d7d8e] pointer-events-none" />
               </div>
             </div>
             <button onClick={generar} disabled={cargando}
@@ -247,7 +247,7 @@ export default function PaginaReprocann() {
                   { label: 'Telefono', value: org.telefono },
                 ].map(({ label, value, warn }) => (
                   <div key={label} className="rounded-lg bg-[#15151d] border border-[#1f1f2b] p-2.5">
-                    <p className="text-[9px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium">{label}</p>
+                    <p className="text-[9px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium">{label}</p>
                     <p className={`text-[12px] mt-0.5 ${warn ? 'text-[#c4b5fd] font-semibold' : 'text-[#d4d4dd]'}`}>
                       {value || (warn ? 'PENDIENTE CONFIGURAR' : '—')}
                     </p>
@@ -266,7 +266,7 @@ export default function PaginaReprocann() {
             <div className="flex items-center gap-2">
               <Paperclip className="w-3.5 h-3.5 text-[#bef264]" strokeWidth={1.8} />
               <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">
-                Documentos adjuntos <span className="text-[#5c5c6b] tabular-nums">({adjuntos.length})</span>
+                Documentos adjuntos <span className="text-[#7d7d8e] tabular-nums">({adjuntos.length})</span>
               </h3>
             </div>
             <label className="cursor-pointer flex items-center gap-1.5 px-3 py-1.5 bg-[#a3e635]/15 hover:bg-[#a3e635]/25 border border-[#404d20] text-[#d9f99d] rounded-lg text-[11px] font-medium transition-colors">
@@ -276,24 +276,24 @@ export default function PaginaReprocann() {
                 accept="image/*,.pdf,.doc,.docx,.xlsx,.xls,.zip" />
             </label>
           </div>
-          <p className="text-[10px] text-[#5c5c6b] mb-2">Imagenes, PDFs, Excel, Word, ZIP. Signed URLs 1h.</p>
+          <p className="text-[10px] text-[#7d7d8e] mb-2">Imagenes, PDFs, Excel, Word, ZIP. Signed URLs 1h.</p>
           {adjuntos.length === 0 ? (
-            <p className="text-[11.5px] text-[#5c5c6b] text-center py-4">Sin archivos todavia</p>
+            <p className="text-[11.5px] text-[#7d7d8e] text-center py-4">Sin archivos todavia</p>
           ) : (
             <ul className="divide-y divide-[#1f1f2b]">
               {adjuntos.map(a => (
                 <li key={a.name} className="flex items-center gap-3 py-2 text-[11.5px]">
-                  <Paperclip className="w-3 h-3 text-[#5c5c6b] flex-shrink-0" />
+                  <Paperclip className="w-3 h-3 text-[#7d7d8e] flex-shrink-0" />
                   <a href={a.url} target="_blank" rel="noopener noreferrer"
                     className="font-mono text-[#bef264] hover:text-[#d9f99d] truncate flex-1">
                     {a.name.replace(/^\d+_/, '')}
                   </a>
-                  <span className="text-[#5c5c6b] tabular-nums">{(a.size / 1024).toFixed(1)} KB</span>
-                  <span className="text-[#5c5c6b] hidden sm:block tabular-nums">
+                  <span className="text-[#7d7d8e] tabular-nums">{(a.size / 1024).toFixed(1)} KB</span>
+                  <span className="text-[#7d7d8e] hidden sm:block tabular-nums">
                     {a.created_at ? new Date(a.created_at).toLocaleDateString('es-AR') : ''}
                   </span>
                   <button onClick={() => eliminarAdjunto(a.name)}
-                    className="text-[#5c5c6b] hover:text-[#ff8a7a] flex-shrink-0">
+                    className="text-[#7d7d8e] hover:text-[#ff8a7a] flex-shrink-0">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </li>
@@ -328,14 +328,14 @@ export default function PaginaReprocann() {
                 return (
                   <li key={h.id} className="flex items-center justify-between gap-3 px-4 py-2.5 text-[11.5px] hover:bg-[#15151d] transition-colors">
                     <span className="font-mono tabular-nums text-[#a6a6b5]">{h.periodo_anio}-S{h.periodo_semestre}</span>
-                    <span className="text-[#5c5c6b] tabular-nums hidden sm:block">
+                    <span className="text-[#7d7d8e] tabular-nums hidden sm:block">
                       {new Date(h.fecha_generacion).toLocaleString('es-AR')}
                     </span>
                     <span className="px-2 py-0.5 rounded-full text-[10.5px] font-medium border"
                       style={{ color: b.color, background: b.bg, borderColor: b.border }}>
                       {h.estado}
                     </span>
-                    <span className="text-[#5c5c6b] font-mono">{h.numero_presentacion || '—'}</span>
+                    <span className="text-[#7d7d8e] font-mono">{h.numero_presentacion || '—'}</span>
                   </li>
                 )
               })}
@@ -484,10 +484,10 @@ function FormOrg({ org, onCancel, onGuardar, guardando }: { org: any; onCancel: 
   const [f, setF] = useState(org)
   const input = (k: string, label: string, placeholder?: string) => (
     <label key={k} className="block">
-      <span className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1 block">{label}</span>
+      <span className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1 block">{label}</span>
       <input type="text" value={f[k] || ''} onChange={e => setF({...f, [k]: e.target.value})}
         placeholder={placeholder}
-        className="w-full px-3 py-2 bg-[#15151d] border border-[#1f1f2b] hover:border-[#2a2a3a] focus:border-[#404d20] rounded-lg text-[12px] text-[#d4d4dd] placeholder-[#5c5c6b] outline-none transition-colors" />
+        className="w-full px-3 py-2 bg-[#15151d] border border-[#1f1f2b] hover:border-[#2a2a3a] focus:border-[#404d20] rounded-lg text-[12px] text-[#d4d4dd] placeholder-[#7d7d8e] outline-none transition-colors" />
     </label>
   )
   return (

@@ -78,11 +78,11 @@ export default function FichasTab({ onClonar }: { onClonar?: (p: Perfil, nombre:
         <div className="flex items-center gap-2 flex-wrap">
           <FileText className="w-4 h-4 text-[#a78bfa] flex-shrink-0" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[16px] text-[#ececf1]">Fichas técnicas</h3>
-          <span className="text-[13.5px] text-[#5c5c6b]">
+          <span className="text-[13.5px] text-[#7d7d8e]">
             {fichas.length} producto{fichas.length === 1 ? '' : 's'} comercial{fichas.length === 1 ? '' : 'es'}
           </span>
           <div className="relative ml-auto flex-1 sm:flex-none sm:w-56 min-w-[140px]">
-            <Search className="w-3.5 h-3.5 text-[#5c5c6b] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" strokeWidth={1.8} />
+            <Search className="w-3.5 h-3.5 text-[#7d7d8e] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" strokeWidth={1.8} />
             <input value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar marca, producto, sal…"
               className={`${inp} pl-8`} />
           </div>
@@ -91,7 +91,7 @@ export default function FichasTab({ onClonar }: { onClonar?: (p: Perfil, nombre:
             <Plus className="w-4 h-4" strokeWidth={2} /> Nueva ficha
           </button>
         </div>
-        <p className="text-[13.5px] text-[#5c5c6b] mt-2 leading-relaxed">
+        <p className="text-[13.5px] text-[#7d7d8e] mt-2 leading-relaxed">
           Subí el PDF o la foto de la etiqueta de cada fertilizante que tengas. Guardá lo que declara y de qué
           sales sale, y después clonás la marca sabiendo el origen de cada elemento.
         </p>
@@ -99,7 +99,7 @@ export default function FichasTab({ onClonar }: { onClonar?: (p: Perfil, nombre:
 
       {cargando ? (
         <div className={`${card} p-10 text-center`}>
-          <Loader2 className="w-5 h-5 text-[#5c5c6b] animate-spin mx-auto" />
+          <Loader2 className="w-5 h-5 text-[#7d7d8e] animate-spin mx-auto" />
         </div>
       ) : porMarca.length === 0 ? (
         <div className={`${card} p-10 text-center`}>
@@ -112,7 +112,7 @@ export default function FichasTab({ onClonar }: { onClonar?: (p: Perfil, nombre:
         <div key={marca} className="space-y-2">
           <div className="flex items-baseline gap-2 px-0.5">
             <h4 className="font-display font-semibold text-[15px] text-[#d4d4dd]">{marca}</h4>
-            <span className="text-[13px] text-[#5c5c6b]">{items.length} producto{items.length === 1 ? '' : 's'}</span>
+            <span className="text-[13px] text-[#7d7d8e]">{items.length} producto{items.length === 1 ? '' : 's'}</span>
           </div>
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {items.map(f => (
@@ -156,7 +156,7 @@ function TarjetaFicha({ f, onEditar, onBorrar, onClonar }: {
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <h5 className="font-display font-semibold text-[15px] text-[#ececf1] leading-tight">{f.producto}</h5>
-          <p className="text-[13px] text-[#5c5c6b] mt-0.5">
+          <p className="text-[13px] text-[#7d7d8e] mt-0.5">
             {[f.linea, f.forma === 'liquido' ? `líquido · ${f.densidad ?? 1} g/mL` : 'polvo'].filter(Boolean).join(' · ')}
           </p>
         </div>
@@ -177,7 +177,7 @@ function TarjetaFicha({ f, onEditar, onBorrar, onClonar }: {
             <AlertTriangle className="w-3 h-3" strokeWidth={2} /> La etiqueta no cierra
           </span>
         )}
-        <span className="text-[12.5px] text-[#5c5c6b] font-mono tabular-nums">{total}% declarado</span>
+        <span className="text-[12.5px] text-[#7d7d8e] font-mono tabular-nums">{total}% declarado</span>
       </div>
 
       {/* Composición: lo que dice el envase, en % */}
@@ -185,7 +185,7 @@ function TarjetaFicha({ f, onEditar, onBorrar, onClonar }: {
         <div className="flex flex-wrap gap-1">
           {ELEMENTOS.filter(e => (f.composicion[e.key] ?? 0) > 0).map(e => (
             <span key={e.key} className="text-[12.5px] font-mono tabular-nums px-1.5 py-0.5 rounded bg-[#15151d] border border-[#1f1f2b] text-[#a6a6b5]">
-              <span className="text-[#5c5c6b]">{e.key}</span> {f.composicion[e.key]}
+              <span className="text-[#7d7d8e]">{e.key}</span> {f.composicion[e.key]}
             </span>
           ))}
         </div>
@@ -193,7 +193,7 @@ function TarjetaFicha({ f, onEditar, onBorrar, onClonar }: {
 
       {f.sales_origen.length > 0 && (
         <div>
-          <p className="text-[12px] uppercase tracking-[0.1em] text-[#5c5c6b] mb-1">Sale de</p>
+          <p className="text-[12px] uppercase tracking-[0.1em] text-[#7d7d8e] mb-1">Sale de</p>
           <p className="text-[13.5px] text-[#a6a6b5] leading-relaxed">{f.sales_origen.join(' · ')}</p>
         </div>
       )}
@@ -205,10 +205,10 @@ function TarjetaFicha({ f, onEditar, onBorrar, onClonar }: {
           <button onClick={verPdf} disabled={abriendo}
             className="flex items-center gap-1.5 text-[13.5px] px-2.5 py-2 min-h-[38px] rounded-md bg-[#15151d] border border-[#1f1f2b] text-[#a6a6b5] hover:text-[#c4b5fd] hover:border-[#463a66] transition-colors disabled:opacity-50">
             {abriendo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ExternalLink className="w-3.5 h-3.5" strokeWidth={1.8} />}
-            Ver ficha <span className="text-[#5c5c6b]">{pesoLegible(f.pdf_tam)}</span>
+            Ver ficha <span className="text-[#7d7d8e]">{pesoLegible(f.pdf_tam)}</span>
           </button>
         ) : (
-          <span className="text-[13px] text-[#3a3a4a] px-1">Sin archivo adjunto</span>
+          <span className="text-[13px] text-[#7d7d8e] px-1">Sin archivo adjunto</span>
         )}
         {onClonar && Object.keys(f.composicion).length > 0 && (
           <button onClick={() => onClonar(perfilDesdeFicha(f, dosisRef), `${f.marca} ${f.producto}`)}
@@ -218,11 +218,11 @@ function TarjetaFicha({ f, onEditar, onBorrar, onClonar }: {
           </button>
         )}
         <button onClick={onEditar} aria-label={`Editar ${f.producto}`}
-          className="ml-auto p-2 min-h-[38px] min-w-[38px] flex items-center justify-center rounded-md text-[#5c5c6b] hover:text-[#d9f99d] hover:bg-[#a3e635]/10 transition-colors">
+          className="ml-auto p-2 min-h-[38px] min-w-[38px] flex items-center justify-center rounded-md text-[#7d7d8e] hover:text-[#d9f99d] hover:bg-[#a3e635]/10 transition-colors">
           <Pencil className="w-3.5 h-3.5" strokeWidth={1.8} />
         </button>
         <button onClick={onBorrar} aria-label={`Borrar ${f.producto}`}
-          className="p-2 min-h-[38px] min-w-[38px] flex items-center justify-center rounded-md text-[#3a3a4a] hover:text-[#ff8a7a] hover:bg-[#ff8a7a]/10 transition-colors">
+          className="p-2 min-h-[38px] min-w-[38px] flex items-center justify-center rounded-md text-[#7d7d8e] hover:text-[#ff8a7a] hover:bg-[#ff8a7a]/10 transition-colors">
           <Trash2 className="w-3.5 h-3.5" strokeWidth={1.8} />
         </button>
       </div>
@@ -298,7 +298,7 @@ function ModalFicha({ inicial, onCerrar, onGuardado }: {
             {inicial ? `${inicial.marca} · ${inicial.producto}` : 'Nueva ficha técnica'}
           </h3>
           <button onClick={onCerrar} aria-label="Cerrar"
-            className="ml-auto p-2 rounded-md text-[#5c5c6b] hover:text-[#ececf1] hover:bg-[#1f1f2b] transition-colors">
+            className="ml-auto p-2 rounded-md text-[#7d7d8e] hover:text-[#ececf1] hover:bg-[#1f1f2b] transition-colors">
             <X className="w-4 h-4" strokeWidth={2} />
           </button>
         </div>
@@ -333,8 +333,8 @@ function ModalFicha({ inicial, onCerrar, onGuardado }: {
 
           <div>
             <div className="flex items-baseline gap-2 mb-2">
-              <p className="text-[12.5px] uppercase tracking-[0.12em] text-[#5c5c6b] font-medium">Composición</p>
-              <span className="text-[13px] text-[#3a3a4a]">en % p/p, como lo dice la etiqueta</span>
+              <p className="text-[12.5px] uppercase tracking-[0.12em] text-[#7d7d8e] font-medium">Composición</p>
+              <span className="text-[13px] text-[#7d7d8e]">en % p/p, como lo dice la etiqueta</span>
               <span className="ml-auto text-[13.5px] font-mono tabular-nums text-[#a3e635]/70">
                 {Object.values(f.composicion).reduce((a, b) => a + (b || 0), 0).toFixed(3)}%
               </span>
@@ -352,11 +352,11 @@ function ModalFicha({ inicial, onCerrar, onGuardado }: {
             </div>
           </div>
 
-          <label className="block"><span className={lbl}>Sale de estas sales <span className="text-[#3a3a4a]">— separadas por coma</span></span>
+          <label className="block"><span className={lbl}>Sale de estas sales <span className="text-[#7d7d8e]">— separadas por coma</span></span>
             <input value={salesTexto} onChange={e => setSalesTexto(e.target.value)}
               placeholder="Nitrato de calcio, Sulfato de potasio, MKP" className={inp} /></label>
 
-          <label className="block"><span className={lbl}>Nota <span className="text-[#3a3a4a]">— qué encontraste al analizarla</span></span>
+          <label className="block"><span className={lbl}>Nota <span className="text-[#7d7d8e]">— qué encontraste al analizarla</span></span>
             <textarea value={f.nota ?? ''} onChange={e => set('nota', e.target.value)} rows={3}
               placeholder="Ej: la etiqueta dice fosfato de calcio pero el azufre no cierra; sólo da con yeso."
               className={`${inp} font-sans resize-y`} /></label>
@@ -365,11 +365,11 @@ function ModalFicha({ inicial, onCerrar, onGuardado }: {
             <input type="checkbox" checked={f.verificado} onChange={e => set('verificado', e.target.checked)}
               className="w-4 h-4 accent-[#a3e635]" />
             <span className="text-[14px] text-[#d4d4dd]">La estequiometría cierra</span>
-            <span className="text-[13px] text-[#5c5c6b]">— las sales declaradas dan los porcentajes declarados</span>
+            <span className="text-[13px] text-[#7d7d8e]">— las sales declaradas dan los porcentajes declarados</span>
           </label>
 
           <div>
-            <p className={lbl}>Ficha / etiqueta <span className="text-[#3a3a4a]">— PDF o foto, hasta {PDF_MAX_MB} MB</span></p>
+            <p className={lbl}>Ficha / etiqueta <span className="text-[#7d7d8e]">— PDF o foto, hasta {PDF_MAX_MB} MB</span></p>
             <div className="flex items-center gap-2 flex-wrap">
               <button onClick={() => fileRef.current?.click()}
                 className="flex items-center gap-1.5 px-3 py-2 min-h-[42px] rounded-md text-[14px] bg-[#15151d] border border-[#1f1f2b] text-[#a6a6b5] hover:text-[#c4b5fd] hover:border-[#463a66] transition-colors">

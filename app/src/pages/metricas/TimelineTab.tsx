@@ -36,7 +36,7 @@ export default function TimelineTab({ timeline }: { timeline: any[] }) {
           <Activity className="w-3.5 h-3.5 text-[#bef264] flex-shrink-0" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[13px] text-[#ececf1] truncate">Cronología de eventos</h3>
         </div>
-        <span className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium tabular-nums">
+        <span className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium tabular-nums">
           {timeline.length} {timeline.length === 1 ? 'evento' : 'eventos'}
         </span>
       </div>
@@ -102,7 +102,7 @@ export default function TimelineTab({ timeline }: { timeline: any[] }) {
                     )}
                     {t.peso && (
                       <span>
-                        Peso: <span className="font-mono tabular-nums text-[#c4b5fd]">{t.peso}</span><span className="text-[#5c5c6b]"> kg</span>
+                        Peso: <span className="font-mono tabular-nums text-[#c4b5fd]">{t.peso}</span><span className="text-[#7d7d8e]"> kg</span>
                       </span>
                     )}
                   </div>

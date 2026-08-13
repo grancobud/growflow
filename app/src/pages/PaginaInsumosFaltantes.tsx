@@ -15,8 +15,8 @@ import { procesarImagen, thumbDesdeDataUrl } from '../lib/imagen'
 import { btnPrimario } from '../lib/ui'
 
 // text-[16px] en mobile: evita el zoom automático de iOS Safari al enfocar un input.
-const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#5c5c6b] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
-const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] font-medium mb-1'
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1'
 
 const UNIDADES = ['kg', 'g', 'L', 'mL', 'u'] as const
 
@@ -192,16 +192,16 @@ export default function PaginaInsumosFaltantes() {
         <div className="flex items-center gap-2 sm:gap-4 px-3 sm:px-6 py-3">
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Insumos faltantes</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
               {pendientes} pendiente{pendientes !== 1 ? 's' : ''}
-              {totalComprado > 0 && <span className="text-[#5c5c6b]"> · comprado ${totalComprado.toLocaleString('es-AR')}</span>}
+              {totalComprado > 0 && <span className="text-[#7d7d8e]"> · comprado ${totalComprado.toLocaleString('es-AR')}</span>}
             </div>
           </div>
           <div className="flex-1" />
           <div className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-[#404d20] bg-[#a3e635]/10 px-2 sm:px-3 py-1.5 min-w-0" title="Presupuesto de lo que falta comprar (precio × cantidad)">
             <Wallet className="w-4 h-4 text-[#bef264] flex-shrink-0" />
             <div className="leading-none text-right min-w-0">
-              <div className="text-[8.5px] uppercase tracking-[0.14em] text-[#5c5c6b]">Presupuesto</div>
+              <div className="text-[8.5px] uppercase tracking-[0.14em] text-[#7d7d8e]">Presupuesto</div>
               <div className="text-[13px] sm:text-[15px] font-display font-bold text-[#d9f99d] tabular-nums mt-0.5 truncate">${totalPendiente.toLocaleString('es-AR')}</div>
             </div>
           </div>
@@ -277,7 +277,7 @@ export default function PaginaInsumosFaltantes() {
                   <input type="file" accept="image/*" onChange={onImagen} className="hidden" />
                 </label>
                 {preview && <img src={preview} alt="" className="w-9 h-9 rounded object-cover border border-[#1f1f2b]" />}
-                {preview && <button type="button" onClick={() => { setFoto(null); setPreview('') }} className="text-[10.5px] text-[#5c5c6b] hover:text-[#ff8a7a] underline">quitar</button>}
+                {preview && <button type="button" onClick={() => { setFoto(null); setPreview('') }} className="text-[10.5px] text-[#7d7d8e] hover:text-[#ff8a7a] underline">quitar</button>}
               </div>
             </div>
           </div>
@@ -314,7 +314,7 @@ export default function PaginaInsumosFaltantes() {
                         <div className="h-full rounded-full bg-gradient-to-r from-[#4d7c0f] to-[#a3e635]" style={{ width: `${pct}%` }} />
                       </div>
                       {(f.cantidad != null && f.precio != null) && (
-                        <div className="text-[9.5px] text-[#5c5c6b] mt-0.5 tabular-nums">
+                        <div className="text-[9.5px] text-[#7d7d8e] mt-0.5 tabular-nums">
                           {f.cantidad.toLocaleString('es-AR')} {f.unidad ?? ''} × ${f.precio.toLocaleString('es-AR')}
                         </div>
                       )}
@@ -331,9 +331,9 @@ export default function PaginaInsumosFaltantes() {
           <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-14 bg-[#101016] border border-[#1f1f2b] rounded-xl animate-pulse" />)}</div>
         ) : ordenados.length === 0 ? (
           <div className="py-16 text-center">
-            <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><PackageX className="w-5 h-5 text-[#5c5c6b]" /></div>
+            <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><PackageX className="w-5 h-5 text-[#7d7d8e]" /></div>
             <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">Sin insumos faltantes</div>
-            <div className="mt-1 text-[11.5px] text-[#5c5c6b]">Cargá lo que necesites reponer y te queda la lista de compras.</div>
+            <div className="mt-1 text-[11.5px] text-[#7d7d8e]">Cargá lo que necesites reponer y te queda la lista de compras.</div>
           </div>
         ) : (
           <ul className="space-y-2">
@@ -357,7 +357,7 @@ export default function PaginaInsumosFaltantes() {
                   <div className="min-w-0 flex-1">
                     {/* Línea 1: nombre + prioridad */}
                     <div className="flex items-center gap-2 min-w-0">
-                      <button onClick={() => setDetalle(f)} className={`text-[13px] font-semibold truncate text-left min-w-0 hover:text-[#bef264] transition-colors ${f.comprado ? 'line-through text-[#5c5c6b]' : 'text-[#ececf1]'}`} title="Ver ficha">{f.nombre}</button>
+                      <button onClick={() => setDetalle(f)} className={`text-[13px] font-semibold truncate text-left min-w-0 hover:text-[#bef264] transition-colors ${f.comprado ? 'line-through text-[#7d7d8e]' : 'text-[#ececf1]'}`} title="Ver ficha">{f.nombre}</button>
                       <span className="text-[9px] font-semibold tracking-wide rounded px-1.5 py-0.5 border flex-shrink-0" style={{ color: cp.text, background: cp.bg, borderColor: cp.border }}>{cp.label}</span>
                     </div>
                     {/* Línea 2 (RESALTADA): cantidad · precio · link */}
@@ -388,10 +388,10 @@ export default function PaginaInsumosFaltantes() {
                     )}
                   </div>
                   <div className="flex flex-col gap-1 flex-shrink-0">
-                    <button onClick={() => editar(f)} className="p-2 sm:p-1.5 text-[#5c5c6b] hover:text-[#bef264] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar" aria-label="Editar">
+                    <button onClick={() => editar(f)} className="p-2 sm:p-1.5 text-[#7d7d8e] hover:text-[#bef264] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar" aria-label="Editar">
                       <Pencil className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                     </button>
-                    <button onClick={() => borrar(f)} className="p-2 sm:p-1.5 text-[#46464f] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Quitar" aria-label="Quitar">
+                    <button onClick={() => borrar(f)} className="p-2 sm:p-1.5 text-[#7d7d8e] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Quitar" aria-label="Quitar">
                       <Trash2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                     </button>
                   </div>
@@ -410,7 +410,7 @@ export default function PaginaInsumosFaltantes() {
           <div className="ct-page-scroll relative w-full max-w-lg max-h-[90vh] max-h-[90dvh] overflow-y-auto overscroll-contain rounded-xl bg-[#101016] border border-[#2a2a3a] shadow-2xl">
             <div className="sticky top-0 bg-[#101016] flex items-center justify-between px-5 py-3.5 border-b border-[#1f1f2b]">
               <h2 className="font-display font-semibold text-[14px] text-[#ececf1] truncate pr-2">{detalle.nombre}</h2>
-              <button onClick={() => setDetalle(null)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#5c5c6b] hover:text-[#ececf1] flex-shrink-0" aria-label="Cerrar"><XIcon className="w-4 h-4" /></button>
+              <button onClick={() => setDetalle(null)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#7d7d8e] hover:text-[#ececf1] flex-shrink-0" aria-label="Cerrar"><XIcon className="w-4 h-4" /></button>
             </div>
             <div className="p-5 space-y-4">
               {/* Mientras baja la foto grande mostramos la miniatura borrosa. */}
@@ -438,7 +438,7 @@ export default function PaginaInsumosFaltantes() {
               )}
               {detalle.nota && (
                 <div>
-                  <div className="text-[10px] uppercase tracking-[0.14em] text-[#5c5c6b] mb-1">Descripción / ficha</div>
+                  <div className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] mb-1">Descripción / ficha</div>
                   <p className="text-[12px] text-[#c9c9d4] leading-relaxed whitespace-pre-wrap break-words">{detalle.nota}</p>
                 </div>
               )}

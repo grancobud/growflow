@@ -118,7 +118,7 @@ export default function PaginaSOPs() {
           <FileText className="w-4 h-4 text-[#a3e635] flex-shrink-0" strokeWidth={1.8} />
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">SOPs Versionados</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#5c5c6b]">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
               <span className="tabular-nums">{sops.length}</span> documentos en <span className="tabular-nums">{grupos.length}</span> SOPs
               <span className="hidden sm:inline"><span className="text-[#30303e] mx-1">│</span> Standard Operating Procedures · GAMP5 Cat5</span>
             </div>
@@ -147,7 +147,7 @@ export default function PaginaSOPs() {
               <div className="rounded-xl bg-[#101016] border border-[#404d20] p-5 space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-[13px] font-display font-bold text-[#ececf1]">Nuevo SOP / version</h3>
-                  <button onClick={() => setNuevoOpen(false)} className="p-1 text-[#5c5c6b] hover:text-[#d4d4dd] rounded" aria-label="Cerrar">
+                  <button onClick={() => setNuevoOpen(false)} className="p-1 text-[#7d7d8e] hover:text-[#d4d4dd] rounded" aria-label="Cerrar">
                     <X className="w-4 h-4" />
                   </button>
                 </div>
@@ -171,7 +171,7 @@ export default function PaginaSOPs() {
                   onChange={(e) => setNuevo({ ...nuevo, contenido_md: e.target.value })}
                   placeholder="Contenido en Markdown (opcional)"
                   rows={4}
-                  className="w-full px-3 py-2 bg-[#0a0a0f] border border-[#1f1f2b] focus:border-[#404d20] rounded-md text-[12px] text-[#ececf1] placeholder:text-[#5c5c6b] font-mono outline-none transition-colors resize-none"
+                  className="w-full px-3 py-2 bg-[#0a0a0f] border border-[#1f1f2b] focus:border-[#404d20] rounded-md text-[12px] text-[#ececf1] placeholder:text-[#7d7d8e] font-mono outline-none transition-colors resize-none"
                 />
                 <div className="flex gap-2">
                   <button
@@ -235,9 +235,9 @@ export default function PaginaSOPs() {
                     <h3 className="font-display font-bold text-[13px] text-[#ececf1] flex items-center gap-2">
                       <span className="font-mono">{codigo}</span>
                     </h3>
-                    <p className="text-[11.5px] text-[#5c5c6b] truncate">{versiones[0].titulo}</p>
+                    <p className="text-[11.5px] text-[#7d7d8e] truncate">{versiones[0].titulo}</p>
                   </div>
-                  <span className="text-[10.5px] text-[#5c5c6b] tabular-nums flex-shrink-0">
+                  <span className="text-[10.5px] text-[#7d7d8e] tabular-nums flex-shrink-0">
                     {versiones.length} {versiones.length === 1 ? 'version' : 'versiones'}
                   </span>
                   <button
@@ -268,11 +268,11 @@ export default function PaginaSOPs() {
                         <option value="obsoleto">OBSOLETO</option>
                       </select>
                       {v.fecha_vigencia && (
-                        <span className="text-[#5c5c6b] tabular-nums">
+                        <span className="text-[#7d7d8e] tabular-nums">
                           Vigente desde {v.fecha_vigencia}
                         </span>
                       )}
-                      <span className="text-[#5c5c6b] tabular-nums ml-auto">
+                      <span className="text-[#7d7d8e] tabular-nums ml-auto">
                         {new Date(v.creado_en).toLocaleDateString('es-AR')}
                       </span>
                       {v.archivo_url ? (
@@ -314,7 +314,7 @@ function SOPInput({ value, onChange, placeholder }: { value: string; onChange: (
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full px-3 py-2 bg-[#0a0a0f] border border-[#1f1f2b] focus:border-[#404d20] rounded-md text-[12.5px] text-[#ececf1] placeholder:text-[#5c5c6b] outline-none transition-colors"
+      className="w-full px-3 py-2 bg-[#0a0a0f] border border-[#1f1f2b] focus:border-[#404d20] rounded-md text-[12.5px] text-[#ececf1] placeholder:text-[#7d7d8e] outline-none transition-colors"
     />
   )
 }
