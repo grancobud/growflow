@@ -13,6 +13,7 @@
 import { Suspense, type ComponentType } from 'react'
 import { NavLink, useLocation, Navigate } from 'react-router-dom'
 import { Loader2, type LucideIcon } from 'lucide-react'
+import { useDesbordeHorizontal } from '../../lib/useDesbordeHorizontal'
 
 export interface Seccion {
   ruta: string
@@ -27,6 +28,9 @@ export function PestanasSeccion({ secciones, etiqueta }: {
   etiqueta: string
 }) {
   const { pathname } = useLocation()
+  // Antes del return condicional de abajo: un hook no puede quedar detrás de un
+  // early return.
+  const { refWrapper, refScroller } = useDesbordeHorizontal<HTMLDivElement, HTMLElement>(secciones.length)
   const actual = secciones.find(s => pathname.startsWith(s.ruta))
 
   // La ruta contenedora (/cultivo, /instalacion) cae en la primera vista.
@@ -35,20 +39,22 @@ export function PestanasSeccion({ secciones, etiqueta }: {
 
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-[#0a0a0f]">
-      <nav aria-label={etiqueta}
-        className="flex-shrink-0 flex gap-1 px-2 sm:px-4 border-b border-[#1f1f2b] bg-[#0a0a0f] overflow-x-auto">
-        {secciones.map(({ ruta, label, icono: Ic }) => (
-          <NavLink key={ruta} to={ruta}
-            className={({ isActive }) =>
-              `flex items-center gap-1.5 whitespace-nowrap px-3 py-3 min-h-[44px] text-[12.5px] font-medium border-b-2 -mb-px transition-colors ${
-                isActive
-                  ? 'border-[#a3e635] text-[#d9f99d]'
-                  : 'border-transparent text-[#8f8f9f] hover:text-[#d4d4dd]'}`}>
-            <Ic className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={1.8} />
-            {label}
-          </NavLink>
-        ))}
-      </nav>
+      <div ref={refWrapper} className="ct-tabs-fade flex-shrink-0 border-b border-[#1f1f2b] bg-[#0a0a0f]">
+        <nav aria-label={etiqueta} ref={refScroller}
+          className="scrollbar-none flex gap-1 px-2 sm:px-4 overflow-x-auto">
+          {secciones.map(({ ruta, label, icono: Ic }) => (
+            <NavLink key={ruta} to={ruta}
+              className={({ isActive }) =>
+                `flex items-center gap-1.5 whitespace-nowrap px-3 py-3 min-h-[44px] text-[12.5px] font-medium border-b-2 -mb-px transition-colors ${
+                  isActive
+                    ? 'border-[#a3e635] text-[#d9f99d]'
+                    : 'border-transparent text-[#8f8f9f] hover:text-[#d4d4dd]'}`}>
+              <Ic className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={1.8} />
+              {label}
+            </NavLink>
+          ))}
+        </nav>
+      </div>
 
       <Suspense fallback={
         <div className="flex-1 flex items-center justify-center">

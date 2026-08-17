@@ -260,3 +260,35 @@ body {
 .ct-page-scroll::-webkit-scrollbar-track { background: transparent; }
 .ct-page-scroll::-webkit-scrollbar-thumb { background: #1f1f2b; border-radius: 3px; }
 .ct-page-scroll::-webkit-scrollbar-thumb:hover { background: #404d20; }
+
+/*
+ * Barras de pestañas: scroll sin barra a la vista.
+ *
+ * Tres archivos ya usaban la clase `scrollbar-none` dando por hecho que Tailwind
+ * la traía. No la trae: no hacía nada y la barra gris del navegador quedaba
+ * ocupando 15 px debajo de las pestañas. Definirla acá arregla de una todas las
+ * que ya la declaran.
+ */
+.scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
+.scrollbar-none::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
+/*
+ * Sin barra visible no queda ninguna señal de que hay más pestañas al costado.
+ * El degradado la reemplaza: se apaga solo cuando no hay nada más para ver, así
+ * que además informa mejor que la barra, que estaba siempre aunque no hiciera falta.
+ *
+ * El degradado va en un WRAPPER que no scrollea, no en el scroller mismo. Un
+ * absolute con right:0 adentro de un overflow-x:auto se ancla al final del
+ * contenido, no al borde visible: con las pestañas de la ONG eso lo dejaba a
+ * 415 px, fuera de cuadro.
+ */
+.ct-tabs-fade { position: relative; }
+.ct-tabs-fade::before,
+.ct-tabs-fade::after {
+  content: ''; position: absolute; top: 0; bottom: 0; width: 28px;
+  pointer-events: none; opacity: 0; transition: opacity .18s ease; z-index: 2;
+}
+.ct-tabs-fade::before { left: 0; background: linear-gradient(90deg, #0a0a0f, transparent); }
+.ct-tabs-fade::after { right: 0; background: linear-gradient(270deg, #0a0a0f, transparent); }
+.ct-tabs-fade[data-hay-izq='1']::before,
+.ct-tabs-fade[data-hay-der='1']::after { opacity: 1; }

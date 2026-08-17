@@ -33,6 +33,7 @@ import { Documentos } from '../components/ong/Documentos'
 import { Declaraciones } from '../components/ong/Declaraciones'
 import { Seguimiento } from '../components/ong/Seguimiento'
 import { Portal } from '../components/ong/Portal'
+import { BarraPestanas } from '../components/layout/BarraPestanas'
 // El registro de pacientes vive acá: el cupo, las dispensas y los documentos
 // cuelgan de el, y tenerlo en otro item del menu obligaba a saltar de pantalla.
 import PaginaPacientes from './PaginaPacientes'
@@ -179,15 +180,7 @@ export default function PaginaONG() {
             </div>
           </div>
         </div>
-        <div className="flex gap-1 items-stretch px-1 overflow-x-auto">
-          {TABS.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)}
-              className={`px-3 py-2.5 sm:py-2 min-h-[44px] sm:min-h-0 text-[13.5px] font-medium border-b-2 transition-colors shrink-0 whitespace-nowrap ${
-                tab === t.id ? 'border-[#a3e635] text-[#d9f99d]' : 'border-transparent text-[#8f8f9f] hover:text-[#d4d4dd]'}`}>
-              {t.label}
-            </button>
-          ))}
-        </div>
+        <BarraPestanas pestanas={TABS} activa={tab} onCambio={setTab} />
       </div>
 
       <div className="px-3 sm:px-6 py-4 pb-20 space-y-4">
