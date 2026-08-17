@@ -18,9 +18,10 @@ import {
 import {
   ongService, resumenDocumentos, BUCKET_DOCS,
   SUBTIPOS_EMITIDO, SUBTIPOS_GASTO, CATEGORIAS_GASTO,
-  type DocumentoONG, type Asociado, type Dispensa,
+  type DocumentoONG, type Asociado, type Dispensa, type Entidad,
 } from '../../lib/ong'
 import { urlFirmada } from '../../lib/archivos'
+import { PlantillasInstitucionales, type VariedadFicha } from './PlantillasInstitucionales'
 import type { Paciente } from '../../lib/registro'
 import { btnPrimario, btnSutil } from '../../lib/ui'
 
@@ -29,9 +30,15 @@ const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] f
 const card = 'rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4'
 const fmtPesos = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
 
-export function Documentos({ documentos, asociados, pacientes, dispensas, onCambio }: {
+export function Documentos({ documentos, asociados, pacientes, dispensas, entidad = null, autoridades = [], variedades = [], actas = [], onCambio }: {
   documentos: DocumentoONG[]; asociados: Asociado[]; pacientes: Paciente[]
-  dispensas: Dispensa[]; onCambio: () => void
+  dispensas: Dispensa[]
+  /** Lo que necesitan las plantillas institucionales para completarse solas. */
+  entidad?: Entidad | null
+  autoridades?: { nombre: string; cargo: string; activo?: boolean }[]
+  variedades?: VariedadFicha[]
+  actas?: { numero: number; fecha: string; tipo: string }[]
+  onCambio: () => void
 }) {
   const [vista, setVista] = useState<'emitido' | 'gasto'>('emitido')
   const [form, setForm] = useState<Partial<DocumentoONG> | null>(null)
@@ -81,6 +88,8 @@ export function Documentos({ documentos, asociados, pacientes, dispensas, onCamb
           ))}
         </div>
       </div>
+
+      <PlantillasInstitucionales {...{ entidad, asociados, pacientes, autoridades, variedades, actas }} />
 
       {/* Reparto del gasto por rubro: el cruce contra Econometría */}
       {vista === 'gasto' && r.porCategoria.length > 0 && (

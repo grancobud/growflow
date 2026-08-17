@@ -127,14 +127,14 @@ export default function Sidebar({ colapsado: colapsadoProp }: { colapsado?: bool
             </div>
             <button
               onClick={togglePin}
-              className={`p-1.5 rounded-lg transition-colors flex-shrink-0 hover:bg-[#15151d] ${hayPin ? 'text-[#bef264]' : 'text-[#7d7d8e] hover:text-[#a6a6b5]'}`}
+              className={`min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1.5 rounded-lg transition-colors flex-shrink-0 hover:bg-[#15151d] ${hayPin ? 'text-[#bef264]' : 'text-[#7d7d8e] hover:text-[#a6a6b5]'}`}
               title={hayPin ? 'PIN activo (tocá para desactivar)' : 'Configurar PIN de desbloqueo'}
             >
               <KeyRound className="w-4 h-4" />
             </button>
             <button
               onClick={logout}
-              className="p-1.5 text-[#7d7d8e] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors flex-shrink-0"
+              className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1.5 text-[#7d7d8e] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors flex-shrink-0"
               title="Cerrar sesión"
             >
               <LogOut className="w-4 h-4" />

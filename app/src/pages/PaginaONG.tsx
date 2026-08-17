@@ -205,7 +205,9 @@ export default function PaginaONG() {
         ) : tab === 'dispensas' ? (
           <Dispensas {...{ dispensas, pacientes, asociados, geneticas, costoPorGramo, gramosCosechados, entidad, feedbacks }} onCambio={cargar} />
         ) : tab === 'seguimiento' ? (
-          <Seguimiento {...{ dispensas, feedbacks, pacientes, caja }} onCambio={cargar} />
+          <Seguimiento {...{ dispensas, feedbacks, pacientes, caja, entidad }}
+            directorMedico={requisitos.find(r => r.clave === 'director_medico')?.responsable ?? null}
+            onCambio={cargar} />
         ) : tab === 'declaraciones' ? (
           <Declaraciones {...{ ddjj, traslados, pacientes, entidad }} onCambio={cargar}
             cultivo={{
@@ -215,7 +217,8 @@ export default function PaginaONG() {
               variedades: [...new Set(plantas.filter(x => x.activa !== false && x.genetica).map(x => x.genetica!))],
             }} />
         ) : tab === 'documentos' ? (
-          <Documentos {...{ documentos, asociados, pacientes, dispensas }} onCambio={cargar} />
+          <Documentos {...{ documentos, asociados, pacientes, dispensas, entidad, autoridades, actas }}
+            variedades={geneticas} onCambio={cargar} />
         ) : tab === 'libros' ? (
           <Libros libros={libros} onCambio={cargar} />
         ) : tab === 'actas' ? (

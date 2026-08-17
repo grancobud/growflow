@@ -12,25 +12,31 @@
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import {
-  Stethoscope, BookOpenCheck, Plus, Trash2, AlertTriangle, Lock, Wand2,
+  Stethoscope, BookOpenCheck, Plus, Trash2, AlertTriangle, Lock, Wand2, FileText, Activity,
 } from 'lucide-react'
 import {
   ongService, feedbackPendiente, EFECTOS_ADVERSOS, ESCALA_ALIVIO, CONCEPTOS_CAJA,
-  type Dispensa, type FeedbackClinico, type AsientoCaja,
+  semestreActual, finDeSemestre, semestreDe,
+  type Dispensa, type FeedbackClinico, type AsientoCaja, type Entidad,
 } from '../../lib/ong'
 import type { Paciente } from '../../lib/registro'
 import { btnPrimario, btnSutil } from '../../lib/ui'
+import { armarInforme, tendencia, redactarInformeSemestral, MINIMO_PARA_TENDENCIA } from '../../lib/informeMedico'
+import { VisorDocumento } from './ActaParaLibro'
 
 const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1'
 const card = 'rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4'
 const fmtPesos = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
 
-export function Seguimiento({ dispensas, feedbacks, pacientes, caja, onCambio }: {
+export function Seguimiento({ dispensas, feedbacks, pacientes, caja, entidad = null, directorMedico = null, onCambio }: {
   dispensas: Dispensa[]
   feedbacks: FeedbackClinico[]
   pacientes: Paciente[]
   caja: AsientoCaja[]
+  entidad?: Entidad | null
+  /** Quién firma el informe: sale del requisito 'director_medico'. */
+  directorMedico?: string | null
   onCambio: () => void
 }) {
   const [form, setForm] = useState<{ dispensa: Dispensa } | null>(null)
@@ -82,6 +88,8 @@ export function Seguimiento({ dispensas, feedbacks, pacientes, caja, onCambio }:
 
   return (
     <div className="space-y-4">
+      <PanelMedico {...{ pacientes, dispensas, feedbacks, entidad, directorMedico }} />
+
       {/* ------------------ Seguimiento terapéutico ------------------ */}
       <div className={card}>
         <div className="flex items-center gap-2 flex-wrap">
@@ -405,5 +413,134 @@ function ModalAsiento({ form, setForm, onCambio }: {
         <input className={inputCls} value={form.detalle ?? ''}
           onChange={e => setForm({ ...form, detalle: e.target.value })} /></label>
     </Modal>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Panel del Director Médico (CU-07)
+//
+// Correlaciona lo que vivía en tres lugares separados: el diagnóstico, los lotes
+// entregados y lo que el paciente reportó. Esa correlación ES el informe
+// semestral que le exigen al director médico.
+//
+// La app reúne y ordena la evidencia; el dictamen clínico lo pone el
+// profesional. Por eso el informe sale con el apartado de dictamen en blanco.
+// ---------------------------------------------------------------------------
+
+function PanelMedico({ pacientes, dispensas, feedbacks, entidad, directorMedico }: {
+  pacientes: Paciente[]; dispensas: Dispensa[]; feedbacks: FeedbackClinico[]
+  entidad: Entidad | null; directorMedico: string | null
+}) {
+  const [periodo, setPeriodo] = useState(semestreActual())
+  const [verInforme, setVerInforme] = useState(false)
+  const inf = useMemo(
+    () => armarInforme(periodo, pacientes, dispensas, feedbacks),
+    [periodo, pacientes, dispensas, feedbacks])
+
+  // Los semestres que tienen movimiento, para no ofrecer períodos vacíos.
+  const periodos = useMemo(() => {
+    const ps = new Set(dispensas.filter(d => d.fecha).map(d => semestreDe(d.fecha)))
+    ps.add(semestreActual())
+    return [...ps].sort().reverse()
+  }, [dispensas])
+
+  if (!dispensas.length) return null
+
+  const doc = redactarInformeSemestral(inf, entidad?.razon_social ?? null, directorMedico)
+
+  return (
+    <div className={card}>
+      <div className="flex items-center gap-2 flex-wrap">
+        <Activity className="w-4 h-4 text-[#f472b6]" strokeWidth={1.8} />
+        <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Panel del Director Médico</h3>
+        <select value={periodo} onChange={e => setPeriodo(e.target.value)}
+          className="px-2 py-1.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12px] text-[#ececf1] min-h-[44px] sm:min-h-0">
+          {periodos.map(p => <option key={p} value={p}>{p}</option>)}
+        </select>
+        <button onClick={() => setVerInforme(true)} className={`${btnPrimario} ml-auto`}
+          disabled={inf.pacientes.length === 0}>
+          <FileText className="w-3.5 h-3.5" /> Informe semestral
+        </button>
+      </div>
+      <p className="text-[11.5px] text-[#7d7d8e] mt-2">
+        Cruza el diagnóstico de cada paciente con los lotes que recibió y lo que reportó. Es el informe
+        que la autoridad sanitaria le exige al director médico cada seis meses. Cierra el {finDeSemestre(periodo)}.
+      </p>
+
+      {inf.pacientes.length === 0 ? (
+        <p className="text-[12px] text-[#7d7d8e] text-center py-5">Sin entregas en este período.</p>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3 pt-3 border-t border-[#1f1f2b]">
+            <Kpi t="Pacientes" v={String(inf.pacientes.length)} />
+            <Kpi t="Entregas" v={`${inf.totalEntregas} · ${Math.round(inf.totalGramos)} g`} />
+            <Kpi t="Cobertura" v={inf.cobertura != null ? `${inf.cobertura.toFixed(0)}%` : '—'}
+              c={inf.cobertura == null ? undefined : inf.cobertura >= 90 ? '#bef264' : '#facc15'} />
+            <Kpi t="Alivio promedio" v={inf.alivioPromedio != null ? `${inf.alivioPromedio.toFixed(1)}/5` : '—'}
+              c={inf.alivioPromedio == null ? undefined : inf.alivioPromedio >= 3.5 ? '#bef264' : '#facc15'} />
+          </div>
+
+          <div className="mt-3 space-y-2">
+            {inf.pacientes.map(s => {
+              const t = tendencia(s.curvaAlivio)
+              return (
+                <div key={s.paciente.id} className="rounded-lg bg-[#15151d] border border-[#1f1f2b] px-3 py-2.5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[12.5px] text-[#ececf1]">{s.paciente.nombre_completo}</span>
+                    {s.paciente.patologia && (
+                      <span className="text-[10.5px] px-1.5 py-0.5 rounded bg-[#1f1f2b] text-[#a6a6b5]">
+                        {s.paciente.patologia}
+                      </span>
+                    )}
+                    {t && (
+                      <span className="text-[10.5px] px-1.5 py-0.5 rounded font-medium"
+                        style={t === 'mejora' ? { background: 'rgba(163,230,53,0.14)', color: '#bef264' }
+                          : t === 'empeora' ? { background: 'rgba(122,40,32,0.2)', color: '#ff8a7a' }
+                          : { background: '#1f1f2b', color: '#a6a6b5' }}>
+                        {t === 'mejora' ? 'En mejoría' : t === 'empeora' ? 'En desmejora' : 'Estable'}
+                      </span>
+                    )}
+                    <span className="ml-auto text-[11px] text-[#7d7d8e] tabular-nums flex-shrink-0">
+                      {s.entregas.length} entrega{s.entregas.length === 1 ? '' : 's'} · {Math.round(s.gramosTotales)} g
+                    </span>
+                  </div>
+
+                  {/* La curva: cada punto es un reporte, en el orden de las entregas */}
+                  {s.curvaAlivio.length > 0 && (
+                    <div className="flex items-end gap-1 h-8 mt-2">
+                      {s.curvaAlivio.map((v, i) => (
+                        <div key={i} className="w-2.5 rounded-t-[3px]" title={`Reporte ${i + 1}: ${v}/5`}
+                          style={{ height: `${(v / 5) * 100}%`, background: v >= 4 ? '#bef264' : v >= 3 ? '#a3e635' : '#facc15' }} />
+                      ))}
+                      <span className="text-[10px] text-[#7d7d8e] ml-1.5 tabular-nums self-center">
+                        {s.curvaAlivio.join(' → ')}
+                        {!s.tendenciaConfiable && ` · faltan ${MINIMO_PARA_TENDENCIA - s.curvaAlivio.length} para leer tendencia`}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-[10.5px] text-[#7d7d8e]">
+                    {s.efectos.length > 0
+                      ? <span className="text-[#fbbf24]">{s.efectos.map(e => `${e.efecto} ×${e.veces}`).join(', ')}</span>
+                      : s.reportes.length > 0 && <span>Sin efectos adversos</span>}
+                    {s.lotes.length > 0 && <span>Lotes: {s.lotes.join(', ')}</span>}
+                    {s.sinReporte > 0 && (
+                      <span className="text-[#ff8a7a]">{s.sinReporte} entrega{s.sinReporte === 1 ? '' : 's'} sin reporte</span>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </>
+      )}
+
+      {verInforme && (
+        <VisorDocumento titulo={`Informe semestral ${periodo}`} texto={doc.texto} faltantes={doc.faltantes}
+          nota={'La app reúne y ordena la evidencia; el dictamen clínico lo pone el profesional. Por eso el ' +
+            'apartado del dictamen sale en blanco para completar y firmar.'}
+          onCerrar={() => setVerInforme(false)} />
+      )}
+    </div>
   )
 }
