@@ -581,8 +581,16 @@ export interface Dispensa {
   modalidad?: string | null
   entregado_por?: string | null
   con_receta?: boolean
+  /** Numeración correlativa del recibo por reembolso de costos. */
+  recibo_numero?: number | null
+  medio_pago?: string | null
+  pago_referencia?: string | null
+  /** Lote del que salió el material, para la trazabilidad del comprobante. */
+  lote_codigo?: string | null
   notas?: string | null
 }
+
+export const MEDIOS_PAGO = ['Efectivo', 'Transferencia', 'Billetera virtual', 'Otro'] as const
 
 export const PRODUCTOS_DISPENSA = ['flor', 'extracto', 'aceite', 'otro'] as const
 
@@ -595,7 +603,16 @@ export const PRODUCTOS_DISPENSA = ['flor', 'extracto', 'aceite', 'otro'] as cons
 export interface AvisoDispensa { nivel: 'error' | 'alerta'; texto: string }
 
 export function revisarDispensa(
-  d: Dispensa, opts: { pacienteVinculado?: boolean; costoPorGramo?: number | null },
+  d: Dispensa,
+  opts: {
+    pacienteVinculado?: boolean
+    costoPorGramo?: number | null
+    /** Para la ventana móvil de 30 días: todas las dispensas y el tope de la persona. */
+    todas?: Dispensa[]
+    topeMensualG?: number | null
+    /** Mandato de Gestión Operativa firmado por el asociado (RN-03). */
+    mandatoAceptado?: boolean
+  },
 ): AvisoDispensa[] {
   const av: AvisoDispensa[] = []
   if (opts.pacienteVinculado === false) {
@@ -607,6 +624,27 @@ export function revisarDispensa(
   if (d.gramos > TOPE_TRASLADO_INDIVIDUAL_G && !d.con_receta) {
     av.push({ nivel: 'alerta', texto: `${d.gramos} g en un solo traslado supera los ${TOPE_TRASLADO_INDIVIDUAL_G} g. Si la necesidad medicinal lo justifica, respaldalo con receta o entregalo en más de una vez.` })
   }
+  // Ventana móvil de 30 días: el tope se mide sobre el acumulado, no sobre la
+  // entrega. Cinco entregas de 35 g en tres semanas pasan una por una y juntas
+  // se van al doble del tope.
+  if (opts.todas && d.paciente_id && opts.topeMensualG) {
+    const c = cupoMovil30Dias(opts.todas, d.paciente_id, d.fecha, opts.topeMensualG, d.id)
+    if (c.excede) {
+      av.push({ nivel: 'error', texto:
+        `Con esta entrega el acumulado de 30 días llega a ${Math.round(c.conNueva)} g y el tope de la persona es ${c.tope} g. ` +
+        `Entre el ${c.desde} y el ${c.hasta} ya se le entregaron ${Math.round(c.acumulado)} g.` })
+    } else if (c.remanente != null && c.remanente < (c.tope ?? 0) * 0.15) {
+      av.push({ nivel: 'alerta', texto:
+        `Le quedan ${Math.round(c.remanente)} g disponibles en la ventana de 30 días.` })
+    }
+  }
+
+  // Sin mandato firmado, la entrega no tiene con qué sostener que no es una venta.
+  if (opts.mandatoAceptado === false) {
+    av.push({ nivel: 'error', texto:
+      'El asociado no tiene firmado el Mandato de Gestión Operativa. Sin él, la entrega no tiene respaldo para sostener que es un reembolso de costos y no una compraventa.' })
+  }
+
   if (opts.costoPorGramo != null && opts.costoPorGramo > 0 && d.aporte != null && d.gramos > 0) {
     const porGramo = d.aporte / d.gramos
     if (porGramo > opts.costoPorGramo * 1.05) {
@@ -918,6 +956,51 @@ export function topeTransporteG(pacientes: number, gramosPorPaciente = 40): numb
   return pacientes * gramosPorPaciente
 }
 
+/**
+ * Ventana móvil de 30 días (SRS v3.2, RN-02).
+ *
+ * El tope no se mide por entrega sino por lo acumulado en los últimos 30 días
+ * CORRIDOS. Validar sólo la entrega individual deja pasar el caso real: cinco
+ * entregas de 35 g en tres semanas pasan una por una y en conjunto son 175 g.
+ *
+ * Los 30 días se cuentan hacia atrás desde la fecha de la entrega que se está
+ * evaluando, no desde hoy: así una dispensa vieja se sigue validando contra su
+ * propio período y no contra el mes en curso.
+ */
+export interface CupoMovil {
+  /** Gramos ya entregados en la ventana, sin contar la que se evalúa. */
+  acumulado: number
+  /** Con la entrega que se evalúa incluida. */
+  conNueva: number
+  tope: number | null
+  excede: boolean
+  /** Cuánto queda disponible en la ventana. Null si no hay tope cargado. */
+  remanente: number | null
+  desde: string
+  hasta: string
+}
+
+export function cupoMovil30Dias(
+  dispensas: Dispensa[], pacienteId: string, hasta: string,
+  topeMensualG: number | null, excluirId?: string,
+): CupoMovil {
+  const fin = new Date(hasta + 'T00:00:00')
+  const ini = new Date(fin); ini.setDate(ini.getDate() - 30)
+  const iso = (d: Date) => d.toISOString().slice(0, 10)
+  const enVentana = dispensas.filter(d =>
+    d.paciente_id === pacienteId && d.id !== excluirId &&
+    d.fecha >= iso(ini) && d.fecha <= hasta)
+  const acumulado = enVentana.reduce((sum, d) => sum + (Number(d.gramos) || 0), 0)
+  const nueva = dispensas.find(d => d.id === excluirId)
+  const conNueva = acumulado + (Number(nueva?.gramos) || 0)
+  return {
+    acumulado, conNueva, tope: topeMensualG,
+    excede: topeMensualG != null && conNueva > topeMensualG,
+    remanente: topeMensualG != null ? Math.max(0, topeMensualG - conNueva) : null,
+    desde: iso(ini), hasta,
+  }
+}
+
 /** Tope de un traslado individual, independiente de la necesidad total. */
 export const TOPE_TRASLADO_INDIVIDUAL_G = 40
 
@@ -1059,6 +1142,16 @@ export interface Acta {
   hora_inicio?: string | null
   hora_fin?: string | null
   asistentes?: number | null
+  /**
+   * Quiénes asistieron. El libro de Asistencia a reuniones necesita los nombres,
+   * no el total: sin ellos el quórum no se puede demostrar. Va como lista de
+   * texto y no como referencia a asociados porque a una reunión pueden entrar
+   * personas que no lo son (contador, escribano, invitados), y porque el acta es
+   * un documento cerrado: lo asentado queda aunque después alguien se dé de baja.
+   */
+  asistentes_nombres?: string[]
+  /** Mínimo que pide el estatuto para sesionar, para poder contrastarlo. */
+  quorum_requerido?: number | null
   quorum_ok?: boolean
   segunda_convocatoria?: boolean
   orden_del_dia?: PuntoOrdenDia[]
@@ -1072,6 +1165,11 @@ export interface Acta {
 export interface Asociado {
   id: string
   nombre: string
+  /** Mandato de Gestión Operativa Especial firmado (SRS v3.2, RN-03). */
+  mandato_aceptado?: boolean
+  mandato_fecha?: string | null
+  /** Legajo interno, que las plantillas de documentos referencian. */
+  legajo?: string | null
   dni?: string | null
   categoria?: string | null
   paciente_id?: string | null

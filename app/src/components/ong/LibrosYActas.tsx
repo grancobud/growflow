@@ -7,9 +7,10 @@ import { BookMarked, Plus, Pencil, Trash2, FileText, AlertTriangle, Check } from
 import {
   ongService, TIPOS_LIBRO, TIPOS_ACTA, ESTADOS_ACTA, ocupacionLibro,
   UMBRAL_RUBRICA_NUEVA, revisarCorrelatividad,
-  type Libro, type Acta,
+  type Libro, type Acta, type Entidad,
 } from '../../lib/ong'
 import { btnPrimario, btnSutil } from '../../lib/ui'
+import { Asistentes, VisorActa } from './ActaParaLibro'
 
 const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1'
@@ -143,8 +144,21 @@ export function Libros({ libros, onCambio }: { libros: Libro[]; onCambio: () => 
   )
 }
 
-export function Actas({ actas, libros, onCambio }: { actas: Acta[]; libros: Libro[]; onCambio: () => void }) {
+export function Actas({ actas, libros, asociados = [], autoridades = [], entidad = null, onCambio }: {
+  actas: Acta[]; libros: Libro[]
+  /** Para elegir los asistentes de una lista en vez de tipearlos. */
+  asociados?: { nombre: string; activo?: boolean }[]
+  autoridades?: { nombre: string; activo?: boolean }[]
+  entidad?: Entidad | null
+  onCambio: () => void
+}) {
   const [form, setForm] = useState<Partial<Acta> | null>(null)
+  const [verTexto, setVerTexto] = useState<Acta | null>(null)
+  // Las autoridades primero: son las que hacen quórum en la Comisión Directiva.
+  const candidatos = [
+    ...autoridades.filter(a => a.activo !== false).map(a => a.nombre),
+    ...asociados.filter(a => a.activo !== false).map(a => a.nombre),
+  ].filter((n, i, xs) => n && xs.indexOf(n) === i)
   const problemas = revisarCorrelatividad(actas)
 
   const nuevo = async (tipo: string) => {
@@ -232,6 +246,10 @@ export function Actas({ actas, libros, onCambio }: { actas: Acta[]; libros: Libr
                   )}
                 </div>
                 <div className="flex gap-1 flex-shrink-0">
+                  <button onClick={() => setVerTexto(a)} className={btnSutil}
+                    aria-label="Ver el acta redactada para el libro" title="Ver el acta para el libro">
+                    <FileText className="w-3.5 h-3.5" />
+                  </button>
                   <button onClick={() => setForm(a)} className={btnSutil} aria-label="Editar"><Pencil className="w-3.5 h-3.5" /></button>
                   <button onClick={() => borrar(a)} className={btnSutil} aria-label="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
@@ -240,6 +258,8 @@ export function Actas({ actas, libros, onCambio }: { actas: Acta[]; libros: Libr
           ))}
         </div>
       )}
+
+      {verTexto && <VisorActa acta={verTexto} entidad={entidad} onCerrar={() => setVerTexto(null)} />}
 
       {form && (
         <Modal titulo={form.id ? `Editar acta Nº ${form.numero}` : `Nueva acta · ${nombreActa(form.tipo ?? '')}`} onCerrar={() => setForm(null)}>
@@ -253,8 +273,9 @@ export function Actas({ actas, libros, onCambio }: { actas: Acta[]; libros: Libr
                 <input className={inputCls} value={form.hora_inicio ?? ''} onChange={e => setForm({ ...form, hora_inicio: e.target.value })} placeholder="19:00" /></label>
               <label><span className={labelCls}>Hora fin</span>
                 <input className={inputCls} value={form.hora_fin ?? ''} onChange={e => setForm({ ...form, hora_fin: e.target.value })} placeholder="20:30" /></label>
-              <label><span className={labelCls}>Asistentes</span>
-                <input type="number" className={inputCls} value={form.asistentes ?? ''} onChange={e => setForm({ ...form, asistentes: e.target.value === '' ? null : +e.target.value })} /></label>
+              <label><span className={labelCls}>Quórum requerido</span>
+                <input type="number" className={inputCls} value={form.quorum_requerido ?? ''}
+                  onChange={e => setForm({ ...form, quorum_requerido: e.target.value === '' ? null : +e.target.value })} /></label>
               <label><span className={labelCls}>Estado</span>
                 <select className={inputCls} value={form.estado ?? 'borrador'} onChange={e => setForm({ ...form, estado: e.target.value })}>
                   {ESTADOS_ACTA.map(s => <option key={s} value={s}>{s}</option>)}
@@ -273,6 +294,10 @@ export function Actas({ actas, libros, onCambio }: { actas: Acta[]; libros: Libr
               <Toggle label="Hubo quórum" v={form.quorum_ok !== false} on={v => setForm({ ...form, quorum_ok: v })} />
               <Toggle label="2ª convocatoria" v={!!form.segunda_convocatoria} on={v => setForm({ ...form, segunda_convocatoria: v })} />
             </div>
+            <Asistentes nombres={form.asistentes_nombres ?? []} candidatos={candidatos}
+              requerido={form.quorum_requerido ?? null}
+              onChange={n => setForm({ ...form, asistentes_nombres: n, asistentes: n.length })} />
+
             <OrdenDelDia puntos={form.orden_del_dia ?? []} onChange={p => setForm({ ...form, orden_del_dia: p })} />
             <button onClick={guardar} className={`${btnPrimario} w-full justify-center`}>Guardar acta</button>
           </div>

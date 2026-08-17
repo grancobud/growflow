@@ -196,9 +196,9 @@ export default function PaginaONG() {
         ) : tab === 'cupo' ? (
           <CupoReprocann pacientes={pacientes} plantas={plantas} onCambio={cargar} />
         ) : tab === 'dispensas' ? (
-          <Dispensas {...{ dispensas, pacientes, asociados, geneticas, costoPorGramo, gramosCosechados }} onCambio={cargar} />
+          <Dispensas {...{ dispensas, pacientes, asociados, geneticas, costoPorGramo, gramosCosechados, entidad }} onCambio={cargar} />
         ) : tab === 'declaraciones' ? (
-          <Declaraciones {...{ ddjj, traslados, pacientes }} onCambio={cargar}
+          <Declaraciones {...{ ddjj, traslados, pacientes, entidad }} onCambio={cargar}
             cultivo={{
               plantasTotal: plantas.filter(x => x.activa !== false).length,
               plantasFloracion: nPlantas,
@@ -210,7 +210,7 @@ export default function PaginaONG() {
         ) : tab === 'libros' ? (
           <Libros libros={libros} onCambio={cargar} />
         ) : tab === 'actas' ? (
-          <Actas actas={actas} libros={libros} onCambio={cargar} />
+          <Actas {...{ actas, libros, asociados, autoridades, entidad }} onCambio={cargar} />
         ) : tab === 'asociados' ? (
           <Asociados {...{ asociados, categorias, cuotas, actas, pacientes, cuotasEmitidas }} onCambio={cargar} />
         ) : tab === 'entidad' ? (

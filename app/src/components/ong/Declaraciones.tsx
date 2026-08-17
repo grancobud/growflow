@@ -8,29 +8,36 @@
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import {
-  FileSpreadsheet, Truck, Plus, Pencil, Trash2, Check, AlertTriangle, Wand2,
+  FileSpreadsheet, Truck, Plus, Pencil, Trash2, Check, AlertTriangle, Wand2, FileText,
 } from 'lucide-react'
 import {
   ongService, semestreActual, finDeSemestre, revisarTraslado, TOPES_TRASLADO,
-  type DDJJ, type Traslado,
+  type DDJJ, type Traslado, type Entidad,
 } from '../../lib/ong'
 import type { Paciente } from '../../lib/registro'
+import { guiaTransitoInterno, ddjjTransporteDomicilio } from '../../lib/documentosLegales'
+import { VisorDocumento } from './ActaParaLibro'
 import { btnPrimario, btnSutil } from '../../lib/ui'
 
 const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1'
 const card = 'rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4'
 
-export function Declaraciones({ ddjj, traslados, pacientes, cultivo, onCambio }: {
+export function Declaraciones({ ddjj, traslados, pacientes, cultivo, entidad = null, onCambio }: {
   ddjj: DDJJ[]
   traslados: Traslado[]
   pacientes: Paciente[]
+  /** Para el encabezado de los documentos de traslado. */
+  entidad?: Entidad | null
   /** Lo que la app sabe hoy del cultivo, para prellenar la declaración. */
   cultivo: { plantasTotal: number; plantasFloracion: number; pacientesVinculados: number; variedades: string[] }
   onCambio: () => void
 }) {
   const [form, setForm] = useState<Partial<DDJJ> | null>(null)
   const [tras, setTras] = useState<Partial<Traslado> | null>(null)
+  // Qué documento sale de cada traslado: entre predios propios va la guía de
+  // tránsito interno; a un paciente, la DDJJ del art. 8.
+  const [doc, setDoc] = useState<{ t: Traslado; tipo: 'interno' | 'domicilio' } | null>(null)
   const periodo = semestreActual()
   const actual = ddjj.find(d => d.periodo === periodo)
 
@@ -143,6 +150,11 @@ export function Declaraciones({ ddjj, traslados, pacientes, cultivo, onCambio }:
                     </span>
                     {pac && <span className="text-[10.5px] px-1.5 py-0.5 rounded bg-[#38bdf8]/15 text-[#38bdf8]">{pac.nombre_completo}</span>}
                     <div className="ml-auto flex gap-1">
+                      <button onClick={() => setDoc({ t, tipo: t.paciente_id ? 'domicilio' : 'interno' })}
+                        className={btnSutil} title={t.paciente_id ? 'DDJJ de transporte a domicilio' : 'Guía de tránsito interno'}
+                        aria-label="Generar el documento del traslado">
+                        <FileText className="w-3.5 h-3.5" />
+                      </button>
                       <button onClick={() => setTras(t)} className={btnSutil} aria-label="Editar traslado"><Pencil className="w-3.5 h-3.5" /></button>
                       <button onClick={() => borrarTras(t)} className={btnSutil} aria-label="Borrar traslado"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
@@ -162,6 +174,18 @@ export function Declaraciones({ ddjj, traslados, pacientes, cultivo, onCambio }:
           </div>
         )}
       </div>
+
+      {doc && (() => {
+        const pac = pacientes.find(p => p.id === doc.t.paciente_id) ?? null
+        const g = doc.tipo === 'domicilio'
+          ? ddjjTransporteDomicilio(doc.t, entidad, pac)
+          : guiaTransitoInterno(doc.t, entidad)
+        return <VisorDocumento titulo={g.titulo} texto={g.texto} faltantes={g.faltantes}
+          nota={doc.tipo === 'domicilio'
+            ? 'Acompaña el traslado hasta el domicilio del paciente. Va firmada por el responsable del despacho.'
+            : 'Para mover material entre predios de la propia institución. La firman el Presidente y el Responsable Técnico.'}
+          onCerrar={() => setDoc(null)} />
+      })()}
 
       {form && <ModalDDJJ form={form} setForm={setForm} onCambio={onCambio} />}
       {tras && <ModalTraslado form={tras} setForm={setTras} pacientes={pacientes} onCambio={onCambio} />}

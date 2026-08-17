@@ -4,13 +4,15 @@
 
 import { useState, useMemo } from 'react'
 import { toast } from 'sonner'
-import { HandCoins, Plus, Pencil, Trash2, AlertTriangle, XCircle, Scale } from 'lucide-react'
+import { HandCoins, Plus, Pencil, Trash2, AlertTriangle, XCircle, Scale, Receipt } from 'lucide-react'
 import {
   ongService, revisarDispensa, resumirDispensas, balanceMateria, PRODUCTOS_DISPENSA,
   TOPE_TRASLADO_INDIVIDUAL_G,
-  type Dispensa, type Asociado,
+  type Dispensa, type Asociado, type Entidad,
 } from '../../lib/ong'
 import type { Paciente } from '../../lib/registro'
+import { reciboReembolso } from '../../lib/documentosLegales'
+import { VisorDocumento } from './ActaParaLibro'
 import type { Genetica } from '../../lib/cultivo'
 import { btnPrimario, btnSutil } from '../../lib/ui'
 
@@ -21,19 +23,31 @@ const fmtPesos = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
 const fmtFecha = (f?: string | null) =>
   f ? new Date(f + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'
 
-export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPorGramo, gramosCosechados, onCambio }: {
+export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPorGramo, gramosCosechados, entidad = null, onCambio }: {
   dispensas: Dispensa[]
   pacientes: Paciente[]
   asociados: Asociado[]
   geneticas: Genetica[]
   costoPorGramo: number | null
   gramosCosechados: number
+  /** Para el encabezado del recibo por reembolso. */
+  entidad?: Entidad | null
   onCambio: () => void
 }) {
   const [form, setForm] = useState<Partial<Dispensa> | null>(null)
+  const [recibo, setRecibo] = useState<Dispensa | null>(null)
   const r = useMemo(() => resumirDispensas(dispensas), [dispensas])
   const bal = useMemo(() => balanceMateria(gramosCosechados, dispensas), [gramosCosechados, dispensas])
   const hayCosto = costoPorGramo != null && costoPorGramo > 0
+  // Tope de la ventana de 30 días: sale de la ficha del paciente y puede no
+  // estar cargado, en cuyo caso la validación no corre.
+  const topeDe = (id?: string | null) =>
+    pacientes.find(p => p.id === id)?.tope_mensual_g ?? null
+  const mandatoDe = (id?: string | null) => {
+    const pac = pacientes.find(p => p.id === id)
+    const aso = asociados.find(a => a.nombre === pac?.nombre_completo)
+    return aso ? aso.mandato_aceptado !== false : undefined
+  }
 
   // Un paciente está "vinculado" si figura como asociado con la vinculación hecha.
   const vinculado = (pacienteId?: string | null) =>
@@ -58,7 +72,12 @@ export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPor
   const avisosForm = form
     ? revisarDispensa(
         { ...form, gramos: form.gramos ?? 0, fecha: form.fecha ?? '' } as Dispensa,
-        { pacienteVinculado: form.paciente_id ? vinculado(form.paciente_id) : undefined, costoPorGramo })
+        {
+          pacienteVinculado: form.paciente_id ? vinculado(form.paciente_id) : undefined,
+          costoPorGramo, todas: dispensas,
+          topeMensualG: topeDe(form.paciente_id),
+          mandatoAceptado: mandatoDe(form.paciente_id),
+        })
     : []
 
   return (
@@ -145,7 +164,11 @@ export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPor
       ) : (
         <div className="space-y-2">
           {dispensas.map(d => {
-            const avisos = revisarDispensa(d, { pacienteVinculado: d.paciente_id ? vinculado(d.paciente_id) : undefined, costoPorGramo })
+            const avisos = revisarDispensa(d, {
+              pacienteVinculado: d.paciente_id ? vinculado(d.paciente_id) : undefined,
+              costoPorGramo, todas: dispensas,
+              topeMensualG: topeDe(d.paciente_id), mandatoAceptado: mandatoDe(d.paciente_id),
+            })
             const gen = nombreGenetica(d.genetica_id)
             return (
               <div key={d.id} className={card}>
@@ -172,6 +195,10 @@ export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPor
                     ))}
                   </div>
                   <div className="flex gap-1 flex-shrink-0">
+                    <button onClick={() => setRecibo(d)} className={btnSutil}
+                      aria-label="Recibo por reembolso de costos" title="Recibo por reembolso">
+                      <Receipt className="w-3.5 h-3.5" />
+                    </button>
                     <button onClick={() => setForm(d)} className={btnSutil} aria-label="Editar"><Pencil className="w-3.5 h-3.5" /></button>
                     <button onClick={() => borrar(d)} className={btnSutil} aria-label="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
                   </div>
@@ -181,6 +208,18 @@ export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPor
           })}
         </div>
       )}
+
+      {recibo && (() => {
+        const pac = pacientes.find(p => p.id === recibo.paciente_id) ?? null
+        // El asociado se ubica por nombre: la dispensa apunta al paciente y el
+        // mandato lo firma el asociado, que puede ser la misma persona.
+        const aso = asociados.find(a => a.nombre === pac?.nombre_completo) ?? null
+        const doc = reciboReembolso(recibo, entidad, pac, aso)
+        return <VisorDocumento titulo={doc.titulo} texto={doc.texto} faltantes={doc.faltantes}
+          nota={'Es un comprobante NO comercial. La leyenda del pie va completa: es lo que sostiene que la entrega ' +
+            'no es una compraventa sino el reembolso de los costos de un mandato.'}
+          onCerrar={() => setRecibo(null)} />
+      })()}
 
       {form && (
         <Modal titulo={form.id ? 'Editar dispensa' : 'Registrar dispensa'} onCerrar={() => setForm(null)}>

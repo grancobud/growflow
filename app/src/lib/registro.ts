@@ -33,6 +33,13 @@ export interface Paciente {
   matricula_medico: string | null
   plantas_habilitadas: number | null
   m2_habilitados: number | null
+  /**
+   * Tope de gramos en la ventana móvil de 30 días. No se deriva de
+   * plantas_habilitadas —una es el cupo de cultivo y la otra el de entrega— y
+   * queda en null si no está asignado: sin él, la validación no corre en vez de
+   * inventar un límite.
+   */
+  tope_mensual_g?: number | null
   socio: boolean
   fecha_alta: string | null
   activo: boolean
