@@ -114,8 +114,11 @@ export function VisorActa({ acta, entidad, onCerrar }: {
  * mandato. Todos terminan en papel, así que todos comparten lo mismo — texto en
  * serif, aviso de lo que falta, copiar e imprimir con márgenes de hoja.
  */
-export function VisorDocumento({ titulo, texto, faltantes, nota, onCerrar }: {
-  titulo: string; texto: string; faltantes: string[]; nota?: string; onCerrar: () => void
+export function VisorDocumento({ titulo, texto, faltantes, nota, extra, onCerrar }: {
+  titulo: string; texto: string; faltantes: string[]; nota?: string
+  /** Controles propios del documento, p. ej. alternar entre dos versiones. */
+  extra?: React.ReactNode
+  onCerrar: () => void
 }) {
   const faltan = faltantes
 
@@ -148,6 +151,7 @@ export function VisorDocumento({ titulo, texto, faltantes, nota, onCerrar }: {
         onClick={e => e.stopPropagation()}>
         <div className="px-4 py-3 border-b border-[#1f1f2b] sticky top-0 bg-[#0d0d12] flex items-center gap-2 flex-wrap">
           <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">{titulo}</h3>
+          {extra}
           <div className="ml-auto flex gap-2">
             <button onClick={copiar} className={btnSutil}><Copy className="w-3.5 h-3.5" /> Copiar</button>
             <button onClick={imprimir} className={btnPrimario}><Printer className="w-3.5 h-3.5" /> Imprimir</button>

@@ -94,6 +94,65 @@ export function reciboReembolso(
 }
 
 // ---------------------------------------------------------------------------
+// 1b. Comprobante de dispensación
+// ---------------------------------------------------------------------------
+
+/**
+ * Lo que se le entrega al paciente. El recibo documenta la plata; este documenta
+ * la ENTREGA: qué variedad, de qué lote, y cuánto cupo le queda en la ventana de
+ * 30 días.
+ *
+ * El SRS lo especifica con un QR de trazabilidad. Va el identificador en texto:
+ * un QR que no apunte a un sistema de verificación real sería decorativo, y en
+ * un comprobante legal eso es peor que no ponerlo.
+ */
+export function comprobanteDispensacion(
+  d: Dispensa, e: Entidad | null, pac: Paciente | null,
+  cupo: { conNueva: number; tope: number | null; remanente: number | null } | null,
+  genetica?: string | null,
+): DocumentoGenerado {
+  const f: string[] = []
+  if (!pac) f.push('a qué paciente corresponde')
+  if (!d.lote_codigo) f.push('el lote del material')
+  if (!genetica) f.push('la variedad entregada')
+  if (!cupo?.tope) f.push('el tope mensual del paciente, para poder informar el remanente')
+
+  const L = [
+    'COMPROBANTE DE DISPENSACIÓN TERAPÉUTICA',
+    '',
+    cabeceraEntidad(e),
+    '',
+    `ID de dispensación: ${d.id}`,
+    `Fecha: ${fechaEnLetras(d.fecha)}`,
+    '',
+    `PACIENTE: ${pac?.nombre_completo ?? FALTA('paciente')}` + (pac?.dni ? `  |  DNI: ${pac.dni}` : ''),
+    `REPROCANN: ${pac?.reprocann_nro ?? FALTA('N° REPROCANN')}`,
+    '',
+    'DETALLE DE LA ENTREGA:',
+    `  Variedad: ${genetica ?? FALTA('variedad')}`,
+    `  Presentación: ${d.producto ?? 'flor'}`,
+    `  Lote: ${d.lote_codigo ?? FALTA('lote')}`,
+    `  Cantidad: ${d.gramos} g`,
+    '',
+    'CUPO EN VENTANA MÓVIL DE 30 DÍAS:',
+    cupo?.tope != null
+      ? `  Consumido ${Math.round(cupo.conNueva)} g de ${cupo.tope} g  ·  ` +
+        `Remanente ${Math.round(cupo.remanente ?? 0)} g`
+      : `  ${FALTA('sin tope cargado no se puede informar el remanente')}`,
+    '',
+    'Material fito-médico intransferible, de uso terapéutico exclusivo.',
+    '',
+    '',
+    '_______________________________        _______________________________',
+    'Firma del paciente                     Operador',
+    '',
+    '---',
+    LEYENDA_REEMBOLSO,
+  ]
+  return { titulo: `Comprobante de dispensación · ${d.fecha}`, texto: L.join('\n'), faltantes: f }
+}
+
+// ---------------------------------------------------------------------------
 // 2. Guía de tránsito interno (entre predios de la propia ONG)
 // ---------------------------------------------------------------------------
 

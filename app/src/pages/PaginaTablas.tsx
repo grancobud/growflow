@@ -196,6 +196,18 @@ const TABLAS: DefTabla[] = [
     ],
   },
   {
+    id: 'ong_caja', nombre: 'ONG · libro de caja', orden: 'fecha',
+    cols: [
+      { campo: 'fecha', titulo: 'Fecha', tipo: 'date' },
+      { campo: 'tipo', titulo: 'Tipo', tipo: { select: ['ingreso', 'egreso'] } },
+      { campo: 'concepto', titulo: 'Concepto', tipo: 'text', ancho: 'min-w-[180px]' },
+      { campo: 'monto', titulo: 'Monto', tipo: 'number' },
+      { campo: 'medio', titulo: 'Medio', tipo: 'text' },
+      { campo: 'detalle', titulo: 'Detalle', tipo: 'text', ancho: 'min-w-[160px]' },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[140px]' },
+    ],
+  },
+  {
     id: 'ong_ddjj', nombre: 'ONG · declaraciones juradas', orden: 'periodo',
     cols: [
       { campo: 'periodo', titulo: 'Periodo', tipo: 'text' },

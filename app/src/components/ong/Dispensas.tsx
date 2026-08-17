@@ -1,6 +1,10 @@
 // Registro de dispensas: a quién se le entregó cannabis, cuánto y con qué
-// aporte. Es lo que conecta el cultivo con lo institucional y lo que prueba
-// que el aporte cubre costos en vez de ser una venta.
+// reembolso de costos. Es lo que conecta el cultivo con lo institucional y lo
+// que prueba que el dinero cubre costos en vez de ser el precio de una venta.
+//
+// El termino importa: "Reembolso de Costos Operativos" dice de que es reembolso
+// y contra que obligacion (el mandato que el paciente le dio a la ONG). "Aporte"
+// a secas no dice ninguna de las dos cosas.
 
 import { useState, useMemo } from 'react'
 import { toast } from 'sonner'
@@ -8,10 +12,11 @@ import { HandCoins, Plus, Pencil, Trash2, AlertTriangle, XCircle, Scale, Receipt
 import {
   ongService, revisarDispensa, resumirDispensas, balanceMateria, PRODUCTOS_DISPENSA,
   TOPE_TRASLADO_INDIVIDUAL_G,
-  type Dispensa, type Asociado, type Entidad,
+  feedbackPendiente, cupoMovil30Dias,
+  type Dispensa, type Asociado, type Entidad, type FeedbackClinico,
 } from '../../lib/ong'
 import type { Paciente } from '../../lib/registro'
-import { reciboReembolso } from '../../lib/documentosLegales'
+import { reciboReembolso, comprobanteDispensacion } from '../../lib/documentosLegales'
 import { VisorDocumento } from './ActaParaLibro'
 import type { Genetica } from '../../lib/cultivo'
 import { btnPrimario, btnSutil } from '../../lib/ui'
@@ -23,7 +28,7 @@ const fmtPesos = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
 const fmtFecha = (f?: string | null) =>
   f ? new Date(f + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'
 
-export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPorGramo, gramosCosechados, entidad = null, onCambio }: {
+export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPorGramo, gramosCosechados, entidad = null, feedbacks = [], onCambio }: {
   dispensas: Dispensa[]
   pacientes: Paciente[]
   asociados: Asociado[]
@@ -32,10 +37,13 @@ export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPor
   gramosCosechados: number
   /** Para el encabezado del recibo por reembolso. */
   entidad?: Entidad | null
+  /** Para el bloqueo por reporte de seguimiento pendiente (RN-05). */
+  feedbacks?: FeedbackClinico[]
   onCambio: () => void
 }) {
   const [form, setForm] = useState<Partial<Dispensa> | null>(null)
   const [recibo, setRecibo] = useState<Dispensa | null>(null)
+  const [vista, setVista] = useState<'recibo' | 'comprobante'>('recibo')
   const r = useMemo(() => resumirDispensas(dispensas), [dispensas])
   const bal = useMemo(() => balanceMateria(gramosCosechados, dispensas), [gramosCosechados, dispensas])
   const hayCosto = costoPorGramo != null && costoPorGramo > 0
@@ -43,6 +51,17 @@ export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPor
   // estar cargado, en cuyo caso la validación no corre.
   const topeDe = (id?: string | null) =>
     pacientes.find(p => p.id === id)?.tope_mensual_g ?? null
+  // RN-01: el certificado caído bloquea la entrega. Es distinto de "no vinculado".
+  const reprocannVencidoDe = (id?: string | null) => {
+    const pac = pacientes.find(p => p.id === id)
+    if (!pac) return undefined
+    const hoy = new Date().toISOString().slice(0, 10)
+    return pac.reprocann_estado === 'Vencido' ||
+      (!!pac.reprocann_vencimiento && pac.reprocann_vencimiento < hoy)
+  }
+  // RN-05: la entrega anterior sin reporte bloquea la siguiente.
+  const sinFeedbackDe = (id?: string | null) =>
+    id ? feedbackPendiente(dispensas, feedbacks, id) : null
   const mandatoDe = (id?: string | null) => {
     const pac = pacientes.find(p => p.id === id)
     const aso = asociados.find(a => a.nombre === pac?.nombre_completo)
@@ -77,6 +96,8 @@ export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPor
           costoPorGramo, todas: dispensas,
           topeMensualG: topeDe(form.paciente_id),
           mandatoAceptado: mandatoDe(form.paciente_id),
+          reprocannVencido: reprocannVencidoDe(form.paciente_id),
+          dispensaSinFeedback: sinFeedbackDe(form.paciente_id),
         })
     : []
 
@@ -90,15 +111,16 @@ export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPor
             className={`${btnPrimario} ml-auto`}><Plus className="w-3.5 h-3.5" /> Registrar</button>
         </div>
         <p className="text-[11.5px] text-[#7d7d8e] mt-2">
-          Sólo se dispensa a pacientes con REPROCANN vinculado a esta ONG. El aporte cubre el prorrateo de costos:
-          no es una venta, y por encima del costo real deja de ser un aporte.
+          Sólo se dispensa a pacientes con REPROCANN vinculado a esta ONG. Lo que entrega el paciente es un
+          <b className="text-[#a6a6b5]"> reembolso de costos operativos</b>, no un precio: por encima del costo real
+          deja de ser reembolso y empieza a parecerse a una venta.
         </p>
         {dispensas.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3 pt-3 border-t border-[#1f1f2b]">
             <Kpi t="Entregado" v={`${r.gramos.toLocaleString('es-AR')} g`} c="#bef264" />
             <Kpi t="Dispensas" v={String(r.total)} c="#a6a6b5" />
             <Kpi t="Pacientes" v={String(r.pacientes)} c="#38bdf8" />
-            <Kpi t="Aporte por gramo"
+            <Kpi t="Reembolso por gramo"
               v={r.aportePorGramo != null ? `${fmtPesos(r.aportePorGramo)}/g` : '—'}
               c={hayCosto && r.aportePorGramo && r.aportePorGramo > costoPorGramo! * 1.05 ? '#ff8a7a' : '#d9f99d'} />
           </div>
@@ -110,8 +132,8 @@ export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPor
             style={{ color: r.aportePorGramo > costoPorGramo! * 1.05 ? '#ff8a7a' : '#7d7d8e' }}>
             Tu costo real de producción es <b className="font-mono">{fmtPesos(costoPorGramo!)}/g</b>.
             {r.aportePorGramo > costoPorGramo! * 1.05
-              ? ' El aporte lo está superando: eso deja de ser prorrateo de costos.'
-              : ' El aporte está por debajo, como corresponde a un aporte solidario.'}
+              ? ' El reembolso lo está superando: por encima del costo real deja de ser reembolso.'
+              : ' El reembolso está por debajo del costo, como corresponde.'}
           </p>
         ) : dispensas.length > 0 && (
           <p className="text-[11.5px] text-[#7d7d8e] mt-2">
@@ -168,6 +190,8 @@ export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPor
               pacienteVinculado: d.paciente_id ? vinculado(d.paciente_id) : undefined,
               costoPorGramo, todas: dispensas,
               topeMensualG: topeDe(d.paciente_id), mandatoAceptado: mandatoDe(d.paciente_id),
+              reprocannVencido: reprocannVencidoDe(d.paciente_id),
+              dispensaSinFeedback: sinFeedbackDe(d.paciente_id),
             })
             const gen = nombreGenetica(d.genetica_id)
             return (
@@ -212,12 +236,32 @@ export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPor
       {recibo && (() => {
         const pac = pacientes.find(p => p.id === recibo.paciente_id) ?? null
         // El asociado se ubica por nombre: la dispensa apunta al paciente y el
-        // mandato lo firma el asociado, que puede ser la misma persona.
+        // mandato lo firma el asociado, que suele ser la misma persona.
         const aso = asociados.find(a => a.nombre === pac?.nombre_completo) ?? null
-        const doc = reciboReembolso(recibo, entidad, pac, aso)
+        // Los dos papeles de una entrega: uno documenta la plata, el otro la
+        // entrega y el cupo que queda. Van juntos porque salen del mismo hecho.
+        const cupo = recibo.paciente_id && pac?.tope_mensual_g
+          ? cupoMovil30Dias(dispensas, recibo.paciente_id, recibo.fecha, pac.tope_mensual_g, recibo.id)
+          : null
+        const doc = vista === 'recibo'
+          ? reciboReembolso(recibo, entidad, pac, aso)
+          : comprobanteDispensacion(recibo, entidad, pac, cupo, nombreGenetica(recibo.genetica_id))
         return <VisorDocumento titulo={doc.titulo} texto={doc.texto} faltantes={doc.faltantes}
-          nota={'Es un comprobante NO comercial. La leyenda del pie va completa: es lo que sostiene que la entrega ' +
-            'no es una compraventa sino el reembolso de los costos de un mandato.'}
+          nota={vista === 'recibo'
+            ? 'Documenta el dinero. La leyenda del pie va completa: es lo que sostiene que la entrega no es una ' +
+              'compraventa sino el reembolso de los costos de un mandato.'
+            : 'Documenta la entrega: variedad, lote y cuánto cupo le queda en la ventana de 30 días.'}
+          extra={
+            <div className="flex rounded-lg border border-[#2a2a3a] overflow-hidden">
+              {(['recibo', 'comprobante'] as const).map(v => (
+                <button key={v} onClick={() => setVista(v)}
+                  className={`px-2.5 py-2 sm:py-1 min-h-[44px] sm:min-h-0 text-[11px] font-medium transition-colors ${
+                    vista === v ? 'bg-[#a3e635]/15 text-[#d9f99d]' : 'text-[#7d7d8e] hover:text-[#d4d4dd]'}`}>
+                  {v === 'recibo' ? 'Recibo' : 'Comprobante'}
+                </button>
+              ))}
+            </div>
+          }
           onCerrar={() => setRecibo(null)} />
       })()}
 
@@ -247,7 +291,7 @@ export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPor
                   <option value="">Sin especificar</option>
                   {geneticas.map(g => <option key={g.id} value={g.id}>{g.nombre}</option>)}
                 </select></label>
-              <label><span className={labelCls}>Aporte ($)</span>
+              <label><span className={labelCls}>Reembolso ($)</span>
                 <input type="number" className={inputCls} value={form.aporte ?? ''} onChange={e => setForm({ ...form, aporte: e.target.value === '' ? null : +e.target.value })} /></label>
               <label><span className={labelCls}>Modalidad</span>
                 <select className={inputCls} value={form.modalidad ?? 'retiro'} onChange={e => setForm({ ...form, modalidad: e.target.value })}>

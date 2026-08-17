@@ -357,6 +357,51 @@ export const ongService = {
     lanzar((await supabase.from('ong_cuotas_emitidas').delete().eq('id', id)).error)
   },
 
+  async getFeedbacks(): Promise<FeedbackClinico[]> {
+    const { data, error } = await supabase.from('ong_feedback_clinico').select('*').order('creado_en', { ascending: false })
+    lanzar(error); return (data ?? []) as FeedbackClinico[]
+  },
+  /**
+   * Sólo insert: no hay `actualizar` ni `borrar` a propósito. La tabla tampoco
+   * tiene policies para eso, así que un intento sería rechazado por la base.
+   */
+  async guardarFeedback(f: Omit<FeedbackClinico, 'id'>): Promise<void> {
+    const { data: u } = await supabase.auth.getUser()
+    lanzar((await supabase.from('ong_feedback_clinico').insert({ ...f, user_id: u?.user?.id ?? null })).error)
+  },
+
+  async getCaja(): Promise<AsientoCaja[]> {
+    const { data, error } = await supabase.from('ong_caja').select('*').order('fecha', { ascending: false })
+    lanzar(error); return (data ?? []) as AsientoCaja[]
+  },
+  async guardarAsiento(a: Partial<AsientoCaja>): Promise<void> {
+    const { data: u } = await supabase.auth.getUser()
+    const p = { ...a, user_id: u?.user?.id ?? null }
+    lanzar((a.id
+      ? await supabase.from('ong_caja').update(p).eq('id', a.id)
+      : await supabase.from('ong_caja').insert(p)).error)
+  },
+  async borrarAsiento(id: string): Promise<void> {
+    lanzar((await supabase.from('ong_caja').delete().eq('id', id)).error)
+  },
+  /**
+   * Asienta en caja los reembolsos de dispensas que todavía no estén asentados.
+   * Idempotente: se puede correr cuantas veces se quiera sin duplicar.
+   */
+  async asentarReembolsosPendientes(dispensas: Dispensa[], caja: AsientoCaja[]): Promise<number> {
+    const yaEstan = new Set(caja.map(a => a.dispensa_id).filter(Boolean))
+    const faltan = dispensas.filter(d => d.aporte != null && d.aporte > 0 && !yaEstan.has(d.id))
+    for (const d of faltan) {
+      await this.guardarAsiento({
+        fecha: d.fecha, tipo: 'ingreso',
+        concepto: 'Reembolso de costos operativos',
+        detalle: `${d.gramos} g${d.lote_codigo ? ` · lote ${d.lote_codigo}` : ''}`,
+        monto: Number(d.aporte), medio: d.medio_pago ?? null, dispensa_id: d.id,
+      })
+    }
+    return faltan.length
+  },
+
   async getDDJJ(): Promise<DDJJ[]> {
     const { data, error } = await supabase.from('ong_ddjj').select('*').order('periodo', { ascending: false })
     lanzar(error); return (data ?? []) as DDJJ[]
@@ -595,6 +640,81 @@ export const MEDIOS_PAGO = ['Efectivo', 'Transferencia', 'Billetera virtual', 'O
 export const PRODUCTOS_DISPENSA = ['flor', 'extracto', 'aceite', 'otro'] as const
 
 /**
+ * PROMs: lo que el paciente reporta después de una entrega (SRS v3.2).
+ *
+ * Es INMUTABLE por diseño (RN-07): la tabla no tiene policy de update ni delete,
+ * así que la base lo rechaza aunque la UI se equivoque. Un dato clínico
+ * reescrito no sirve como evidencia para el informe del director médico.
+ */
+export interface FeedbackClinico {
+  id: string
+  dispensa_id: string
+  paciente_id?: string | null
+  /** 1 nulo · 3 moderado · 5 excelente. */
+  escala_alivio: number
+  efectos_adversos: string[]
+  efectos_detalle?: string | null
+  dosificacion_real: string
+  observaciones?: string | null
+  creado_en?: string
+}
+
+export const EFECTOS_ADVERSOS = [
+  'Ninguno', 'Somnolencia', 'Cefalea', 'Taquicardia', 'Gastrointestinal', 'Otro',
+] as const
+
+export const ESCALA_ALIVIO: { valor: number; label: string }[] = [
+  { valor: 1, label: 'Nulo' },
+  { valor: 2, label: 'Leve' },
+  { valor: 3, label: 'Moderado' },
+  { valor: 4, label: 'Bueno' },
+  { valor: 5, label: 'Excelente' },
+]
+
+/**
+ * Libro Diario de Caja y Bancos: uno de los cinco libros obligatorios.
+ * Cada reembolso que entra y cada gasto que sale se asienta acá, que es de donde
+ * el contador saca el balance.
+ */
+export interface AsientoCaja {
+  id: string
+  fecha: string
+  tipo: 'ingreso' | 'egreso'
+  concepto: string
+  detalle?: string | null
+  monto: number
+  medio?: string | null
+  dispensa_id?: string | null
+  cuota_id?: string | null
+  documento_id?: string | null
+  notas?: string | null
+}
+
+export const CONCEPTOS_CAJA = {
+  ingreso: ['Reembolso de costos operativos', 'Cuota social', 'Donación', 'Otro ingreso'],
+  egreso: ['Compra de insumos', 'Servicios', 'Honorarios', 'Impuestos y tasas', 'Otro egreso'],
+} as const
+
+/**
+ * Bloqueo por feedback pendiente (RN-05).
+ *
+ * Si la persona ya recibió al menos una entrega y no reportó cómo le fue, no se
+ * habilita la siguiente. La regla existe porque el seguimiento terapéutico es
+ * obligación de la ONG, no del paciente: sin reportes no hay informe semestral
+ * que presentar.
+ */
+export function feedbackPendiente(
+  dispensas: Dispensa[], feedbacks: FeedbackClinico[], pacienteId: string,
+): Dispensa | null {
+  const suyas = dispensas
+    .filter(d => d.paciente_id === pacienteId)
+    .sort((a, b) => b.fecha.localeCompare(a.fecha))
+  const ultima = suyas[0]
+  if (!ultima) return null
+  return feedbacks.some(f => f.dispensa_id === ultima.id) ? null : ultima
+}
+
+/**
  * Revisa una dispensa contra las reglas que más exponen:
  * - entregar a alguien sin REPROCANN vinculado
  * - pasar los 40 g de un traslado sin receta que lo respalde
@@ -612,6 +732,10 @@ export function revisarDispensa(
     topeMensualG?: number | null
     /** Mandato de Gestión Operativa firmado por el asociado (RN-03). */
     mandatoAceptado?: boolean
+    /** REPROCANN vencido o inactivo: bloquea la entrega (RN-01). */
+    reprocannVencido?: boolean
+    /** Entrega anterior sin reporte de seguimiento: bloquea la siguiente (RN-05). */
+    dispensaSinFeedback?: Dispensa | null
   },
 ): AvisoDispensa[] {
   const av: AvisoDispensa[] = []
@@ -624,6 +748,21 @@ export function revisarDispensa(
   if (d.gramos > TOPE_TRASLADO_INDIVIDUAL_G && !d.con_receta) {
     av.push({ nivel: 'alerta', texto: `${d.gramos} g en un solo traslado supera los ${TOPE_TRASLADO_INDIVIDUAL_G} g. Si la necesidad medicinal lo justifica, respaldalo con receta o entregalo en más de una vez.` })
   }
+  // RN-01: con el permiso vencido no se dispensa. Es distinto de "no vinculado":
+  // acá la persona está bien registrada pero su certificado caducó.
+  if (opts.reprocannVencido) {
+    av.push({ nivel: 'error', texto:
+      'El REPROCANN de la persona está vencido o inactivo. Con el certificado caído no se puede dispensar hasta que se reinscriba.' })
+  }
+
+  // RN-05: el seguimiento terapéutico es obligación de la ONG. Sin el reporte de
+  // la entrega anterior no hay con qué armar el informe semestral.
+  if (opts.dispensaSinFeedback && opts.dispensaSinFeedback.id !== d.id) {
+    av.push({ nivel: 'error', texto:
+      `La entrega del ${opts.dispensaSinFeedback.fecha} no tiene reporte de seguimiento. ` +
+      'Cargalo antes de una nueva entrega: sin los reportes no hay informe semestral que presentar.' })
+  }
+
   // Ventana móvil de 30 días: el tope se mide sobre el acumulado, no sobre la
   // entrega. Cinco entregas de 35 g en tres semanas pasan una por una y juntas
   // se van al doble del tope.
@@ -648,7 +787,7 @@ export function revisarDispensa(
   if (opts.costoPorGramo != null && opts.costoPorGramo > 0 && d.aporte != null && d.gramos > 0) {
     const porGramo = d.aporte / d.gramos
     if (porGramo > opts.costoPorGramo * 1.05) {
-      av.push({ nivel: 'alerta', texto: `El aporte da $${Math.round(porGramo).toLocaleString('es-AR')}/g y tu costo real es $${Math.round(opts.costoPorGramo).toLocaleString('es-AR')}/g. El aporte cubre gastos: por encima del costo deja de ser aporte.` })
+      av.push({ nivel: 'alerta', texto: `El reembolso da $${Math.round(porGramo).toLocaleString('es-AR')}/g y tu costo real es $${Math.round(opts.costoPorGramo).toLocaleString('es-AR')}/g. Por encima del costo real deja de ser un reembolso.` })
     }
   }
   return av
@@ -1417,12 +1556,12 @@ export function chequeosCoherencia(datos: {
     const costo = datos.costoPorGramo ?? null
     if (costo && r.aportePorGramo != null) {
       c.push(r.aportePorGramo > costo * 1.05
-        ? { clave: 'aporte', titulo: 'Aporte vs. costo real', estado: 'error',
+        ? { clave: 'aporte', titulo: 'Reembolso vs. costo real', estado: 'error',
             valor: `$${Math.round(r.aportePorGramo).toLocaleString('es-AR')}/g`,
-            detalle: `Tu costo real es $${Math.round(costo).toLocaleString('es-AR')}/g. El aporte cubre gastos: por encima del costo deja de ser un aporte solidario.` }
-        : { clave: 'aporte', titulo: 'Aporte vs. costo real', estado: 'ok',
+            detalle: `Tu costo real es $${Math.round(costo).toLocaleString('es-AR')}/g. El reembolso cubre costos: por encima del costo real deja de ser reembolso y se parece a una venta.` }
+        : { clave: 'aporte', titulo: 'Reembolso vs. costo real', estado: 'ok',
             valor: `$${Math.round(r.aportePorGramo).toLocaleString('es-AR')}/g`,
-            detalle: `Por debajo del costo real de $${Math.round(costo).toLocaleString('es-AR')}/g: el aporte está cubriendo gastos, como corresponde.` })
+            detalle: `Por debajo del costo real de $${Math.round(costo).toLocaleString('es-AR')}/g: el reembolso está cubriendo costos, como corresponde.` })
     }
   }
 
