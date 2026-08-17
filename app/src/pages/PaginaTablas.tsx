@@ -208,6 +208,36 @@ const TABLAS: DefTabla[] = [
     ],
   },
   {
+    id: 'ong_lotes', nombre: 'ONG · catálogo (lotes)', orden: 'codigo',
+    cols: [
+      { campo: 'codigo', titulo: 'Código', tipo: 'text' },
+      { campo: 'producto', titulo: 'Producto', tipo: { select: ['flor', 'aceite', 'extracto', 'tópico', 'otro'] } },
+      { campo: 'gramos_totales', titulo: 'Gramos', tipo: 'number' },
+      { campo: 'aporte_por_gramo', titulo: '$/g', tipo: 'number' },
+      { campo: 'thc_pct', titulo: 'THC %', tipo: 'number' },
+      { campo: 'cbd_pct', titulo: 'CBD %', tipo: 'number' },
+      { campo: 'laboratorio', titulo: 'Laboratorio', tipo: 'text' },
+      { campo: 'fecha_analisis', titulo: 'Análisis', tipo: 'date' },
+      { campo: 'fecha_elaboracion', titulo: 'Elaborado', tipo: 'date' },
+      { campo: 'activo', titulo: 'Activo', tipo: 'bool' },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[160px]' },
+    ],
+  },
+  {
+    id: 'ong_pedidos', nombre: 'ONG · reservas del portal', orden: 'codigo_reserva',
+    cols: [
+      { campo: 'codigo_reserva', titulo: 'Reserva', tipo: 'text' },
+      { campo: 'gramos', titulo: 'Gramos', tipo: 'number' },
+      { campo: 'monto_reembolso', titulo: 'Reembolso', tipo: 'number' },
+      { campo: 'metodo_pago', titulo: 'Medio', tipo: { select: ['Transferencia_Billetera', 'Efectivo_Sede'] } },
+      { campo: 'estado_pago', titulo: 'Pago', tipo: { select: ['Pendiente_Verificacion', 'Pendiente_Efectivo', 'Abonado', 'Rechazado'] } },
+      { campo: 'estado_pedido', titulo: 'Estado', tipo: { select: ['Reservado', 'Listo_Para_Retiro', 'Entregado', 'Expirado', 'Cancelado'] } },
+      { campo: 'fecha_expiracion', titulo: 'Vence', tipo: 'text' },
+      { campo: 'entregado_en', titulo: 'Entregado', tipo: 'text' },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[160px]' },
+    ],
+  },
+  {
     id: 'ong_ddjj', nombre: 'ONG · declaraciones juradas', orden: 'periodo',
     cols: [
       { campo: 'periodo', titulo: 'Periodo', tipo: 'text' },

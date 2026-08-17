@@ -32,6 +32,7 @@ import { CupoReprocann } from '../components/ong/CupoReprocann'
 import { Documentos } from '../components/ong/Documentos'
 import { Declaraciones } from '../components/ong/Declaraciones'
 import { Seguimiento } from '../components/ong/Seguimiento'
+import { Portal } from '../components/ong/Portal'
 // El registro de pacientes vive acá: el cupo, las dispensas y los documentos
 // cuelgan de el, y tenerlo en otro item del menu obligaba a saltar de pantalla.
 import PaginaPacientes from './PaginaPacientes'
@@ -62,7 +63,7 @@ const fmtPeso = (g: number) => g < 1000
 const textoDias = (d: number | null) =>
   d == null ? 'sin fecha cargada' : d < 0 ? `hace ${Math.abs(d)} días` : d === 0 ? 'hoy' : `en ${d} días`
 
-type Tab = 'estado' | 'coherencia' | 'pacientes' | 'cupo' | 'seguimiento' | 'declaraciones' | 'dispensas' | 'documentos' | 'entidad' | 'autoridades' | 'predios' | 'libros' | 'actas' | 'asociados'
+type Tab = 'estado' | 'coherencia' | 'pacientes' | 'cupo' | 'seguimiento' | 'declaraciones' | 'dispensas' | 'portal' | 'documentos' | 'entidad' | 'autoridades' | 'predios' | 'libros' | 'actas' | 'asociados'
 
 export default function PaginaONG() {
   // /registro es un alias que entra directo por Pacientes: es la URL vieja del
@@ -152,6 +153,7 @@ export default function PaginaONG() {
     { id: 'coherencia', label: 'Coherencia' },
     { id: 'pacientes', label: 'Pacientes' },
     { id: 'cupo', label: 'Cupo REPROCANN' },
+    { id: 'portal', label: 'Autodispensación' },
     { id: 'dispensas', label: 'Dispensas' },
     { id: 'seguimiento', label: 'Seguimiento' },
     { id: 'declaraciones', label: 'Declaraciones' },
@@ -204,6 +206,8 @@ export default function PaginaONG() {
           <CupoReprocann pacientes={pacientes} plantas={plantas} onCambio={cargar} />
         ) : tab === 'dispensas' ? (
           <Dispensas {...{ dispensas, pacientes, asociados, geneticas, costoPorGramo, gramosCosechados, entidad, feedbacks }} onCambio={cargar} />
+        ) : tab === 'portal' ? (
+          <Portal {...{ pacientes, asociados, dispensas, feedbacks, caja, entidad, geneticas }} onCambio={cargar} />
         ) : tab === 'seguimiento' ? (
           <Seguimiento {...{ dispensas, feedbacks, pacientes, caja, entidad }}
             directorMedico={requisitos.find(r => r.clave === 'director_medico')?.responsable ?? null}

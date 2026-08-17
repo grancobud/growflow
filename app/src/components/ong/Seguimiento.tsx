@@ -290,7 +290,12 @@ function Modal({ titulo, aviso, onCerrar, onGuardar, children }: {
   )
 }
 
-function ModalFeedback({ dispensa, nombre, onCerrar, onCambio }: {
+/**
+ * La Encuesta de Seguimiento Terapéutico. Se exporta porque el portal la abre
+ * también: RN-05 bloquea la reserva cuando falta un reporte, y el bloqueo se
+ * tiene que poder destrabar en el mismo lugar donde aparece.
+ */
+export function ModalFeedback({ dispensa, nombre, onCerrar, onCambio }: {
   dispensa: Dispensa; nombre: string; onCerrar: () => void; onCambio: () => void
 }) {
   const [alivio, setAlivio] = useState(3)

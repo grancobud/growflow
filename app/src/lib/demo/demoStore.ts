@@ -60,6 +60,7 @@ export const TABLAS_CONOCIDAS = [
   'insumos', 'costos', 'econometria_config', 'mantenimientos', 'recordatorios',
   'ong_entidad', 'ong_autoridades', 'ong_requisitos', 'ong_predios',
   'ong_libros', 'ong_actas', 'ong_asociados', 'ong_categorias_socio', 'ong_cuotas', 'ong_dispensas', 'ong_cuotas_emitidas', 'ong_documentos', 'ong_ddjj', 'ong_traslados', 'ong_feedback_clinico', 'ong_caja',
+  'ong_lotes', 'ong_pedidos',
 ]
 
 export const USUARIO_DEMO = {
