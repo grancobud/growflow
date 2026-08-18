@@ -3,7 +3,7 @@
 
 import { NavLink, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { LayoutDashboard, Leaf, LogOut, Sprout, Table2, BarChart3, KeyRound, CalendarDays, Calculator, Activity, FlaskConical, CircuitBoard, Scissors, Building2 } from 'lucide-react'
+import { LayoutDashboard, Leaf, LogOut, Sprout, Table2, BarChart3, KeyRound, CalendarDays, Calculator, Activity, FlaskConical, CircuitBoard, Scissors, Building2, BookOpen } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '../../hooks/useAuth'
@@ -46,6 +46,7 @@ export default function Sidebar({ colapsado: colapsadoProp }: { colapsado?: bool
     { nombre: 'O.N.G.', ruta: '/ong', icono: Building2, alias: ['/registro'] },
     { nombre: 'Estadísticas', ruta: '/stats', icono: BarChart3 },
     { nombre: 'Tablas', ruta: '/tablas', icono: Table2 },
+    { nombre: 'Manual', ruta: '/manual', icono: BookOpen },
   ]
 
   const togglePin = () => {
