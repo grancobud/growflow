@@ -47,6 +47,8 @@ como forma habitual de cargar.
 Esto se hace al principio y casi no se toca. Si falta, varias pantallas van a
 mostrar guiones en vez de números: no están rotas, no tienen con qué calcular.
 
+{{PUESTA_EN_MARCHA}}
+
 1. **Los datos de la entidad** — `O.N.G. › La entidad`
    Razón social, CUIT, domicilio de la sede, fecha de constitución, cierre de
    ejercicio y las fechas del REPROCANN. De acá salen los encabezados de *todos*

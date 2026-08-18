@@ -8,7 +8,10 @@
 // parado importa tanto como poder saltar.
 
 import { useMemo, useState, useEffect, useRef } from 'react'
-import { BookOpen, Search, X, Printer } from 'lucide-react'
+import { BookOpen, Search, X, Printer, ArrowUpRight } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { rutaDe } from '../lib/rutasManual'
+import { PuestaEnMarcha } from '../components/manual/PuestaEnMarcha'
 import manualMd from '../contenido/manual.md?raw'
 import { parsearMarkdown, parsearInline, type Bloque, type Trozo } from '../lib/markdown'
 import { btnSutil, campoBase } from '../lib/ui'
@@ -180,11 +183,24 @@ function Inline({ texto }: { texto: string }) {
       {parsearInline(texto).map((t: Trozo, i) => {
         if (t.t === 'negrita') return <strong key={i} className="font-semibold text-[#ececf1]">{t.v}</strong>
         if (t.t === 'cursiva') return <em key={i} className="italic text-[#c4c4d0]">{t.v}</em>
-        if (t.t === 'codigo') return (
-          <code key={i} className="font-mono text-[0.88em] px-1.5 py-0.5 rounded bg-[#15151d] border border-[#1f1f2b] text-[#bef264] break-words">
-            {t.v}
-          </code>
-        )
+        if (t.t === 'codigo') {
+          // Los destinos de las recetas se vuelven links a la pantalla. El manual
+          // vive adentro de la app: decir "andá a Cultivo › Sala" y no llevarte
+          // hasta ahí es hacerte buscar algo que el sistema ya sabe dónde está.
+          const ruta = rutaDe(t.v)
+          if (ruta) return (
+            <Link key={i} to={ruta}
+              className="inline-flex items-center gap-1 font-mono text-[0.88em] px-1.5 py-0.5 rounded bg-[#1e2a12] border border-[#404d20] text-[#bef264] hover:bg-[#26340f] hover:border-[#5a6d2c] transition-colors break-words">
+              {t.v}
+              <ArrowUpRight className="w-3 h-3 flex-shrink-0 opacity-70" />
+            </Link>
+          )
+          return (
+            <code key={i} className="font-mono text-[0.88em] px-1.5 py-0.5 rounded bg-[#15151d] border border-[#1f1f2b] text-[#bef264] break-words">
+              {t.v}
+            </code>
+          )
+        }
         if (t.t === 'link') return (
           <a key={i} href={t.href} target="_blank" rel="noreferrer"
             className="text-[#a3e635] underline underline-offset-2 hover:text-[#d9f99d] break-words">
@@ -222,6 +238,9 @@ function RenderBloque({ b }: { b: Bloque }) {
     }
 
     case 'parrafo':
+      // Marcador: una linea con {{PUESTA_EN_MARCHA}} se reemplaza por el checklist
+      // que lee el estado real. El manual sigue siendo markdown plano.
+      if (b.texto.trim() === '{{PUESTA_EN_MARCHA}}') return <PuestaEnMarcha />
       return (
         <p className="text-[13.5px] sm:text-[14px] leading-relaxed text-[#b8b8c4] max-w-[68ch]">
           <Inline texto={b.texto} />

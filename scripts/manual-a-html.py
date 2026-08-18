@@ -84,6 +84,14 @@ while i < len(lineas):
         cls = 'pasos' if ord_ else 'lista'
         partes.append(f'<{tag} class="{cls}">' + ''.join(f'<li>{inline(x)}</li>' for x in items) + f'</{tag}>')
         continue
+    # Marcadores de widgets interactivos: en la app se reemplazan por un
+    # componente que consulta la base. Acá no hay base que consultar, asi que se
+    # explica en una linea en vez de dejar el marcador crudo a la vista.
+    if s == '{{PUESTA_EN_MARCHA}}':
+        cerrar()
+        partes.append('<div class="nota">Dentro del sistema, acá aparece el estado real '
+                      'de cada uno de estos puntos: qué está cargado y qué falta.</div>')
+        i += 1; continue
     parr.append(s); i += 1
 cerrar()
 
