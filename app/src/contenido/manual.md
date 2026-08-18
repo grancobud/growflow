@@ -22,17 +22,18 @@ ante un organismo está en O.N.G.**
 
 | Sección | Qué vive adentro | Para qué se entra |
 |---|---|---|
-| **Panel** | — | Plantas activas, en floración, riegos de hoy, gramos cosechados. |
+| **Panel** | Una sola pantalla | Plantas activas, en floración, riegos de hoy, gramos cosechados. |
 | **Cultivo** | Plantas · Genéticas · Línea de tiempo · Sala | Todo lo que le pasa a una planta desde que germina hasta que se corta. |
-| **Cosecha** | — | Cargar los gramos que dio cada variedad y comparar rendimientos. |
-| **Ambiente** | — | Sensores en vivo, estado de cada equipo, si los valores están en rango. |
-| **Calendario** | — | Ver y planificar riegos, podas, fumigaciones y cosechas. |
+| **Cosecha** | Una sola pantalla | Cargar los gramos que dio cada variedad y comparar rendimientos. |
+| **Ambiente** | Una sola pantalla | Sensores en vivo, estado de cada equipo, si los valores están en rango. |
+| **Calendario** | Una sola pantalla | Ver y planificar riegos, podas, fumigaciones y cosechas. |
 | **Calculadora Fertilizantes** | Calculadora · Mi plan · Sustancias · Ratios y costo · Más herramientas | Sacar la receta de sales para un perfil objetivo y su costo. |
 | **Instalación** | Hardware DIY · Riego · Tablero eléctrico · Faltantes | Cómo está armado el equipamiento y qué falta comprar. |
 | **Econometría** | Resumen · Costos · Inventario · Mantenimiento · Instalaciones | Qué cuesta producir un gramo y de dónde sale ese número. |
 | **O.N.G.** | 15 pestañas, de Estado a Predios | Pacientes, entregas, libros, actas y todo lo que pide la Resolución 1780. |
-| **Estadísticas** | — | Rendimiento por genética, gramos por vatio, merma de secado. |
-| **Tablas** | — | Los datos crudos de cualquier tabla, editables celda por celda. |
+| **Estadísticas** | Una sola pantalla | Rendimiento por genética, gramos por vatio, merma de secado. |
+| **Tablas** | Una sola pantalla | Los datos crudos de cualquier tabla, editables celda por celda. |
+| **Manual** | Una sola pantalla | Esto que estás leyendo. El buscador de arriba encuentra por palabra. |
 
 **Tablas es la salida de emergencia.** Cualquier dato que no encuentres cómo
 corregir desde su pantalla se edita ahí a mano. Sirve también para exportar e
