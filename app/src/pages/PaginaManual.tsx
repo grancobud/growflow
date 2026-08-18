@@ -28,18 +28,41 @@ export default function PaginaManual() {
       b.tipo === 'titulo' && b.nivel === 2),
     [bloques])
 
-  // Buscar filtra por capítulo entero y no por bloque suelto: un párrafo sin su
-  // título alrededor no se entiende, y el resultado sería una sopa de frases.
+  // Buscar corta por la sección más chica que tenga sentido sola: una receta (h3)
+  // si la hay, el capítulo (h2) si no. Cortar sólo por capítulo devolvía las 28
+  // recetas del paso a paso para cualquier palabra, que es no filtrar nada.
+  //
+  // Cuando lo que coincide es una receta se emite igual su capítulo padre, porque
+  // "Cargar un costo" suelto no dice de qué parte del sistema estamos hablando.
   const visibles = useMemo(() => {
     const q = busca.trim().toLowerCase()
     if (!q) return bloques
+
     const salida: Bloque[] = []
-    let actual: Bloque[] = []
+    let grupo: Bloque[] = []
     let coincide = false
-    const volcar = () => { if (coincide) salida.push(...actual); actual = []; coincide = false }
+    let capitulo: Bloque | null = null
+    let capituloEmitido: Bloque | null = null
+
+    const volcar = () => {
+      if (coincide) {
+        if (capitulo && capituloEmitido !== capitulo) {
+          salida.push(capitulo)
+          capituloEmitido = capitulo
+        }
+        // El propio h2 ya se emitió arriba; no repetirlo al volcar su grupo.
+        salida.push(...grupo.filter(b => b !== capitulo))
+      }
+      grupo = []
+      coincide = false
+    }
+
     for (const b of bloques) {
-      if (b.tipo === 'titulo' && b.nivel <= 2) volcar()
-      actual.push(b)
+      if (b.tipo === 'titulo' && b.nivel <= 3) {
+        volcar()
+        if (b.nivel <= 2) capitulo = b
+      }
+      grupo.push(b)
       if (textoDe(b).toLowerCase().includes(q)) coincide = true
     }
     volcar()

@@ -10,3 +10,4 @@ supabase/.branches/
 
 # telemetria de claude-flow, no es codigo de la app
 .claude-flow/
+scripts/manual.html

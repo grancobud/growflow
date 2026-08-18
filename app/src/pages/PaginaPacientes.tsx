@@ -374,7 +374,7 @@ type FormState = {
   localidad: string; provincia: string; domicilio: string
   reprocann_nro: string; reprocann_estado: EstadoReprocann; reprocann_emision: string; reprocann_vencimiento: string
   modalidad: string; patologia: string; medico_tratante: string; matricula_medico: string
-  plantas_habilitadas: string; m2_habilitados: string
+  plantas_habilitadas: string; m2_habilitados: string; tope_mensual_g: string
   socio: boolean; fecha_alta: string; notas: string
 }
 
@@ -392,6 +392,7 @@ function ModalPaciente({ paciente, onCerrar, onGuardado }: {
     modalidad: paciente?.modalidad ?? '', patologia: paciente?.patologia ?? '',
     medico_tratante: paciente?.medico_tratante ?? '', matricula_medico: paciente?.matricula_medico ?? '',
     plantas_habilitadas: paciente?.plantas_habilitadas?.toString() ?? '', m2_habilitados: paciente?.m2_habilitados?.toString() ?? '',
+    tope_mensual_g: paciente?.tope_mensual_g?.toString() ?? '',
     socio: paciente?.socio ?? true, fecha_alta: paciente?.fecha_alta ?? hoy, notas: paciente?.notas ?? '',
   })
   const [credencialUrl, setCredencialUrl] = useState<string | null>(paciente?.credencial_url ?? null)
@@ -470,6 +471,7 @@ function ModalPaciente({ paciente, onCerrar, onGuardado }: {
       patologia: limpio(form.patologia), medico_tratante: limpio(form.medico_tratante), matricula_medico: limpio(form.matricula_medico),
       plantas_habilitadas: form.plantas_habilitadas.trim() === '' ? null : parseInt(form.plantas_habilitadas),
       m2_habilitados: form.m2_habilitados.trim() === '' ? null : parseFloat(form.m2_habilitados),
+      tope_mensual_g: form.tope_mensual_g.trim() === '' ? null : parseFloat(form.tope_mensual_g),
       socio: form.socio, fecha_alta: form.fecha_alta || null, notas: limpio(form.notas),
       credencial_url: credencialUrl, foto_url: fotoUrl,
     }
@@ -544,6 +546,15 @@ function ModalPaciente({ paciente, onCerrar, onGuardado }: {
         <div className="grid grid-cols-2 gap-3">
           <div><label className={labelCls}>Plantas habilitadas</label><input className={inputCls} type="number" min="0" placeholder="9" value={form.plantas_habilitadas} onChange={e => set('plantas_habilitadas', e.target.value)} /></div>
           <div><label className={labelCls}>m² habilitados</label><input className={inputCls} type="number" min="0" step="0.5" placeholder="4" value={form.m2_habilitados} onChange={e => set('m2_habilitados', e.target.value)} /></div>
+        </div>
+        <div>
+          <label className={labelCls}>Tope mensual (g)</label>
+          <input className={inputCls} type="number" min="0" step="1" placeholder="40"
+            value={form.tope_mensual_g} onChange={e => set('tope_mensual_g', e.target.value)} />
+          <p className="mt-1 text-[10px] text-[#7d7d8e]">
+            Cuántos gramos puede recibir en 30 días. Sin este dato no se puede controlar el cupo
+            y las reservas del portal salen sin límite.
+          </p>
         </div>
 
         <div className="pt-2 border-t border-[#1f1f2b]"><div className="text-[10px] uppercase tracking-[0.14em] text-[#a78bfa] mb-2">Datos médicos (opcional)</div></div>

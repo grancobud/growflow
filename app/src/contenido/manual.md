@@ -7,8 +7,9 @@ circuito de la ONG que termina en una entrega con su recibo.
 Está escrito para la operación real, no como lista de funciones. Donde el sistema
 bloquea, explica por qué bloquea.
 
-> Versión navegable (misma información, más cómoda de leer):
-> https://claude.ai/code/artifact/c42ceb8a-6429-42a0-96bb-3757c0a35545
+> **¿Buscás cómo hacer algo puntual?** El capítulo 11 tiene el paso a paso de cada
+> tarea con los campos tal como aparecen en pantalla: cargar plantas, cargar costos,
+> hacer una reserva, redactar un acta. El buscador de arriba también sirve.
 
 ---
 
@@ -317,3 +318,323 @@ podés ver el cupo agotado aunque todavía no se haya retirado nada.
 | El cupo de plantas no da | Se cuentan sólo las plantas en floración. Revisá las fases. |
 | La merma de secado da rarísima | Probablemente peso húmedo y seco quedaron invertidos. Lo normal ronda 75–80 %. |
 | Un dato no se puede corregir desde su pantalla | Editalo en *Tablas*, celda por celda. |
+
+---
+
+## 11 · Paso a paso de cada cosa
+
+Las recetas concretas, con los campos tal como aparecen en pantalla. Los marcados como
+obligatorios no dejan guardar sin completar; el resto puede esperar.
+
+### Crear una genética
+
+**Dónde:** `Cultivo › Genéticas › botón Genética`
+
+1. **Nombre** (obligatorio) — es lo único que no podés dejar vacío. Podés crear la genética sólo con esto y completar el resto cuando la conozcas.
+2. **Banco** y **Tipo** — feminizada, automática o regular. El tipo cambia cómo se calcula la línea de tiempo.
+3. **Genotipo**, **Indica/Sativa %** y **Linaje / Cruza** — para tu referencia.
+4. **THC %** y **CBD %** — valores estimados de la variedad.
+5. **Vege (días)** y **Flora (días)** — con esto la Línea de tiempo puede estimar la fecha de cosecha.
+6. **Altura**, **Dificultad**, **Ambiente**, **Rendimiento**, **Stretch (flora)** y **Resistencia**.
+7. **Terpenos / Aroma**, **Efectos** y **Usos medicinales**.
+8. Guardá.
+
+> Los valores de THC y CBD de la ficha son estimados de la genética. No reemplazan
+> el análisis del lote: en el informe cromatográfico van los medidos, no estos.
+
+### Cargar plantas
+
+**Dónde:** `Cultivo › Plantas › botón Planta`
+
+1. **Genética** — elegila de la lista. Si no está, el botón **+** al lado abre el alta de genética sin perder lo que ya cargaste.
+2. **Apodo** — cómo la llamás vos ("La gorda"). Si cargás varias de una, se numeran solas.
+3. **Cantidad** — hasta 50 de un saque. Es la forma de dar de alta un lote de clones sin repetir el formulario.
+4. **Fecha germinación** — de acá sale el día de vida que ves en cada ficha.
+5. **Fase** — en qué etapa entra.
+6. **Sustrato** y **Maceta** — por ejemplo "20L tela".
+7. **Ubicación** — "Indoor carpa 120x120".
+8. **Paciente asignado** — con qué REPROCANN se ampara esta planta. Es lo que después cuadra el cupo por persona.
+9. Tocá **Crear planta**. Si pusiste cantidad mayor a uno, el botón dice cuántas va a crear.
+
+> Cada planta recibe un código QR propio para su historia clínica. Se imprime desde
+> la ficha y sirve para llegar a la planta escaneando en vez de buscarla en la lista.
+
+### Regar o fumigar toda la sala
+
+**Dónde:** `Cultivo › Sala`
+
+1. Elegí **Regar** o **Fumigar** arriba.
+2. Cargá la **receta de hoy**: lo que pongas se guarda en cada planta que toques.
+3. Tocá las plantas una por una, o el nombre de la carpa para marcarlas todas.
+4. El contador de arriba lleva la cuenta: "0 / 64 regadas hoy".
+
+Los colores dicen hace cuánto se regó cada posición: regada hoy, 1-2 días, 3+ días,
+sin registro. El puntito de color es la genética.
+
+> **Mover** cambia una planta de posición sin perderle el historial. Sirve cuando
+> rotás la carpa.
+
+### Registrar algo puntual en una planta
+
+**Dónde:** `Cultivo › Plantas`, en la tarjeta de cada planta
+
+Cada planta tiene sus botones a mano: **Riego**, **Ferti**, **Poda**, **Nota** y
+**Cosecha**. **Historial** abre todo lo registrado, con el contador de cuántos
+eventos lleva.
+
+Es para lo puntual —una poda, una observación—. Para lo que hacés en tanda,
+Sala es más rápido.
+
+### Pasar plantas a floración
+
+**Dónde:** `Cultivo › Plantas`, editando la ficha
+
+Cambiá la **Fase** a Floración. Hacelo el día que cambiás el fotoperiodo, no después.
+
+> Esto no es prolijidad: el tope de la Resolución 1780 se cuenta sobre las plantas
+> **en floración**. Si las fases están atrasadas, el cupo de `O.N.G. › Cupo REPROCANN`
+> te va a dar mal, y es el número que mirás para saber si estás dentro de lo habilitado.
+
+### Cargar una cosecha
+
+**Dónde:** `menú › Cosecha`
+
+1. Buscá la variedad en la lista y tocá **Ver / editar**.
+2. **Fecha de cosecha**.
+3. **Peso seco (g)** (obligatorio) — si además cargás el húmedo, el sistema calcula la merma.
+4. **Valoración** — del 1 al 10, para el ranking.
+5. **Notas de sabor / cata** y **Notas de curado**.
+6. Guardá.
+
+Podés cargar el total de la variedad o abrir el modo por planta y cargar el peso de
+cada una. Por planta es más trabajo pero te deja comparar rendimientos entre
+individuos de la misma genética.
+
+> Si la merma te da muy lejos de 75–80 %, casi seguro cargaste el húmedo en el campo
+> del seco o al revés.
+
+### Cargar un costo
+
+**Dónde:** `Econometría › Costos`
+
+1. **Nombre** (obligatorio) — "Alquiler galpón", "Bolsa de coco".
+2. **Categoría** — sugeridas para fijos: Alquiler, Luz (abono), Internet, Amortización equipos, Seguro. Para variables: Nutrientes, Sustrato, Luz (consumo), Agua, Semillas/Clones, Sanidad, Mano de obra. Igual podés escribir la tuya.
+3. **Periodicidad** — Único, Mensual, Bimestral, Por ciclo o Anual. Esto es lo que decide cómo se prorratea al costo del ciclo.
+4. **Monto ($)** y **Cantidad**.
+5. **Notas**.
+6. Guardá.
+
+> La periodicidad importa más que el monto. Un gasto anual cargado como mensual
+> multiplica por doce el costo por gramo y te hace cobrar de más.
+
+### Cargar un insumo al inventario
+
+**Dónde:** `Econometría › Inventario`
+
+1. **Nombre** (obligatorio).
+2. **Categoría**.
+3. **Potencia (W)** — sólo para equipos que consumen. Es de donde sale el cálculo de gramos por vatio en Estadísticas.
+4. **Marca** y **Modelo**.
+5. **Cantidad** y **Unidad**.
+6. **Stock mínimo** — cuando baja de acá, aparece en la lista de faltantes.
+7. **Dosis / uso (fertilizantes)** y **Para qué se usa**.
+8. **Proveedor** y **Precio ($)**.
+9. **Specs / detalle** y **Notas**.
+10. Guardá.
+
+El inventario es plata inmovilizada: lo que cargues acá entra en el costo del ciclo.
+
+### Cargar un equipo y su amortización
+
+**Dónde:** `Econometría › Instalaciones`
+
+1. **Nombre** (obligatorio) y **Sistema** — a qué parte de la instalación pertenece.
+2. **Proveedor**, **Marca**, **Modelo**.
+3. **Precio unit. ($)**, **Cantidad** y **Unidad**.
+4. Guardá.
+
+Si estás comparando presupuestos, cada ítem admite varias **ofertas** con
+**Proveedor**, **Precio ($)**, **Presentación**, **Foto de la cotización** (sirve la
+captura de Mercado Libre) y **Nota**. Elegís una y el precio del ítem se actualiza solo.
+
+> La vida útil del equipo es lo que hace que se amortice en vez de golpear todo el
+> costo en un solo ciclo.
+
+### Programar un mantenimiento
+
+**Dónde:** `Econometría › Mantenimiento`
+
+1. **Equipo / insumo del inventario** — o **Equipo (texto libre)** si no está cargado.
+2. **Tipo** — qué hay que hacerle.
+3. **Frecuencia (días)** — cada cuánto se repite.
+4. Guardá. Aparece en el Calendario cuando toca.
+
+### Cargar un paciente
+
+**Dónde:** `O.N.G. › Pacientes › botón Paciente`
+
+1. **Nombre completo** (obligatorio).
+2. **DNI**, **Nacimiento**, **Teléfono**, **Email**.
+3. **Localidad**, **Provincia**, **Domicilio**.
+4. REPROCANN: **N° de registro**, **Estado** (Vigente, En trámite, Vencido, Rechazado), **Emisión** y **Vencimiento**.
+5. **Modalidad** — Cultivo propio, Cultivo solidario o Tercero/ONG.
+6. **Plantas habilitadas**, **m² habilitados** y **Tope mensual (g)**.
+7. **Patología / Indicación**, **Médico tratante** y **Matrícula**.
+8. **Credencial (PDF)** y **Foto**.
+9. **Notas**. Guardá.
+
+> **El tope mensual no lo saltees.** Es contra ese número que se controla el cupo de
+> 30 días. Sin él cargado, las reservas del portal salen sin límite y el sistema sólo
+> puede avisarte que no puede controlarlo.
+
+Si cargás la credencial en PDF, el sistema puede leerla y completar los campos del
+REPROCANN solo. Revisá igual lo que completó antes de guardar.
+
+### Dar de alta un asociado
+
+**Dónde:** `O.N.G. › Asociados`
+
+1. **Nombre** y **DNI**.
+2. **Categoría** — de las que tengas definidas.
+3. **Paciente vinculado (opcional)** — vinculalo si esta persona además recibe material. Sin esto, el portal no encuentra su ficha de paciente.
+4. **Acta que aprobó el alta** — el alta de un socio se resuelve en Comisión Directiva; acá se referencia dónde.
+5. **Fecha de alta**.
+6. **Vinculación REPROCANN**.
+7. Guardá.
+
+> Paciente y asociado son dos fichas distintas. Para reservar hace falta ser las dos
+> cosas y tenerlas vinculadas.
+
+### Emitir las cuotas del período
+
+**Dónde:** `O.N.G. › Asociados`
+
+1. Definí el valor de la cuota: **Nombre (como figura en el estatuto)**, **Tipo**, **Valor**, **Categoría (vacío = todas)**, **Acta que la aprobó** y **Vigente desde**.
+2. Emití el período. Se genera una cuota por asociado alcanzado.
+3. A medida que cobrás, marcá cada una con **Fecha de pago** y **Medio de pago**.
+
+### Crear un lote para dispensar
+
+**Dónde:** `O.N.G. › Autodispensación › Catálogo › botón Lote`
+
+1. **Código** — "LOTE-2026-08-A". Es el que va a figurar en el comprobante.
+2. **Producto** — flor, aceite, extracto, tópico u otro.
+3. **Gramos totales** y **Aporte por gramo ($)**.
+4. **Genética** y **Fecha de elaboración**.
+5. Informe cromatográfico: **THC %**, **CBD %**, **Laboratorio** y **Fecha del análisis**.
+6. Dejá tildado **Activo** para que aparezca al reservar.
+7. Guardá.
+
+> El aporte por gramo tiene que estar por debajo del costo de producción que ves en
+> Econometría. Por encima deja de ser reembolso de costos.
+
+### Hacer una reserva
+
+**Dónde:** `O.N.G. › Autodispensación › botón Reservar`
+
+1. **Quién retira** — elegí el paciente. Abajo aparece si está habilitado, con el cupo usado, el reservado y el libre.
+2. Si hay bloqueos, resolvelos ahí mismo: **Firmar mandato** si falta la declaración jurada, o la **Encuesta de Seguimiento** si la entrega anterior no tiene reporte.
+3. **De qué lote** — la lista muestra los gramos disponibles de cada uno.
+4. **Gramos** — el reembolso se calcula solo.
+5. **Cómo paga** — transferencia o billetera (adjuntás comprobante) o efectivo en la sede.
+6. **Reservar 72 h**. Sale el código y su QR.
+
+### Entregar en la sede
+
+**Dónde:** `O.N.G. › Autodispensación › Reservas`
+
+1. Tocá **Escanear** y leé el QR del paciente. Si no anda la cámara, escribí el código en el buscador.
+2. Se abre la entrega con los datos y el chequeo. Si pagó por transferencia y administración todavía no lo verificó, no deja avanzar: el botón **Pago verificado** está en la tarjeta de esa reserva.
+3. Si paga en efectivo, tildá que lo cobraste.
+4. **Quién entrega** — el nombre de quien atiende.
+5. **Confirmar entrega**. Se registra la dispensa, se asienta el reembolso en caja y sale el recibo oficial para imprimir.
+
+### Cargar el reporte de seguimiento
+
+**Dónde:** `O.N.G. › Seguimiento`
+
+1. Buscá la entrega sin reporte.
+2. **Alivio de los síntomas** — del 1 (nulo) al 5 (excelente).
+3. **Efectos adversos** — "Ninguno" es excluyente: no podés marcar ninguno y a la vez cefalea.
+4. **Dosis que usó realmente** — "3 gotas cada 8 hs", "0,3 g vaporizado a la noche".
+5. **Observaciones sobre su calidad de vida**.
+6. Guardá.
+
+> Una vez guardado no se edita ni se borra, y la base lo rechaza aunque se intente.
+> Revisalo antes: es la evidencia que va al informe del Director Médico.
+
+### Asentar un movimiento de caja
+
+**Dónde:** `O.N.G. › Seguimiento › Libro de Caja`
+
+1. **Fecha** y **Tipo** — ingreso o egreso.
+2. **Concepto** — ingresos: reembolso de costos operativos, cuota social, donación. Egresos: compra de insumos, servicios, honorarios, impuestos y tasas.
+3. **Monto** y **Medio**.
+4. **Detalle** y **Notas**. Guardá.
+
+Las entregas se asientan solas al confirmarlas. Acá cargás todo lo demás.
+
+### Cargar un documento
+
+**Dónde:** `O.N.G. › Documentos`
+
+1. **Tipo** — emitido o recibido.
+2. **Clase** — qué documento es.
+3. **Fecha**, **Número**, **Descripción**.
+4. **Monto** y **Rubro**; **Proveedor** si es un gasto.
+5. Vinculalo con lo que corresponda: **Asociado**, **Paciente** o **Dispensa que respalda**.
+6. **Archivo** — subí el PDF o la foto.
+7. Guardá.
+
+### Redactar un acta
+
+**Dónde:** `O.N.G. › Actas`
+
+1. **Tipo** — Comisión Directiva, Asamblea Ordinaria, Asamblea Extraordinaria o Comisión Revisora de Cuentas.
+2. **Número** y **Fecha**; **Hora inicio** y **Hora fin**.
+3. **Lugar**.
+4. Marcá los **asistentes** de la lista. El contador te dice si llegás al **quórum requerido**.
+5. **Orden del día** — cada punto tratado.
+6. **Firmantes**.
+7. **Libro donde se asentó** y **Estado** — borrador, firmada, en libro o inscripta.
+8. Generá el acta: sale redactada para transcribir al libro. Lo que falte queda entre corchetes.
+
+### Presentar la DDJJ semestral
+
+**Dónde:** `O.N.G. › Declaraciones`
+
+1. **Período** y **Fecha de presentación**.
+2. **Plantas en total** y **En floración**.
+3. **Pacientes vinculados**.
+4. **Variedades usadas**.
+5. **Notas**. Marcá como presentada cuando la entregues.
+
+### Registrar un traslado
+
+**Dónde:** `O.N.G. › Declaraciones › Traslados`
+
+1. **Fecha**, **Hora de salida** y **Hora de llegada**.
+2. **Paciente** — por quién se traslada el material.
+3. **Qué se traslada** y **Cantidad**. El tope cambia según el tipo: 40 g de flores, 6 frascos, y las plantas no tienen tope fijo.
+4. **Origen**, **Destino** y **Ruta**.
+5. **Transportista** y **DNI del transportista**.
+6. **Destinatario final**.
+7. Guardá y generá la guía de tránsito para llevar impresa.
+
+### Editar o borrar cualquier cosa
+
+Todo lo que se carga se puede corregir y borrar desde donde se ve: el lápiz edita,
+el tacho borra. Lo que el sistema no deja borrar tiene una razón y te la dice:
+
+- Un **reporte de seguimiento** no se edita ni se borra nunca.
+- Un **lote con reservas** no se borra: se desactiva, así el historial no pierde de dónde salió el material.
+- Una **reserva entregada** no se borra: es el respaldo de una dispensa registrada.
+
+Si algo no se puede corregir desde su pantalla, `Tablas` lo edita celda por celda.
+
+### Exportar e importar
+
+**Dónde:** `Tablas`, o los botones **Export** / **Import** de cada pantalla
+
+Export baja lo que estés viendo. Import lo vuelve a subir, y sirve para cargar en
+tanda desde una planilla en vez de uno por uno.
