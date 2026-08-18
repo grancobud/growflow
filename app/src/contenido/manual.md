@@ -413,6 +413,27 @@ individuos de la misma genética.
 > Si la merma te da muy lejos de 75–80 %, casi seguro cargaste el húmedo en el campo
 > del seco o al revés.
 
+### Sacar la receta de fertilizantes
+
+**Dónde:** `menú › Calculadora Fertilizantes`
+
+1. **Perfil objetivo** — elegí el preset de la etapa (plántula/clon, vegetativo, floración, engorde, finis) o cargá los ppm que querés de cada elemento.
+2. **Kit de sales** — marcá qué sales tenés. La calculadora resuelve con lo que hay, no con lo ideal.
+3. Leé la receta: cuántos gramos de cada sal por litro, y el perfil que realmente se alcanza. Si algún elemento no llega, lo dice.
+4. **Guardar** la manda a **Mi plan**, que es la receta del ciclo en curso.
+
+Las demás pestañas son el soporte de eso:
+
+- **Sustancias** — las sales con su composición y precio.
+- **Proveedores** — dónde comprás cada una.
+- **Agua y unidades** — el análisis de tu agua de partida. Sin esto, la receta ignora lo que el agua ya trae.
+- **Soluciones madre** — pasar la receta a concentrado A/B.
+- **Clonar marca** y **Fichas técnicas** — reproducir una línea comercial con sales sueltas.
+- **Estabilizantes** y **Ajuste de pH**.
+
+> Cargá primero el agua. Un agua dura ya trae calcio y magnesio, y si no se descuentan
+> la receta los suma de nuevo.
+
 ### Cargar un costo
 
 **Dónde:** `Econometría › Costos`
@@ -468,6 +489,132 @@ captura de Mercado Libre) y **Nota**. Elegís una y el precio del ítem se actua
 2. **Tipo** — qué hay que hacerle.
 3. **Frecuencia (días)** — cada cuánto se repite.
 4. Guardá. Aparece en el Calendario cuando toca.
+
+### Cargar lo que falta comprar
+
+**Dónde:** `Instalación › Faltantes`
+
+1. **Nombre del insumo** (obligatorio).
+2. **Cantidad** y **Unidad**.
+3. **Prioridad** — para ordenar la compra.
+4. **Categoría**.
+5. **Cómo pesa en el costo** — si es un gasto del ciclo o una inversión que se amortiza. Es lo que decide si entra al costo por gramo de una vez o repartido.
+6. **Precio estimado (ARS)** y **Link de compra**.
+7. **Foto (etiqueta / precio)** — sirve la captura del precio.
+8. **Nota**. Guardá.
+
+> Esta lista **no** entra en el costo por gramo. Es lo que pensás gastar, y el costo
+> se calcula sobre lo que ya gastaste.
+
+### Armar el tablero eléctrico
+
+**Dónde:** `Instalación › Tablero eléctrico`
+
+Primero el tablero:
+
+1. **Nombre** (obligatorio) y **Ubicación**.
+2. **Tensión** y **Acometida (A)**.
+3. **Protección general** y **Notas**.
+
+Después una línea por cada carga:
+
+1. **Carga** (obligatorio) — qué alimenta: luces, aire, extractor, bomba.
+2. **Tipo** y **Sala**.
+3. **Potencia (W)** — de acá sale la corriente y el dimensionamiento.
+4. **Corriente (A)**, **Térmica**, **Cable (mm²)** y **Contactor**.
+5. **Notas**. Guardá.
+
+> La potencia total que cargues acá es la que Estadísticas usa para los gramos por
+> vatio. Si falta una luz, el rendimiento te va a dar mejor de lo que es.
+
+### Configurar la entidad
+
+**Dónde:** `O.N.G. › La entidad`
+
+Se hace una vez. De acá salen los encabezados de todos los documentos que el sistema
+genera, así que lo que falte va a aparecer entre corchetes en cada papel.
+
+1. **Razón social** y **CUIT**.
+2. **Jurisdicción** y **Organismo de control** — IGJ, Dirección de Personas Jurídicas provincial, el que corresponda.
+3. **Fecha de constitución**.
+4. **Domicilio**, **Localidad** y **Provincia** de la sede.
+5. **Cierre · día** y **Cierre · mes** — el cierre de ejercicio. Define cuándo vence la asamblea ordinaria.
+6. **Duración del mandato (años)** y **Mandato vigente desde** — con esto el sistema avisa cuándo hay que renovar autoridades.
+7. REPROCANN institucional: **Inscripción** y **Vencimiento**.
+8. **Última revisión de libros** — para el aviso trimestral.
+9. Topes: **Pacientes**, **Plantas por paciente** y **Predios**. Son los límites contra los que se controla la capacidad.
+10. Guardá.
+
+### Cargar una autoridad
+
+**Dónde:** `O.N.G. › Autoridades`
+
+1. **Nombre** y **Cargo**.
+2. **Órgano** — Comisión Directiva o Comisión Revisora de Cuentas.
+3. **Grupo familiar** — sirve para detectar parentesco cruzado entre autoridades, que es una de las cosas que revisa Coherencia.
+4. Guardá.
+
+La lista de autoridades activas es la que después completa sola las designaciones y
+los firmantes de las actas.
+
+### Cargar un predio
+
+**Dónde:** `O.N.G. › Predios`
+
+1. **Nombre** y **Dirección**.
+2. **Localidad**, **Provincia** y **Municipio**.
+3. Marcá si está **georreferenciado** y si el **municipio fue notificado**. Las dos cosas las pide la 1780 y son las que Estado te va a reclamar si faltan.
+4. Guardá.
+
+### Marcar los requisitos de la 1780
+
+**Dónde:** `O.N.G. › Estado`
+
+La lista de requisitos de la Resolución 1780 viene cargada. De cada uno marcás si está
+cumplido, con qué se acredita y su vencimiento si tiene. Es la lista que después
+resume la pantalla de Estado.
+
+> Un tilde dice "lo tengo". El documento en sí se genera desde `Documentos ›
+> Plantillas institucionales`.
+
+### Dar de alta un libro rubricado
+
+**Dónde:** `O.N.G. › Libros`
+
+1. **Tipo de libro** — Actas de Comisión Directiva, Actas de Asamblea, Asistencia a reuniones, Actas de Comisión Revisora de Cuentas, Registro de Asociados, Libro Diario, Inventario y Balances.
+2. **Número de libro** y **Organismo** que lo rubricó.
+3. **Fecha de rúbrica**.
+4. **Folios totales** y **Folios usados** — para saber cuánto queda antes de tener que rubricar otro.
+5. Guardá.
+
+Cuando cargues un acta vas a elegir en qué libro se asentó y en qué folio.
+
+### Generar una plantilla institucional
+
+**Dónde:** `O.N.G. › Documentos › Plantillas institucionales`
+
+1. Elegí cuál: designación de Director Médico, designación de Responsable Técnico, comodato de sede, comodato de predio, informe de genéticas o mandato.
+2. Completá lo que pida: quién ocupa el cargo, la matrícula, quién cede el inmueble o su dirección.
+3. **Generar**. Sale el documento redactado, listo para imprimir y firmar.
+
+Se completan solas con lo que ya está cargado. Las designaciones remiten al acta de
+Comisión Directiva más reciente; el informe de genéticas declara las variedades del
+banco.
+
+> Lo que falte sale entre corchetes. Cargalo y volvé a generar el documento en vez de
+> completarlo a mano, así queda igual la próxima vez.
+
+### Generar el informe del Director Médico
+
+**Dónde:** `O.N.G. › Seguimiento`
+
+1. Elegí el **semestre** en el panel del Director Médico. Sólo aparecen los períodos con movimiento.
+2. Revisá lo que muestra por paciente: diagnóstico, lotes entregados, curva de alivio, efectos adversos y entregas sin reporte.
+3. **Informe semestral** genera el documento con todo eso ordenado.
+4. El profesional agrega su dictamen y lo firma.
+
+> Con menos de tres reportes de un paciente el informe no declara tendencia: dice
+> cuántos faltan. Dos puntos no son una tendencia.
 
 ### Cargar un paciente
 
