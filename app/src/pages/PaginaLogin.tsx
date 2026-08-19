@@ -137,7 +137,7 @@ export default function PaginaLogin({ onLogin }: Props) {
                     id="email" type="text" value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="admin"
-                    className="w-full pl-9 pr-3 py-2.5 sm:py-2 bg-[#0a0a0f] border border-[#1f1f2b] hover:border-[#2a2a3a] focus:border-[#404d20] rounded-md text-[13px] sm:text-[12.5px] text-[#ececf1] placeholder:text-[#7d7d8e] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/40 transition-colors"
+                    className="w-full pl-9 pr-3 py-2.5 sm:py-2 bg-[#0a0a0f] border border-[#1f1f2b] hover:border-[#2a2a3a] focus:border-[#404d20] rounded-md text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder:text-[#7d7d8e] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/40 transition-colors"
                     required autoComplete="email" autoFocus
                   />
                 </div>
@@ -151,12 +151,12 @@ export default function PaginaLogin({ onLogin }: Props) {
                     id="password" type={showPassword ? 'text' : 'password'} value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-9 pr-10 py-2.5 sm:py-2 bg-[#0a0a0f] border border-[#1f1f2b] hover:border-[#2a2a3a] focus:border-[#404d20] rounded-md text-[13px] sm:text-[12.5px] text-[#ececf1] placeholder:text-[#7d7d8e] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/40 transition-colors"
+                    className="w-full pl-9 pr-12 sm:pr-10 py-2.5 sm:py-2 bg-[#0a0a0f] border border-[#1f1f2b] hover:border-[#2a2a3a] focus:border-[#404d20] rounded-md text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder:text-[#7d7d8e] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/40 transition-colors"
                     required autoComplete="current-password"
                   />
                   <button
                     type="button" onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[#7d7d8e] hover:text-[#a6a6b5] p-1.5 rounded transition-colors"
+                    className="absolute right-0 sm:right-1.5 top-1/2 -translate-y-1/2 inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 text-[#7d7d8e] hover:text-[#a6a6b5] p-1.5 rounded transition-colors"
                     aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                   >
                     {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
@@ -175,7 +175,7 @@ export default function PaginaLogin({ onLogin }: Props) {
 
               <button
                 type="submit" disabled={cargando || !email || !password}
-                className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-2 rounded-md border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 active:bg-[#a3e635]/15 transition-colors text-[12.5px] font-medium text-[#d9f99d] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-2 min-h-[44px] sm:min-h-0 rounded-md border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 active:bg-[#a3e635]/15 transition-colors text-[12.5px] font-medium text-[#d9f99d] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <LogIn className="w-3.5 h-3.5" strokeWidth={1.8} />
                 {cargando ? 'Ingresando…' : 'Ingresar'}
