@@ -1,101 +1,195 @@
 # GrowFlow
 
-Diario de cultivo personal de cannabis, self-hosted y 100% local. Registrá genéticas, plantas, riegos, podas, cambios de fase y cosechas, y chateá con una IA local que conoce el estado de tu cultivo.
+**Del esqueje al recibo firmado.** Trazabilidad de cultivo de cannabis medicinal y gestión de la
+asociación civil que lo ampara, en un solo sistema: las plantas, lo que cuesta producirlas, a quién
+se le entrega y los papeles que eso exige.
 
-![stack](https://img.shields.io/badge/stack-React%2019%20%2B%20Vite%20%2B%20Supabase-a3e635)
+[![sitio](https://img.shields.io/badge/app-growflow--5vs.pages.dev-a3e635?style=flat-square)](https://growflow-5vs.pages.dev)
+![stack](https://img.shields.io/badge/React%2019-Vite%208-61dafb?style=flat-square)
+![supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?style=flat-square)
+![licencia](https://img.shields.io/badge/licencia-MIT-blue?style=flat-square)
 
-## Features
+Pensado para el marco argentino: **Ley 27.350**, **Decreto 883/2020** y **Resolución 1780/2025**.
+No es un diario de cultivo con una planilla al lado — el cupo de plantas sale de los REPROCANN
+cargados, el aporte de un paciente se compara contra el costo real de producción, y cada entrega
+deja su dispensa, su asiento en el libro de caja y su recibo.
 
-- **Plantas y genéticas**: alta rápida, fases (germinación → curado), sustrato, maceta, ubicación.
-- **Eventos con un click**: riego, fertilización, poda, trasplante, notas; historial por planta.
-- **Cosechas**: peso húmedo/seco, notas de curado y valoración.
-- **Panel** con KPIs: plantas activas, en floración, riegos del día, gramos cosechados.
-- **Chat IA opcional**: conectalo a un webhook (ej. n8n + Ollama) y preguntale a tu cultivo en lenguaje natural. Todo corre en tu máquina.
-- Dark UI (lima/violeta), mobile-first, instalable como PWA.
+---
+
+## Qué hace
+
+| Módulo | Adentro | Para qué |
+|---|---|---|
+| **Panel** | — | Plantas activas, en floración, riegos del día, gramos cosechados |
+| **Cultivo** | Plantas · Genéticas · Línea de tiempo · Sala | El ciclo completo: alta, fases, riegos por carpa, historial y QR por planta |
+| **Cosecha** | — | Peso húmedo/seco, merma, valoración y ranking por genética |
+| **Ambiente** | — | Temperatura, humedad, CO₂ y VPD en vivo + estado de cada equipo |
+| **Calendario** | — | Riegos, podas, fumigaciones, cosechas y mantenimientos |
+| **Calculadora Fertilizantes** | 17 sub-pestañas | Recetas de sales desde cero, clonado de marcas y preparados DIY |
+| **Instalación** | Hardware DIY · Riego · Tablero · Faltantes | Cómo está armado el equipamiento y qué falta comprar |
+| **Econometría** | Resumen · Costos · Inventario · Mantenimiento · Instalaciones | Cuánto cuesta producir un gramo y de dónde sale ese número |
+| **O.N.G.** | 15 pestañas | Pacientes, entregas, libros, actas, DDJJ y todo lo que pide la 1780 |
+| **Estadísticas** | — | Rendimiento por genética, gramos por vatio, merma de secado |
+| **Tablas** | — | Editor genérico de las 48 tablas, celda por celda |
+| **Manual** | — | El manual de operación, adentro de la app, con buscador |
+
+---
+
+## El circuito de la ONG
+
+Es la parte que distingue a GrowFlow de un registro de cultivo. Seis pasos, cada uno habilita el
+siguiente, y el sistema no deja saltear ninguno:
+
+```
+paciente → asociado → mandato firmado → reserva (72 h) → retiro en sede → reporte de seguimiento
+                                            │                   │                  │
+                                        QR + cupo          dispensa +          desbloquea la
+                                                          caja + recibo        próxima entrega
+```
+
+### Las reglas que el sistema hace cumplir
+
+Cuando algo se bloquea, la pantalla dice qué regla es y cómo destrabarla. No se muestran de a una:
+si faltan tres cosas, se ven las tres.
+
+| Regla | Qué exige |
+|---|---|
+| **RN-01** | REPROCANN vigente y vinculado a la entidad |
+| **RN-02** | Tope de gramos en 30 días, contando lo entregado **más lo reservado sin retirar** |
+| **RN-03** | Mandato de Gestión Operativa firmado (queda timestamp e IP) |
+| **RN-04** | El aporte no puede superar el costo de producción — si no, deja de ser reembolso |
+| **RN-05** | La entrega anterior necesita su reporte antes de habilitar la siguiente |
+| **RN-06** | La reserva vence a las 72 h y el material vuelve al inventario |
+| **RN-07** | El reporte clínico es inmutable: la base rechaza el update aunque la UI se equivoque |
+
+<details>
+<summary><b>Por qué el cupo cuenta las reservas</b></summary>
+
+El cupo de 30 días suma lo entregado **más lo reservado y todavía sin retirar**. Contando sólo
+entregas, cinco reservas hechas el mismo día pasarían el tope las cinco, y el exceso aparecería
+recién en el mostrador con el material ya comprometido.
+
+</details>
+
+<details>
+<summary><b>Documentos que genera</b></summary>
+
+Se completan con lo que ya está cargado; lo que falta sale entre corchetes en vez de inventado.
+
+- Recibo oficial por reembolso de costos, con la leyenda legal obligatoria al pie
+- Comprobante de dispensación y guía de tránsito interno
+- Actas para transcribir al libro, con control de quórum y firmantes
+- Designaciones de Director Médico y Responsable Técnico
+- Comodatos de sede y de predio de cultivo
+- Informe de variedades genéticas y compromiso de análisis
+- Declaración Jurada de Vinculación Exclusiva y Mandato de Gestión Operativa
+- Informe semestral del Director Médico (diagnóstico → lotes → curva de alivio → efectos adversos)
+
+</details>
+
+---
 
 ## Stack
 
-- Frontend: React 19 + Vite + Tailwind CSS 4 (TypeScript)
-- Base de datos y auth: Supabase (cloud o self-hosted)
-- Chat IA (opcional): cualquier webhook que reciba `{"messages":[...]}` y devuelva `{"reply":"..."}` — el setup de referencia usa n8n + Ollama (qwen3:14b)
+| Capa | Qué |
+|---|---|
+| Frontend | React 19 · Vite 8 · TypeScript · Tailwind CSS 4 |
+| Datos | Supabase (Postgres + RLS + Storage) — 48 tablas, 30 migraciones |
+| Ruteo y estado | React Router 7 · TanStack Query |
+| Deploy | Cloudflare Pages, automático al pushear a `main` |
+| Extras | PWA instalable · QR (generación y escaneo) · lectura de PDF · export a Excel |
 
-## Cómo está desplegado (producción)
+Sin `.env` la app arranca en **modo demo**: guarda todo en `localStorage` y no necesita backend.
+Es suficiente para desarrollar y para probar el sistema entero.
 
-- **Frontend:** Cloudflare Pages — proyecto `growflow`, root `app/`, build `npm run build`.
-  **Deploy automático** al pushear a `main`. Sitio: https://growflow-5vs.pages.dev
-- **Base de datos:** Supabase cloud. Las credenciales (`VITE_SUPABASE_*`) están en las env vars de
-  Cloudflare Pages, **no en el repo**.
+---
 
-No hace falta Docker ni nginx para trabajar: para desarrollar alcanza con `npm run dev` (ver abajo).
-
-## Setup local
-
-### 1. Frontend (lo único que necesitás para empezar)
+## Arrancar
 
 ```bash
 cd app
-cp .env.example .env   # opcional; sin esto arranca en MODO DEMO (localStorage)
 npm install
-npm run dev            # http://localhost:5173
-npm run build          # verificar antes de pushear (= tsc -b && vite build)
+npm run dev          # http://localhost:5173 — modo demo, sin configurar nada
 ```
-**Sin `.env` funciona todo** (guarda en el navegador). Para usar la base real, completá
-`VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`.
 
-### 2. Base de datos propia (opcional, solo si querés tu propio backend)
+Para usar una base real, copiá `.env.example` a `.env` y completá `VITE_SUPABASE_URL` y
+`VITE_SUPABASE_ANON_KEY`. Las migraciones están en `supabase/migrations/` y se aplican desde el SQL
+editor de Supabase (o con `supabase start` para una base local).
 
-Creá un proyecto en [supabase.com](https://supabase.com) y aplicá las migraciones de
-`supabase/migrations/` desde el SQL editor. (O local con Supabase CLI: `supabase start`.)
+Antes de pushear:
 
-### 3. Chat IA (opcional)
+```bash
+npm run build        # tsc -b && vite build — tiene que quedar en verde
+```
 
-Apuntá `VITE_CHAT_WEBHOOK_URL` a un endpoint POST que reciba `{"messages":[{"role":"user","content":"..."}]}` y responda `{"reply":"..."}`. El setup de referencia es un workflow de n8n que junta el estado del cultivo desde Supabase y le pasa todo a Ollama. Sin esa variable, la sección de chat queda deshabilitada.
+---
 
 ## Estructura
 
 ```
-app/                  Frontend React (paginas en src/pages, datos en src/lib/cultivo.ts)
-supabase/migrations/  Esquema: geneticas, plantas, eventos, cosechas + vista resumen_plantas
-deploy/nginx.conf     Config nginx para servir el build como SPA
+app/
+  src/
+    pages/          66 pantallas
+    components/     por dominio: ong/, econometria/, nutrientes/, layout/, manual/
+    lib/            la lógica de verdad vive acá, no en los componentes
+      ong.ts            reglas de la asociación, cupos, vencimientos
+      portal.ts         autodispensación: reservas, 72 h, disponibilidad
+      informeMedico.ts  el informe semestral del Director Médico
+      nutrientes.ts     motor de la calculadora: sales, solver NNLS, conversiones
+      econometria.ts    costos, amortización, costo por gramo
+      documentos*.ts    generadores de los documentos legales
+    contenido/
+      manual.md       el manual: se edita acá y la pantalla se actualiza sola
+supabase/migrations/  esquema completo
+scripts/              utilidades (versión web del manual, etc.)
 ```
 
-## Calculadora creadora de fertilizantes
+**La lógica va en `lib/`, no en los componentes.** Es lo que permite verificar una regla sin montar
+una pantalla, y que la misma regla valga en todas las pantallas que la usan.
 
-Módulo tipo **HydroBuddy** en español (ruta `/nutrientes`, sidebar *Calculadora Fertilizantes*).
-Arma recetas de fertilizante desde cero o **clonando marcas comerciales** (Ryanodine, Athena,
-Advanced Nutrients, Jacks, Canna, Plagron) con sales crudas baratas.
+---
 
-**Mapa del código (todo en `app/src`):**
-- **`lib/nutrientes.ts`** — el MOTOR: base de sales (composición elemental), solver NNLS,
-  `kitParaPerfil`, presets, clonado de marcas, conversiones (óxido→elemental, EC por balance
-  iónico, ppm↔meq), costos, `usosDeSal`, y los servicios Supabase (perfiles, sustancias,
-  inventario, proveedores).
-- **`components/nutrientes/CreadorNutrientes.tsx`** — la UI: 12 sub-pestañas (Calculadora,
-  Clonar marca, Sustancias, Proveedores, Agua, Soluciones madre, Estabilizantes, Ajuste de pH,
-  Comparar, Ratios y costo, Conversor, Ayuda/Guía).
-- **`pages/PaginaCreadorNutrientes.tsx`** — la página (ruteada en `App.tsx`).
-- **`pages/PaginaTablas.tsx`** — editor genérico de tablas (grilla estilo NocoDB).
+## La calculadora de fertilizantes
+
+Módulo tipo **HydroBuddy** en español (`/nutrientes`). Arma recetas desde cero o **clonando marcas
+comerciales** (Athena, Advanced Nutrients, Jacks, Canna, Plagron, Ryanodine) con sales crudas.
+
+- **`lib/nutrientes.ts`** — el motor: base de sales con composición elemental, solver NNLS,
+  `kitParaPerfil`, presets por etapa, conversiones (óxido→elemental, EC por balance iónico,
+  ppm↔meq), costos y los servicios de Supabase.
+- **`components/nutrientes/CreadorNutrientes.tsx`** — la UI, con sus 17 sub-pestañas.
+
+Además de la receta, el módulo trae los **preparados DIY** que normalmente se compran hechos, con
+su fórmula y sus proveedores: gel de enraizado, elicitor, bioestimulantes e hipocloroso. Y las
+herramientas alrededor: análisis del agua de partida, soluciones madre A/B, ajuste de pH,
+estabilizantes y comparador de recetas.
 
 **Modelo químico:** 16 nutrientes (NO3, NH4, P, K, Mg, Ca, S, Fe, Zn, B, Cu, Mo, Mn, Na, Si, Cl).
-Composición de cada sal = fracción elemental (0-1); ppm = fracción × g/L × 1000. Etiquetas en
-óxidos se convierten a elemental (P2O5×0.4364, K2O×0.8301, etc.).
+La composición de cada sal es su fracción elemental (0-1), y `ppm = fracción × g/L × 1000`. Las
+etiquetas en óxidos se convierten a elemental (P₂O₅ × 0.4364, K₂O × 0.8301).
 
-**Tablas Supabase:** `perfiles_nutrientes`, `sustancias_nutrientes`, `inventario_nutrientes`
-(precios), `proveedores_nutrientes` (dónde comprar). Al crear una tabla nueva, registrala también
-en `pages/PaginaTablas.tsx` y `lib/demo/demoStore.ts` para que sea editable desde la app.
+---
 
-## Para colaboradores
+## Convenciones
 
-1. `git clone` + `cd app` + `npm install` + `npm run dev`. **Sin `.env` corre en modo demo**
-   (datos en localStorage) — alcanza para trabajar en la calculadora.
-2. Antes de pushear: `cd app && npm run build` (debe quedar en verde; NO corre eslint).
-3. La rama `main` **deploya sola** en Cloudflare Pages → no rompas `main`. Ideal: trabajar en un
-   branch y abrir Pull Request.
-4. Las credenciales de Supabase **no están en el repo** (están en Cloudflare). Pedilas aparte solo
-   si necesitás la base real; si no, modo demo.
+Cosas que conviene saber antes de tocar el código:
+
+- **Toda tabla nueva se registra en dos lugares**: `pages/PaginaTablas.tsx` (para que sea editable)
+  y `lib/demo/demoStore.ts` (para que exista en modo demo). Si falta una, la tabla no aparece.
+- **RLS siempre `to authenticated`.** Una policy sobre `public` incluye a `anon`: los datos quedan
+  legibles sin login. Se verifica con la clave publicable, no con el service role — el service role
+  saltea RLS y no prueba nada.
+- **Móvil primero.** Los inputs van en `text-[16px]` en celular o iOS hace zoom y descuadra el
+  formulario; los botones, mínimo 44 px de alto.
+- **Un guion no es un cero.** Cuando falta un dato para calcular se muestra `—`. Un `$0` diría que
+  producir no cuesta nada.
+- **Un build verde no dice que la pantalla abre.** Antes de dar algo por terminado, abrirlo.
+
+---
 
 ## Licencia
 
-MIT. Usalo, modificalo y compartilo como quieras.
+MIT. Usalo, modificalo y compartilo.
 
-> GrowFlow es una herramienta de registro personal. Verificá la legislación sobre cultivo de cannabis en tu jurisdicción.
+> GrowFlow es una herramienta de registro y gestión. No sustituye asesoramiento legal ni médico.
+> Verificá la normativa vigente en tu jurisdicción antes de operar.
