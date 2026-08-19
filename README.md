@@ -16,6 +16,63 @@ deja su dispensa, su asiento en el libro de caja y su recibo.
 
 ---
 
+## Probalo ahora
+
+**[growflow-5vs.pages.dev](https://growflow-5vs.pages.dev)** — usuario `demo`, contraseña `demo`.
+
+Vas a entrar a la aplicación real, la misma que corre en producción. No es un
+video, ni capturas, ni un clon recortado: son las pantallas de verdad, con sus
+formularios, sus validaciones y sus mensajes.
+
+Lo único que no vas a encontrar son datos. Y eso es a propósito.
+
+### Por qué la demo está vacía
+
+Un sistema que registra pacientes con su diagnóstico no puede tener una demo
+poblada con datos de demostración que después alguien confunda con reales, ni
+mucho menos mostrar los de una asociación que lo esté usando. Así que la cuenta
+`demo` entra con un rol propio que no lee ni una fila: ni una planta, ni un
+costo, ni el nombre de un paciente.
+
+Eso no lo decide la interfaz escondiendo cosas. Lo decide Postgres: las policies
+de Row Level Security le devuelven cero filas a ese rol, así que aunque alguien
+saltee la aplicación y pegue directo contra la API, el resultado es el mismo.
+Podés comprobarlo — la clave está acá arriba.
+
+### Qué se ve entonces
+
+La forma del sistema, que es lo que importa para entender si te sirve:
+
+| | |
+|---|---|
+| **Cultivo** | Plantas, genéticas, línea de tiempo y el plano de la sala. Cómo se da de alta un lote de clones, cómo se riega una carpa entera de un saque |
+| **Cosecha** | El formulario de pesos y la merma de secado |
+| **Ambiente** | Temperatura, humedad, CO₂ y VPD |
+| **Econometría** | De dónde sale el costo por gramo, y qué pasa cuando falta un dato para calcularlo |
+| **O.N.G.** | Las quince pestañas: pacientes, entregas, libros, actas, DDJJ, autodispensación |
+| **Estadísticas** | Rendimiento por genética, gramos por vatio |
+| **Manual** | El manual de operación completo, con el paso a paso de las 38 tareas |
+
+Fijate especialmente en **Econometría**: con las tablas vacías, el costo por
+gramo muestra `—` y no `$0`. La diferencia no es estética. Un cero diría que
+producir no cuesta nada, y ese número es contra el que se compara el aporte de
+un paciente para que la entrega siga siendo un reembolso de costos y no otra
+cosa. Cuando falta un dato, el sistema lo dice; no lo inventa.
+
+El resto de las pantallas hace lo mismo: en vez de quedar en blanco, explican
+qué falta cargar para que ese número exista.
+
+### Lo que la demo no muestra
+
+Instalación y Tablas quedan afuera, y no se puede escribir nada — ni crear una
+planta, ni editar un registro. Es una cuenta para mirar.
+
+Si querés ver el sistema con datos, el camino es levantarlo: `npm run dev` sin
+configurar nada arranca en modo demo local, con datos de ejemplo en tu propio
+navegador y todo habilitado. Ahí sí podés cargar, borrar y romper lo que quieras.
+
+---
+
 ## Qué hace
 
 | Módulo | Adentro | Para qué |

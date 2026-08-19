@@ -47,9 +47,13 @@ const PERMISOS_ROL: Record<RolUsuario, string[]> = {
   //
   // Econometria entra por 'ver_econometria' y no por 'ver_plata': asi ve la
   // pantalla de costos sin que se le abran ademas Instalacion y los presupuestos.
+  //
+  // 'ver_cultivo' le abre tambien Calendario, la Calculadora y la ficha por QR.
+  // Las tres estan bien en una demo: las dos primeras se ven vacias, y la ficha
+  // no llega a ninguna planta porque el RLS no le devuelve ninguna.
   demo: [
-    'ver_panel', 'ver_ambiente', 'ver_ong',
-    'ver_cosecha', 'ver_estadisticas', 'ver_econometria',
+    'ver_panel', 'ver_cultivo', 'ver_ambiente',
+    'ver_cosecha', 'ver_estadisticas', 'ver_econometria', 'ver_ong',
   ],
 
   // Roles viejos, conservados para filas existentes.
