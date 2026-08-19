@@ -39,7 +39,7 @@ export default function Sidebar({ colapsado: colapsadoProp }: { colapsado?: bool
   // a una pantalla que devuelve vacio parece un error del sistema, no una
   // restriccion. Solo Manual va sin permiso: lo lee cualquiera que entre.
   const todos: Item[] = [
-    { nombre: 'Panel', ruta: '/', icono: LayoutDashboard, permiso: 'ver_cultivo' },
+    { nombre: 'Panel', ruta: '/', icono: LayoutDashboard, permiso: 'ver_panel' },
     { nombre: 'Cultivo', ruta: '/plantas', icono: Sprout, permiso: 'ver_cultivo', alias: ['/geneticas', '/linea-tiempo', '/sala', '/cultivo'] },
     { nombre: 'Cosecha', ruta: '/cosecha', icono: Scissors, permiso: 'ver_cultivo' },
     { nombre: 'Ambiente', ruta: '/ambiente', icono: Activity, permiso: 'ver_ambiente' },

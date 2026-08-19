@@ -12,28 +12,30 @@ import type { PerfilUsuario, RolUsuario } from '../types'
 // cultivo no obliga a tocar este mapa.
 const PERMISOS_ROL: Record<RolUsuario, string[]> = {
   administrador: [
-    'ver_cultivo', 'editar_cultivo', 'ver_ambiente', 'ver_conocimiento',
+    'ver_panel', 'ver_cultivo', 'editar_cultivo', 'ver_ambiente', 'ver_conocimiento',
     'ver_ong', 'ver_clinico', 'editar_clinico',
     'ver_plata', 'editar_plata',
     'ver_tablas', 'gestionar_usuarios',
   ],
   // Trabaja la sala. No ve fichas clinicas ni cuanto cuesta producir.
-  cultivador: ['ver_cultivo', 'editar_cultivo', 'ver_ambiente', 'ver_conocimiento'],
+  cultivador: ['ver_panel', 'ver_cultivo', 'editar_cultivo', 'ver_ambiente', 'ver_conocimiento'],
   // Pacientes, seguimiento e informes. Mira el cultivo pero no lo toca.
-  director_medico: ['ver_cultivo', 'ver_ambiente', 'ver_ong', 'ver_clinico', 'editar_clinico', 'ver_conocimiento'],
+  director_medico: ['ver_panel', 'ver_cultivo', 'ver_ambiente', 'ver_ong', 'ver_clinico', 'editar_clinico', 'ver_conocimiento'],
   // Cuotas, caja, documentos y costos. Ve a los pacientes por nombre, sin ficha.
-  administrativo: ['ver_cultivo', 'ver_ambiente', 'ver_ong', 'ver_plata', 'editar_plata', 'ver_conocimiento'],
+  administrativo: ['ver_panel', 'ver_cultivo', 'ver_ambiente', 'ver_ong', 'ver_plata', 'editar_plata', 'ver_conocimiento'],
   // Entra a mirar: ve todo lo que no es dato de salud, y no modifica nada.
-  auditor: ['ver_cultivo', 'ver_ambiente', 'ver_ong', 'ver_plata', 'ver_conocimiento'],
+  auditor: ['ver_panel', 'ver_cultivo', 'ver_ambiente', 'ver_ong', 'ver_plata', 'ver_conocimiento'],
 
-  // La cuenta publica de muestra: Ambiente, O.N.G., Manual y Conocimiento.
-  // Sin cultivo, sin plata y sin escribir nada. Ve la seccion O.N.G. pero no las
-  // fichas clinicas: eso lo corta el RLS, no este mapa.
-  demo: ['ver_ambiente', 'ver_ong', 'ver_conocimiento'],
+  // La cuenta publica de muestra: Panel, Ambiente, O.N.G. y Manual.
+  //
+  // El objetivo es mostrar COMO se usa el sistema, no que datos tiene: entra y
+  // ve las pantallas reales, vacias. Ni una planta, ni un costo, ni el nombre de
+  // un paciente. Eso lo corta el RLS, no este mapa.
+  demo: ['ver_panel', 'ver_ambiente', 'ver_ong'],
 
   // Roles viejos, conservados para filas existentes.
-  operador: ['ver_cultivo', 'editar_cultivo', 'ver_ambiente'],
-  supervisor: ['ver_cultivo', 'ver_ambiente', 'ver_ong', 'ver_plata'],
+  operador: ['ver_panel', 'ver_cultivo', 'editar_cultivo', 'ver_ambiente'],
+  supervisor: ['ver_panel', 'ver_cultivo', 'ver_ambiente', 'ver_ong', 'ver_plata'],
 }
 
 // A donde cae cada uno despues de entrar: a lo que vino a hacer.
@@ -43,7 +45,7 @@ export const RUTA_DEFAULT_ROL: Record<RolUsuario, string> = {
   director_medico: '/ong',
   administrativo: '/econometria',
   auditor: '/',
-  demo: '/ambiente',
+  demo: '/',
   operador: '/plantas',
   supervisor: '/',
 }
