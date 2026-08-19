@@ -47,8 +47,7 @@ begin
   return new;
 end $function$;
 
--- Backfill: las que ya estaban cosechadas y seguían ocupando lugar en la Sala
--- (Guanabana #3 s1-13, Frozen Derrosh #3 c4-6, Guava Blue #2 c2-0).
+-- Backfill: las que ya estaban cosechadas y seguían ocupando lugar en la Sala.
 update plantas p
    set activa = false, slot = null, fase = 'Cosechada'
  where p.activa

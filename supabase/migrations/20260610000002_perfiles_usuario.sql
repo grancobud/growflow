@@ -11,5 +11,7 @@ create table perfiles_usuario (
 alter table perfiles_usuario enable row level security;
 create policy todo_perfiles on perfiles_usuario for all using (true) with check (true);
 
+-- Perfil inicial para el primer usuario que exista. Sin nombre propio: cada
+-- instalacion completa el suyo desde la app.
 insert into perfiles_usuario (id, nombre_completo, rol)
-select id, 'Gaston', 'administrador' from auth.users where email = 'gaston@local.cultivo';
+select id, 'Administrador', 'administrador' from auth.users order by created_at limit 1;

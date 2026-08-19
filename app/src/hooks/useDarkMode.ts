@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 
-// Default: DARK. Ignora prefers-color-scheme del SO (pedido explicito Gaston).
+// Default: DARK. Ignora prefers-color-scheme del SO a proposito: la app se usa
+// mayormente de noche y en la sala, donde el tema claro encandila.
 // Usuario puede alternar via toggle en Header/Landing - preferencia queda en localStorage.
 export function useDarkMode() {
   const [dark, setDark] = useState(() => {

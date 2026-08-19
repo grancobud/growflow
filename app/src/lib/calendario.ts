@@ -153,7 +153,7 @@ export const calendarioService = {
     // la genetica: inicio_flora + flora, o si no germinacion + vege + flora.
     const genById = new Map((geneticas.data ?? []).map((g: any) => [g.id, g]))
     // Agrupa por (tipo, fecha, variedad) para no llenar el calendario con una
-    // entrada por planta: muestra "Germinación · Trululu ×4".
+    // entrada por planta: muestra "Germinación · Northern Lights ×4".
     const agrup = new Map<string, { tipo: 'Germinacion' | 'Cosecha'; fecha: string; variedad: string; n: number; estimada: boolean }>()
     const sumar = (tipo: 'Germinacion' | 'Cosecha', fecha: string | null, variedad: string, estimada: boolean) => {
       if (!fecha || fecha < desde || fecha > hasta) return

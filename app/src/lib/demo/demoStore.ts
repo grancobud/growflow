@@ -6,7 +6,7 @@
 // ============================================================================
 
 const PREFIJO = 'growflow_demo:'
-const VERSION_SEED = 'v10'
+const VERSION_SEED = 'v11'
 
 export type Fila = Record<string, any>
 
@@ -73,83 +73,34 @@ function sembrar(): void {
   // ids de pacientes (se usan tambien en la tabla pacientes mas abajo)
   const pacJuan = uuid(), pacMaria = uuid(), pacCarlos = uuid()
 
-  // === Cultivo real (importado del export growflow-sala-v1) ===
-  // Las geneticas entran solo con el nombre (como las importaste); los demas campos
-  // quedan vacios para que los completes desde "Editar ficha".
-  const GENETICAS_REALES = ['Acai', 'Amnesia Haze', 'Angry Fish', 'Avocad Punch', 'Black Pave', 'Blue Berry', 'Faso de los Toros', 'Florida Dash Pack', 'Frozen Derrosh', 'Gorila Zikttlez', 'Gorilla Glue #4', 'Guanabana', 'Guava Blue', 'Mendocino Purple Kush', 'Northern Lights', 'Rainbow Sherbet', 'Trululu', 'Ultra 4K']
+  // === Cultivo de ejemplo ===
+  // Las geneticas entran solo con el nombre; los demas campos quedan vacios para
+  // completarlos desde "Editar ficha".
+  // Variedades de ejemplo: nombres comerciales conocidos, a proposito. El seed
+  // es una demo publica, no el cultivo de nadie.
+  const GENETICAS_REALES = ['Northern Lights', 'White Widow', 'Amnesia Haze', 'Blue Dream', 'Critical Kush', 'Sour Diesel', 'Gelato', 'Purple Punch']
   type PR = { apodo: string; slot: string | null; genetica: string; riegos: string[] }
+  // Plantas de ejemplo para el modo demo. Los datos reales de cada instalacion
+  // viven en su propia base, no en el repo.
   const PLANTAS_REALES: PR[] = [
-    { apodo: '#46', slot: 's1-6', genetica: 'Acai', riegos: [] },
-    { apodo: '#31', slot: 'c4-0', genetica: 'Acai', riegos: [] },
-    { apodo: '#16', slot: 'c2-6', genetica: 'Acai', riegos: [] },
-    { apodo: '#1', slot: 'c1-0', genetica: 'Acai', riegos: ['2026-06-12'] },
-    { apodo: '#47', slot: 's1-7', genetica: 'Angry Fish', riegos: [] },
-    { apodo: '#32', slot: 'c4-1', genetica: 'Angry Fish', riegos: [] },
-    { apodo: '#17', slot: 'c2-7', genetica: 'Angry Fish', riegos: [] },
-    { apodo: '#2', slot: 'c1-1', genetica: 'Angry Fish', riegos: ['2026-06-13'] },
-    { apodo: '#48', slot: 's1-8', genetica: 'Avocad Punch', riegos: [] },
-    { apodo: '#33', slot: 'c4-2', genetica: 'Avocad Punch', riegos: [] },
-    { apodo: '#18', slot: 'c2-8', genetica: 'Avocad Punch', riegos: [] },
-    { apodo: '#3', slot: 'c1-2', genetica: 'Avocad Punch', riegos: [] },
-    { apodo: '#49', slot: 's1-9', genetica: 'Black Pave', riegos: [] },
-    { apodo: '#34', slot: 'c4-3', genetica: 'Black Pave', riegos: [] },
-    { apodo: '#19', slot: 'c2-9', genetica: 'Black Pave', riegos: [] },
-    { apodo: '#4', slot: 'c1-3', genetica: 'Black Pave', riegos: [] },
-    { apodo: '#50', slot: 's1-10', genetica: 'Blue Berry', riegos: [] },
-    { apodo: '#35', slot: 'c4-4', genetica: 'Blue Berry', riegos: [] },
-    { apodo: '#20', slot: 'c2-10', genetica: 'Blue Berry', riegos: [] },
-    { apodo: '#5', slot: 'c1-4', genetica: 'Blue Berry', riegos: [] },
-    { apodo: '#51', slot: 's1-11', genetica: 'Faso de los Toros', riegos: [] },
-    { apodo: '#36', slot: 'c4-5', genetica: 'Faso de los Toros', riegos: [] },
-    { apodo: '#21', slot: 'c2-11', genetica: 'Faso de los Toros', riegos: [] },
-    { apodo: '#6', slot: 'c1-5', genetica: 'Faso de los Toros', riegos: [] },
-    { apodo: '#52', slot: 's1-12', genetica: 'Florida Dash Pack', riegos: [] },
-    { apodo: '#37', slot: 'c4-6', genetica: 'Florida Dash Pack', riegos: [] },
-    { apodo: '#22', slot: 'c3-0', genetica: 'Florida Dash Pack', riegos: [] },
-    { apodo: '#7', slot: 'c1-6', genetica: 'Florida Dash Pack', riegos: [] },
-    { apodo: '#53', slot: 's1-13', genetica: 'Frozen Derrosh', riegos: [] },
-    { apodo: '#38', slot: 'c4-7', genetica: 'Frozen Derrosh', riegos: [] },
-    { apodo: '#23', slot: 'c3-1', genetica: 'Frozen Derrosh', riegos: [] },
-    { apodo: '#8', slot: 'c1-7', genetica: 'Frozen Derrosh', riegos: [] },
-    { apodo: '#54', slot: 's1-14', genetica: 'Gorila Zikttlez', riegos: [] },
-    { apodo: '#39', slot: 'c4-8', genetica: 'Gorila Zikttlez', riegos: [] },
-    { apodo: '#24', slot: 'c3-2', genetica: 'Gorila Zikttlez', riegos: [] },
-    { apodo: '#9', slot: 'c1-8', genetica: 'Gorila Zikttlez', riegos: [] },
-    { apodo: '#55', slot: 's1-15', genetica: 'Guanabana', riegos: [] },
-    { apodo: '#40', slot: 's1-0', genetica: 'Guanabana', riegos: [] },
-    { apodo: '#25', slot: 'c3-3', genetica: 'Guanabana', riegos: [] },
-    { apodo: '#10', slot: 'c2-0', genetica: 'Guanabana', riegos: ['2026-06-11'] },
-    { apodo: '#56', slot: 's1-16', genetica: 'Guava Blue', riegos: [] },
-    { apodo: '#41', slot: 's1-1', genetica: 'Guava Blue', riegos: [] },
-    { apodo: '#26', slot: 'c3-4', genetica: 'Guava Blue', riegos: [] },
-    { apodo: '#11', slot: 'c2-1', genetica: 'Guava Blue', riegos: [] },
-    { apodo: '#57', slot: 's1-17', genetica: 'Mendocino Purple Kush', riegos: [] },
-    { apodo: '#42', slot: 's1-2', genetica: 'Mendocino Purple Kush', riegos: [] },
-    { apodo: '#27', slot: 'c3-5', genetica: 'Mendocino Purple Kush', riegos: [] },
-    { apodo: '#12', slot: 'c2-2', genetica: 'Mendocino Purple Kush', riegos: [] },
-    { apodo: '#58', slot: 's1-18', genetica: 'Rainbow Sherbet', riegos: [] },
-    { apodo: '#43', slot: 's1-3', genetica: 'Rainbow Sherbet', riegos: [] },
-    { apodo: '#28', slot: 'c3-6', genetica: 'Rainbow Sherbet', riegos: [] },
-    { apodo: '#13', slot: 'c2-3', genetica: 'Rainbow Sherbet', riegos: [] },
-    { apodo: '#59', slot: 's1-19', genetica: 'Trululu', riegos: [] },
-    { apodo: '#44', slot: 's1-4', genetica: 'Trululu', riegos: [] },
-    { apodo: '#29', slot: 'c3-7', genetica: 'Trululu', riegos: [] },
-    { apodo: '#14', slot: 'c2-4', genetica: 'Trululu', riegos: [] },
-    { apodo: '#45', slot: 's1-5', genetica: 'Ultra 4K', riegos: [] },
-    { apodo: '#30', slot: 'c3-8', genetica: 'Ultra 4K', riegos: [] },
-    { apodo: '#15', slot: 'c2-5', genetica: 'Ultra 4K', riegos: [] },
-    // 5ta planta de cada automática (Guanabana, Avocad Punch, Frozen Derrosh, Gorila Zikttlez, Guava Blue).
-    { apodo: '#60', slot: null, genetica: 'Guanabana', riegos: [] },
-    { apodo: '#61', slot: null, genetica: 'Avocad Punch', riegos: [] },
-    { apodo: '#62', slot: null, genetica: 'Frozen Derrosh', riegos: [] },
-    { apodo: '#63', slot: null, genetica: 'Gorila Zikttlez', riegos: [] },
-    { apodo: '#64', slot: null, genetica: 'Guava Blue', riegos: [] },
+    { apodo: '#1', slot: 'c1-0', genetica: 'Northern Lights', riegos: [] },
+    { apodo: '#2', slot: 'c1-1', genetica: 'White Widow', riegos: [] },
+    { apodo: '#3', slot: 'c1-2', genetica: 'Amnesia Haze', riegos: ['2026-06-12'] },
+    { apodo: '#4', slot: 'c2-0', genetica: 'Blue Dream', riegos: [] },
+    { apodo: '#5', slot: 'c2-1', genetica: 'Critical Kush', riegos: [] },
+    { apodo: '#6', slot: 'c2-2', genetica: 'Sour Diesel', riegos: ['2026-06-12'] },
+    { apodo: '#7', slot: 'c3-0', genetica: 'Gelato', riegos: [] },
+    { apodo: '#8', slot: 'c3-1', genetica: 'Purple Punch', riegos: [] },
+    { apodo: '#9', slot: 'c3-2', genetica: 'Northern Lights', riegos: ['2026-06-12'] },
+    { apodo: '#10', slot: 'c4-0', genetica: 'White Widow', riegos: [] },
+    { apodo: '#11', slot: 'c4-1', genetica: 'Amnesia Haze', riegos: [] },
+    { apodo: '#12', slot: 'c4-2', genetica: 'Blue Dream', riegos: ['2026-06-12'] },
   ]
 
   // geneticas: una fila por nombre, con ficha enriquecida si la tenemos
   const genId = new Map<string, string>()
   // 5 genéticas automáticas en la demo; el resto feminizadas (para mostrar el chip Auto/Fem).
-  const AUTOS = new Set(['Guanabana', 'Avocad Punch', 'Frozen Derrosh', 'Gorila Zikttlez', 'Guava Blue'])
+  const AUTOS = new Set(['Critical Kush', 'Gelato', 'Purple Punch'])
   const geneticas: Fila[] = GENETICAS_REALES.map((nombre, i) => {
     const id = uuid(); genId.set(nombre, id)
     return {
