@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Suspense, useState } from 'react'
 import { Toaster } from 'sonner'
 import { useAuth } from './hooks/useAuth'
+import { RutaConPermiso } from './components/RutaConPermiso'
 import Layout from './components/layout/Layout'
 import PaginaLogin from './pages/PaginaLogin'
 import PaginaPanel from './pages/PaginaPanel'
@@ -77,27 +78,27 @@ function App() {
               Las rutas viejas se conservan; la seccion sale del pathname. */}
           {['cultivo', 'plantas', 'geneticas', 'linea-tiempo', 'sala'].map(r => (
             <Route key={r} path={r} element={
-              <Suspense fallback={null}><PaginaCultivo /></Suspense>
+              <RutaConPermiso permiso="ver_cultivo"><Suspense fallback={null}><PaginaCultivo /></Suspense></RutaConPermiso>
             } />
           ))}
           {/* Instalacion: el montaje (hardware, riego, tablero) y lo que falta
               comprar para armarlo. Mismo criterio que Cultivo. */}
           {['instalacion', 'hardware-diy', 'riego', 'tablero', 'insumos-faltantes'].map(r => (
             <Route key={r} path={r} element={
-              <Suspense fallback={null}><PaginaInstalacion /></Suspense>
+              <RutaConPermiso permiso="ver_plata"><Suspense fallback={null}><PaginaInstalacion /></Suspense></RutaConPermiso>
             } />
           ))}
           {/* El registro de pacientes es una pestana de O.N.G.: el cupo
               REPROCANN, las dispensas y los documentos cuelgan de el. */}
           {['ong', 'registro'].map(r => (
             <Route key={r} path={r} element={
-              <Suspense fallback={null}><PaginaONG /></Suspense>
+              <RutaConPermiso permiso="ver_ong"><Suspense fallback={null}><PaginaONG /></Suspense></RutaConPermiso>
             } />
           ))}
           {/* El inventario es parte del costo: Stock vive dentro de Econometria. */}
           {['econometria', 'stock'].map(r => (
             <Route key={r} path={r} element={
-              <Suspense fallback={null}><PaginaEconometria /></Suspense>
+              <RutaConPermiso permiso="ver_plata"><Suspense fallback={null}><PaginaEconometria /></Suspense></RutaConPermiso>
             } />
           ))}
           <Route path="conocimiento" element={
@@ -110,13 +111,13 @@ function App() {
             <Suspense fallback={null}><PaginaManual /></Suspense>
           } />
           <Route path="tablas" element={
-            <Suspense fallback={null}><PaginaTablas /></Suspense>
+            <RutaConPermiso permiso="ver_tablas"><Suspense fallback={null}><PaginaTablas /></Suspense></RutaConPermiso>
           } />
           <Route path="cosecha" element={
-            <Suspense fallback={null}><PaginaCosecha /></Suspense>
+            <RutaConPermiso permiso="ver_cultivo"><Suspense fallback={null}><PaginaCosecha /></Suspense></RutaConPermiso>
           } />
           <Route path="stats" element={
-            <Suspense fallback={null}><PaginaEstadisticas /></Suspense>
+            <RutaConPermiso permiso="ver_cultivo"><Suspense fallback={null}><PaginaEstadisticas /></Suspense></RutaConPermiso>
           } />
           <Route path="asistencia" element={
             <Suspense fallback={null}><PaginaAsistencia /></Suspense>
@@ -125,10 +126,10 @@ function App() {
             <Suspense fallback={null}><PaginaCalendarioCultivo /></Suspense>
           } />
           <Route path="ambiente" element={
-            <Suspense fallback={null}><PaginaAmbiente /></Suspense>
+            <RutaConPermiso permiso="ver_cultivo"><Suspense fallback={null}><PaginaAmbiente /></Suspense></RutaConPermiso>
           } />
           <Route path="nutrientes" element={
-            <Suspense fallback={null}><PaginaCreadorNutrientes /></Suspense>
+            <RutaConPermiso permiso="ver_cultivo"><Suspense fallback={null}><PaginaCreadorNutrientes /></Suspense></RutaConPermiso>
           } />
           <Route path="p/:codigo" element={
             <Suspense fallback={null}><PaginaHistoriaPlanta /></Suspense>

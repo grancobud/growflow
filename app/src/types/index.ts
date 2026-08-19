@@ -2,7 +2,16 @@
 // CannTrace - Tipos TypeScript (espejo del schema PostgreSQL)
 // ============================================================================
 
-export type RolUsuario = 'operador' | 'supervisor' | 'auditor' | 'administrador'
+// Los roles del circuito real. 'operador' y 'supervisor' quedan por
+// compatibilidad con filas viejas; no se asignan mas.
+export type RolUsuario =
+  | 'administrador'
+  | 'cultivador'
+  | 'director_medico'
+  | 'administrativo'
+  | 'auditor'
+  | 'operador'
+  | 'supervisor'
 
 export type TipoOperacion =
   | 'ingreso_insumos'

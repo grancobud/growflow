@@ -1,0 +1,28 @@
+-- Sistema de roles y permisos — resumen de las migraciones aplicadas 2026-08-19.
+--
+-- Se aplicaron por separado (ver historial de Supabase):
+--   roles_funciones_base            mi_rol(), es_admin(), puede_ver_clinico(),
+--                                   puede_ver_plata(), puede_escribir()
+--   roles_pacientes_ficha_clinica   ficha completa solo admin + director medico,
+--                                   vista pacientes_min para el resto
+--   roles_ampliar_lista             cultivador, director_medico, administrativo
+--   roles_a_plata                   costos, inventario, caja, cuotas
+--   roles_b_clinico                 movimiento vs contenido clinico
+--   roles_c_cultivo_e_institucional cultivo, institucional, perfiles, backups
+--   roles_alta_usuario_desactivado  trigger: perfil nuevo nace inactivo
+--
+-- QUIEN VE QUE (verificado con datos reales antes de cerrar):
+--
+--                  cultivo  ficha clinica  nombres  plata  escribe
+--   administrador     si         si          si      si    todo
+--   cultivador        si         NO          si      NO    cultivo
+--   director_medico   si         si          si      NO    clinico
+--   administrativo    si         NO          si      si    plata + institucional
+--   auditor           si         NO          si      si    nada
+--
+-- La barrera real es esta, el RLS. La app oculta las secciones para que nadie
+-- entre a una pantalla vacia, pero si alguien saltea la UI y pega contra la API,
+-- lo que decide es lo de aca.
+--
+-- Un usuario sin perfil, o con perfil inactivo, es 'sin_perfil': no ve nada.
+-- Por eso el registro abierto de Supabase dejo de ser un problema.

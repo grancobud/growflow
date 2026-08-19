@@ -2,40 +2,44 @@ import { useState, useEffect, useCallback } from 'react'
 import { authService } from '../lib/servicios'
 import type { PerfilUsuario, RolUsuario } from '../types'
 
-// Mapa de permisos por rol
+// Permisos por rol.
+//
+// Esto decide QUE SE VE en la app. Quien puede leer cada dato lo decide el RLS
+// de Postgres, que es la barrera de verdad: aca se ocultan las secciones para
+// que nadie entre a una pantalla que le va a devolver vacio y parezca rota.
+//
+// Los permisos son por area, no por pantalla: una pantalla nueva del area de
+// cultivo no obliga a tocar este mapa.
 const PERMISOS_ROL: Record<RolUsuario, string[]> = {
   administrador: [
-    'crear_operacion', 'confirmar_operacion', 'anular_operacion',
-    'ver_stock', 'ver_historial', 'ver_trazabilidad',
-    'ver_auditoria', 'ver_configuracion', 'editar_configuracion',
-    'cargar_registros_cumcs', 'exportar_datos',
-    'gestionar_usuarios', 'ver_checklist', 'ver_gamp5',
+    'ver_cultivo', 'editar_cultivo',
+    'ver_ong', 'ver_clinico', 'editar_clinico',
+    'ver_plata', 'editar_plata',
+    'ver_tablas', 'gestionar_usuarios',
   ],
-  supervisor: [
-    'crear_operacion', 'confirmar_operacion',
-    'ver_stock', 'ver_historial', 'ver_trazabilidad',
-    'ver_configuracion', 'cargar_registros_cumcs', 'exportar_datos',
-    'ver_checklist', 'ver_gamp5',
-  ],
-  operador: [
-    'crear_operacion',
-    'ver_stock', 'ver_historial',
-    'cargar_registros_cumcs',
-    'ver_checklist',
-  ],
-  auditor: [
-    'ver_stock', 'ver_historial', 'ver_trazabilidad',
-    'ver_auditoria', 'exportar_datos',
-    'ver_checklist', 'ver_gamp5',
-  ],
+  // Trabaja la sala. No ve fichas clinicas ni cuanto cuesta producir.
+  cultivador: ['ver_cultivo', 'editar_cultivo'],
+  // Pacientes, seguimiento e informes. Mira el cultivo pero no lo toca.
+  director_medico: ['ver_cultivo', 'ver_ong', 'ver_clinico', 'editar_clinico'],
+  // Cuotas, caja, documentos y costos. Ve a los pacientes por nombre, sin ficha.
+  administrativo: ['ver_cultivo', 'ver_ong', 'ver_plata', 'editar_plata'],
+  // Entra a mirar: ve todo lo que no es dato de salud, y no modifica nada.
+  auditor: ['ver_cultivo', 'ver_ong', 'ver_plata'],
+
+  // Roles viejos, conservados para filas existentes.
+  operador: ['ver_cultivo', 'editar_cultivo'],
+  supervisor: ['ver_cultivo', 'ver_ong', 'ver_plata'],
 }
 
-// Ruta default por rol despues del login
+// A donde cae cada uno despues de entrar: a lo que vino a hacer.
 export const RUTA_DEFAULT_ROL: Record<RolUsuario, string> = {
   administrador: '/',
+  cultivador: '/plantas',
+  director_medico: '/ong',
+  administrativo: '/econometria',
+  auditor: '/',
+  operador: '/plantas',
   supervisor: '/',
-  operador: '/operacion',
-  auditor: '/historial',
 }
 
 export function useAuth() {

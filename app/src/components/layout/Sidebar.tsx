@@ -13,10 +13,10 @@ import PinLock from '../PinLock'
 
 // `alias`: otras rutas que pertenecen al mismo item. Cultivo agrupa cuatro
 // vistas bajo URLs propias, y sin esto el menú se apaga al cambiar de pestaña.
-type Item = { nombre: string; ruta: string; icono: LucideIcon; alias?: string[] }
+type Item = { nombre: string; ruta: string; icono: LucideIcon; alias?: string[]; permiso?: string }
 
 export default function Sidebar({ colapsado: colapsadoProp }: { colapsado?: boolean } = {}) {
-  const { usuario, logout } = useAuth()
+  const { usuario, logout, tienePermiso } = useAuth()
   const location = useLocation()
   const [ancho, setAncho] = useState<number>(0)
   const [ref, setRef] = useState<HTMLElement | null>(null)
@@ -35,20 +35,25 @@ export default function Sidebar({ colapsado: colapsadoProp }: { colapsado?: bool
   const inicial = usuario?.nombre_completo?.charAt(0)?.toUpperCase() || '?'
   const nombre = usuario?.nombre_completo || 'Cargando...'
 
-  const items: Item[] = [
+  // Cada seccion declara que permiso necesita. Sin permiso no se muestra: entrar
+  // a una pantalla que devuelve vacio parece un error del sistema, no una
+  // restriccion. Panel y Manual no llevan permiso, los ve cualquiera que entre.
+  const todos: Item[] = [
     { nombre: 'Panel', ruta: '/', icono: LayoutDashboard },
-    { nombre: 'Cultivo', ruta: '/plantas', icono: Sprout, alias: ['/geneticas', '/linea-tiempo', '/sala', '/cultivo'] },
-    { nombre: 'Cosecha', ruta: '/cosecha', icono: Scissors },
-    { nombre: 'Ambiente', ruta: '/ambiente', icono: Activity },
-    { nombre: 'Calendario', ruta: '/calendario', icono: CalendarDays },
-    { nombre: 'Calculadora Fertilizantes', ruta: '/nutrientes', icono: FlaskConical },
-    { nombre: 'Instalación', ruta: '/hardware-diy', icono: CircuitBoard, alias: ['/riego', '/tablero', '/insumos-faltantes', '/instalacion'] },
-    { nombre: 'Econometría', ruta: '/econometria', icono: Calculator, alias: ['/stock'] },
-    { nombre: 'O.N.G.', ruta: '/ong', icono: Building2, alias: ['/registro'] },
-    { nombre: 'Estadísticas', ruta: '/stats', icono: BarChart3 },
-    { nombre: 'Tablas', ruta: '/tablas', icono: Table2 },
+    { nombre: 'Cultivo', ruta: '/plantas', icono: Sprout, permiso: 'ver_cultivo', alias: ['/geneticas', '/linea-tiempo', '/sala', '/cultivo'] },
+    { nombre: 'Cosecha', ruta: '/cosecha', icono: Scissors, permiso: 'ver_cultivo' },
+    { nombre: 'Ambiente', ruta: '/ambiente', icono: Activity, permiso: 'ver_cultivo' },
+    { nombre: 'Calendario', ruta: '/calendario', icono: CalendarDays, permiso: 'ver_cultivo' },
+    { nombre: 'Calculadora Fertilizantes', ruta: '/nutrientes', icono: FlaskConical, permiso: 'ver_cultivo' },
+    { nombre: 'Instalación', ruta: '/hardware-diy', icono: CircuitBoard, permiso: 'ver_plata', alias: ['/riego', '/tablero', '/insumos-faltantes', '/instalacion'] },
+    { nombre: 'Econometría', ruta: '/econometria', icono: Calculator, permiso: 'ver_plata', alias: ['/stock'] },
+    { nombre: 'O.N.G.', ruta: '/ong', icono: Building2, permiso: 'ver_ong', alias: ['/registro'] },
+    { nombre: 'Estadísticas', ruta: '/stats', icono: BarChart3, permiso: 'ver_cultivo' },
+    { nombre: 'Tablas', ruta: '/tablas', icono: Table2, permiso: 'ver_tablas' },
     { nombre: 'Manual', ruta: '/manual', icono: BookOpen },
   ]
+
+  const items: Item[] = todos.filter(i => !i.permiso || tienePermiso(i.permiso))
 
   // La base de conocimiento solo aparece si esta configurada. La ruta existia sin
   // estar en ningun menu —no habia forma de llegar— y sin VITE_KB_URL la pantalla
