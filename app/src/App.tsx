@@ -126,7 +126,7 @@ function App() {
             <Suspense fallback={null}><PaginaCalendarioCultivo /></Suspense>
           } />
           <Route path="ambiente" element={
-            <RutaConPermiso permiso="ver_cultivo"><Suspense fallback={null}><PaginaAmbiente /></Suspense></RutaConPermiso>
+            <RutaConPermiso permiso="ver_ambiente"><Suspense fallback={null}><PaginaAmbiente /></Suspense></RutaConPermiso>
           } />
           <Route path="nutrientes" element={
             <RutaConPermiso permiso="ver_cultivo"><Suspense fallback={null}><PaginaCreadorNutrientes /></Suspense></RutaConPermiso>

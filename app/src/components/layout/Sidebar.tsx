@@ -37,12 +37,12 @@ export default function Sidebar({ colapsado: colapsadoProp }: { colapsado?: bool
 
   // Cada seccion declara que permiso necesita. Sin permiso no se muestra: entrar
   // a una pantalla que devuelve vacio parece un error del sistema, no una
-  // restriccion. Panel y Manual no llevan permiso, los ve cualquiera que entre.
+  // restriccion. Solo Manual va sin permiso: lo lee cualquiera que entre.
   const todos: Item[] = [
-    { nombre: 'Panel', ruta: '/', icono: LayoutDashboard },
+    { nombre: 'Panel', ruta: '/', icono: LayoutDashboard, permiso: 'ver_cultivo' },
     { nombre: 'Cultivo', ruta: '/plantas', icono: Sprout, permiso: 'ver_cultivo', alias: ['/geneticas', '/linea-tiempo', '/sala', '/cultivo'] },
     { nombre: 'Cosecha', ruta: '/cosecha', icono: Scissors, permiso: 'ver_cultivo' },
-    { nombre: 'Ambiente', ruta: '/ambiente', icono: Activity, permiso: 'ver_cultivo' },
+    { nombre: 'Ambiente', ruta: '/ambiente', icono: Activity, permiso: 'ver_ambiente' },
     { nombre: 'Calendario', ruta: '/calendario', icono: CalendarDays, permiso: 'ver_cultivo' },
     { nombre: 'Calculadora Fertilizantes', ruta: '/nutrientes', icono: FlaskConical, permiso: 'ver_cultivo' },
     { nombre: 'Instalación', ruta: '/hardware-diy', icono: CircuitBoard, permiso: 'ver_plata', alias: ['/riego', '/tablero', '/insumos-faltantes', '/instalacion'] },
@@ -53,14 +53,16 @@ export default function Sidebar({ colapsado: colapsadoProp }: { colapsado?: bool
     { nombre: 'Manual', ruta: '/manual', icono: BookOpen },
   ]
 
-  const items: Item[] = todos.filter(i => !i.permiso || tienePermiso(i.permiso))
-
   // La base de conocimiento solo aparece si esta configurada. La ruta existia sin
   // estar en ningun menu —no habia forma de llegar— y sin VITE_KB_URL la pantalla
   // no puede hacer nada: mostrarla igual seria ofrecer algo que no funciona.
+  //
+  // Se agrega ANTES de filtrar: agregada despues, se colaba sin respetar el permiso.
   if (KB_DISPONIBLE) {
-    items.push({ nombre: 'Conocimiento', ruta: '/conocimiento', icono: Brain })
+    todos.push({ nombre: 'Conocimiento', ruta: '/conocimiento', icono: Brain, permiso: 'ver_conocimiento' })
   }
+
+  const items: Item[] = todos.filter(i => !i.permiso || tienePermiso(i.permiso))
 
   const togglePin = () => {
     if (hayPin) {

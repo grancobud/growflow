@@ -10,6 +10,7 @@ export type RolUsuario =
   | 'director_medico'
   | 'administrativo'
   | 'auditor'
+  | 'demo'
   | 'operador'
   | 'supervisor'
 

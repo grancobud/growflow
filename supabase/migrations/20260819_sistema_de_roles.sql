@@ -10,6 +10,8 @@
 --   roles_b_clinico                 movimiento vs contenido clinico
 --   roles_c_cultivo_e_institucional cultivo, institucional, perfiles, backups
 --   roles_alta_usuario_desactivado  trigger: perfil nuevo nace inactivo
+--   rol_demo                        rol 'demo' para la cuenta publica
+--   rol_demo_sin_cultivo            'demo' excluido de las tablas de cultivo
 --
 -- QUIEN VE QUE (verificado con datos reales antes de cerrar):
 --
@@ -19,6 +21,12 @@
 --   director_medico   si         si          si      NO    clinico
 --   administrativo    si         NO          si      si    plata + institucional
 --   auditor           si         NO          si      si    nada
+--   demo              NO         NO          si      NO    nada
+--
+-- 'demo' es la cuenta publica de muestra: ve Ambiente, la seccion O.N.G., el
+-- Manual y Conocimiento. Nada de cultivo, nada de plata, ninguna ficha clinica
+-- y sin escribir. Importa porque su clave estuvo publicada en el repo: lo que
+-- vea esa cuenta lo puede ver cualquiera.
 --
 -- La barrera real es esta, el RLS. La app oculta las secciones para que nadie
 -- entre a una pantalla vacia, pero si alguien saltea la UI y pega contra la API,
