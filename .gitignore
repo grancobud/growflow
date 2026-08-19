@@ -11,3 +11,7 @@ supabase/.branches/
 # telemetria de claude-flow, no es codigo de la app
 .claude-flow/
 scripts/manual.html
+
+# Variables de produccion: NUNCA versionadas (contienen credenciales de acceso)
+.env.production
+app/.env.production
