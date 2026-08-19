@@ -150,9 +150,42 @@ plantas.
    secado, rendimiento por planta y el ranking por genética.
 
 2. **Mirá si el número cierra** — `menú › Estadísticas`
-   Gramos por vatio, costo por gramo, merma y qué genética rindió mejor. La merma
-   normal ronda 75–80 %: bastante afuera de ahí, revisá si cargaste húmedo y seco
-   en el orden correcto.
+   Gramos por vatio, costo por gramo, merma y qué genética rindió mejor.
+
+### Las cuatro métricas y qué te dicen
+
+| Métrica | Qué mide | Cómo leerla |
+|---|---|---|
+| **g/planta** | Lo que rindió cada planta. | Es la unidad para comparar una corrida contra otra. |
+| **g/W** | Gramos por vatio de luz. | La métrica de eficiencia del indoor: **1,0 g/W es un cultivo bien llevado, 0,5 es flojo.** |
+| **Merma de secado** | Cuánta agua perdió el cogollo. | Lo normal es **75–80 %**. |
+| **$/g** | Lo que cuesta producir un gramo. | Viene de Econometría (capítulo 06). |
+
+**El g/W depende del inventario.** La potencia sale de lo que tengas cargado
+como iluminación: si las luces no están en el inventario con su potencia, la
+métrica no se puede calcular y muestra `—`.
+
+**La merma fuera de rango dice cosas distintas según para qué lado.** Bastante
+por debajo de 75 % puede ser que se pesó mal o que quedó húmedo, y eso último es
+riesgo de hongo. Bastante por arriba de 80 % es sobresecado, que se lleva
+terpenos. En los dos casos vale más revisar el secado que el número.
+
+> **Si la merma sale `—` teniendo los dos pesos cargados**, es porque el peso
+> seco quedó mayor o igual que el húmedo. El sistema no muestra un porcentaje
+> ahí: un cogollo no puede pesar más seco que húmedo, así que el dato está mal
+> cargado y devolver un número sería inventarlo. Revisá que no hayan quedado
+> invertidos.
+
+### Qué plantas cuentan para el rinde del ciclo
+
+No todas. Sólo cuentan las que están en **floración, secado, curado o
+cosechada**. Las que están en germinación, plántula o vegetativo son del ciclo
+siguiente, y sumarlas infla la proyección: es el caso típico de tener
+feminizadas vegetando mientras se cosechan las automáticas.
+
+Las ocho fases, en orden: germinación → plántula → vegetativo → floración →
+secado → curado → cosechada. *Muerta* está aparte y saca a la planta de todos
+los conteos.
 
 3. **Creá el lote** — `O.N.G. › Autodispensación › Catálogo`
    Código, producto, gramos totales, aporte por gramo e informe cromatográfico.
@@ -224,7 +257,9 @@ falta, el sistema no deja avanzar y dice cuál es y cómo destrabarlo.
 ## 06 · La plata
 
 Todo desemboca en un número: **cuánto cuesta producir un gramo**. De ahí depende
-que el aporte de un paciente sea un reembolso de costos y no otra cosa.
+que el aporte de un paciente sea un reembolso de costos y no otra cosa. Este
+capítulo explica de dónde sale ese número, porque cuando no cierra hay que saber
+en cuál de las cuatro partes mirar.
 
 **Econometría** (`/econometria`):
 
@@ -235,8 +270,111 @@ que el aporte de un paciente sea un reembolso de costos y no otra cosa.
 - **Mantenimiento** — qué hacerle a los equipos y cuándo.
 - **Instalaciones** — el equipamiento con su vida útil, para que amortice.
 
+### Cómo se arma el costo por gramo
+
+El sistema no suma todo y divide. Arma un **costo mensual** con cuatro partes,
+lo multiplica por los meses que dura el ciclo, y recién ahí lo divide por los
+gramos que cosechaste:
+
+1. **Costo del mes** = amortización + costos fijos + costos variables + consumibles.
+2. **Costo del ciclo** = costo del mes × meses que dura el ciclo.
+3. **Costo por gramo** = costo del ciclo ÷ gramos cosechados.
+
+Las cuatro partes del primer renglón salen de dos lugares distintos, y esto es
+lo que más confunde:
+
+| Parte | De dónde sale | Cómo se prorratea |
+|---|---|---|
+| **Amortización** | *Inventario*, lo clasificado como equipo | El precio repartido en los meses de vida útil de su categoría. |
+| **Costos fijos** | *Costos*, tipo fijo | Según su periodicidad (ver abajo). |
+| **Costos variables** | *Costos*, tipo variable | Según su periodicidad. |
+| **Consumibles** | *Inventario*, lo clasificado como consumible | El precio dividido por los meses del ciclo. |
+
+**El equipamiento no se carga entero al ciclo.** Un deshumidificador de
+$1.400.000 con 72 meses de vida útil pesa $19.444 por mes, no $1.400.000 sobre
+el ciclo en que lo compraste. Si se cargara entero, el costo por gramo de ese
+ciclo se dispararía y el de los siguientes quedaría artificialmente barato —
+y el aporte que le cobrás a un paciente se movería según cuándo compraste un
+equipo, que no tiene nada que ver con lo que cuesta producir.
+
+### La periodicidad decide cuánto entra por mes
+
+Cuando cargás un costo elegís cada cuánto se paga. Eso define cuánto de ese
+monto entra en el costo mensual:
+
+| Periodicidad | Cuánto entra por mes |
+|---|---|
+| Mensual | El total, tal cual. |
+| Bimestral | La mitad. |
+| Anual | La doceava parte. |
+| Por ciclo | El total dividido por los meses del ciclo. |
+| **Único** | **Nada. No entra.** |
+
+> **"Único" no es un costo del ciclo.** Un pago que se hace una sola vez —una
+> instalación, un trámite inicial— es inversión, no gasto recurrente, y sumarlo
+> al mes inflaría el costo por gramo de todos los ciclos siguientes. Si cargaste
+> algo como único y esperabas verlo en el total, ese es el motivo.
+
+El total de cada fila es **monto × cantidad**. Tres bolsas de sustrato de
+$18.000 se cargan como monto 18.000 y cantidad 3, no como una fila de $54.000:
+así después se entiende de dónde salió.
+
+### Equipo o consumible: cómo lo decide el sistema
+
+Cada insumo del inventario cae en una de las dos clases. Si no se la asignaste
+a mano, el sistema la deduce:
+
+- Categoría **Fertilizante**, **Sustrato** o **Sanidad** → consumible.
+- El nombre contiene "recarga" → consumible.
+- **Todo lo demás → equipo**, y por lo tanto amortiza.
+
+Esa última regla es la que suele sorprender: un insumo mal categorizado se toma
+como equipo y en vez de pesar entero sobre el ciclo se reparte en cinco años,
+con lo cual el costo por gramo da más bajo de lo real. Si el número te parece
+demasiado bueno, revisá las clases del inventario antes que ninguna otra cosa.
+
+Los meses de vida útil por categoría, que es lo que define cuánto pesa por mes:
+
+| Categoría | Meses de vida útil |
+|---|---|
+| Climatización | 72 |
+| Riego · CO₂ · Otro | 60 |
+| Iluminación | 48 |
+| Medición · Herramienta | 36 |
+| Sustrato · Fertilizante · Sanidad | 12 |
+
+Una categoría que no esté en esa lista amortiza en 60 meses.
+
+### El escenario "si compro lo que falta"
+
+La lista de `Instalación › Faltantes` se muestra **aparte** del costo real, como
+un segundo número. Son cosas que todavía no se compraron, y meterlas en el costo
+del ciclo mezclaría lo que gastaste con lo que pensás gastar.
+
+Dentro de ese escenario cada ítem pesa distinto, con el mismo criterio que lo ya
+comprado: el equipamiento se amortiza en su vida útil, lo consumible cae entero
+sobre el ciclo, y los **pagos únicos** (honorarios, trámites) también caen
+enteros porque no son un bien que se amortice. Por eso la lista puede sumar
+$3.000.000 y sobre el ciclo pesar mucho menos.
+
+### Por qué el aporte tiene un techo
+
+La regla **RN-04** compara el aporte por gramo del lote contra el costo por
+gramo real. No es una comparación exacta: el sistema avisa cuando el aporte
+supera el costo en **más de un 5 %**. Ese margen existe porque el costo se mueve
+un poco entre ciclos y una diferencia de centavos no debería trabar una entrega.
+
+Por encima de eso aparece la alerta, y el motivo es de fondo: si el aporte
+supera lo que costó producir, deja de ser un reembolso de costos y pasa a
+parecerse a una venta. Por eso conviene que los costos estén cargados en serio —
+un costo subdeclarado no te "ahorra" nada, te baja el techo del aporte.
+
 > **El costo por gramo es lo ya gastado.** No incluye la lista de compras
 > pendiente: se compara el aporte contra lo que *efectivamente* costó producir.
+
+> **Sin gramos cosechados no hay costo por gramo.** La pantalla muestra `—`, no
+> cero. Dividir por cero daría infinito y mostrar $0 diría que producir no cuesta
+> nada: las dos cosas son mentira, así que no muestra ninguna.
 
 **Libro de Caja** (`O.N.G. › Seguimiento`) — cada reembolso que entra y cada gasto
 que sale. Las entregas se asientan solas; el resto se carga a mano. Es de donde el
@@ -264,6 +402,44 @@ falta cargar sale entre corchetes.
 > `[nombre]`, ese dato no está cargado. Preferimos que se vea el hueco antes que
 > rellenarlo con algo inventado en un papel que se firma.
 
+### Qué revisa Coherencia
+
+`O.N.G. › Coherencia` no mira una pantalla: cruza datos de varias y marca lo que
+no cierra entre sí. Es la diferencia entre tener todo cargado y tener todo
+**consistente**, que es lo que se revisa en una inspección.
+
+Cada control queda en uno de cuatro estados: **ok**, **alerta** (conviene
+mirarlo), **error** (no cierra) o **sin datos** (todavía no hay con qué
+compararlo — no es una falta).
+
+Lo que cruza, por tema:
+
+| Tema | Qué compara |
+|---|---|
+| **Actas correlativas** | Que la numeración no salte ni repita. |
+| **Altas respaldadas en acta** | Que cada asociado activo tenga el acta que aprobó su alta. |
+| **Categorías del estatuto** | Que no haya categorías de socio inventadas fuera de las que el estatuto define. |
+| **Cuota aprobada en acta** | Que el monto vigente salga de una decisión asentada, no de un cambio suelto. |
+| **Libros rubricados** | Que todo libro cargado tenga su rúbrica, que es la autorización para usarlo. |
+| **Libros por reponer** | Avisa cuando un libro pasa el 75 % de ocupación, antes de que se llene. |
+| **Plantas en floración vs. tope** | Las plantas contra lo que habilita el REPROCANN de los vinculados. |
+| **Objeto social cannábico** | Que el estatuto declare el objeto; sin eso la actividad no está amparada. |
+| **Dispensas sin paciente** | Entregas que no apuntan a nadie del registro. |
+| **Dispensas sobre los 40 g** | Entregas por encima del tope de referencia. |
+| **Reembolso vs. costo real** | El aporte por gramo contra el costo de producción (RN-04). |
+| **Balance de materia** | Que los gramos cosechados, los de los lotes y los entregados cierren entre sí. |
+| **Cuotas del período** | Que estén emitidas las que corresponden al período. |
+
+**El balance de materia es el que más suele sorprender.** Cruza tres números que
+se cargan en pantallas distintas: lo que dijiste que cosechaste, lo que pusiste
+en los lotes y lo que entregaste. Si no cierran, en algún lado hay material sin
+declarar o declarado dos veces. Suele ser una cosecha cargada sin su lote, o un
+lote creado a mano con gramos que no salieron de ninguna cosecha.
+
+> **"Sin datos" no es una falta.** Aparece cuando todavía no cargaste lo que ese
+> control necesita comparar. Se convierte en ok o en error recién cuando hay con
+> qué. Lo que hay que dejar limpio antes de una presentación son los **errores**.
+
 ---
 
 ## 08 · Las reglas que bloquean
@@ -281,12 +457,32 @@ Los bloqueos aparecen juntos, no de a uno.
 | **RN-06** | La reserva vence a las 72 h y el material vuelve. | Generar una reserva nueva. |
 | **RN-07** | El reporte clínico es inmutable. | No se destraba: es a propósito. |
 
-### Por qué el cupo cuenta las reservas
+### Cómo se cuenta el cupo de 30 días
 
-El cupo de 30 días suma **lo entregado más lo reservado sin retirar**. Si contara
-sólo las entregas, cinco reservas del mismo día pasarían el tope las cinco y el
-exceso se descubriría en el mostrador, con el material ya comprometido. Por eso
-podés ver el cupo agotado aunque todavía no se haya retirado nada.
+Son tres cosas que conviene tener claras por separado, porque cada una explica
+un caso distinto de "el cupo no me da".
+
+**No se mide por entrega, se mide por acumulado.** El tope no es "cuánto puede
+llevarse hoy" sino "cuánto se llevó en los últimos 30 días". Validar sólo la
+entrega individual dejaría pasar el caso real: cinco entregas de 35 g en tres
+semanas pasan una por una y en conjunto son 175 g.
+
+**Los 30 días son corridos y se cuentan hacia atrás desde la fecha de la
+entrega**, no desde hoy. Esto importa cuando cargás una dispensa con fecha
+pasada: se valida contra su propio período, no contra el mes en curso. Si fuera
+al revés, corregir una entrega vieja podría trabarse por material entregado
+*después*, que es al revés de como pasaron las cosas.
+
+**Suma lo entregado más lo reservado sin retirar.** Si contara sólo las
+entregas, cinco reservas del mismo día pasarían el tope las cinco y el exceso se
+descubriría en el mostrador, con el material ya comprometido. Por eso podés ver
+el cupo agotado aunque todavía no se haya retirado nada: hay gramos apartados.
+Se liberan si las reservas expiran a las 72 h o se cancelan.
+
+> **Sin tope cargado no hay control.** Si la ficha del paciente no tiene el tope
+> mensual en gramos, el sistema no puede decir si se pasa: muestra el acumulado
+> pero no bloquea. El tope es un dato del REPROCANN de esa persona, no un default
+> del sistema, así que no puede inventarlo.
 
 ---
 
@@ -319,7 +515,10 @@ podés ver el cupo agotado aunque todavía no se haya retirado nada.
 | No deja entregar una reserva paga por transferencia | Falta que administración la marque como abonada. |
 | Un documento sale con corchetes | Ese dato no está cargado. Cargalo y volvé a generarlo. |
 | El cupo de plantas no da | Se cuentan sólo las plantas en floración. Revisá las fases. |
-| La merma de secado da rarísima | Probablemente peso húmedo y seco quedaron invertidos. Lo normal ronda 75–80 %. |
+| La merma de secado sale `—` con los dos pesos cargados | El peso seco quedó mayor o igual que el húmedo. Revisá si se invirtieron. Lo normal ronda 75–80 %. |
+| El g/W sale `—` | Las luces no están en el inventario con su potencia. Sin vatios no hay gramos por vatio. |
+| El costo por gramo da sospechosamente bajo | Puede haber insumos clasificados como equipo: en vez de pesar sobre el ciclo se reparten en años. Revisá las clases en *Inventario*. |
+| Cargaste un costo y el total no se movió | Si lo cargaste con periodicidad **Único**, no entra al costo mensual: es inversión, no gasto del ciclo. |
 | Un dato no se puede corregir desde su pantalla | Editalo en *Tablas*, celda por celda. |
 
 ---
@@ -413,8 +612,10 @@ Podés cargar el total de la variedad o abrir el modo por planta y cargar el pes
 cada una. Por planta es más trabajo pero te deja comparar rendimientos entre
 individuos de la misma genética.
 
-> Si la merma te da muy lejos de 75–80 %, casi seguro cargaste el húmedo en el campo
-> del seco o al revés.
+> Si la merma sale `—` teniendo los dos pesos cargados, quedaron invertidos: el
+> seco no puede ser mayor que el húmedo. Si sale un número pero muy lejos de
+> 75–80 %, los pesos están en el orden correcto y lo que hay que revisar es el
+> secado (o un dígito de más al tipear).
 
 ### Sacar la receta de fertilizantes
 
