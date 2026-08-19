@@ -247,7 +247,7 @@ export default function PaginaPanel() {
                   <Sprout className="w-4 h-4 text-[#7d7d8e]" />
                 </div>
                 <div className="font-display font-semibold text-[#d4d4dd] text-[13px]">Sin plantas todavía</div>
-                <div className="mt-1 text-[11px] text-[#7d7d8e] max-w-xs mx-auto">Cargá tu primera genética y planta, o mandale un mensaje al bot de Telegram.</div>
+                <div className="mt-1 text-[11px] text-[#7d7d8e] max-w-xs mx-auto">Cargá tu primera genética y después tus plantas.</div>
                 <Link to="/plantas" className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[11.5px] font-medium text-[#d9f99d]">
                   <Dna className="w-3 h-3" /> Agregar planta
                 </Link>

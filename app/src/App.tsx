@@ -18,8 +18,6 @@ import { lazyWithRetry } from './lib/lazyWithRetry'
 // Plantas, Geneticas, Linea de tiempo y Sala viven adentro de esta.
 const PaginaInstalacion = lazyWithRetry(() => import('./pages/PaginaInstalacion'), 'PaginaInstalacion')
 const PaginaCultivo = lazyWithRetry(() => import('./pages/PaginaCultivo'), 'PaginaCultivo')
-const PaginaChat = lazyWithRetry(() => import('./pages/PaginaChat'), 'PaginaChat')
-const PaginaConocimiento = lazyWithRetry(() => import('./pages/PaginaConocimiento'), 'PaginaConocimiento')
 const PaginaTablas = lazyWithRetry(() => import('./pages/PaginaTablas'), 'PaginaTablas')
 const PaginaManual = lazyWithRetry(() => import('./pages/PaginaManual'), 'PaginaManual')
 const PaginaEstadisticas = lazyWithRetry(() => import('./pages/PaginaEstadisticas'), 'PaginaEstadisticas')
@@ -101,12 +99,6 @@ function App() {
               <RutaConPermiso permiso="ver_plata"><Suspense fallback={null}><PaginaEconometria /></Suspense></RutaConPermiso>
             } />
           ))}
-          <Route path="conocimiento" element={
-            <Suspense fallback={null}><PaginaConocimiento /></Suspense>
-          } />
-          <Route path="chat" element={
-            <Suspense fallback={null}><PaginaChat /></Suspense>
-          } />
           <Route path="manual" element={
             <Suspense fallback={null}><PaginaManual /></Suspense>
           } />
@@ -123,7 +115,7 @@ function App() {
             <Suspense fallback={null}><PaginaAsistencia /></Suspense>
           } />
           <Route path="calendario" element={
-            <Suspense fallback={null}><PaginaCalendarioCultivo /></Suspense>
+            <RutaConPermiso permiso="ver_cultivo"><Suspense fallback={null}><PaginaCalendarioCultivo /></Suspense></RutaConPermiso>
           } />
           <Route path="ambiente" element={
             <RutaConPermiso permiso="ver_ambiente"><Suspense fallback={null}><PaginaAmbiente /></Suspense></RutaConPermiso>
@@ -131,8 +123,10 @@ function App() {
           <Route path="nutrientes" element={
             <RutaConPermiso permiso="ver_cultivo"><Suspense fallback={null}><PaginaCreadorNutrientes /></Suspense></RutaConPermiso>
           } />
+          {/* La ficha que se abre al escanear el QR de una planta: sigue el
+              permiso de cultivo, o la demo veria una planta real por la URL. */}
           <Route path="p/:codigo" element={
-            <Suspense fallback={null}><PaginaHistoriaPlanta /></Suspense>
+            <RutaConPermiso permiso="ver_cultivo"><Suspense fallback={null}><PaginaHistoriaPlanta /></Suspense></RutaConPermiso>
           } />
         </Route>
         <Route path="*" element={<Suspense fallback={<SpinnerCarga texto="Cargando..." />}><Pagina404 /></Suspense>} />

@@ -2,14 +2,14 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Leaf, Mail, Lock, Eye, EyeOff, LogIn, Sprout, Droplets, MessageSquareText } from 'lucide-react'
+import { Leaf, Mail, Lock, Eye, EyeOff, LogIn, Sprout, Droplets, FileText } from 'lucide-react'
 
 const EASE = [0.22, 1, 0.36, 1] as const
 
 const FEATURES = [
   { icono: Sprout, color: '#bef264', texto: 'Genéticas, plantas y fases en un solo lugar' },
-  { icono: Droplets, color: '#38bdf8', texto: 'Riegos, podas y eventos con un click o por Telegram' },
-  { icono: MessageSquareText, color: '#c4b5fd', texto: 'Chat con IA local que conoce tu cultivo' },
+  { icono: Droplets, color: '#38bdf8', texto: 'Riegos, podas y cosechas con un click' },
+  { icono: FileText, color: '#c4b5fd', texto: 'Pacientes, entregas y libros de la asociación' },
 ]
 
 interface Props { onLogin: (email: string, password: string) => Promise<void> }
@@ -70,13 +70,13 @@ export default function PaginaLogin({ onLogin }: Props) {
           className="relative max-w-md"
         >
           <h1 className="font-display text-[36px] xl:text-[48px] font-bold tracking-tight leading-[1.05] text-[#ececf1]">
-            El diario de{' '}
-            <span className="text-[#d9f99d]">tu cultivo</span>,
-            {' '}todo local
+            Del esqueje{' '}
+            <span className="text-[#d9f99d]">al recibo</span>{' '}
+            firmado
           </h1>
           <p className="mt-5 text-[#a6a6b5] text-[15px] leading-relaxed">
-            Registrá lo que pasa en el cultivo escribiendo como hablás.
-            La IA corre en tu propia máquina: nada sale de tu casa.
+            Registrá lo que pasa en la sala, seguí lo que cuesta producirlo y llevá
+            los papeles que la asociación tiene que presentar.
           </p>
         </motion.div>
 
@@ -184,7 +184,7 @@ export default function PaginaLogin({ onLogin }: Props) {
           </div>
 
           <div className="mt-4 pt-3 border-t border-[#1f1f2b] text-[10px] text-[#7d7d8e] text-center font-mono tabular-nums">
-            GrowFlow · 100% local
+            GrowFlow · trazabilidad de cultivo
           </div>
         </motion.div>
       </div>

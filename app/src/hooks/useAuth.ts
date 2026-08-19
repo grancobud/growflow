@@ -12,19 +12,19 @@ import type { PerfilUsuario, RolUsuario } from '../types'
 // cultivo no obliga a tocar este mapa.
 const PERMISOS_ROL: Record<RolUsuario, string[]> = {
   administrador: [
-    'ver_panel', 'ver_cultivo', 'editar_cultivo', 'ver_ambiente', 'ver_conocimiento',
+    'ver_panel', 'ver_cultivo', 'editar_cultivo', 'ver_ambiente',
     'ver_ong', 'ver_clinico', 'editar_clinico',
     'ver_plata', 'editar_plata',
     'ver_tablas', 'gestionar_usuarios',
   ],
   // Trabaja la sala. No ve fichas clinicas ni cuanto cuesta producir.
-  cultivador: ['ver_panel', 'ver_cultivo', 'editar_cultivo', 'ver_ambiente', 'ver_conocimiento'],
+  cultivador: ['ver_panel', 'ver_cultivo', 'editar_cultivo', 'ver_ambiente'],
   // Pacientes, seguimiento e informes. Mira el cultivo pero no lo toca.
-  director_medico: ['ver_panel', 'ver_cultivo', 'ver_ambiente', 'ver_ong', 'ver_clinico', 'editar_clinico', 'ver_conocimiento'],
+  director_medico: ['ver_panel', 'ver_cultivo', 'ver_ambiente', 'ver_ong', 'ver_clinico', 'editar_clinico'],
   // Cuotas, caja, documentos y costos. Ve a los pacientes por nombre, sin ficha.
-  administrativo: ['ver_panel', 'ver_cultivo', 'ver_ambiente', 'ver_ong', 'ver_plata', 'editar_plata', 'ver_conocimiento'],
+  administrativo: ['ver_panel', 'ver_cultivo', 'ver_ambiente', 'ver_ong', 'ver_plata', 'editar_plata'],
   // Entra a mirar: ve todo lo que no es dato de salud, y no modifica nada.
-  auditor: ['ver_panel', 'ver_cultivo', 'ver_ambiente', 'ver_ong', 'ver_plata', 'ver_conocimiento'],
+  auditor: ['ver_panel', 'ver_cultivo', 'ver_ambiente', 'ver_ong', 'ver_plata'],
 
   // La cuenta publica de muestra: Panel, Ambiente, O.N.G. y Manual.
   //

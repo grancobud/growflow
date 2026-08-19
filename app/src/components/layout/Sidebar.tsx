@@ -3,10 +3,9 @@
 
 import { NavLink, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { LayoutDashboard, Leaf, LogOut, Sprout, Table2, BarChart3, KeyRound, CalendarDays, Calculator, Activity, FlaskConical, CircuitBoard, Scissors, Building2, BookOpen, Brain } from 'lucide-react'
+import { LayoutDashboard, Leaf, LogOut, Sprout, Table2, BarChart3, KeyRound, CalendarDays, Calculator, Activity, FlaskConical, CircuitBoard, Scissors, Building2, BookOpen } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { toast } from 'sonner'
-import { KB_DISPONIBLE } from '../../lib/kb'
 import { useAuth } from '../../hooks/useAuth'
 import { tienePin, quitarPin } from '../../lib/pin'
 import PinLock from '../PinLock'
@@ -52,15 +51,6 @@ export default function Sidebar({ colapsado: colapsadoProp }: { colapsado?: bool
     { nombre: 'Tablas', ruta: '/tablas', icono: Table2, permiso: 'ver_tablas' },
     { nombre: 'Manual', ruta: '/manual', icono: BookOpen },
   ]
-
-  // La base de conocimiento solo aparece si esta configurada. La ruta existia sin
-  // estar en ningun menu —no habia forma de llegar— y sin VITE_KB_URL la pantalla
-  // no puede hacer nada: mostrarla igual seria ofrecer algo que no funciona.
-  //
-  // Se agrega ANTES de filtrar: agregada despues, se colaba sin respetar el permiso.
-  if (KB_DISPONIBLE) {
-    todos.push({ nombre: 'Conocimiento', ruta: '/conocimiento', icono: Brain, permiso: 'ver_conocimiento' })
-  }
 
   const items: Item[] = todos.filter(i => !i.permiso || tienePermiso(i.permiso))
 
