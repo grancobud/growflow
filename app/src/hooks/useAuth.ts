@@ -13,29 +13,54 @@ import type { PerfilUsuario, RolUsuario } from '../types'
 const PERMISOS_ROL: Record<RolUsuario, string[]> = {
   administrador: [
     'ver_panel', 'ver_cultivo', 'editar_cultivo', 'ver_ambiente',
+    'ver_cosecha', 'ver_estadisticas',
     'ver_ong', 'ver_clinico', 'editar_clinico',
-    'ver_plata', 'editar_plata',
+    'ver_plata', 'ver_econometria', 'editar_plata',
     'ver_tablas', 'gestionar_usuarios',
   ],
   // Trabaja la sala. No ve fichas clinicas ni cuanto cuesta producir.
-  cultivador: ['ver_panel', 'ver_cultivo', 'editar_cultivo', 'ver_ambiente'],
+  cultivador: [
+    'ver_panel', 'ver_cultivo', 'editar_cultivo', 'ver_ambiente',
+    'ver_cosecha', 'ver_estadisticas',
+  ],
   // Pacientes, seguimiento e informes. Mira el cultivo pero no lo toca.
-  director_medico: ['ver_panel', 'ver_cultivo', 'ver_ambiente', 'ver_ong', 'ver_clinico', 'editar_clinico'],
+  director_medico: [
+    'ver_panel', 'ver_cultivo', 'ver_ambiente', 'ver_cosecha', 'ver_estadisticas',
+    'ver_ong', 'ver_clinico', 'editar_clinico',
+  ],
   // Cuotas, caja, documentos y costos. Ve a los pacientes por nombre, sin ficha.
-  administrativo: ['ver_panel', 'ver_cultivo', 'ver_ambiente', 'ver_ong', 'ver_plata', 'editar_plata'],
+  administrativo: [
+    'ver_panel', 'ver_cultivo', 'ver_ambiente', 'ver_cosecha', 'ver_estadisticas',
+    'ver_ong', 'ver_plata', 'ver_econometria', 'editar_plata',
+  ],
   // Entra a mirar: ve todo lo que no es dato de salud, y no modifica nada.
-  auditor: ['ver_panel', 'ver_cultivo', 'ver_ambiente', 'ver_ong', 'ver_plata'],
+  auditor: [
+    'ver_panel', 'ver_cultivo', 'ver_ambiente', 'ver_cosecha', 'ver_estadisticas',
+    'ver_ong', 'ver_plata', 'ver_econometria',
+  ],
 
-  // La cuenta publica de muestra: Panel, Ambiente, O.N.G. y Manual.
+  // La cuenta publica de muestra.
   //
-  // El objetivo es mostrar COMO se usa el sistema, no que datos tiene: entra y
-  // ve las pantallas reales, vacias. Ni una planta, ni un costo, ni el nombre de
-  // un paciente. Eso lo corta el RLS, no este mapa.
-  demo: ['ver_panel', 'ver_ambiente', 'ver_ong'],
+  // Muestra COMO se usa el sistema, no que datos tiene: entra y ve las pantallas
+  // reales, vacias. Ni una planta, ni un costo, ni el nombre de un paciente. Que
+  // se vean vacias no lo decide este mapa sino el RLS, que le devuelve cero filas.
+  //
+  // Econometria entra por 'ver_econometria' y no por 'ver_plata': asi ve la
+  // pantalla de costos sin que se le abran ademas Instalacion y los presupuestos.
+  demo: [
+    'ver_panel', 'ver_ambiente', 'ver_ong',
+    'ver_cosecha', 'ver_estadisticas', 'ver_econometria',
+  ],
 
   // Roles viejos, conservados para filas existentes.
-  operador: ['ver_panel', 'ver_cultivo', 'editar_cultivo', 'ver_ambiente'],
-  supervisor: ['ver_panel', 'ver_cultivo', 'ver_ambiente', 'ver_ong', 'ver_plata'],
+  operador: [
+    'ver_panel', 'ver_cultivo', 'editar_cultivo', 'ver_ambiente',
+    'ver_cosecha', 'ver_estadisticas',
+  ],
+  supervisor: [
+    'ver_panel', 'ver_cultivo', 'ver_ambiente', 'ver_cosecha', 'ver_estadisticas',
+    'ver_ong', 'ver_plata', 'ver_econometria',
+  ],
 }
 
 // A donde cae cada uno despues de entrar: a lo que vino a hacer.

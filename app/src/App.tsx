@@ -22,7 +22,6 @@ const PaginaTablas = lazyWithRetry(() => import('./pages/PaginaTablas'), 'Pagina
 const PaginaManual = lazyWithRetry(() => import('./pages/PaginaManual'), 'PaginaManual')
 const PaginaEstadisticas = lazyWithRetry(() => import('./pages/PaginaEstadisticas'), 'PaginaEstadisticas')
 const PaginaCosecha = lazyWithRetry(() => import('./pages/PaginaCosecha'), 'PaginaCosecha')
-const PaginaAsistencia = lazyWithRetry(() => import('./pages/PaginaAsistencia'), 'PaginaAsistencia')
 const PaginaCalendarioCultivo = lazyWithRetry(() => import('./pages/PaginaCalendarioCultivo'), 'PaginaCalendarioCultivo')
 const PaginaEconometria = lazyWithRetry(() => import('./pages/PaginaEconometria'), 'PaginaEconometria')
 const PaginaAmbiente = lazyWithRetry(() => import('./pages/PaginaAmbiente'), 'PaginaAmbiente')
@@ -96,7 +95,7 @@ function App() {
           {/* El inventario es parte del costo: Stock vive dentro de Econometria. */}
           {['econometria', 'stock'].map(r => (
             <Route key={r} path={r} element={
-              <RutaConPermiso permiso="ver_plata"><Suspense fallback={null}><PaginaEconometria /></Suspense></RutaConPermiso>
+              <RutaConPermiso permiso="ver_econometria"><Suspense fallback={null}><PaginaEconometria /></Suspense></RutaConPermiso>
             } />
           ))}
           <Route path="manual" element={
@@ -106,13 +105,10 @@ function App() {
             <RutaConPermiso permiso="ver_tablas"><Suspense fallback={null}><PaginaTablas /></Suspense></RutaConPermiso>
           } />
           <Route path="cosecha" element={
-            <RutaConPermiso permiso="ver_cultivo"><Suspense fallback={null}><PaginaCosecha /></Suspense></RutaConPermiso>
+            <RutaConPermiso permiso="ver_cosecha"><Suspense fallback={null}><PaginaCosecha /></Suspense></RutaConPermiso>
           } />
           <Route path="stats" element={
-            <RutaConPermiso permiso="ver_cultivo"><Suspense fallback={null}><PaginaEstadisticas /></Suspense></RutaConPermiso>
-          } />
-          <Route path="asistencia" element={
-            <Suspense fallback={null}><PaginaAsistencia /></Suspense>
+            <RutaConPermiso permiso="ver_estadisticas"><Suspense fallback={null}><PaginaEstadisticas /></Suspense></RutaConPermiso>
           } />
           <Route path="calendario" element={
             <RutaConPermiso permiso="ver_cultivo"><Suspense fallback={null}><PaginaCalendarioCultivo /></Suspense></RutaConPermiso>

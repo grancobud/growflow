@@ -40,14 +40,14 @@ export default function Sidebar({ colapsado: colapsadoProp }: { colapsado?: bool
   const todos: Item[] = [
     { nombre: 'Panel', ruta: '/', icono: LayoutDashboard, permiso: 'ver_panel' },
     { nombre: 'Cultivo', ruta: '/plantas', icono: Sprout, permiso: 'ver_cultivo', alias: ['/geneticas', '/linea-tiempo', '/sala', '/cultivo'] },
-    { nombre: 'Cosecha', ruta: '/cosecha', icono: Scissors, permiso: 'ver_cultivo' },
+    { nombre: 'Cosecha', ruta: '/cosecha', icono: Scissors, permiso: 'ver_cosecha' },
     { nombre: 'Ambiente', ruta: '/ambiente', icono: Activity, permiso: 'ver_ambiente' },
     { nombre: 'Calendario', ruta: '/calendario', icono: CalendarDays, permiso: 'ver_cultivo' },
     { nombre: 'Calculadora Fertilizantes', ruta: '/nutrientes', icono: FlaskConical, permiso: 'ver_cultivo' },
     { nombre: 'Instalación', ruta: '/hardware-diy', icono: CircuitBoard, permiso: 'ver_plata', alias: ['/riego', '/tablero', '/insumos-faltantes', '/instalacion'] },
-    { nombre: 'Econometría', ruta: '/econometria', icono: Calculator, permiso: 'ver_plata', alias: ['/stock'] },
+    { nombre: 'Econometría', ruta: '/econometria', icono: Calculator, permiso: 'ver_econometria', alias: ['/stock'] },
     { nombre: 'O.N.G.', ruta: '/ong', icono: Building2, permiso: 'ver_ong', alias: ['/registro'] },
-    { nombre: 'Estadísticas', ruta: '/stats', icono: BarChart3, permiso: 'ver_cultivo' },
+    { nombre: 'Estadísticas', ruta: '/stats', icono: BarChart3, permiso: 'ver_estadisticas' },
     { nombre: 'Tablas', ruta: '/tablas', icono: Table2, permiso: 'ver_tablas' },
     { nombre: 'Manual', ruta: '/manual', icono: BookOpen },
   ]
