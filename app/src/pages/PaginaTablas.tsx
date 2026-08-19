@@ -10,6 +10,7 @@ import { FASES, TIPOS_EVENTO, TIPOS_GENETICA, SUSTRATOS } from '../lib/cultivo'
 import { CATEGORIAS_INSUMO, TIPOS_MANTENIMIENTO, UNIDADES } from '../lib/stock'
 import { SISTEMAS, UNIDADES_INST } from '../lib/instalaciones'
 import { exportarFull, importarFull } from '../lib/backup'
+import { useDesbordeHorizontal } from '../lib/useDesbordeHorizontal'
 
 const CATEGORIAS_APLIC = ['Fumigacion', 'Insecticida', 'Fungicida', 'Foliar', 'Acaricida', 'Bactericida', 'Otro'] as const
 const TIPOS_COSTO = ['fijo', 'variable'] as const
@@ -526,6 +527,9 @@ const celdaCls = 'px-2.5 py-1.5 text-[12px] text-[#d4d4dd] border-b border-r bor
 const inputCls = 'w-full bg-[#1c1c27] border border-[#a3e635]/50 rounded px-1.5 py-0.5 text-[16px] sm:text-[12px] text-[#ececf1] focus:outline-none'
 
 export default function PaginaTablas() {
+  // Las solapas scrollean sin barra: la franja gris del navegador quedaba
+  // cruzando la pantalla aun cuando entraban todas. Dos degradados la reemplazan.
+  const { refWrapper, refScroller } = useDesbordeHorizontal<HTMLDivElement, HTMLDivElement>(TABLAS.length)
   const [tabla, setTabla] = useState<DefTabla>(TABLAS[0])
   const [filas, setFilas] = useState<any[]>([])
   const [plantas, setPlantas] = useState<Record<string, string>>({})
@@ -724,17 +728,19 @@ export default function PaginaTablas() {
           </button>
         </div>
         {/* Solapas */}
-        <div className="flex gap-1 px-3 sm:px-6 pb-0 overflow-x-auto">
-          {TABLAS.map(t => (
-            <button key={t.id} onClick={() => setTabla(t)}
-              className={`px-3.5 py-2 rounded-t-lg text-[12px] font-medium border border-b-0 transition-colors whitespace-nowrap ${
-                tabla.id === t.id
-                  ? 'bg-[#101016] border-[#1f1f2b] text-[#d9f99d]'
-                  : 'bg-transparent border-transparent text-[#7d7d8e] hover:text-[#a6a6b5]'
-              }`}>
-              {t.nombre}
-            </button>
-          ))}
+        <div ref={refWrapper} className="ct-tabs-fade">
+          <div ref={refScroller} className="scrollbar-none flex gap-1 px-3 sm:px-6 pb-0 overflow-x-auto">
+            {TABLAS.map(t => (
+              <button key={t.id} onClick={() => setTabla(t)}
+                className={`px-3.5 py-2 rounded-t-lg text-[12px] font-medium border border-b-0 transition-colors whitespace-nowrap ${
+                  tabla.id === t.id
+                    ? 'bg-[#101016] border-[#1f1f2b] text-[#d9f99d]'
+                    : 'bg-transparent border-transparent text-[#7d7d8e] hover:text-[#a6a6b5]'
+                }`}>
+                {t.nombre}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
