@@ -8,11 +8,11 @@ import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import esLocale from '@fullcalendar/core/locales/es'
-import type { EventInput, DatesSetArg, EventClickArg } from '@fullcalendar/core'
+import type { EventInput, DatesSetArg, EventClickArg, EventContentArg } from '@fullcalendar/core'
 import type { DateClickArg } from '@fullcalendar/interaction'
 import { CalendarDays, Plus, X, Loader2, Trash2, Pencil } from 'lucide-react'
 import {
-  calendarioService, COLOR_CAL, TIPOS_CAL, REPETICIONES,
+  calendarioService, COLOR_CAL, TIPOS_CAL, REPETICIONES, LABEL_CAL, ICONO_CAL,
   type EventoCal, type TipoCal, type Recordatorio, type Repeticion,
 } from '../lib/calendario'
 import { btnPrimario, btnSutil } from '../lib/ui'
@@ -23,6 +23,28 @@ const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border bord
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1'
 
 const hoyISO = () => new Date().toISOString().slice(0, 10)
+
+/**
+ * Como se dibuja cada evento adentro de una celda del calendario.
+ *
+ * Por defecto FullCalendar pone un puntito y el titulo, y con once tipos de
+ * paleta pastel el puntito no distingue nada. Va el icono del tipo, que se lee
+ * sin consultar la leyenda.
+ *
+ * El icono no se encoge (`shrink-0`) y el texto se corta con puntos suspensivos:
+ * sin eso, un titulo largo empujaba el icono y las filas de una misma semana
+ * quedaban con los iconos a distintas alturas.
+ */
+function renderEvento(arg: EventContentArg) {
+  const ev = arg.event.extendedProps.ev as EventoCal | undefined
+  const Ic = ev ? ICONO_CAL[ev.tipo] : null
+  return (
+    <div className="flex items-center gap-1 w-full min-w-0 px-1 py-[2px] leading-none">
+      {Ic && <Ic className="w-3 h-3 shrink-0" strokeWidth={2} />}
+      <span className="truncate text-[10.5px]">{arg.event.title}</span>
+    </div>
+  )
+}
 
 const CAL_CSS = `
 .gf-cal { --fc-border-color:#191921; --fc-page-bg-color:#0a0a0f; --fc-neutral-bg-color:#0e0e14; --fc-today-bg-color:rgba(167,139,250,0.07); overflow-x:hidden; }
@@ -44,6 +66,12 @@ const CAL_CSS = `
 .gf-cal .fc .fc-button:hover { background:#15151d; border-color:#33333f; color:#ececf1; }
 .gf-cal .fc .fc-button-primary:not(:disabled).fc-button-active, .gf-cal .fc .fc-button-primary:not(:disabled):active { background:#1c1c27; color:#d9f99d; border-color:#404d20; }
 .gf-cal .fc .fc-button:focus { box-shadow:none; }
+/* Los botones de FullCalendar vienen en 28-29px de alto. En celular quedan por
+   debajo del minimo tactil de 44px que sigue el resto de la app, asi que se
+   suben solo en mobile: en desktop 29px con el mouse esta bien. */
+@media (max-width: 639px) {
+  .gf-cal .fc .fc-button { min-height:44px; min-width:44px; display:inline-flex; align-items:center; justify-content:center; }
+}
 .gf-cal .fc .fc-button:disabled { opacity:.4; }
 .gf-cal .fc-theme-standard td, .gf-cal .fc-theme-standard th { border-color:#191921; }
 .gf-cal .fc-daygrid-event { border:none; border-radius:6px; padding:2px 7px; margin:1px 3px; font-size:11px; font-weight:500; letter-spacing:0.1px; cursor:pointer; transition:filter .12s ease; }
@@ -141,12 +169,19 @@ export default function PaginaCalendarioCultivo() {
         <div className="flex flex-wrap gap-1.5 px-3 sm:px-6 pb-2.5">
           {TIPOS_CAL.map(t => {
             const off = ocultos.has(t)
+            const Ic = ICONO_CAL[t]
             return (
               <button key={t} onClick={() => toggleTipo(t)}
-                className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10.5px] border transition-colors ${off ? 'border-[#1f1f2b] bg-transparent text-[#7d7d8e]' : 'border-[#2a2a3a] bg-[#101016] text-[#a6a6b5] hover:text-[#ececf1]'}`}
-                title={off ? 'Mostrar' : 'Ocultar'}>
-                <span className="w-2.5 h-2.5 rounded-[3px]" style={{ background: off ? '#2a2a3a' : COLOR_CAL[t] }} />
-                {t} {conteo(t) > 0 && <span className="text-[#7d7d8e]">({conteo(t)})</span>}
+                className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 min-h-[36px] rounded-full text-[10.5px] leading-none border transition-colors ${off ? 'border-[#1f1f2b] bg-transparent text-[#7d7d8e]' : 'border-[#2a2a3a] bg-[#101016] text-[#a6a6b5] hover:text-[#ececf1]'}`}
+                title={off ? `Mostrar ${LABEL_CAL[t]}` : `Ocultar ${LABEL_CAL[t]}`}
+                aria-pressed={!off}>
+                {/* El icono reemplaza al cuadradito de color: una tijera se
+                    entiende sin mirar la leyenda, un punto lavanda no. El color
+                    se conserva sobre el propio icono, como refuerzo. */}
+                <Ic className="w-3.5 h-3.5 shrink-0" strokeWidth={1.9}
+                  style={{ color: off ? '#4a4a5a' : COLOR_CAL[t] }} />
+                <span>{LABEL_CAL[t]}</span>
+                {conteo(t) > 0 && <span className="text-[#7d7d8e] tabular-nums">({conteo(t)})</span>}
               </button>
             )
           })}
@@ -168,6 +203,7 @@ export default function PaginaCalendarioCultivo() {
           dateClick={onDateClick}
           dayMaxEvents={3}
           fixedWeekCount={false}
+          eventContent={renderEvento}
         />
         <p className="mt-3 text-[10.5px] text-[#7d7d8e]">Tocá un día para agregar un recordatorio. Los riegos, podas, cosechas y mantenimientos aparecen solos desde lo que cargás en la app.</p>
       </div>
@@ -178,7 +214,12 @@ export default function PaginaCalendarioCultivo() {
         <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={() => setDetalle(null)}>
           <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-sm sm:rounded-2xl rounded-t-2xl" onClick={e => e.stopPropagation()}>
             <div className="px-4 py-3 border-b border-[#1f1f2b] flex items-center gap-2.5">
-              <span className="w-3 h-3 rounded-[4px] flex-shrink-0" style={{ background: detalle.color }} />
+              {(() => { const Ic = ICONO_CAL[detalle.tipo]; return (
+                <span className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 border"
+                  style={{ background: detalle.color + '1a', borderColor: detalle.color + '40' }}>
+                  <Ic className="w-3.5 h-3.5" style={{ color: detalle.color }} strokeWidth={2} />
+                </span>
+              ) })()}
               <div className="min-w-0 flex-1">
                 <div className="font-display font-semibold text-[14px] text-[#ececf1] truncate">{detalle.titulo}</div>
                 <div className="text-[11px] text-[#7d7d8e] capitalize">{detalle.tipo} · {new Date(detalle.fecha + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: '2-digit', month: 'long' })}</div>

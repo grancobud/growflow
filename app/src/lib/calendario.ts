@@ -3,6 +3,10 @@
 // los recordatorios propios con repeticion (que se expanden a ocurrencias).
 
 import { supabase } from './supabase'
+import {
+  Droplets, FlaskConical, Scissors, Shovel, SprayCan, Sprout, Scale,
+  Wrench, Repeat, BellRing, CircleDashed, type LucideIcon,
+} from 'lucide-react'
 
 export type TipoCal =
   | 'Riego' | 'Fertilizacion' | 'Poda' | 'Trasplante' | 'Fumigacion'
@@ -27,6 +31,29 @@ export const TIPOS_CAL: TipoCal[] = [
   'Riego', 'Fertilizacion', 'Poda', 'Trasplante', 'Fumigacion',
   'Germinacion', 'Cosecha', 'Mantenimiento', 'Recordatorio', 'Otro',
 ]
+
+/**
+ * Como se ESCRIBE cada tipo en pantalla.
+ *
+ * Los valores de arriba son identificadores: viajan a la base y se comparan en
+ * el codigo, asi que van sin tilde. Pero mostrarlos crudos ponia
+ * "Fertilizacion" y "Germinacion" en la interfaz, que se lee como un error de
+ * ortografia. La etiqueta se separa del valor para que la base siga igual y la
+ * pantalla este bien escrita.
+ */
+export const LABEL_CAL: Record<TipoCal, string> = {
+  Riego: 'Riego',
+  Fertilizacion: 'Fertilización',
+  Poda: 'Poda',
+  Trasplante: 'Trasplante',
+  Fumigacion: 'Fumigación',
+  Germinacion: 'Germinación',
+  Cosecha: 'Cosecha',
+  Mantenimiento: 'Mantenimiento',
+  CambioFase: 'Cambio de fase',
+  Recordatorio: 'Recordatorio',
+  Otro: 'Otro',
+}
 
 export type Repeticion = 'ninguna' | 'diaria' | 'cada_n_dias' | 'semanal' | 'mensual'
 export const REPETICIONES: { valor: Repeticion; label: string }[] = [
@@ -119,14 +146,21 @@ export const calendarioService = {
 
     for (const e of (eventos.data ?? []) as any[]) {
       const tipo = mapTipoEvento(e.tipo)
-      out.push({ id: `ev:${e.id}`, titulo: `${e.tipo}${nombrePlanta(e.planta_id) ? ' ' + nombrePlanta(e.planta_id) : ''}`, fecha: e.fecha, tipo, color: COLOR_CAL[tipo], fuente: 'evento', detalle: e.detalle, editable: false })
+      // El titulo sale de LABEL_CAL y no de `e.tipo`: el valor crudo escribia
+      // "Fertilizacion" sin tilde adentro del calendario.
+      const etiqueta = LABEL_CAL[tipo] ?? e.tipo
+      out.push({ id: `ev:${e.id}`, titulo: `${etiqueta}${nombrePlanta(e.planta_id) ? ' ' + nombrePlanta(e.planta_id) : ''}`, fecha: e.fecha, tipo, color: COLOR_CAL[tipo], fuente: 'evento', detalle: e.detalle, editable: false })
     }
     for (const r of (riegos.data ?? []) as any[]) {
       const d = [r.ppm ? `${r.ppm}ppm` : '', r.ph ? `pH${r.ph}` : '', r.escurrio ? 'escurrió' : ''].filter(Boolean).join(' · ')
       out.push({ id: `ri:${r.id}`, titulo: `Riego ${nombrePlanta(r.planta_id)}`.trim(), fecha: r.fecha, tipo: 'Riego', color: COLOR_CAL.Riego, fuente: 'riego', detalle: d, editable: false })
     }
     for (const a of (aplic.data ?? []) as any[]) {
-      out.push({ id: `ap:${a.id}`, titulo: `${a.categoria} ${nombrePlanta(a.planta_id)}`.trim(), fecha: a.fecha, tipo: 'Fumigacion', color: COLOR_CAL.Fumigacion, fuente: 'aplicacion', detalle: a.producto, editable: false })
+      // `a.categoria` es texto libre de la carga ("Fumigacion", "Foliar"...):
+      // se muestra tal cual, pero si coincide con un tipo conocido se usa su
+      // etiqueta bien escrita.
+      const cat = (LABEL_CAL as Record<string, string>)[a.categoria] ?? a.categoria
+      out.push({ id: `ap:${a.id}`, titulo: `${cat} ${nombrePlanta(a.planta_id)}`.trim(), fecha: a.fecha, tipo: 'Fumigacion', color: COLOR_CAL.Fumigacion, fuente: 'aplicacion', detalle: a.producto, editable: false })
     }
     for (const c of (cosechas.data ?? []) as any[]) {
       out.push({ id: `co:${c.id}`, titulo: `Cosecha ${nombrePlanta(c.planta_id)}`.trim(), fecha: c.fecha, tipo: 'Cosecha', color: COLOR_CAL.Cosecha, fuente: 'cosecha', detalle: c.peso_seco_g ? `${c.peso_seco_g}g seco` : undefined, editable: false })
@@ -230,4 +264,27 @@ export const calendarioService = {
     const { error } = await supabase.from('recordatorios').delete().eq('id', id)
     if (error) throw error
   },
+}
+
+/**
+ * Icono de cada tipo. Reemplaza al cuadradito de color de la leyenda: un punto
+ * verde no dice "poda", hay que aprenderse la equivalencia y mirar la leyenda
+ * cada vez. Una tijera se entiende sola, y ademas funciona para quien no
+ * distingue bien los colores (once tipos con paleta pastel son muchos matices
+ * cercanos).
+ *
+ * El color se conserva, pero pasa a ser refuerzo del icono y no la unica senal.
+ */
+export const ICONO_CAL: Record<TipoCal, LucideIcon> = {
+  Riego: Droplets,
+  Fertilizacion: FlaskConical,
+  Poda: Scissors,
+  Trasplante: Shovel,
+  Fumigacion: SprayCan,
+  Germinacion: Sprout,
+  Cosecha: Scale,
+  Mantenimiento: Wrench,
+  CambioFase: Repeat,
+  Recordatorio: BellRing,
+  Otro: CircleDashed,
 }

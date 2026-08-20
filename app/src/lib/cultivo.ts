@@ -300,6 +300,16 @@ export const cultivoService = {
     lanzar(error)
   },
 
+  /**
+   * Corregir un evento ya cargado. Antes solo se podia borrar y volver a
+   * cargarlo, o editarlo desde Tablas: para arreglar una fecha mal tipeada eso
+   * es mucho trabajo, y lo que termina pasando es que el dato queda mal.
+   */
+  async actualizarEvento(id: string, e: Partial<Evento>): Promise<void> {
+    const { error } = await supabase.from('eventos').update(e).eq('id', id)
+    lanzar(error)
+  },
+
   async eliminarGenetica(id: string): Promise<void> {
     // Las plantas que la usaban quedan con genetica null (FK on delete set null)
     const { error } = await supabase.from('geneticas').delete().eq('id', id)

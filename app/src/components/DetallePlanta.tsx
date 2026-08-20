@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import {
   X, Camera, Loader2, Droplets, Scissors, FlaskConical, StickyNote,
   Sprout, Flower2, Repeat, AlertTriangle, RefreshCw, Image as ImageIcon, Scale, SprayCan,
-  QrCode, ExternalLink, IdCard,
+  QrCode, ExternalLink, IdCard, Pencil,
 } from 'lucide-react'
 import { cultivoService, type ResumenPlanta, type Evento, type Cosecha } from '../lib/cultivo'
 import { registroService, type Paciente } from '../lib/registro'
@@ -130,6 +130,43 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
     }
   }
 
+  // Edicion en linea del timeline. Se editan los dos campos que se cargan mal
+  // en la practica —la fecha y el texto—, no la fila entera: para el resto esta
+  // Tablas, y un formulario completo aca convertiria el timeline en otra cosa.
+  //
+  // La cosecha es la excepcion: su "detalle" es un resumen armado con cinco
+  // campos (pesos, valoracion, notas), asi que dejarlo editar como texto libre
+  // escribiria una cadena que despues nadie puede volver a interpretar.
+  const editable = (it: Item) => !it.esCosecha
+  const [editando, setEditando] = useState<string | null>(null)
+  const [borrador, setBorrador] = useState<{ fecha: string; detalle: string }>({ fecha: '', detalle: '' })
+
+  const abrirEdicion = (it: Item) => {
+    setEditando(it.id)
+    setBorrador({ fecha: it.fecha, detalle: it.detalle ?? '' })
+  }
+
+  const guardarEdicion = async (it: Item) => {
+    const fecha = borrador.fecha
+    if (!fecha) { toast.error('La fecha no puede quedar vacía.'); return }
+    try {
+      if (it.tipo === 'Aplicacion') {
+        // En aplicaciones el texto del timeline junta cuatro columnas, asi que
+        // lo editado va a `notas`: es la unica que es texto libre de verdad.
+        const { error } = await supabase.from('aplicaciones')
+          .update({ fecha, notas: borrador.detalle || null }).eq('id', it.id)
+        if (error) throw new Error(error.message)
+      } else {
+        await cultivoService.actualizarEvento(it.id, { fecha, detalle: borrador.detalle || null })
+      }
+      setEditando(null)
+      toast.success('Corregido')
+      cargar(); onCambio()
+    } catch (err) {
+      toast.error(`No se pudo guardar: ${(err as Error).message}`)
+    }
+  }
+
   const borrar = async (it: Item) => {
     try {
       if (it.esCosecha) {
@@ -247,13 +284,55 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
                     <div className="flex items-baseline gap-2">
                       <span className="text-[12.5px] font-semibold text-[#ececf1]">{it.esCosecha ? 'Cosecha' : it.tipo}</span>
                       <span className="text-[10.5px] text-[#7d7d8e] tabular-nums font-mono">{fmt(it.fecha)}</span>
-                      <button onClick={() => borrar(it)}
-                        className="ml-auto p-1 text-[#7d7d8e] opacity-0 group-hover:opacity-100 hover:text-[#ff8a7a] rounded transition-all"
-                        title="Borrar">
-                        <X className="w-3 h-3" />
-                      </button>
+                      {/* Los controles se revelan al pasar el mouse SOLO en
+                          desktop. En mobile no hay hover: con `opacity-0` a
+                          secas quedaban invisibles y no habia forma de borrar
+                          nada desde el telefono. */}
+                      <div className="ml-auto flex items-center gap-0.5 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                        {editable(it) && (
+                          <button onClick={() => editando === it.id ? setEditando(null) : abrirEdicion(it)}
+                            className="p-2 sm:p-1 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center text-[#7d7d8e] hover:text-[#d9f99d] rounded transition-colors"
+                            title="Corregir">
+                            <Pencil className="w-3 h-3" />
+                          </button>
+                        )}
+                        <button onClick={() => borrar(it)}
+                          className="p-2 sm:p-1 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center text-[#7d7d8e] hover:text-[#ff8a7a] rounded transition-colors"
+                          title="Borrar">
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
                     </div>
-                    {it.detalle && <p className="text-[11.5px] text-[#a6a6b5] mt-0.5 leading-snug">{it.detalle}</p>}
+
+                    {editando === it.id ? (
+                      <div className="mt-2 rounded-lg border border-[#2a2a3a] bg-[#15151d] p-2.5 space-y-2">
+                        <input type="date" value={borrador.fecha}
+                          onChange={e => setBorrador(b => ({ ...b, fecha: e.target.value }))}
+                          className="w-full bg-[#1c1c27] border border-[#2a2a3a] rounded px-2 py-2 min-h-[44px] sm:min-h-0 text-[16px] sm:text-[12px] text-[#ececf1] focus:outline-none focus:border-[#a3e635]/50" />
+                        <input type="text" value={borrador.detalle}
+                          onChange={e => setBorrador(b => ({ ...b, detalle: e.target.value }))}
+                          placeholder={it.tipo === 'Aplicacion' ? 'Notas' : 'Detalle'}
+                          className="w-full bg-[#1c1c27] border border-[#2a2a3a] rounded px-2 py-2 min-h-[44px] sm:min-h-0 text-[16px] sm:text-[12px] text-[#ececf1] focus:outline-none focus:border-[#a3e635]/50" />
+                        {it.tipo === 'Aplicacion' && (
+                          <p className="text-[10px] text-[#7d7d8e] leading-snug">
+                            En una aplicación esto edita las <b>notas</b>. Producto, dosis y
+                            categoría se corrigen desde <i>Tablas</i>.
+                          </p>
+                        )}
+                        <div className="flex gap-1.5">
+                          <button onClick={() => guardarEdicion(it)}
+                            className="flex-1 px-3 py-2 min-h-[44px] sm:min-h-0 rounded border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[12px] font-medium text-[#d9f99d]">
+                            Guardar
+                          </button>
+                          <button onClick={() => setEditando(null)}
+                            className="px-3 py-2 min-h-[44px] sm:min-h-0 rounded border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] transition-colors text-[12px] text-[#a6a6b5]">
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      it.detalle && <p className="text-[11.5px] text-[#a6a6b5] mt-0.5 leading-snug">{it.detalle}</p>
+                    )}
                     {it.foto_url && (
                       <FotoPrivada valor={it.foto_url} onClick={() => setVisor(it.foto_url)}
                         className="mt-2 rounded-lg border border-[#1f1f2b] max-h-44 object-cover cursor-zoom-in" />
