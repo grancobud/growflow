@@ -25,6 +25,41 @@ export const FASES: FasePlanta[] = [
  */
 export const FASES_COSECHABLES = new Set<string>(['Floracion', 'Secado', 'Curado', 'Cosechada'])
 
+/**
+ * Colores por fase. Vivia DUPLICADA en PaginaPanel.tsx y PaginaPlantas.tsx.
+ */
+export const COLOR_FASE: Record<FasePlanta, { text: string; bg: string; border: string }> = {
+  Germinacion: { text: '#d9f99d', bg: 'rgba(163,230,53,0.10)', border: '#404d20' },
+  Plantula:    { text: '#d9f99d', bg: 'rgba(163,230,53,0.10)', border: '#404d20' },
+  Vegetativo:  { text: '#bef264', bg: 'rgba(163,230,53,0.14)', border: '#404d20' },
+  Floracion:   { text: '#c4b5fd', bg: 'rgba(139,92,246,0.12)', border: '#463a66' },
+  Secado:      { text: '#f59e0b', bg: 'rgba(245,158,11,0.10)', border: '#5a4a20' },
+  Curado:      { text: '#f59e0b', bg: 'rgba(245,158,11,0.10)', border: '#5a4a20' },
+  Cosechada:   { text: '#8f8f9f', bg: 'rgba(180,180,200,0.06)', border: '#2a2a3a' },
+  Muerta:      { text: '#ff8a7a', bg: 'rgba(122,40,32,0.15)', border: '#7a2820' },
+}
+
+/**
+ * SIEMPRE por aca, nunca COLOR_FASE[x] directo.
+ *
+ * `fase` es una columna de texto de la base, y la base se migra por SQL sin
+ * pasar por TypeScript. Un valor que el front no conoce devuelve undefined y
+ * tumba la pantalla al leerle `.text`. Paso en la instalacion de Aguara el
+ * 20/08/2026 con otro campo y dejo una pestana entera caida en produccion.
+ */
+export const colorFase = (f: string | null | undefined) =>
+  COLOR_FASE[f as FasePlanta] ?? COLOR_FASE.Cosechada
+
+/**
+ * Las categorias de aplicacion. Vivian DUPLICADAS en PaginaSala.tsx y en
+ * PaginaTablas.tsx: cambiar una dejaba a las dos pantallas ofreciendo opciones
+ * distintas sobre LA MISMA columna.
+ */
+export const CATEGORIAS_APLIC = [
+  'Fumigacion', 'Insecticida', 'Fungicida', 'Foliar',
+  'Acaricida', 'Bactericida', 'Inoculante', 'Otro',
+] as const
+
 export const TIPOS_EVENTO: TipoEvento[] = [
   'Riego', 'Fertilizacion', 'Poda', 'Trasplante', 'CambioFase',
   'Entrenamiento', 'Problema', 'Foto', 'Nota',
@@ -39,6 +74,8 @@ export const SUSTRATOS = [
   'Coco Mix Reutilizado',
   'Coco + Sustrato',
   'Coco + Sustrato Reutilizado',
+  'Coco + perlita',
+  'Organico',
   'Dwc',
 ] as const
 

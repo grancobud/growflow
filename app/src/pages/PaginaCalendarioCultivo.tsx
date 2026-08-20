@@ -13,8 +13,7 @@ import type { DateClickArg } from '@fullcalendar/interaction'
 import { CalendarDays, Plus, X, Loader2, Trash2, Pencil } from 'lucide-react'
 import {
   calendarioService, COLOR_CAL, TIPOS_CAL, REPETICIONES, LABEL_CAL, ICONO_CAL,
-  type EventoCal, type TipoCal, type Recordatorio, type Repeticion,
-} from '../lib/calendario'
+  type EventoCal, type TipoCal, type Recordatorio, type Repeticion, iconoCal } from '../lib/calendario'
 import { btnPrimario, btnSutil } from '../lib/ui'
 
 // text-[16px] en celular: iOS Safari hace zoom sobre cualquier campo con letra
@@ -37,7 +36,7 @@ const hoyISO = () => new Date().toISOString().slice(0, 10)
  */
 function renderEvento(arg: EventContentArg) {
   const ev = arg.event.extendedProps.ev as EventoCal | undefined
-  const Ic = ev ? ICONO_CAL[ev.tipo] : null
+  const Ic = ev ? iconoCal(ev.tipo) : null
   return (
     <div className="flex items-center gap-1 w-full min-w-0 px-1 py-[2px] leading-none">
       {Ic && <Ic className="w-3 h-3 shrink-0" strokeWidth={2} />}
@@ -214,7 +213,7 @@ export default function PaginaCalendarioCultivo() {
         <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={() => setDetalle(null)}>
           <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-sm sm:rounded-2xl rounded-t-2xl" onClick={e => e.stopPropagation()}>
             <div className="px-4 py-3 border-b border-[#1f1f2b] flex items-center gap-2.5">
-              {(() => { const Ic = ICONO_CAL[detalle.tipo]; return (
+              {(() => { const Ic = iconoCal(detalle.tipo); return (
                 <span className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 border"
                   style={{ background: detalle.color + '1a', borderColor: detalle.color + '40' }}>
                   <Ic className="w-3.5 h-3.5" style={{ color: detalle.color }} strokeWidth={2} />

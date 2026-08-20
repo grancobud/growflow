@@ -9,22 +9,11 @@ import {
 } from 'lucide-react'
 import {
   cultivoService, generarCodigoPlanta, FASES, TIPOS_GENETICA, SUSTRATOS,
-  type ResumenPlanta, type Genetica, type Evento, type FasePlanta, type TipoEvento,
-} from '../lib/cultivo'
+  type ResumenPlanta, type Genetica, type Evento, type FasePlanta, type TipoEvento, colorFase } from '../lib/cultivo'
 import { registroService, type Paciente } from '../lib/registro'
 import DetallePlanta from '../components/DetallePlanta'
 import { btnPrimario, btnSutil } from '../lib/ui'
 
-const COLOR_FASE: Record<FasePlanta, { text: string; bg: string; border: string }> = {
-  Germinacion: { text: '#d9f99d', bg: 'rgba(163,230,53,0.10)', border: '#404d20' },
-  Plantula:    { text: '#d9f99d', bg: 'rgba(163,230,53,0.10)', border: '#404d20' },
-  Vegetativo:  { text: '#bef264', bg: 'rgba(163,230,53,0.14)', border: '#404d20' },
-  Floracion:   { text: '#c4b5fd', bg: 'rgba(139,92,246,0.12)', border: '#463a66' },
-  Secado:      { text: '#f59e0b', bg: 'rgba(245,158,11,0.10)', border: '#5a4a20' },
-  Curado:      { text: '#f59e0b', bg: 'rgba(245,158,11,0.10)', border: '#5a4a20' },
-  Cosechada:   { text: '#8f8f9f', bg: 'rgba(180,180,200,0.06)', border: '#2a2a3a' },
-  Muerta:      { text: '#ff8a7a', bg: 'rgba(122,40,32,0.15)', border: '#7a2820' },
-}
 
 // Chip de tipo de genética (Auto/Fem/…) — color + abreviatura.
 const COLOR_TIPO: Record<string, { label: string; text: string; bg: string; border: string }> = {
@@ -299,7 +288,7 @@ export default function PaginaPlantas() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 items-start">
             {plantasFiltradas.map(p => {
-              const cf = COLOR_FASE[p.fase]
+              const cf = colorFase(p.fase)
               const abierta = expandida === p.id
               const riegoPend = tieneRiegoPendiente(p)
               return (

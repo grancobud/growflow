@@ -26,6 +26,14 @@ const COLOR_ESTADO: Record<EstadoReprocann, { text: string; bg: string; border: 
   Rechazado:    { text: '#8f8f9f', bg: 'rgba(180,180,200,0.06)', border: '#2a2a3a' },
 }
 
+/**
+ * Con fallback: un estado que la base tenga y el front no conozca devuelve
+ * undefined y tumba la pantalla al leerle `.text`. Paso en la instalacion de
+ * Aguara el 20/08/2026 y dejo la pestana Pacientes caida en produccion.
+ */
+const colorDe = (e: string | null | undefined) =>
+  COLOR_ESTADO[e as EstadoReprocann] ?? COLOR_ESTADO.Rechazado
+
 // text-[16px] en celular: iOS Safari hace zoom sobre cualquier campo con letra
 // menor y deja el formulario descuadrado. En desktop vuelve al tamaño real.
 const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
@@ -147,7 +155,7 @@ export default function PaginaPacientes({ embebida = false }: { embebida?: boole
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 items-start">
             {filtrados.map(p => {
-              const ce = COLOR_ESTADO[p.reprocann_estado]
+              const ce = colorDe(p.reprocann_estado)
               const inicial = p.nombre_completo.charAt(0).toUpperCase()
               return (
                 <div key={p.id} className="rounded-xl bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] transition-colors overflow-hidden">
@@ -272,7 +280,7 @@ function Dato({ icono: Icono, label, valor }: { icono?: any; label: string; valo
 function ModalDetalle({ paciente: p, onCerrar, onEditar, onBorrar }: {
   paciente: Paciente; onCerrar: () => void; onEditar: () => void; onBorrar: () => void
 }) {
-  const ce = COLOR_ESTADO[p.reprocann_estado]
+  const ce = colorDe(p.reprocann_estado)
   const [plantasPac, setPlantasPac] = useState<ResumenPlanta[]>([])
   useEffect(() => { cultivoService.getPlantasDePaciente(p.id).then(setPlantasPac).catch(() => {}) }, [p.id])
   const usoPlantas = plantasPac.filter(pl => pl.activa).length

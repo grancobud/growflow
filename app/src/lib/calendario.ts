@@ -275,6 +275,16 @@ export const calendarioService = {
  *
  * El color se conserva, pero pasa a ser refuerzo del icono y no la unica senal.
  */
+/**
+ * SIEMPRE por aca, nunca ICONO_CAL[x] directo.
+ *
+ * `eventos.tipo` es una columna de texto de la base. Un tipo que el front no
+ * conozca devuelve undefined, y un componente undefined hace que React tire
+ * "Element type is invalid" y se lleve el calendario entero.
+ */
+export const iconoCal = (t: string | null | undefined): LucideIcon =>
+  ICONO_CAL[t as TipoCal] ?? ICONO_CAL.Otro ?? Droplets
+
 export const ICONO_CAL: Record<TipoCal, LucideIcon> = {
   Riego: Droplets,
   Fertilizacion: FlaskConical,

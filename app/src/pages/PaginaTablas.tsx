@@ -6,13 +6,12 @@ import { useState, useEffect, useCallback } from 'react'
 import { toast } from 'sonner'
 import { Plus, Trash2, RefreshCw, Table2, Download, Upload, X, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import { FASES, TIPOS_EVENTO, TIPOS_GENETICA, SUSTRATOS } from '../lib/cultivo'
+import { FASES, TIPOS_EVENTO, TIPOS_GENETICA, SUSTRATOS, CATEGORIAS_APLIC } from '../lib/cultivo'
 import { CATEGORIAS_INSUMO, TIPOS_MANTENIMIENTO, UNIDADES } from '../lib/stock'
 import { SISTEMAS, UNIDADES_INST } from '../lib/instalaciones'
 import { exportarFull, importarFull } from '../lib/backup'
 import { useDesbordeHorizontal } from '../lib/useDesbordeHorizontal'
 
-const CATEGORIAS_APLIC = ['Fumigacion', 'Insecticida', 'Fungicida', 'Foliar', 'Acaricida', 'Bactericida', 'Otro'] as const
 const TIPOS_COSTO = ['fijo', 'variable'] as const
 const PERIODICIDADES_COSTO = ['unico', 'mensual', 'bimestral', 'por_ciclo', 'anual'] as const
 

@@ -420,6 +420,9 @@ const ICONO: Record<Chequeo['estado'], { Ic: typeof CheckCircle2; color: string;
   sin_datos: { Ic: HelpCircle, color: '#7d7d8e', label: 'Sin datos' },
 }
 
+/** Con fallback: un estado sin entrada dejaria Coherencia en blanco. */
+const iconoChequeo = (e: Chequeo['estado']) => ICONO[e] ?? ICONO.sin_datos
+
 export function Coherencia(props: {
   entidad: Entidad | null; actas: Acta[]; libros: Libro[]; asociados: Asociado[]
   categorias: CategoriaSocio[]; cuotas: Cuota[]; pacientes: number; plantasFloracion: number
@@ -449,7 +452,7 @@ export function Coherencia(props: {
 
       <div className="space-y-2">
         {chequeos.map(c => {
-          const { Ic, color, label } = ICONO[c.estado]
+          const { Ic, color, label } = iconoChequeo(c.estado)
           return (
             <div key={c.clave} className="rounded-lg bg-[#15151d] border border-[#1f1f2b] px-3 py-2.5">
               <div className="flex items-start gap-2">

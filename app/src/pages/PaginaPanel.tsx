@@ -10,23 +10,13 @@ import {
 import { Link } from 'react-router-dom'
 import { ongService, calcularVencimientos, type Vencimiento } from '../lib/ong'
 import { toast } from 'sonner'
-import { cultivoService, type ResumenPlanta, type Evento, type FasePlanta } from '../lib/cultivo'
+import { cultivoService, type ResumenPlanta, type Evento, colorFase } from '../lib/cultivo'
 import { stockService, proximoEfectivo, diasParaProximo, type Mantenimiento, type Insumo } from '../lib/stock'
 
 const EASE = [0.22, 1, 0.36, 1] as const
 const stagger = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05, delayChildren: 0.04 } } }
 const fadeUp = { hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: { duration: 0.36, ease: EASE } } }
 
-const COLOR_FASE: Record<FasePlanta, { text: string; bg: string; border: string }> = {
-  Germinacion: { text: '#d9f99d', bg: 'rgba(163,230,53,0.10)', border: '#404d20' },
-  Plantula:    { text: '#d9f99d', bg: 'rgba(163,230,53,0.10)', border: '#404d20' },
-  Vegetativo:  { text: '#bef264', bg: 'rgba(163,230,53,0.14)', border: '#404d20' },
-  Floracion:   { text: '#c4b5fd', bg: 'rgba(139,92,246,0.12)', border: '#463a66' },
-  Secado:      { text: '#f59e0b', bg: 'rgba(245,158,11,0.10)', border: '#5a4a20' },
-  Curado:      { text: '#f59e0b', bg: 'rgba(245,158,11,0.10)', border: '#5a4a20' },
-  Cosechada:   { text: '#8f8f9f', bg: 'rgba(180,180,200,0.06)', border: '#2a2a3a' },
-  Muerta:      { text: '#ff8a7a', bg: 'rgba(122,40,32,0.15)', border: '#7a2820' },
-}
 
 const ICONO_EVENTO: Record<string, string> = {
   Riego: '💧', Fertilizacion: '🧪', Poda: '✂️', Trasplante: '🪴',
@@ -255,7 +245,7 @@ export default function PaginaPanel() {
             ) : (
               <ul className="divide-y divide-[#1f1f2b]">
                 {plantas.map((p) => {
-                  const cf = COLOR_FASE[p.fase]
+                  const cf = colorFase(p.fase)
                   const dias = sinRiegoDias(p)
                   return (
                     <li key={p.id} className="flex items-center gap-3 px-4 sm:px-5 py-2.5 hover:bg-[#15151d] transition-colors">

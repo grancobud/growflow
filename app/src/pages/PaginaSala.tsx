@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 import { Droplets, Move, Dna, RefreshCw, Download, Upload, X, Loader2, SprayCan } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { CATEGORIAS_APLIC } from '../lib/cultivo'
 
 interface Carpa { id: string; nombre: string; medida: string; cols: number; rows: number; area: string }
 const CARPAS: Carpa[] = [
@@ -41,7 +42,6 @@ function mezclarConBlanco(hex: string, factor = 0.5): string {
 interface Planta { id: string; apodo: string | null; slot: string | null; genetica_id: string | null; activa: boolean }
 interface Genetica { id: string; nombre: string }
 type Modo = 'regar' | 'fumigar' | 'mover' | 'genetica'
-const CATEGORIAS_APLIC = ['Fumigacion', 'Insecticida', 'Fungicida', 'Foliar', 'Acaricida', 'Bactericida', 'Otro'] as const
 
 function hoyStr() { return new Date().toLocaleDateString('en-CA') }
 
