@@ -167,6 +167,35 @@ export const ORGANOS = ['Comisión Directiva', 'Comisión Revisora de Cuentas'] 
 
 const lanzar = (e: { message: string } | null) => { if (e) throw new Error(e.message) }
 
+/**
+ * Trae una tabla entera, por páginas.
+ *
+ * PostgREST corta en 1000 filas y NO avisa: `.select('*')` sobre una tabla más
+ * grande devuelve las primeras 1000 sin error, sin warning y sin nada que
+ * distinga ese resultado de uno completo. En el panel de coherencia eso no se
+ * ve como una falla: se ve como números creíbles y equivocados. En la otra
+ * instalación pasó con 1241 dispensas —todos los chequeos corrían sobre 1000 y
+ * las 241 más viejas no existían para ninguno— y con 1690 asientos de caja.
+ *
+ * El orden lleva `id` de desempate a propósito: ordenar sólo por `fecha`, que
+ * se repite muchísimo, no define un orden total, y entre página y página las
+ * filas empatadas pueden reacomodarse. Ahí se duplican unas y se pierden otras
+ * sin que nada falle.
+ */
+const PAGINA = 1000
+async function traerTodo<T>(tabla: string, orden: string, asc = false): Promise<T[]> {
+  const todo: T[] = []
+  for (let desde = 0; ; desde += PAGINA) {
+    const { data, error } = await supabase.from(tabla).select('*')
+      .order(orden, { ascending: asc }).order('id', { ascending: true })
+      .range(desde, desde + PAGINA - 1)
+    lanzar(error)
+    const lote = (data ?? []) as T[]
+    todo.push(...lote)
+    if (lote.length < PAGINA) return todo
+  }
+}
+
 export const ongService = {
   /** La entidad es una sola fila. Si todavía no existe, devuelve null. */
   async getEntidad(): Promise<Entidad | null> {
@@ -283,8 +312,7 @@ export const ongService = {
   },
 
   async getAsociados(): Promise<Asociado[]> {
-    const { data, error } = await supabase.from('ong_asociados').select('*').order('nombre')
-    lanzar(error); return (data ?? []) as Asociado[]
+    return traerTodo<Asociado>('ong_asociados', 'nombre', true)
   },
   async guardarAsociado(a: Partial<Asociado>): Promise<void> {
     const { data: u } = await supabase.auth.getUser()
@@ -328,8 +356,7 @@ export const ongService = {
   },
 
   async getDispensas(): Promise<Dispensa[]> {
-    const { data, error } = await supabase.from('ong_dispensas').select('*').order('fecha', { ascending: false })
-    lanzar(error); return (data ?? []) as Dispensa[]
+    return traerTodo<Dispensa>('ong_dispensas', 'fecha')
   },
   async guardarDispensa(d: Partial<Dispensa>): Promise<void> {
     const { data: u } = await supabase.auth.getUser()
@@ -371,8 +398,7 @@ export const ongService = {
   },
 
   async getCaja(): Promise<AsientoCaja[]> {
-    const { data, error } = await supabase.from('ong_caja').select('*').order('fecha', { ascending: false })
-    lanzar(error); return (data ?? []) as AsientoCaja[]
+    return traerTodo<AsientoCaja>('ong_caja', 'fecha')
   },
   async guardarAsiento(a: Partial<AsientoCaja>): Promise<void> {
     const { data: u } = await supabase.auth.getUser()
@@ -418,8 +444,7 @@ export const ongService = {
   },
 
   async getTraslados(): Promise<Traslado[]> {
-    const { data, error } = await supabase.from('ong_traslados').select('*').order('fecha', { ascending: false })
-    lanzar(error); return (data ?? []) as Traslado[]
+    return traerTodo<Traslado>('ong_traslados', 'fecha')
   },
   async guardarTraslado(t: Partial<Traslado>): Promise<void> {
     const { data: u } = await supabase.auth.getUser()
@@ -433,8 +458,7 @@ export const ongService = {
   },
 
   async getDocumentos(): Promise<DocumentoONG[]> {
-    const { data, error } = await supabase.from('ong_documentos').select('*').order('fecha', { ascending: false })
-    lanzar(error); return (data ?? []) as DocumentoONG[]
+    return traerTodo<DocumentoONG>('ong_documentos', 'fecha')
   },
   async guardarDocumento(d: Partial<DocumentoONG>): Promise<void> {
     const { data: u } = await supabase.auth.getUser()
