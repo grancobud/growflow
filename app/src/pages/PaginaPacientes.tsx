@@ -18,6 +18,8 @@ import { MODO_DEMO } from '../lib/supabase'
 import { leerCredencial, OCR_DISPONIBLE } from '../lib/ocr'
 import { FotoPrivada } from '../components/FotoPrivada'
 import { btnPrimario, btnSutil } from '../lib/ui'
+import { HistoriaClinica } from '../components/ong/HistoriaClinica'
+import { useDirectorMedico } from '../lib/useDirectorMedico'
 
 const COLOR_ESTADO: Record<EstadoReprocann, { text: string; bg: string; border: string }> = {
   Vigente:      { text: '#bef264', bg: 'rgba(163,230,53,0.14)', border: '#404d20' },
@@ -281,6 +283,8 @@ function ModalDetalle({ paciente: p, onCerrar, onEditar, onBorrar }: {
   paciente: Paciente; onCerrar: () => void; onEditar: () => void; onBorrar: () => void
 }) {
   const ce = colorDe(p.reprocann_estado)
+  // Quien firma la evolucion y si este usuario puede ver lo clinico.
+  const dm = useDirectorMedico()
   const [plantasPac, setPlantasPac] = useState<ResumenPlanta[]>([])
   useEffect(() => { cultivoService.getPlantasDePaciente(p.id).then(setPlantasPac).catch(() => {}) }, [p.id])
   const usoPlantas = plantasPac.filter(pl => pl.activa).length
@@ -323,6 +327,9 @@ function ModalDetalle({ paciente: p, onCerrar, onEditar, onBorrar }: {
         <Dato icono={Ruler} label="m² habilitados" valor={p.m2_habilitados != null ? `${p.m2_habilitados} m²` : null} />
       </div>
       {p.notas && <div className="mt-2"><Dato label="Notas" valor={p.notas} /></div>}
+
+      <HistoriaClinica pacienteId={p.id} pacienteNombre={p.nombre_completo}
+        firmante={dm.nombre} matricula={dm.matricula} puedeVer={dm.puedeVerClinico} />
 
       {/* Credencial PDF */}
       <div className="mt-4 pt-4 border-t border-[#1f1f2b]">
