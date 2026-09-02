@@ -31,3 +31,5 @@ dist-ssr
 .env.demo
 dist-demo
 e2e/capturas/
+test-results/
+playwright-report/
