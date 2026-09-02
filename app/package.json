@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "test:e2e": "playwright test",
     "test:e2e:local": "E2E_BASE_URL=http://localhost:5173 playwright test",
+    "revision:diseno": "E2E_BASE_URL=http://localhost:5173 playwright test revision-diseno --project=mobile-safari",
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {

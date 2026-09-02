@@ -194,7 +194,7 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
         <div className="flex items-center gap-3 px-5 py-3.5 border-b border-[#1f1f2b] flex-shrink-0">
           <div className="min-w-0 flex-1">
             <h2 className="font-display font-bold text-[16px] text-[#ececf1] truncate">{planta.nombre}</h2>
-            <p className="text-[11px] text-[#7d7d8e] truncate">
+            <p className="text-[11px] text-[#8a8a9c] truncate">
               {planta.genetica ?? 'Sin genética'}{planta.dias_de_vida != null ? ` · día ${planta.dias_de_vida}` : ''} · {planta.fase}
             </p>
           </div>
@@ -205,7 +205,7 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
           </button>
           <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden"
             onChange={e => { const f = e.target.files?.[0]; if (f) subirFoto(f); e.target.value = '' }} />
-          <button onClick={onCerrar} className="p-1 text-[#7d7d8e] hover:text-[#ececf1]" aria-label="Cerrar">
+          <button onClick={onCerrar} className="p-1 text-[#8a8a9c] hover:text-[#ececf1]" aria-label="Cerrar">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -232,13 +232,13 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
               <QR value={urlQR} size={110} />
               <div className="text-[10.5px] text-[#8f8f9f] leading-relaxed">
                 Escaneá este QR con la cámara del teléfono para abrir la historia clínica de la planta.
-                <div className="font-mono text-[#7d7d8e] mt-1 break-all">{urlQR}</div>
+                <div className="font-mono text-[#8a8a9c] mt-1 break-all">{urlQR}</div>
               </div>
             </div>
           )}
           <div className="flex items-center gap-2">
             <IdCard className="w-3.5 h-3.5 text-[#a78bfa] flex-shrink-0" />
-            <span className="text-[10.5px] text-[#7d7d8e] uppercase tracking-[0.12em]">Paciente</span>
+            <span className="text-[10.5px] text-[#8a8a9c] uppercase tracking-[0.12em]">Paciente</span>
             <select value={pacienteId} onChange={e => asignarPaciente(e.target.value)}
               className="flex-1 px-2 py-1.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11.5px] text-[#ececf1] focus:outline-none focus:border-[#a3e635]/60 cursor-pointer">
               <option value="">Sin asignar</option>
@@ -247,12 +247,12 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-[9.5px] uppercase tracking-[0.12em] text-[#7d7d8e] mb-1">Fecha de cosecha</label>
+              <label className="block text-[9.5px] uppercase tracking-[0.12em] text-[#8a8a9c] mb-1">Fecha de cosecha</label>
               <input type="date" value={fechas.cosecha} onChange={e => guardarFecha('fecha_cosecha', e.target.value)}
                 className="w-full px-2 py-1.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11.5px] text-[#ececf1] focus:outline-none focus:border-[#a3e635]/60" />
             </div>
             <div>
-              <label className="block text-[9.5px] uppercase tracking-[0.12em] text-[#7d7d8e] mb-1">Fecha de envasado</label>
+              <label className="block text-[9.5px] uppercase tracking-[0.12em] text-[#8a8a9c] mb-1">Fecha de envasado</label>
               <input type="date" value={fechas.envasado} onChange={e => guardarFecha('fecha_envasado', e.target.value)}
                 className="w-full px-2 py-1.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11.5px] text-[#ececf1] focus:outline-none focus:border-[#a3e635]/60" />
             </div>
@@ -266,10 +266,10 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
           ) : items.length === 0 ? (
             <div className="py-12 text-center">
               <div className="mx-auto w-10 h-10 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-2">
-                <Sprout className="w-5 h-5 text-[#7d7d8e]" />
+                <Sprout className="w-5 h-5 text-[#8a8a9c]" />
               </div>
               <p className="text-[12px] text-[#8f8f9f]">Sin eventos todavía</p>
-              <p className="text-[11px] text-[#7d7d8e] mt-1">Sacá una foto o registrá riegos y podas.</p>
+              <p className="text-[11px] text-[#8a8a9c] mt-1">Sacá una foto o registrá riegos y podas.</p>
             </div>
           ) : (
             <ol className="relative border-l border-[#2a2a3a] ml-2">
@@ -283,7 +283,7 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
                     </span>
                     <div className="flex items-baseline gap-2">
                       <span className="text-[12.5px] font-semibold text-[#ececf1]">{it.esCosecha ? 'Cosecha' : it.tipo}</span>
-                      <span className="text-[10.5px] text-[#7d7d8e] tabular-nums font-mono">{fmt(it.fecha)}</span>
+                      <span className="text-[10.5px] text-[#8a8a9c] tabular-nums font-mono">{fmt(it.fecha)}</span>
                       {/* Los controles se revelan al pasar el mouse SOLO en
                           desktop. En mobile no hay hover: con `opacity-0` a
                           secas quedaban invisibles y no habia forma de borrar
@@ -291,13 +291,13 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
                       <div className="ml-auto flex items-center gap-0.5 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                         {editable(it) && (
                           <button onClick={() => editando === it.id ? setEditando(null) : abrirEdicion(it)}
-                            className="p-2 sm:p-1 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center text-[#7d7d8e] hover:text-[#d9f99d] rounded transition-colors"
+                            className="p-2 sm:p-1 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center text-[#8a8a9c] hover:text-[#d9f99d] rounded transition-colors"
                             title="Corregir">
                             <Pencil className="w-3 h-3" />
                           </button>
                         )}
                         <button onClick={() => borrar(it)}
-                          className="p-2 sm:p-1 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center text-[#7d7d8e] hover:text-[#ff8a7a] rounded transition-colors"
+                          className="p-2 sm:p-1 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center text-[#8a8a9c] hover:text-[#ff8a7a] rounded transition-colors"
                           title="Borrar">
                           <X className="w-3 h-3" />
                         </button>
@@ -314,7 +314,7 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
                           placeholder={it.tipo === 'Aplicacion' ? 'Notas' : 'Detalle'}
                           className="w-full bg-[#1c1c27] border border-[#2a2a3a] rounded px-2 py-2 min-h-[44px] sm:min-h-0 text-[16px] sm:text-[12px] text-[#ececf1] focus:outline-none focus:border-[#a3e635]/50" />
                         {it.tipo === 'Aplicacion' && (
-                          <p className="text-[10px] text-[#7d7d8e] leading-snug">
+                          <p className="text-[10px] text-[#8a8a9c] leading-snug">
                             En una aplicación esto edita las <b>notas</b>. Producto, dosis y
                             categoría se corrigen desde <i>Tablas</i>.
                           </p>

@@ -12,8 +12,8 @@ import { redactarActa, faltantesDelActa } from '../../lib/actaTexto'
 import type { Acta, Entidad } from '../../lib/ong'
 import { btnPrimario, btnSutil } from '../../lib/ui'
 
-const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
-const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1'
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#8a8a9c] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1'
 
 /**
  * Quiénes asistieron. El libro de Asistencia a reuniones pide los nombres, no
@@ -171,7 +171,7 @@ export function VisorDocumento({ titulo, texto, faltantes, nota, extra, onCerrar
           <pre className="whitespace-pre-wrap font-serif text-[12.5px] leading-[1.75] text-[#d4d4dd] bg-[#0a0a0f] rounded-lg border border-[#1f1f2b] p-4 overflow-x-auto">
             {texto}
           </pre>
-          {nota && <p className="text-[10.5px] text-[#7d7d8e] mt-2 leading-relaxed">{nota}</p>}
+          {nota && <p className="text-[10.5px] text-[#8a8a9c] mt-2 leading-relaxed">{nota}</p>}
         </div>
       </div>
     </div>

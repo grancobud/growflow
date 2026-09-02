@@ -83,7 +83,7 @@ export function Portal({
               <Store className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
               <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Autodispensación</h3>
             </div>
-            <p className="text-[11.5px] text-[#7d7d8e] mt-1.5 leading-relaxed max-w-prose">
+            <p className="text-[11.5px] text-[#8a8a9c] mt-1.5 leading-relaxed max-w-prose">
               El paciente reserva del catálogo, tiene 72 horas para retirar y en la sede se valida y se
               entrega. Recién ahí nace la dispensa, el asiento en caja y el recibo: una reserva sin
               retirar todavía no es una entrega.
@@ -119,7 +119,7 @@ export function Portal({
 
       {cargando ? (
         <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] py-10 text-center">
-          <p className="text-[12px] text-[#7d7d8e]">Cargando el portal…</p>
+          <p className="text-[12px] text-[#8a8a9c]">Cargando el portal…</p>
         </div>
       ) : vista === 'catalogo' ? (
         <Catalogo lotes={lotes} pedidos={pedidos} geneticas={geneticas} onCambio={cargar} />

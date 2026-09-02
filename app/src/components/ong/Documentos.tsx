@@ -25,8 +25,8 @@ import { PlantillasInstitucionales, type VariedadFicha } from './PlantillasInsti
 import type { Paciente } from '../../lib/registro'
 import { btnPrimario, btnSutil } from '../../lib/ui'
 
-const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
-const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1'
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#8a8a9c] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1'
 const card = 'rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4'
 const fmtPesos = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
 
@@ -62,7 +62,7 @@ export function Documentos({ documentos, asociados, pacientes, dispensas, entida
             <Plus className="w-3.5 h-3.5" /> {vista === 'emitido' ? 'Emitir documento' : 'Cargar comprobante'}
           </button>
         </div>
-        <p className="text-[11.5px] text-[#7d7d8e] mt-2">
+        <p className="text-[11.5px] text-[#8a8a9c] mt-2">
           Dos puntas: lo que la asociación <b className="text-[#a6a6b5]">emite</b> a nombre de alguien, y los
           <b className="text-[#a6a6b5]"> comprobantes de gasto</b> que respaldan lo que se pagó. Sin comprobante,
           el costo por gramo es un número que no se puede defender.
@@ -107,7 +107,7 @@ export function Documentos({ documentos, asociados, pacientes, dispensas, entida
               </div>
             ))}
           </div>
-          <p className="text-[11px] text-[#7d7d8e] mt-2">
+          <p className="text-[11px] text-[#8a8a9c] mt-2">
             Este total es sólo lo que tiene comprobante cargado acá. Econometría calcula el costo con todos
             los insumos, tengan papel o no: si los números no coinciden, faltan comprobantes.
           </p>
@@ -115,7 +115,7 @@ export function Documentos({ documentos, asociados, pacientes, dispensas, entida
       )}
 
       {lista.length === 0 ? (
-        <p className="text-[13px] text-[#7d7d8e] text-center py-8">
+        <p className="text-[13px] text-[#8a8a9c] text-center py-8">
           {vista === 'emitido'
             ? 'Todavía no emitiste ningún documento.'
             : 'Todavía no cargaste comprobantes de gasto.'}
@@ -161,7 +161,7 @@ function Ficha({ d, asociados, pacientes, onEditar, onBorrar }: {
           <p className="font-display font-semibold text-[13.5px] text-[#ececf1] truncate">
             {d.descripcion || d.subtipo || 'Sin descripción'}
           </p>
-          <p className="text-[10.5px] text-[#7d7d8e] mt-0.5 truncate">
+          <p className="text-[10.5px] text-[#8a8a9c] mt-0.5 truncate">
             {[d.subtipo, d.numero && `Nº ${d.numero}`, d.fecha].filter(Boolean).join(' · ')}
           </p>
         </div>
@@ -180,7 +180,7 @@ function Ficha({ d, asociados, pacientes, onEditar, onBorrar }: {
         {aNombreDe && <span className="text-[10.5px] px-1.5 py-0.5 rounded bg-[#38bdf8]/15 text-[#38bdf8]">{aNombreDe}</span>}
       </div>
 
-      {d.notas && <p className="text-[11px] text-[#7d7d8e] mt-2">{d.notas}</p>}
+      {d.notas && <p className="text-[11px] text-[#8a8a9c] mt-2">{d.notas}</p>}
 
       <div className="mt-2 pt-2 border-t border-[#1f1f2b]">
         {d.archivo_path ? (
@@ -333,7 +333,7 @@ function FormDocumento({ form, setForm, asociados, pacientes, dispensas, onCambi
                 <input type="file" className="hidden" accept="image/*,application/pdf" onChange={subir} disabled={subiendo} />
               </label>
             )}
-            <p className="text-[10.5px] text-[#7d7d8e] mt-2">
+            <p className="text-[10.5px] text-[#8a8a9c] mt-2">
               Va a un bucket privado: sólo se ve con sesión iniciada y el enlace caduca.
             </p>
           </div>
@@ -352,7 +352,7 @@ function FormDocumento({ form, setForm, asociados, pacientes, dispensas, onCambi
 function Kpi({ t, v, c }: { t: string; v: string; c: string }) {
   return (
     <div>
-      <div className="text-[9.5px] uppercase tracking-[0.12em] text-[#7d7d8e]">{t}</div>
+      <div className="text-[9.5px] uppercase tracking-[0.12em] text-[#8a8a9c]">{t}</div>
       <div className="text-[15px] font-mono tabular-nums font-bold mt-0.5" style={{ color: c }}>{v}</div>
     </div>
   )

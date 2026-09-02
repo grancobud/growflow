@@ -34,12 +34,12 @@ export function RutaConPermiso({ permiso, children }: {
     <div className="flex-1 flex items-center justify-center bg-[#0a0a0f] px-6 py-16">
       <div className="max-w-md text-center">
         <div className="mx-auto w-12 h-12 rounded-full bg-[#15151d] border border-[#2a2a3a] flex items-center justify-center mb-4">
-          <ShieldOff className="w-5 h-5 text-[#7d7d8e]" strokeWidth={1.8} />
+          <ShieldOff className="w-5 h-5 text-[#8a8a9c]" strokeWidth={1.8} />
         </div>
         <h2 className="font-display font-semibold text-[16px] text-[#ececf1]">
           {sinActivar ? 'Tu cuenta todavía no está habilitada' : 'Esta sección no está en tu perfil'}
         </h2>
-        <p className="text-[12.5px] text-[#7d7d8e] mt-2 leading-relaxed">
+        <p className="text-[12.5px] text-[#8a8a9c] mt-2 leading-relaxed">
           {sinActivar
             ? 'Un administrador tiene que activarla y asignarte un rol. Mientras tanto no vas a ver datos del sistema.'
             : `Entraste como ${usuario?.rol?.replace('_', ' ')}. Si necesitás acceso a esta parte, pedíselo a un administrador.`}

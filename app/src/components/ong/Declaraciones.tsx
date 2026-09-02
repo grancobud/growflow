@@ -19,8 +19,8 @@ import { guiaTransitoInterno, ddjjTransporteDomicilio } from '../../lib/document
 import { VisorDocumento } from './ActaParaLibro'
 import { btnPrimario, btnSutil } from '../../lib/ui'
 
-const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
-const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1'
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#8a8a9c] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1'
 const card = 'rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4'
 
 export function Declaraciones({ ddjj, traslados, pacientes, cultivo, entidad = null, onCambio }: {
@@ -74,13 +74,13 @@ export function Declaraciones({ ddjj, traslados, pacientes, cultivo, entidad = n
             </button>
           )}
         </div>
-        <p className="text-[11.5px] text-[#7d7d8e] mt-2">
+        <p className="text-[11.5px] text-[#8a8a9c] mt-2">
           La Resolución 1780 la exige cada seis meses: cantidad de plantas en total y en floración, pacientes
           vinculados y las variedades usadas. No llega ninguna notificación, el plazo corre solo.
         </p>
 
         <div className="rounded-lg bg-[#15151d] border border-[#1f1f2b] p-3 mt-3">
-          <div className="text-[10px] uppercase tracking-[0.12em] text-[#7d7d8e] mb-2">
+          <div className="text-[10px] uppercase tracking-[0.12em] text-[#8a8a9c] mb-2">
             Lo que la app sabe hoy · período {periodo} · cierra el {finDeSemestre(periodo)}
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -92,7 +92,7 @@ export function Declaraciones({ ddjj, traslados, pacientes, cultivo, entidad = n
         </div>
 
         {ddjj.length === 0 ? (
-          <p className="text-[12px] text-[#7d7d8e] text-center py-5">Todavía no armaste ninguna declaración.</p>
+          <p className="text-[12px] text-[#8a8a9c] text-center py-5">Todavía no armaste ninguna declaración.</p>
         ) : (
           <div className="mt-3 space-y-1.5">
             {ddjj.map(d => (
@@ -103,7 +103,7 @@ export function Declaraciones({ ddjj, traslados, pacientes, cultivo, entidad = n
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-[12.5px] text-[#ececf1]">{d.periodo}</p>
-                  <p className="text-[10.5px] text-[#7d7d8e] tabular-nums truncate">
+                  <p className="text-[10.5px] text-[#8a8a9c] tabular-nums truncate">
                     {d.plantas_total ?? '—'} plantas · {d.plantas_floracion ?? '—'} en flor · {d.pacientes_vinculados ?? '—'} pacientes
                     {d.presentada && d.fecha_presentacion ? ` · presentada ${d.fecha_presentacion}` : ' · sin presentar'}
                   </p>
@@ -126,14 +126,14 @@ export function Declaraciones({ ddjj, traslados, pacientes, cultivo, entidad = n
             <Plus className="w-3.5 h-3.5" /> Registrar traslado
           </button>
         </div>
-        <p className="text-[11.5px] text-[#7d7d8e] mt-2">
+        <p className="text-[11.5px] text-[#8a8a9c] mt-2">
           Cada traslado necesita su carta de porte por TAD. Los topes son por persona representada:
           hasta <b className="text-[#a6a6b5]">40 g</b> de flores, <b className="text-[#a6a6b5]">6 frascos</b> de 30 ml,
           o las plantas que tenga autorizadas.
         </p>
 
         {traslados.length === 0 ? (
-          <p className="text-[12px] text-[#7d7d8e] text-center py-5">Sin traslados registrados.</p>
+          <p className="text-[12px] text-[#8a8a9c] text-center py-5">Sin traslados registrados.</p>
         ) : (
           <div className="mt-3 space-y-2">
             {traslados.map(t => {
@@ -159,7 +159,7 @@ export function Declaraciones({ ddjj, traslados, pacientes, cultivo, entidad = n
                       <button onClick={() => borrarTras(t)} className={btnSutil} aria-label="Borrar traslado"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </div>
-                  <p className="text-[10.5px] text-[#7d7d8e] mt-1 truncate">
+                  <p className="text-[10.5px] text-[#8a8a9c] mt-1 truncate">
                     {[t.origen, t.destino].filter(Boolean).join(' → ') || 'Sin origen ni destino'}
                     {t.transportista ? ` · ${t.transportista}` : ''}
                   </p>
@@ -196,7 +196,7 @@ export function Declaraciones({ ddjj, traslados, pacientes, cultivo, entidad = n
 function Dato({ t, v }: { t: string; v: string }) {
   return (
     <div>
-      <div className="text-[9.5px] uppercase tracking-[0.1em] text-[#7d7d8e]">{t}</div>
+      <div className="text-[9.5px] uppercase tracking-[0.1em] text-[#8a8a9c]">{t}</div>
       <div className="text-[16px] font-mono tabular-nums font-bold text-[#d9f99d] mt-0.5">{v}</div>
     </div>
   )

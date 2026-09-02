@@ -29,7 +29,7 @@ import { ModalFeedback } from '../Seguimiento'
 import { VisorDocumento } from '../ActaParaLibro'
 import { btnPrimario, btnSutil, inputFormulario } from '../../../lib/ui'
 
-const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1'
+const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1'
 
 export function NuevaReserva({
   lotes, pedidos, pacientes, asociados, dispensas, feedbacks, entidad, onCerrar, onCambio,
@@ -136,7 +136,7 @@ export function NuevaReserva({
           <p className="text-[11.5px] text-[#fbbf24] mt-2">
             Vence el {new Date(creada.fecha_expiracion).toLocaleString('es-AR')}
           </p>
-          <p className="text-[11px] text-[#7d7d8e] mt-3 leading-relaxed">
+          <p className="text-[11px] text-[#8a8a9c] mt-3 leading-relaxed">
             Mostrá este código en la sede junto con el DNI. Pasadas las 72 horas la reserva expira
             y el material vuelve al inventario.
           </p>
@@ -248,7 +248,7 @@ export function NuevaReserva({
                     <p className="text-[12.5px]" style={{ color: metodo === m.valor ? '#d9f99d' : '#ececf1' }}>
                       {m.label}
                     </p>
-                    <p className="text-[10.5px] text-[#7d7d8e] mt-0.5">{m.detalle}</p>
+                    <p className="text-[10.5px] text-[#8a8a9c] mt-0.5">{m.detalle}</p>
                   </button>
                 ))}
               </div>
@@ -258,7 +258,7 @@ export function NuevaReserva({
               <label className="block">
                 <span className={labelCls}>Comprobante</span>
                 <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] min-h-[44px]">
-                  <Upload className="w-3.5 h-3.5 text-[#7d7d8e] flex-shrink-0" />
+                  <Upload className="w-3.5 h-3.5 text-[#8a8a9c] flex-shrink-0" />
                   <span className="text-[11.5px] text-[#a6a6b5] truncate">
                     {comprobante?.name ?? 'Adjuntar (opcional ahora, obligatorio para acreditar)'}
                   </span>
@@ -312,7 +312,7 @@ function FichaHabilitacion({ estado }: { estado: ReturnType<typeof evaluarPacien
             c: cupo.remanente === 0 ? '#ff8a7a' : '#a3e635' },
         ].map(k => (
           <div key={k.l}>
-            <p className="text-[9.5px] uppercase tracking-[0.12em] text-[#7d7d8e] font-medium">{k.l}</p>
+            <p className="text-[9.5px] uppercase tracking-[0.12em] text-[#8a8a9c] font-medium">{k.l}</p>
             <p className="font-display font-semibold text-[14px] mt-0.5" style={{ color: k.c ?? '#ececf1' }}>{k.v}</p>
           </div>
         ))}
@@ -337,11 +337,11 @@ function Aviso({ a }: { a: Bloqueo }) {
       <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-px" style={{ color: err ? '#ff8a7a' : '#fbbf24' }} />
       <div className="min-w-0">
         <p className="text-[11.5px] text-[#d4d4dd] leading-snug">
-          <span className="text-[#7d7d8e] font-mono text-[10px] mr-1">{a.regla}</span>
+          <span className="text-[#8a8a9c] font-mono text-[10px] mr-1">{a.regla}</span>
           {a.texto}
         </p>
         {a.comoSeResuelve && (
-          <p className="text-[10.5px] text-[#7d7d8e] mt-0.5 leading-snug">{a.comoSeResuelve}</p>
+          <p className="text-[10.5px] text-[#8a8a9c] mt-0.5 leading-snug">{a.comoSeResuelve}</p>
         )}
       </div>
     </div>

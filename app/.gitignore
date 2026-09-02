@@ -30,3 +30,4 @@ dist-ssr
 # Build/config de la demo publica
 .env.demo
 dist-demo
+e2e/capturas/

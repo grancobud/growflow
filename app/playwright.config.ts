@@ -1,8 +1,20 @@
 import { defineConfig, devices } from '@playwright/test'
 
 /**
- * Smoke tests contra canntrace.pages.dev (o localhost con VITE_DEV).
- * Corre con: `npm run test:e2e` o `npx playwright test`.
+ * Tests end-to-end.
+ *
+ * OJO CON EL `baseURL`: apuntaba a `canntrace.pages.dev`, que es OTRO producto
+ * —un resto del fork— y hacia que toda la suite corriera contra un sitio ajeno.
+ * Se corrigio el 02/09/2026, portando el mismo arreglo que ya se habia hecho en
+ * la instalacion de Aguara.
+ *
+ *   npm run test:e2e         contra el sitio publicado
+ *   npm run revision:diseno  la revision de diseno contra el dev server, que
+ *                            corre en MODO DEMO y auto-loguea: es la unica
+ *                            forma de revisar las pantallas de adentro sin
+ *                            poner una contrasena en ningun archivo. Levantar
+ *                            `growflow-dev` antes (puerto 5173).
+ *
  * Abre el HTML report con: `npx playwright show-report`.
  */
 export default defineConfig({
@@ -15,7 +27,7 @@ export default defineConfig({
   workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? [['html', { open: 'never' }], ['github']] : 'list',
   use: {
-    baseURL: process.env.E2E_BASE_URL || 'https://canntrace.pages.dev',
+    baseURL: process.env.E2E_BASE_URL || 'https://growflow-5vs.pages.dev',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },

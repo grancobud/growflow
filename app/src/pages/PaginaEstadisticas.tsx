@@ -112,10 +112,10 @@ export default function PaginaEstadisticas() {
       <Marco onRefrescar={cargar}>
         <div className="py-20 text-center">
           <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3">
-            <BarChart3 className="w-5 h-5 text-[#7d7d8e]" />
+            <BarChart3 className="w-5 h-5 text-[#8a8a9c]" />
           </div>
           <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">Todavía no hay cosechas con peso</div>
-          <div className="mt-1 text-[11.5px] text-[#7d7d8e] max-w-sm mx-auto leading-relaxed">
+          <div className="mt-1 text-[11.5px] text-[#8a8a9c] max-w-sm mx-auto leading-relaxed">
             Registrá una cosecha con su peso seco y acá vas a ver el rendimiento por genética, la evolución
             en el tiempo y cuánto te está costando cada gramo.
           </div>
@@ -202,7 +202,7 @@ function Marco({ children, onRefrescar, cargando }: {
         <div className="flex items-center gap-2 sm:gap-4 px-3 sm:px-6 py-3">
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Estadísticas</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">Rendimiento, eficiencia y qué conviene repetir</div>
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#8a8a9c]">Rendimiento, eficiencia y qué conviene repetir</div>
           </div>
           <div className="flex-1" />
           <button onClick={onRefrescar}
@@ -236,7 +236,7 @@ function Tile({ t, v, sub, color, delta, serie, meta }: {
   const sube = pct != null && pct > 0
   return (
     <div className="bg-[#101016] p-3 min-w-0">
-      <div className="text-[9.5px] uppercase tracking-[0.12em] text-[#7d7d8e] truncate">{t}</div>
+      <div className="text-[9.5px] uppercase tracking-[0.12em] text-[#8a8a9c] truncate">{t}</div>
       <div className="flex items-baseline gap-1.5 mt-1 flex-wrap">
         <span className="text-[19px] font-display font-bold leading-none" style={{ color: color ?? '#ececf1' }}>{v}</span>
         {pct != null && Math.abs(pct) >= 1 && (
@@ -252,7 +252,7 @@ function Tile({ t, v, sub, color, delta, serie, meta }: {
         : meta
           ? <Medidor valor={meta.valor} bueno={meta.bueno} color={color ?? ACENTO} />
           : <div className="h-[14px]" />}
-      {sub && <div className="text-[10px] text-[#7d7d8e] truncate">{sub}</div>}
+      {sub && <div className="text-[10px] text-[#8a8a9c] truncate">{sub}</div>}
     </div>
   )
 }
@@ -291,7 +291,7 @@ function Encabezado({ Ic, titulo, nota, extra }: {
     <div className="flex items-center gap-2 flex-wrap px-4 sm:px-5 py-3 border-b border-[#1f1f2b]">
       <Ic className="w-3.5 h-3.5 flex-shrink-0" style={{ color: ACENTO }} strokeWidth={1.8} />
       <h2 className="font-display font-semibold text-[13px] text-[#ececf1]">{titulo}</h2>
-      {nota && <span className="text-[10.5px] text-[#7d7d8e]">{nota}</span>}
+      {nota && <span className="text-[10.5px] text-[#8a8a9c]">{nota}</span>}
       {extra && <div className="ml-auto">{extra}</div>}
     </div>
   )
@@ -336,13 +336,13 @@ function ProduccionPorMes({ meses }: { meses: { mes: string; seco: number; cosec
         </div>
         <div className="flex gap-[3px] mt-1.5">
           {meses.map((m, i) => (
-            <div key={m.mes} className="flex-1 max-w-[56px] min-w-0 text-center text-[9px] text-[#7d7d8e] truncate">
+            <div key={m.mes} className="flex-1 max-w-[56px] min-w-0 text-center text-[9px] text-[#8a8a9c] truncate">
               {meses.length <= 10 || i % 2 === 0 ? nombreMes(m.mes) : ''}
             </div>
           ))}
           <div className="flex-1" />
         </div>
-        <p className="text-[10.5px] text-[#7d7d8e] mt-2.5 leading-relaxed">
+        <p className="text-[10.5px] text-[#8a8a9c] mt-2.5 leading-relaxed">
           El mejor mes fue <b className="text-[#a6a6b5]">{nombreMes(mejor.mes)}</b> con {fmtG(mejor.seco)} g.
           Los meses sin cosecha se muestran igual, en cero: saltearlos haría parecer que el cultivo nunca paró.
         </p>
@@ -375,7 +375,7 @@ function RankingGeneticas({ gens, verTabla, onVerTabla }: {
         <div className="overflow-x-auto">
           <table className="w-full text-[11.5px] tabular-nums">
             <thead>
-              <tr className="text-[9.5px] uppercase tracking-[0.1em] text-[#7d7d8e] border-b border-[#1f1f2b]">
+              <tr className="text-[9.5px] uppercase tracking-[0.1em] text-[#8a8a9c] border-b border-[#1f1f2b]">
                 <th className="text-left font-medium px-4 py-2">Genética</th>
                 <th className="text-right font-medium px-2 py-2">Total</th>
                 <th className="text-right font-medium px-2 py-2">Cosechas</th>
@@ -415,7 +415,7 @@ function RankingGeneticas({ gens, verTabla, onVerTabla }: {
                 <div className="h-full rounded-full transition-all group-hover:brightness-125"
                   style={{ width: `${(g.seco / max) * 100}%`, background: tono(i) }} />
               </div>
-              <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-[10.5px] text-[#7d7d8e] tabular-nums">
+              <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-[10.5px] text-[#8a8a9c] tabular-nums">
                 <span>{g.cosechas} cosecha{g.cosechas === 1 ? '' : 's'}</span>
                 <span>{fmtG(g.porCosecha)} g c/u</span>
                 {g.diasCiclo != null && <span>{Math.round(g.diasCiclo)} d de ciclo</span>}
@@ -486,12 +486,12 @@ function RindeVsCalidad({ gens }: { gens: MetricasGenetica[] }) {
               </div>
             )
           })}
-          <span className="absolute left-0 top-1 text-[9px] text-[#7d7d8e] tabular-nums">nota {notaMax}</span>
-          <span className="absolute left-0 bottom-1 text-[9px] text-[#7d7d8e] tabular-nums">nota {notaMin}</span>
-          <span className="absolute left-0 -bottom-4 text-[9px] text-[#7d7d8e] tabular-nums">{fmtG(baseG)} g</span>
-          <span className="absolute right-0 -bottom-4 text-[9px] text-[#7d7d8e] tabular-nums">{fmtG(baseG + spanG)} g</span>
+          <span className="absolute left-0 top-1 text-[9px] text-[#8a8a9c] tabular-nums">nota {notaMax}</span>
+          <span className="absolute left-0 bottom-1 text-[9px] text-[#8a8a9c] tabular-nums">nota {notaMin}</span>
+          <span className="absolute left-0 -bottom-4 text-[9px] text-[#8a8a9c] tabular-nums">{fmtG(baseG)} g</span>
+          <span className="absolute right-0 -bottom-4 text-[9px] text-[#8a8a9c] tabular-nums">{fmtG(baseG + spanG)} g</span>
         </div>
-        <p className="text-[10.5px] text-[#7d7d8e] mt-3 leading-relaxed">
+        <p className="text-[10.5px] text-[#8a8a9c] mt-3 leading-relaxed">
           Cada punto es una genética: a la derecha las que más rinden por cosecha, arriba las que mejor puntuaste.
           Las de <b style={{ color: '#bef264' }}>verde claro</b> están en el cuadrante bueno de las dos cosas.
           Los dos ejes se ajustan al rango real de tus datos ({fmtG(baseG)}–{fmtG(baseG + spanG)} g,
@@ -565,7 +565,7 @@ function UltimasCosechas({ cosechas }: { cosechas: CosechaDetallada[] }) {
             {CRITERIOS.map(o => (
               <button key={o.id} onClick={() => setOrden(o.id)}
                 className={`px-2.5 py-2 sm:py-1 min-h-[44px] sm:min-h-0 text-[11px] font-medium transition-colors ${
-                  orden === o.id ? 'bg-[#a3e635]/15 text-[#d9f99d]' : 'text-[#7d7d8e] hover:text-[#d4d4dd]'}`}>
+                  orden === o.id ? 'bg-[#a3e635]/15 text-[#d9f99d]' : 'text-[#8a8a9c] hover:text-[#d4d4dd]'}`}>
                 {o.label}
               </button>
             ))}
@@ -605,7 +605,7 @@ function CabeceraMes({ clave, items }: { clave: string; items: CosechaDetallada[
         {nombreMesLargo(clave)}
       </span>
       <span className="flex-1 border-b border-dashed border-[#1f1f2b]" />
-      <span className="text-[10.5px] text-[#7d7d8e] tabular-nums">
+      <span className="text-[10.5px] text-[#8a8a9c] tabular-nums">
         {items.length} corte{items.length === 1 ? '' : 's'}
       </span>
       <span className="text-[11px] font-semibold text-[#a6a6b5] tabular-nums">{fmtG(total)} g</span>
@@ -627,7 +627,7 @@ function FilaCosecha({ c, max, conFechaCorta }: {
             <span className="text-[10px] text-[#c4b5fd] flex-shrink-0 tabular-nums">★ {c.valoracion.toFixed(1)}</span>
           )}
         </div>
-        <div className="text-[10px] text-[#7d7d8e] tabular-nums flex flex-wrap gap-x-2.5">
+        <div className="text-[10px] text-[#8a8a9c] tabular-nums flex flex-wrap gap-x-2.5">
           {/* Dentro de un grupo que ya dice el mes, la fecha completa es ruido */}
           <span>{conFechaCorta ? `${dia}/${mes}` : `${dia}/${mes}/${a.slice(2)}`}</span>
           {c.dias_ciclo != null && <span>{c.dias_ciclo} d</span>}

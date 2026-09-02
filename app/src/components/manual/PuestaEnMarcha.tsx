@@ -93,7 +93,7 @@ export function PuestaEnMarcha() {
   if (error) {
     return (
       <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-3.5">
-        <p className="text-[12px] text-[#7d7d8e]">
+        <p className="text-[12px] text-[#8a8a9c]">
           No se pudo leer el estado de la puesta en marcha: {error}
         </p>
       </div>
@@ -103,8 +103,8 @@ export function PuestaEnMarcha() {
   if (!pasos) {
     return (
       <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-3.5 flex items-center gap-2">
-        <Loader2 className="w-3.5 h-3.5 animate-spin text-[#7d7d8e]" />
-        <span className="text-[12px] text-[#7d7d8e]">Viendo qué tenés cargado…</span>
+        <Loader2 className="w-3.5 h-3.5 animate-spin text-[#8a8a9c]" />
+        <span className="text-[12px] text-[#8a8a9c]">Viendo qué tenés cargado…</span>
       </div>
     )
   }
@@ -116,7 +116,7 @@ export function PuestaEnMarcha() {
       <div className="px-3.5 py-3 border-b border-[#1f1f2b] flex items-center justify-between gap-3 flex-wrap">
         <div>
           <p className="text-[12.5px] text-[#ececf1] font-medium">Cómo vas con esto</p>
-          <p className="text-[11px] text-[#7d7d8e] mt-0.5">
+          <p className="text-[11px] text-[#8a8a9c] mt-0.5">
             Leído de lo que hay cargado ahora mismo.
           </p>
         </div>
@@ -138,15 +138,15 @@ export function PuestaEnMarcha() {
               className="flex items-center gap-2.5 px-3.5 py-2.5 min-h-[44px] hover:bg-[#15151d] transition-colors group">
               {p.listo
                 ? <Check className="w-4 h-4 text-[#a3e635] flex-shrink-0" strokeWidth={2.4} />
-                : <Circle className="w-4 h-4 text-[#5a5a68] flex-shrink-0" strokeWidth={1.8} />}
+                : <Circle className="w-4 h-4 text-[#6e6e80] flex-shrink-0" strokeWidth={1.8} />}
               <span className="text-[12.5px] flex-shrink-0"
                 style={{ color: p.listo ? '#a6a6b5' : '#ececf1' }}>
                 {p.que}
               </span>
-              <span className="text-[11px] text-[#7d7d8e] truncate ml-auto text-right">
+              <span className="text-[11px] text-[#8a8a9c] truncate ml-auto text-right">
                 {p.detalle}
               </span>
-              <ArrowUpRight className="w-3.5 h-3.5 text-[#5a5a68] group-hover:text-[#a3e635] flex-shrink-0 transition-colors" />
+              <ArrowUpRight className="w-3.5 h-3.5 text-[#6e6e80] group-hover:text-[#a3e635] flex-shrink-0 transition-colors" />
             </Link>
           </li>
         ))}

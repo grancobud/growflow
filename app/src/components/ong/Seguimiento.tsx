@@ -24,8 +24,8 @@ import { btnPrimario, btnSutil } from '../../lib/ui'
 import { armarInforme, tendencia, redactarInformeSemestral, MINIMO_PARA_TENDENCIA } from '../../lib/informeMedico'
 import { VisorDocumento } from './ActaParaLibro'
 
-const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
-const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1'
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#8a8a9c] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1'
 const card = 'rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4'
 const fmtPesos = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
 
@@ -95,11 +95,11 @@ export function Seguimiento({ dispensas, feedbacks, pacientes, caja, entidad = n
         <div className="flex items-center gap-2 flex-wrap">
           <Stethoscope className="w-4 h-4 text-[#38bdf8]" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Seguimiento terapéutico</h3>
-          <span className="text-[11px] text-[#7d7d8e] tabular-nums ml-auto">
+          <span className="text-[11px] text-[#8a8a9c] tabular-nums ml-auto">
             {feedbacks.length} reporte{feedbacks.length === 1 ? '' : 's'}
           </span>
         </div>
-        <p className="text-[11.5px] text-[#7d7d8e] mt-2">
+        <p className="text-[11.5px] text-[#8a8a9c] mt-2">
           Después de cada entrega el paciente reporta cómo le fue. Es obligación de la ONG llevarlo:
           sin estos reportes no hay informe semestral del director médico que presentar. Una vez enviado,
           el reporte no se puede editar ni borrar.
@@ -136,7 +136,7 @@ export function Seguimiento({ dispensas, feedbacks, pacientes, caja, entidad = n
                 <div key={d.id} className="flex items-center gap-2 rounded-lg bg-[#15151d] border border-[#5a4a20] px-3 py-2 min-h-[44px]">
                   <div className="min-w-0 flex-1">
                     <p className="text-[12.5px] text-[#ececf1] truncate">{nombre(d.paciente_id)}</p>
-                    <p className="text-[10.5px] text-[#7d7d8e] tabular-nums">{d.fecha} · {d.gramos} g</p>
+                    <p className="text-[10.5px] text-[#8a8a9c] tabular-nums">{d.fecha} · {d.gramos} g</p>
                   </div>
                   <button onClick={() => setForm({ dispensa: d })} className={btnPrimario}>
                     <Plus className="w-3.5 h-3.5" /> Cargar
@@ -167,10 +167,10 @@ export function Seguimiento({ dispensas, feedbacks, pacientes, caja, entidad = n
                           {adversos.join(', ')}
                         </span>
                       )}
-                      <Lock className="w-3 h-3 text-[#7d7d8e] ml-auto flex-shrink-0"
+                      <Lock className="w-3 h-3 text-[#8a8a9c] ml-auto flex-shrink-0"
                         aria-label="Reporte inmutable" />
                     </div>
-                    <p className="text-[10.5px] text-[#7d7d8e] mt-1">
+                    <p className="text-[10.5px] text-[#8a8a9c] mt-1">
                       {d ? `Entrega del ${d.fecha} · ${d.gramos} g · ` : ''}Dosis usada: {f.dosificacion_real}
                     </p>
                     {f.observaciones && (
@@ -184,7 +184,7 @@ export function Seguimiento({ dispensas, feedbacks, pacientes, caja, entidad = n
         )}
 
         {feedbacks.length === 0 && pendientes.length === 0 && (
-          <p className="text-[12px] text-[#7d7d8e] text-center py-5">
+          <p className="text-[12px] text-[#8a8a9c] text-center py-5">
             Cuando registres dispensas van a aparecer acá para cargar su seguimiento.
           </p>
         )}
@@ -205,7 +205,7 @@ export function Seguimiento({ dispensas, feedbacks, pacientes, caja, entidad = n
             </button>
           </div>
         </div>
-        <p className="text-[11.5px] text-[#7d7d8e] mt-2">
+        <p className="text-[11.5px] text-[#8a8a9c] mt-2">
           Es uno de los cinco libros obligatorios: acá se asienta cada peso que entra y sale. De esto
           sale el balance, así que los reembolsos de las dispensas conviene traerlos con el botón en vez
           de cargarlos a mano.
@@ -219,7 +219,7 @@ export function Seguimiento({ dispensas, feedbacks, pacientes, caja, entidad = n
         </div>
 
         {caja.length === 0 ? (
-          <p className="text-[12px] text-[#7d7d8e] text-center py-5">Sin asientos cargados.</p>
+          <p className="text-[12px] text-[#8a8a9c] text-center py-5">Sin asientos cargados.</p>
         ) : (
           <div className="mt-3 space-y-1.5">
             {caja.slice(0, 15).map(a => (
@@ -228,7 +228,7 @@ export function Seguimiento({ dispensas, feedbacks, pacientes, caja, entidad = n
                   style={{ background: a.tipo === 'ingreso' ? '#a3e635' : '#ff8a7a' }} />
                 <div className="min-w-0 flex-1">
                   <p className="text-[12.5px] text-[#ececf1] truncate">{a.concepto}</p>
-                  <p className="text-[10.5px] text-[#7d7d8e] tabular-nums truncate">
+                  <p className="text-[10.5px] text-[#8a8a9c] tabular-nums truncate">
                     {a.fecha}{a.detalle ? ` · ${a.detalle}` : ''}{a.medio ? ` · ${a.medio}` : ''}
                   </p>
                 </div>
@@ -257,7 +257,7 @@ export function Seguimiento({ dispensas, feedbacks, pacientes, caja, entidad = n
 function Kpi({ t, v, c }: { t: string; v: string; c?: string }) {
   return (
     <div className="min-w-0">
-      <div className="text-[9.5px] uppercase tracking-[0.12em] text-[#7d7d8e] truncate">{t}</div>
+      <div className="text-[9.5px] uppercase tracking-[0.12em] text-[#8a8a9c] truncate">{t}</div>
       <div className="text-[15px] font-mono tabular-nums font-bold mt-0.5" style={{ color: c ?? '#ececf1' }}>{v}</div>
     </div>
   )
@@ -467,13 +467,13 @@ function PanelMedico({ pacientes, dispensas, feedbacks, entidad, directorMedico 
           <FileText className="w-3.5 h-3.5" /> Informe semestral
         </button>
       </div>
-      <p className="text-[11.5px] text-[#7d7d8e] mt-2">
+      <p className="text-[11.5px] text-[#8a8a9c] mt-2">
         Cruza el diagnóstico de cada paciente con los lotes que recibió y lo que reportó. Es el informe
         que la autoridad sanitaria le exige al director médico cada seis meses. Cierra el {finDeSemestre(periodo)}.
       </p>
 
       {inf.pacientes.length === 0 ? (
-        <p className="text-[12px] text-[#7d7d8e] text-center py-5">Sin entregas en este período.</p>
+        <p className="text-[12px] text-[#8a8a9c] text-center py-5">Sin entregas en este período.</p>
       ) : (
         <>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3 pt-3 border-t border-[#1f1f2b]">
@@ -505,7 +505,7 @@ function PanelMedico({ pacientes, dispensas, feedbacks, entidad, directorMedico 
                         {t === 'mejora' ? 'En mejoría' : t === 'empeora' ? 'En desmejora' : 'Estable'}
                       </span>
                     )}
-                    <span className="ml-auto text-[11px] text-[#7d7d8e] tabular-nums flex-shrink-0">
+                    <span className="ml-auto text-[11px] text-[#8a8a9c] tabular-nums flex-shrink-0">
                       {s.entregas.length} entrega{s.entregas.length === 1 ? '' : 's'} · {Math.round(s.gramosTotales)} g
                     </span>
                   </div>
@@ -517,14 +517,14 @@ function PanelMedico({ pacientes, dispensas, feedbacks, entidad, directorMedico 
                         <div key={i} className="w-2.5 rounded-t-[3px]" title={`Reporte ${i + 1}: ${v}/5`}
                           style={{ height: `${(v / 5) * 100}%`, background: v >= 4 ? '#bef264' : v >= 3 ? '#a3e635' : '#facc15' }} />
                       ))}
-                      <span className="text-[10px] text-[#7d7d8e] ml-1.5 tabular-nums self-center">
+                      <span className="text-[10px] text-[#8a8a9c] ml-1.5 tabular-nums self-center">
                         {s.curvaAlivio.join(' → ')}
                         {!s.tendenciaConfiable && ` · faltan ${MINIMO_PARA_TENDENCIA - s.curvaAlivio.length} para leer tendencia`}
                       </span>
                     </div>
                   )}
 
-                  <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-[10.5px] text-[#7d7d8e]">
+                  <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-[10.5px] text-[#8a8a9c]">
                     {s.efectos.length > 0
                       ? <span className="text-[#fbbf24]">{s.efectos.map(e => `${e.efecto} ×${e.veces}`).join(', ')}</span>
                       : s.reportes.length > 0 && <span>Sin efectos adversos</span>}

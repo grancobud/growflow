@@ -58,7 +58,7 @@ export function EscanerQR({ onLeido, onCerrar }: {
         {error ? (
           <div className="rounded-xl bg-[#101016] border border-[#ff8a7a]/30 p-4">
             <p className="text-[12px] text-[#ff8a7a]">{error}</p>
-            <p className="text-[11px] text-[#7d7d8e] mt-2">
+            <p className="text-[11px] text-[#8a8a9c] mt-2">
               Podés escribir el código a mano en el buscador: es el que figura arriba del QR.
             </p>
           </div>

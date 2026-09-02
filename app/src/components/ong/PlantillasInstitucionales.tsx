@@ -19,8 +19,8 @@ import type { Paciente } from '../../lib/registro'
 import { VisorDocumento } from './ActaParaLibro'
 import { btnPrimario, btnSutil } from '../../lib/ui'
 
-const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
-const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1'
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#8a8a9c] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1'
 const card = 'rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4'
 
 type Plantilla =
@@ -116,7 +116,7 @@ export function PlantillasInstitucionales({
         <FileSignature className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
         <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Plantillas institucionales</h3>
       </div>
-      <p className="text-[11.5px] text-[#7d7d8e] mt-2">
+      <p className="text-[11.5px] text-[#8a8a9c] mt-2">
         Los instrumentos que pide la Resolución 1780 y que hasta acá eran sólo un tilde en la lista de
         requisitos. Se completan con lo que ya está cargado; lo que falte queda marcado entre corchetes.
       </p>
@@ -126,7 +126,7 @@ export function PlantillasInstitucionales({
           <button key={p.id} onClick={() => { setAbierta(p.id); setQuien(''); setDato('') }}
             className="text-left rounded-lg bg-[#15151d] border border-[#1f1f2b] hover:border-[#404d20] px-3 py-2.5 min-h-[44px] transition-colors">
             <p className="text-[12.5px] text-[#ececf1]">{p.label}</p>
-            <p className="text-[10.5px] text-[#7d7d8e] leading-snug mt-0.5">{p.detalle}</p>
+            <p className="text-[10.5px] text-[#8a8a9c] leading-snug mt-0.5">{p.detalle}</p>
           </button>
         ))}
       </div>
@@ -163,14 +163,14 @@ export function PlantillasInstitucionales({
               )}
 
               {abierta === 'geneticas' && (
-                <p className="text-[11px] text-[#7d7d8e] leading-relaxed">
+                <p className="text-[11px] text-[#8a8a9c] leading-relaxed">
                   Se van a declarar las {variedades.length} variedad{variedades.length === 1 ? '' : 'es'} cargadas
                   en Genéticas, con el perfil de cada ficha.
                 </p>
               )}
 
               {esDesignacion && (
-                <p className="text-[11px] text-[#7d7d8e] leading-relaxed">
+                <p className="text-[11px] text-[#8a8a9c] leading-relaxed">
                   {ultimaCD
                     ? `Va a remitir al Acta de Comisión Directiva N° ${ultimaCD.numero} del ${ultimaCD.fecha}.`
                     : 'No hay actas de Comisión Directiva cargadas: el documento va a salir sin la referencia al acta, que es lo que prueba dónde se resolvió.'}

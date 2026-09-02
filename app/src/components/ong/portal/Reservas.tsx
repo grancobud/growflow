@@ -135,7 +135,7 @@ export function Reservas({
 
         <div className="flex gap-2 mt-3 flex-wrap">
           <div className="relative flex-1 min-w-[160px]">
-            <Search className="w-3.5 h-3.5 text-[#7d7d8e] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-3.5 h-3.5 text-[#8a8a9c] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input className={`w-full pl-8 pr-3 py-2 sm:text-[12px] ${campoBase}`} value={busca}
               onChange={e => setBusca(e.target.value)} placeholder="Código, paciente o lote" />
           </div>
@@ -153,7 +153,7 @@ export function Reservas({
       {visibles.length === 0 ? (
         <div className={`${card} text-center py-8`}>
           <Ticket className="w-7 h-7 text-[#2a2a3a] mx-auto" strokeWidth={1.5} />
-          <p className="text-[12.5px] text-[#7d7d8e] mt-2">
+          <p className="text-[12.5px] text-[#8a8a9c] mt-2">
             {pedidos.length === 0
               ? 'Todavía no hay reservas. Se crean desde el botón "Reservar".'
               : 'Ninguna reserva coincide con el filtro.'}
@@ -175,7 +175,7 @@ export function Reservas({
                       <Chip texto={etiquetaPago(p.estado_pago)} color={colorPago(p.estado_pago)} />
                     </div>
                     <p className="text-[12px] text-[#d4d4dd] mt-1">{nombre(p.paciente_id)}</p>
-                    <p className="text-[11px] text-[#7d7d8e] mt-0.5">
+                    <p className="text-[11px] text-[#8a8a9c] mt-0.5">
                       {p.gramos} g de {codigoLote(p.lote_id)} · ${Number(p.monto_reembolso).toLocaleString('es-AR')}
                       {estaVivo(p) && <> · <span style={{ color: vencida ? '#ff8a7a' : '#fbbf24' }}>{textoRestante(p)}</span></>}
                       {p.entregado_en && ` · entregado ${new Date(p.entregado_en).toLocaleDateString('es-AR')}`}
@@ -286,7 +286,7 @@ function ModalQR({ pedido, lote, nombre, onCerrar }: {
         <QR value={pedido.codigo_reserva} size={168} />
         <p className="font-mono text-[14px] text-[#ececf1] mt-3">{pedido.codigo_reserva}</p>
         <p className="text-[12px] text-[#a6a6b5] mt-1">{nombre}</p>
-        <p className="text-[11px] text-[#7d7d8e] mt-1">
+        <p className="text-[11px] text-[#8a8a9c] mt-1">
           {pedido.gramos} g de {lote?.codigo ?? '—'} · ${Number(pedido.monto_reembolso).toLocaleString('es-AR')}
         </p>
         <p className="text-[11px] mt-2" style={{ color: estaVencido(pedido) ? '#ff8a7a' : '#fbbf24' }}>
@@ -375,7 +375,7 @@ function ModalEntrega({
         <div className="p-4 space-y-3">
           <div className="rounded-lg bg-[#15151d] border border-[#1f1f2b] p-3 space-y-1">
             <p className="text-[12.5px] text-[#ececf1]">{paciente?.nombre_completo ?? 'sin paciente'}</p>
-            <p className="text-[11px] text-[#7d7d8e]">
+            <p className="text-[11px] text-[#8a8a9c]">
               DNI {paciente?.dni ?? '—'} · REPROCANN {paciente?.reprocann_nro ?? '—'}
             </p>
             <p className="text-[11px] text-[#a6a6b5] pt-1">
@@ -389,7 +389,7 @@ function ModalEntrega({
               <X className="w-3.5 h-3.5 text-[#ff8a7a] flex-shrink-0 mt-px" />
               <div>
                 <p className="text-[11.5px] text-[#d4d4dd] leading-snug">{m.texto}</p>
-                {m.comoSeResuelve && <p className="text-[10.5px] text-[#7d7d8e] mt-0.5">{m.comoSeResuelve}</p>}
+                {m.comoSeResuelve && <p className="text-[10.5px] text-[#8a8a9c] mt-0.5">{m.comoSeResuelve}</p>}
               </div>
             </div>
           ))}
@@ -400,7 +400,7 @@ function ModalEntrega({
                 className="w-4 h-4 accent-[#a3e635] mt-0.5" />
               <span className="text-[11.5px] text-[#d4d4dd] leading-snug">
                 Cobré ${Number(pedido.monto_reembolso).toLocaleString('es-AR')} en efectivo.
-                <span className="block text-[10.5px] text-[#7d7d8e] mt-0.5">
+                <span className="block text-[10.5px] text-[#8a8a9c] mt-0.5">
                   Al confirmar se asienta como ingreso en el Libro de Caja.
                 </span>
               </span>
@@ -408,7 +408,7 @@ function ModalEntrega({
           )}
 
           <label>
-            <span className="block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1">
+            <span className="block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1">
               Quién entrega
             </span>
             <input className={`w-full px-3 py-2.5 sm:py-2 sm:text-[12.5px] ${campoBase}`}
@@ -416,7 +416,7 @@ function ModalEntrega({
               placeholder="Nombre de quien atiende" />
           </label>
 
-          <p className="text-[11px] text-[#7d7d8e] leading-relaxed">
+          <p className="text-[11px] text-[#8a8a9c] leading-relaxed">
             Al confirmar se registra la dispensa, se asienta el reembolso en caja
             {caja.length > 0 ? '' : ' (primer asiento del libro)'} y se genera el
             recibo oficial N° {proximoRecibo} con la leyenda legal.

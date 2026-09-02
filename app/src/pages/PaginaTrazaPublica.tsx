@@ -227,7 +227,7 @@ export default function PaginaTrazaPublica() {
               <button
                 key={l}
                 onClick={() => setIdioma(l)}
-                className={`px-2.5 py-1.5 text-[10px] font-bold rounded-md transition-colors min-h-[32px] ${
+                className={`px-2.5 py-1.5 text-[10px] font-bold rounded-md transition-colors min-h-[44px] ${
                   idioma === l
                     ? 'bg-primary-600 text-white'
                     : 'bg-surface-800/60 text-surface-400 hover:bg-surface-700/60'

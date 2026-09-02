@@ -108,19 +108,19 @@ export default function PaginaManual() {
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1] flex items-center gap-2">
               <BookOpen className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} /> Manual
             </h1>
-            <p className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
+            <p className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#8a8a9c]">
               Cómo se usa el sistema, en el orden en que se usa
             </p>
           </div>
 
           <div className="relative flex-1 sm:flex-none sm:w-64 min-w-[150px]">
-            <Search className="w-3.5 h-3.5 text-[#7d7d8e] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-3.5 h-3.5 text-[#8a8a9c] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input value={busca} onChange={e => setBusca(e.target.value)}
               className={`w-full pl-8 pr-8 py-2 sm:text-[12px] ${campoBase}`}
               placeholder="Buscar en el manual" aria-label="Buscar en el manual" />
             {busca && (
               <button onClick={() => setBusca('')} aria-label="Limpiar búsqueda"
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 text-[#7d7d8e] hover:text-[#ececf1]">
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 text-[#8a8a9c] hover:text-[#ececf1]">
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
@@ -135,7 +135,7 @@ export default function PaginaManual() {
       <div className="px-3 sm:px-6 py-5 pb-24 max-w-[1180px] mx-auto lg:grid lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-10 lg:items-start">
         <nav aria-label="Índice del manual"
           className="hidden lg:block sticky top-[76px] max-h-[calc(100vh-100px)] overflow-y-auto scrollbar-none">
-          <p className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-2 px-2">
+          <p className="text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-2 px-2">
             Contenido
           </p>
           <ol className="flex flex-col gap-0.5 list-none p-0 m-0">
@@ -155,7 +155,7 @@ export default function PaginaManual() {
 
         <div ref={contenedor} className="min-w-0 flex flex-col gap-3">
           {busca && (
-            <p className="text-[11.5px] text-[#7d7d8e] pb-1">
+            <p className="text-[11.5px] text-[#8a8a9c] pb-1">
               {visibles.length === 0
                 ? `No hay nada sobre "${busca}" en el manual.`
                 : `Mostrando los capítulos que mencionan "${busca}".`}
@@ -250,7 +250,7 @@ function RenderBloque({ b }: { b: Bloque }) {
     case 'lista': {
       const clase = 'text-[13.5px] sm:text-[14px] leading-relaxed text-[#b8b8c4] max-w-[68ch] flex flex-col gap-2 pl-5 my-0'
       const items = b.items.map((it, i) => (
-        <li key={i} className="marker:text-[#7d7d8e]"><Inline texto={it} /></li>
+        <li key={i} className="marker:text-[#8a8a9c]"><Inline texto={it} /></li>
       ))
       return b.ordenada
         ? <ol className={`${clase} list-decimal`}>{items}</ol>
@@ -273,7 +273,7 @@ function RenderBloque({ b }: { b: Bloque }) {
             <thead>
               <tr>
                 {b.encabezados.map((h, i) => (
-                  <th key={i} className="text-left px-3.5 py-2.5 bg-[#15151d] border-b border-[#1f1f2b] text-[10px] uppercase tracking-[0.1em] text-[#7d7d8e] font-medium whitespace-nowrap">
+                  <th key={i} className="text-left px-3.5 py-2.5 bg-[#15151d] border-b border-[#1f1f2b] text-[10px] uppercase tracking-[0.1em] text-[#8a8a9c] font-medium whitespace-nowrap">
                     <Inline texto={h} />
                   </th>
                 ))}

@@ -79,7 +79,7 @@ export const METODOS_PAGO: { valor: MetodoPago; label: string; detalle: string }
 
 export const ESTADOS_PAGO: { valor: EstadoPago; label: string; color: string }[] = [
   { valor: 'Pendiente_Verificacion', label: 'A verificar', color: '#fbbf24' },
-  { valor: 'Pendiente_Efectivo', label: 'Paga en sede', color: '#7d7d8e' },
+  { valor: 'Pendiente_Efectivo', label: 'Paga en sede', color: '#8a8a9c' },
   { valor: 'Abonado', label: 'Abonado', color: '#a3e635' },
   { valor: 'Rechazado', label: 'Rechazado', color: '#ff8a7a' },
 ]
@@ -88,8 +88,8 @@ export const ESTADOS_PEDIDO: { valor: EstadoPedido; label: string; color: string
   { valor: 'Reservado', label: 'Reservado', color: '#a78bfa' },
   { valor: 'Listo_Para_Retiro', label: 'Listo para retirar', color: '#38bdf8' },
   { valor: 'Entregado', label: 'Entregado', color: '#a3e635' },
-  { valor: 'Expirado', label: 'Expirado', color: '#7d7d8e' },
-  { valor: 'Cancelado', label: 'Cancelado', color: '#7d7d8e' },
+  { valor: 'Expirado', label: 'Expirado', color: '#8a8a9c' },
+  { valor: 'Cancelado', label: 'Cancelado', color: '#8a8a9c' },
 ]
 
 export const PRODUCTOS_LOTE = ['flor', 'aceite', 'extracto', 'tópico', 'otro'] as const
@@ -99,8 +99,8 @@ export const HORAS_RESERVA = 72
 
 export const etiquetaPago = (v: EstadoPago) => ESTADOS_PAGO.find(e => e.valor === v)?.label ?? v
 export const etiquetaPedido = (v: EstadoPedido) => ESTADOS_PEDIDO.find(e => e.valor === v)?.label ?? v
-export const colorPedido = (v: EstadoPedido) => ESTADOS_PEDIDO.find(e => e.valor === v)?.color ?? '#7d7d8e'
-export const colorPago = (v: EstadoPago) => ESTADOS_PAGO.find(e => e.valor === v)?.color ?? '#7d7d8e'
+export const colorPedido = (v: EstadoPedido) => ESTADOS_PEDIDO.find(e => e.valor === v)?.color ?? '#8a8a9c'
+export const colorPago = (v: EstadoPago) => ESTADOS_PAGO.find(e => e.valor === v)?.color ?? '#8a8a9c'
 
 // ---------------------------------------------------------------------------
 // Vencimiento (RN-06)

@@ -21,8 +21,8 @@ import { VisorDocumento } from './ActaParaLibro'
 import type { Genetica } from '../../lib/cultivo'
 import { btnPrimario, btnSutil } from '../../lib/ui'
 
-const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
-const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1'
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#8a8a9c] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1'
 const card = 'rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4'
 const fmtPesos = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
 const fmtFecha = (f?: string | null) =>
@@ -110,7 +110,7 @@ export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPor
           <button onClick={() => setForm({ fecha: new Date().toISOString().slice(0, 10), producto: 'flor', modalidad: 'retiro' })}
             className={`${btnPrimario} ml-auto`}><Plus className="w-3.5 h-3.5" /> Registrar</button>
         </div>
-        <p className="text-[11.5px] text-[#7d7d8e] mt-2">
+        <p className="text-[11.5px] text-[#8a8a9c] mt-2">
           Sólo se dispensa a pacientes con REPROCANN vinculado a esta ONG. Lo que entrega el paciente es un
           <b className="text-[#a6a6b5]"> reembolso de costos operativos</b>, no un precio: por encima del costo real
           deja de ser reembolso y empieza a parecerse a una venta.
@@ -129,14 +129,14 @@ export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPor
             gramos cosechados o sin costos cargados no hay contra qué comparar. */}
         {hayCosto && r.aportePorGramo != null ? (
           <p className="text-[11.5px] mt-2"
-            style={{ color: r.aportePorGramo > costoPorGramo! * 1.05 ? '#ff8a7a' : '#7d7d8e' }}>
+            style={{ color: r.aportePorGramo > costoPorGramo! * 1.05 ? '#ff8a7a' : '#8a8a9c' }}>
             Tu costo real de producción es <b className="font-mono">{fmtPesos(costoPorGramo!)}/g</b>.
             {r.aportePorGramo > costoPorGramo! * 1.05
               ? ' El reembolso lo está superando: por encima del costo real deja de ser reembolso.'
               : ' El reembolso está por debajo del costo, como corresponde.'}
           </p>
         ) : dispensas.length > 0 && (
-          <p className="text-[11.5px] text-[#7d7d8e] mt-2">
+          <p className="text-[11.5px] text-[#8a8a9c] mt-2">
             Todavía no se puede comparar contra el costo: falta cargar costos o gramos cosechados en Econometría.
           </p>
         )}
@@ -151,7 +151,7 @@ export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPor
             <Scale className="w-4 h-4 text-[#38bdf8]" strokeWidth={1.8} />
             <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Balance de materia</h3>
           </div>
-          <p className="text-[11.5px] text-[#7d7d8e] mb-3">
+          <p className="text-[11.5px] text-[#8a8a9c] mb-3">
             De lo cosechado a lo entregado. La diferencia es el stock que deberías tener.
           </p>
           <div className="flex items-stretch gap-2 flex-wrap sm:flex-nowrap">
@@ -167,7 +167,7 @@ export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPor
               <div className="mt-3 h-1.5 rounded-full bg-[#1f1f2b] overflow-hidden">
                 <div className="h-full rounded-full bg-[#a78bfa]" style={{ width: `${Math.min(100, bal.pctDispensado)}%` }} />
               </div>
-              <p className="text-[10.5px] text-[#7d7d8e] mt-1">
+              <p className="text-[10.5px] text-[#8a8a9c] mt-1">
                 Entregaste el {bal.pctDispensado.toFixed(1)}% de lo cosechado.
               </p>
             </>
@@ -182,7 +182,7 @@ export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPor
       )}
 
       {dispensas.length === 0 ? (
-        <p className="text-[13px] text-[#7d7d8e] text-center py-8">Sin dispensas registradas.</p>
+        <p className="text-[13px] text-[#8a8a9c] text-center py-8">Sin dispensas registradas.</p>
       ) : (
         <div className="space-y-2">
           {dispensas.map(d => {
@@ -201,7 +201,7 @@ export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPor
                     <p className="font-display font-semibold text-[13.5px] text-[#ececf1]">
                       {nombrePaciente(d.paciente_id)}
                       <span className="text-[#d9f99d] font-mono"> · {d.gramos} g</span>
-                      <span className="text-[#7d7d8e] font-normal"> · {fmtFecha(d.fecha)}</span>
+                      <span className="text-[#8a8a9c] font-normal"> · {fmtFecha(d.fecha)}</span>
                     </p>
                     <div className="flex flex-wrap gap-2 mt-1.5 text-[10.5px]">
                       <span className="px-1.5 py-0.5 rounded border border-[#2a2a3a] bg-[#15151d] text-[#a6a6b5]">{d.producto}</span>
@@ -256,7 +256,7 @@ export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPor
               {(['recibo', 'comprobante'] as const).map(v => (
                 <button key={v} onClick={() => setVista(v)}
                   className={`px-2.5 py-2 sm:py-1 min-h-[44px] sm:min-h-0 text-[11px] font-medium transition-colors ${
-                    vista === v ? 'bg-[#a3e635]/15 text-[#d9f99d]' : 'text-[#7d7d8e] hover:text-[#d4d4dd]'}`}>
+                    vista === v ? 'bg-[#a3e635]/15 text-[#d9f99d]' : 'text-[#8a8a9c] hover:text-[#d4d4dd]'}`}>
                   {v === 'recibo' ? 'Recibo' : 'Comprobante'}
                 </button>
               ))}
@@ -329,20 +329,20 @@ export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPor
 function Caja({ t, v, c }: { t: string; v: string; c: string }) {
   return (
     <div className="flex-1 min-w-[92px] rounded-lg bg-[#15151d] border border-[#1f1f2b] px-3 py-2.5 text-center">
-      <div className="text-[9.5px] uppercase tracking-[0.12em] text-[#7d7d8e]">{t}</div>
+      <div className="text-[9.5px] uppercase tracking-[0.12em] text-[#8a8a9c]">{t}</div>
       <div className="text-[16px] font-mono tabular-nums font-bold mt-1" style={{ color: c }}>{v}</div>
     </div>
   )
 }
 
 function Flecha({ signo = '−' }: { signo?: string }) {
-  return <div className="flex items-center text-[#7d7d8e] text-[15px] font-mono px-0.5">{signo}</div>
+  return <div className="flex items-center text-[#8a8a9c] text-[15px] font-mono px-0.5">{signo}</div>
 }
 
 function Kpi({ t, v, c }: { t: string; v: string; c: string }) {
   return (
     <div>
-      <div className="text-[9.5px] uppercase tracking-[0.12em] text-[#7d7d8e]">{t}</div>
+      <div className="text-[9.5px] uppercase tracking-[0.12em] text-[#8a8a9c]">{t}</div>
       <div className="text-[15px] font-mono tabular-nums font-bold mt-0.5" style={{ color: c }}>{v}</div>
     </div>
   )

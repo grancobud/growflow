@@ -6,7 +6,7 @@ import InsumosRiego from '../components/hardware/InsumosRiego'
 export default function PaginaRiego() {
   const [tab, setTab] = useState<'insumos' | 'guia'>('insumos')
   const tabBtn = (activo: boolean) =>
-    `flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-md border transition-colors ${activo
+    `flex items-center gap-1.5 text-[12px] px-3 py-1.5 min-h-[44px] sm:min-h-0 rounded-md border transition-colors ${activo
       ? 'bg-[#7dd3fc]/15 border-[#7dd3fc]/40 text-[#7dd3fc]'
       : 'bg-transparent border-[#1f1f2b] text-[#8f8f9f] hover:text-[#d4d4dd]'}`
   return (
@@ -19,7 +19,7 @@ export default function PaginaRiego() {
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">
               Riego — Clon de Growcast
             </h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#7d7d8e]">
+            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#8a8a9c]">
               Insumos, válvulas, bomba y crop steering
               <span className="hidden sm:inline"><span className="text-[#30303e] mx-1">│</span>P0/P1/P2 · ESP32 + ESPHome</span>
             </div>

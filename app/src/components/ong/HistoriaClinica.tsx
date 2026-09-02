@@ -19,8 +19,8 @@ import {
 } from '../../lib/clinica'
 import { btnPrimario, btnSutil } from '../../lib/ui'
 
-const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#7d7d8e] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
-const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1'
+const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#8a8a9c] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
+const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1'
 
 const CAMPOS: { k: keyof FichaClinica; label: string; ayuda: string }[] = [
   { k: 'antecedentes', label: 'Antecedentes', ayuda: 'Patologías previas, cirugías, internaciones' },
@@ -105,19 +105,19 @@ export function HistoriaClinica({ pacienteId, pacienteNombre, firmante, matricul
     <div className="mt-4 pt-4 border-t border-[#1f1f2b]">
       <div className="flex items-center gap-2 flex-wrap">
         <Stethoscope className="w-4 h-4 text-[#f472b6]" strokeWidth={1.8} />
-        <span className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e]">Historia clínica</span>
+        <span className="text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c]">Historia clínica</span>
         <button onClick={() => setAbierta(v => !v)} className={`${btnSutil} ml-auto`}>
           {abierta ? 'Ocultar' : 'Ver historia'}
         </button>
       </div>
 
       {!abierta ? (
-        <p className="text-[11px] text-[#7d7d8e] mt-2">
+        <p className="text-[11px] text-[#8a8a9c] mt-2">
           Antecedentes, medicación, objetivo terapéutico y la evolución que escribe el profesional.
           Sólo la ven administrador y director médico.
         </p>
       ) : cargando ? (
-        <p className="text-[11.5px] text-[#7d7d8e] mt-3">Cargando la historia…</p>
+        <p className="text-[11.5px] text-[#8a8a9c] mt-3">Cargando la historia…</p>
       ) : error ? (
         <p className="text-[11.5px] text-[#f0a5a5] mt-3">No se pudo abrir: {error}</p>
       ) : (
@@ -155,7 +155,7 @@ export function HistoriaClinica({ pacienteId, pacienteNombre, firmante, matricul
                 ))}
               </div>
             ) : fichaVacia(ficha) ? (
-              <p className="text-[11.5px] text-[#7d7d8e]">
+              <p className="text-[11.5px] text-[#8a8a9c]">
                 Sin ficha cargada. Es lo que da contexto a la evolución: sin antecedentes ni objetivo
                 terapéutico, el informe semestral queda en números sueltos.
               </p>
@@ -163,12 +163,12 @@ export function HistoriaClinica({ pacienteId, pacienteNombre, firmante, matricul
               <div className="space-y-2">
                 {CAMPOS.filter(c => ((ficha?.[c.k] as string) ?? '').trim()).map(c => (
                   <div key={String(c.k)}>
-                    <div className="text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e]">{c.label}</div>
+                    <div className="text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c]">{c.label}</div>
                     <p className="text-[12.5px] text-[#ececf1] whitespace-pre-wrap">{ficha?.[c.k] as string}</p>
                   </div>
                 ))}
                 {ficha?.actualizado_por && (
-                  <p className="text-[10.5px] text-[#7d7d8e]">
+                  <p className="text-[10.5px] text-[#8a8a9c]">
                     Última edición: {ficha.actualizado_por}
                     {ficha.actualizado_en && ` · ${ficha.actualizado_en.slice(0, 10)}`}
                   </p>
@@ -213,7 +213,7 @@ export function HistoriaClinica({ pacienteId, pacienteNombre, firmante, matricul
                     placeholder="Qué se observó, qué se decidió y por qué."
                     value={nueva.texto} onChange={e => setNueva({ ...nueva, texto: e.target.value })} />
                 </div>
-                <p className="text-[10.5px] text-[#7d7d8e]">
+                <p className="text-[10.5px] text-[#8a8a9c]">
                   {firmante
                     ? <>Firma como <span className="text-[#a6a6b5]">{firmante}</span>{matricula ? ` · ${matricula}` : ''}.</>
                     : 'Sin director médico designado: la entrada va a quedar sin firma.'}
@@ -230,7 +230,7 @@ export function HistoriaClinica({ pacienteId, pacienteNombre, firmante, matricul
             )}
 
             {evol.length === 0 ? (
-              <p className="text-[11.5px] text-[#7d7d8e]">
+              <p className="text-[11.5px] text-[#8a8a9c]">
                 Sin entradas todavía. Acá va lo que escribe el profesional: no depende de que haya
                 habido una entrega, a diferencia del reporte que carga el paciente.
               </p>
@@ -243,16 +243,16 @@ export function HistoriaClinica({ pacienteId, pacienteNombre, firmante, matricul
                         style={{ background: `${colorEvolucion(e.tipo)}22`, color: colorEvolucion(e.tipo) }}>
                         {etiquetaEvolucion(e.tipo)}
                       </span>
-                      <span className="text-[11px] text-[#7d7d8e] tabular-nums">{e.fecha}</span>
+                      <span className="text-[11px] text-[#8a8a9c] tabular-nums">{e.fecha}</span>
                       <button onClick={() => borrarEvolucion(e.id)}
-                        className="ml-auto text-[#7d7d8e] hover:text-[#ff8a7a] transition-colors p-1"
+                        className="ml-auto text-[#8a8a9c] hover:text-[#ff8a7a] transition-colors p-1"
                         title="Borrar (sólo administrador)">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                     <p className="text-[12.5px] text-[#ececf1] whitespace-pre-wrap mt-1.5">{e.texto}</p>
                     {e.firmado_por && (
-                      <p className="text-[10.5px] text-[#7d7d8e] mt-1.5 flex items-center gap-1">
+                      <p className="text-[10.5px] text-[#8a8a9c] mt-1.5 flex items-center gap-1">
                         <FileText className="w-3 h-3" strokeWidth={1.8} />
                         {e.firmado_por}{e.matricula ? ` · ${e.matricula}` : ''}
                       </p>
@@ -263,7 +263,7 @@ export function HistoriaClinica({ pacienteId, pacienteNombre, firmante, matricul
             )}
           </div>
 
-          <p className="text-[10.5px] text-[#7d7d8e]">
+          <p className="text-[10.5px] text-[#8a8a9c]">
             Historia de {pacienteNombre}. Lo que el paciente reporta después de cada entrega vive
             aparte, en Seguimiento: son dos voces distintas y el informe semestral las cruza.
           </p>

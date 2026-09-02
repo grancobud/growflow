@@ -58,7 +58,7 @@ export function PestanasSeccion({ secciones, etiqueta }: {
 
       <Suspense fallback={
         <div className="flex-1 flex items-center justify-center">
-          <Loader2 className="w-6 h-6 animate-spin text-[#7d7d8e]" aria-label="Cargando" />
+          <Loader2 className="w-6 h-6 animate-spin text-[#8a8a9c]" aria-label="Cargando" />
         </div>
       }>
         <Vista />

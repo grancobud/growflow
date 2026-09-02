@@ -14,7 +14,7 @@ import {
 } from '../../../lib/portal'
 import { btnPrimario, btnSutil, btnIcono, inputFormulario } from '../../../lib/ui'
 
-const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium mb-1'
+const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1'
 const card = 'rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4'
 
 interface Genetica { id: string; nombre: string }
@@ -63,7 +63,7 @@ export function Catalogo({ lotes, pedidos, geneticas, onCambio }: {
             { l: 'Entregado', v: `${Math.round(r.entregado)} g` },
           ].map(k => (
             <div key={k.l} className="rounded-lg bg-[#15151d] border border-[#1f1f2b] px-3 py-2">
-              <p className="text-[9.5px] uppercase tracking-[0.14em] text-[#7d7d8e] font-medium">{k.l}</p>
+              <p className="text-[9.5px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium">{k.l}</p>
               <p className="font-display font-semibold text-[17px] mt-0.5" style={{ color: k.c ?? '#ececf1' }}>{k.v}</p>
             </div>
           ))}
@@ -89,7 +89,7 @@ export function Catalogo({ lotes, pedidos, geneticas, onCambio }: {
       {visibles.length === 0 ? (
         <div className={`${card} text-center py-8`}>
           <Package className="w-7 h-7 text-[#2a2a3a] mx-auto" strokeWidth={1.5} />
-          <p className="text-[12.5px] text-[#7d7d8e] mt-2">
+          <p className="text-[12.5px] text-[#8a8a9c] mt-2">
             Todavía no hay lotes cargados. Un lote es una partida ya fraccionada y lista para dispensar;
             es lo que el paciente ve en el portal y lo que después figura en el comprobante.
           </p>
@@ -110,10 +110,10 @@ export function Catalogo({ lotes, pedidos, geneticas, onCambio }: {
                         {l.producto}
                       </span>
                       {l.activo === false && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#15151d] text-[#7d7d8e]">inactivo</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#15151d] text-[#8a8a9c]">inactivo</span>
                       )}
                     </div>
-                    <p className="text-[11px] text-[#7d7d8e] mt-1">
+                    <p className="text-[11px] text-[#8a8a9c] mt-1">
                       {gen?.nombre ?? 'sin genética asignada'}
                       {l.fecha_elaboracion ? ` · elaborado ${l.fecha_elaboracion}` : ''}
                     </p>
@@ -129,15 +129,15 @@ export function Catalogo({ lotes, pedidos, geneticas, onCambio }: {
                 <div className="mt-3">
                   <div className="flex items-end justify-between gap-2">
                     <p className="font-display font-semibold text-[20px] text-[#a3e635] leading-none">
-                      {Math.round(d.disponible)} <span className="text-[12px] text-[#7d7d8e] font-normal">g disponibles</span>
+                      {Math.round(d.disponible)} <span className="text-[12px] text-[#8a8a9c] font-normal">g disponibles</span>
                     </p>
-                    <p className="text-[10.5px] text-[#7d7d8e]">de {Math.round(d.totales)} g</p>
+                    <p className="text-[10.5px] text-[#8a8a9c]">de {Math.round(d.totales)} g</p>
                   </div>
                   <div className="mt-2 h-1.5 rounded-full bg-[#15151d] overflow-hidden flex">
                     <div className="bg-[#a3e635]" style={{ width: `${pct}%` }} />
                     <div className="bg-[#a78bfa]" style={{ width: `${d.totales > 0 ? (d.reservado / d.totales) * 100 : 0}%` }} />
                   </div>
-                  <p className="text-[10.5px] text-[#7d7d8e] mt-1.5">
+                  <p className="text-[10.5px] text-[#8a8a9c] mt-1.5">
                     {Math.round(d.reservado)} g reservados · {Math.round(d.entregado)} g entregados
                   </p>
                 </div>
@@ -154,7 +154,7 @@ export function Catalogo({ lotes, pedidos, geneticas, onCambio }: {
                       <AlertTriangle className="w-3 h-3" /> sin análisis de lote
                     </span>
                   )}
-                  <span className="text-[#7d7d8e] ml-auto">
+                  <span className="text-[#8a8a9c] ml-auto">
                     {l.aporte_por_gramo
                       ? `$${Number(l.aporte_por_gramo).toLocaleString('es-AR')}/g`
                       : 'sin aporte cargado'}
@@ -246,7 +246,7 @@ function ModalLote({ lote, geneticas, onCerrar, onGuardado }: {
           </div>
 
           <div className="pt-2 border-t border-[#1f1f2b]">
-            <p className="text-[11px] text-[#7d7d8e] mb-2">
+            <p className="text-[11px] text-[#8a8a9c] mb-2">
               Informe cromatográfico. La 1780 lo pide por lote producido; los valores de la ficha de
               la genética son estimados y no lo reemplazan.
             </p>
