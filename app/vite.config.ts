@@ -49,30 +49,68 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 'prompt' y no 'autoUpdate': con autoUpdate el SW nuevo se activa solo y
+      // recarga la pagina abajo de los pies del usuario, que en medio de una
+      // carga de datos es peor que quedarse una version atras. Con 'prompt' se
+      // dispara onNeedRefresh (src/lib/pwa.ts), que muestra el toast
+      // "Nueva version disponible / Recargar" y deja la decision del lado del
+      // que esta usando la app.
+      registerType: 'prompt',
       strategies: 'generateSW',
-      // SW auto-destructivo: desinstala cualquier service worker viejo y limpia
-      // sus caches en cuanto el navegador revalida /sw.js (headers no-cache).
-      // Evita que la demo quede pegada en una version vieja sin tener que entrar
-      // manualmente a /sw-killer. Sacrifica el modo offline (no critico en la demo).
-      selfDestroying: true,
       workbox: {
-        skipWaiting: true,
+        // false a proposito: en modo prompt el SW nuevo tiene que ESPERAR en
+        // waiting hasta que el usuario toca "Recargar". Con skipWaiting: true se
+        // activaria de una y el prompt no serviria de nada.
+        skipWaiting: false,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
-        navigateFallback: null, // NO cachear index.html para evitar app bloqueada en version vieja
-        globPatterns: ['**/*.{css,svg,png,ico}'],
+        // El bug que llevo a apagar el SW (selfDestroying) era quedar clavado en
+        // una version vieja. La causa de raiz es que /sw.js se cachee: si el
+        // navegador no vuelve a bajarlo, nunca se entera de que hay algo nuevo.
+        // Eso ya esta resuelto en public/_headers con no-cache sobre /sw.js,
+        // /index.html y /manifest.webmanifest. Con eso, precachear el shell es
+        // seguro: workbox le pone hash de revision a cada archivo y reemplaza
+        // el viejo al activar.
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/sw-killer/, /^\/docs\//],
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest}'],
+        // Los chunks pesados NO van al precache: son lazy a proposito
+        // (ver manualChunks arriba) y precachearlos obligaria a bajar ~4MB en la
+        // primera visita para features que capaz no se abren nunca. Igual quedan
+        // cacheados al vuelo por la regla de /assets/ de aca abajo, la primera
+        // vez que se usan.
+        globIgnores: [
+          // vendor pesados, ya son lazy por manualChunks
+          '**/{exceljs,bwip-js,pdf-libs,bpmn,nivo,fullcalendar,reactflow}-*.js',
+          // el worker de pdf.js pesa 1.1MB el solo y unicamente se carga cuando
+          // se parsea un PDF: era el 30% del precache.
+          '**/pdf.worker*.js',
+          // chunks de ruta: bajan al navegar a esa pagina. Precachear las ~25
+          // paginas en el arranque es hacerle pagar al celular, con datos, por
+          // pantallas que capaz no abre nunca. La regla de /assets/ las cachea
+          // sola la primera vez que se entra, y de ahi en mas andan offline.
+          '**/Pagina*-*.js',
+          // no son parte de la app: sw-killer es la pagina de emergencia para
+          // limpiar caches a mano, y og-image solo lo lee un crawler.
+          'sw-killer.html',
+          'og-image.svg',
+        ],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/assets/'),
             handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'canntrace-assets' },
+            options: { cacheName: 'growflow-assets' },
           },
           {
-            urlPattern: ({ url }) => url.origin === 'https://sqdqvhjlmdweuuncwlfb.supabase.co',
+            // Antes esto apuntaba a sqdqvhjlmdweuuncwlfb.supabase.co, un proyecto
+            // que ya no existe: la regla no matcheaba nada. Y como este repo se
+            // clona a growflow-aguara y growflow-chaco, que tienen CADA UNO su
+            // propia base, hardcodear un host la rompe en las otras dos.
+            // Matchea por sufijo para que valga en las tres instalaciones.
+            urlPattern: ({ url }) => url.hostname.endsWith('.supabase.co'),
             handler: 'NetworkFirst',
-            options: { cacheName: 'canntrace-api', networkTimeoutSeconds: 5 },
+            options: { cacheName: 'growflow-api', networkTimeoutSeconds: 5 },
           },
         ],
       },
@@ -80,13 +118,21 @@ export default defineConfig({
         name: 'GrowFlow',
         short_name: 'GrowFlow',
         description: 'Diario de cultivo personal',
+        lang: 'es',
         theme_color: '#a3e635',
         background_color: '#0a0a0f',
         display: 'standalone',
         orientation: 'portrait',
         scope: '/',
         start_url: '/',
+        // Android pide PNG de 192 y 512 para ofrecer la instalacion; con un SVG
+        // suelto no alcanza. El 'maskable' es el que el launcher recorta a la
+        // forma del sistema (circulo, squircle, etc): va a sangre y con la hoja
+        // adentro del 80% central. Se generan con scripts/generar-iconos.mjs.
         icons: [
+          { src: '/pwa-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/pwa-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
           { src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml' },
         ],
       },
