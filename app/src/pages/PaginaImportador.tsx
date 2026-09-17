@@ -65,7 +65,7 @@ export default function PaginaImportador() {
       ws.eachRow((row, num) => {
         if (num === 1) return
         const obj: Fila = {}
-        row.eachCell((c, col) => { obj[cols[col - 1]] = c.value instanceof Date ? c.value.toISOString().slice(0, 10) : c.value })
+        row.eachCell((c, col) => { obj[cols[col - 1]] = c.value instanceof Date ? c.value.toISOString().slice(0, 10) : c.value }) // UTC a proposito: exceljs da las fechas de la celda a medianoche UTC; leerlas en hora local daria el dia anterior
         if (Object.keys(obj).length > 0) rows.push(obj)
       })
       let ok = 0, err = 0; const errores: string[] = []

@@ -1,3 +1,4 @@
+import { fechaLocal } from '../fechaLocal'
 // ============================================================================
 // Modo DEMO - almacen local (localStorage) que reemplaza a Supabase
 // Se activa cuando no hay VITE_SUPABASE_URL configurada (ver supabase.ts).
@@ -21,7 +22,7 @@ export function uuid(): string {
 function hoyMenos(dias: number): string {
   const d = new Date()
   d.setDate(d.getDate() - dias)
-  return d.toISOString().slice(0, 10)
+  return fechaLocal(d)
 }
 function isoMenos(dias: number): string {
   const d = new Date()

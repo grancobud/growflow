@@ -18,6 +18,7 @@ import { TrazabilidadCardsSkeleton } from '../components/ui/loading-states'
 import { EmptyState } from '../components/ui/empty-state'
 import PresenciaAvatars from '../components/PresenciaAvatars'
 import SnapshotPanel from '../components/SnapshotPanel'
+import { hoyLocal } from '../lib/fechaLocal'
 
 // ─── Constantes diseño ──────────────────────────────────────────────────────
 const EASE = [0.22, 1, 0.36, 1] as const
@@ -280,7 +281,7 @@ function construirChains(
 
     // Sanea fechas absurdas: descarta sentinels, fechas futuras y fechas que rompen el orden cronologico.
     // Sin esto, un cosechaReal mal-etiquetado (fecha 2026-07-29) cascadea a SEC/Trim con rangos invertidos.
-    const hoyISO = new Date().toISOString().slice(0, 10)
+    const hoyISO = hoyLocal()
     const fechaOk = (f?: string): string | undefined => {
       if (!f || f === '2025-01-01') return undefined
       const f10 = String(f).slice(0, 10)
@@ -1679,7 +1680,7 @@ function NuevaCadenaDrawer({ open, onOpenChange, onCreated }: { open: boolean; o
       codigo_lote: '',
       variedad_id: '',
       instalacion_id: '',
-      fecha_inicio: new Date().toISOString().slice(0, 10),
+      fecha_inicio: hoyLocal(),
       notas: '',
     },
   })
@@ -1705,7 +1706,7 @@ function NuevaCadenaDrawer({ open, onOpenChange, onCreated }: { open: boolean; o
       codigo_lote: '',
       variedad_id: '',
       instalacion_id: '',
-      fecha_inicio: new Date().toISOString().slice(0, 10),
+      fecha_inicio: hoyLocal(),
       notas: '',
     })
   }, [open, reset])

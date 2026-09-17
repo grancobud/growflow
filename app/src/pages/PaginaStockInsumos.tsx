@@ -16,6 +16,7 @@ import {
   type Insumo, type Mantenimiento, type CategoriaInsumo,
 } from '../lib/stock'
 import { btnPrimario, btnSutil } from '../lib/ui'
+import { fechaLocal, hoyLocal } from '../lib/fechaLocal'
 
 // text-[16px] en celular: iOS Safari hace zoom sobre cualquier campo con letra
 // menor y deja el formulario descuadrado. En desktop vuelve al tamaño real.
@@ -37,7 +38,7 @@ const CAT: Record<CategoriaInsumo, Estilo> = {
   Otro:          { text: '#8f8f9f', bg: 'rgba(143,143,159,0.10)', border: '#2a2a3a', icono: Package },
 }
 
-const hoyISO = () => new Date().toISOString().slice(0, 10)
+const hoyISO = () => hoyLocal()
 const fmtFecha = (f: string | null) => f ? new Date(f + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: '2-digit' }) : '—'
 
 /**
@@ -92,7 +93,7 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
   }
   const hechoHoy = async (m: Mantenimiento) => {
     try {
-      const proximo = m.frecuencia_dias ? new Date(Date.now() + m.frecuencia_dias * 86400000).toISOString().slice(0, 10) : null
+      const proximo = m.frecuencia_dias ? fechaLocal(new Date(Date.now() + m.frecuencia_dias * 86400000)) : null
       await stockService.actualizarMantenimiento(m.id, { fecha_realizado: hoyISO(), proximo })
       toast.success('Registrado como hecho hoy'); cargar()
     } catch (err) { toast.error(`Error: ${(err as Error).message}`) }

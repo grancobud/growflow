@@ -18,6 +18,7 @@ import { supabase } from '../lib/supabase'
 import { DataTable } from '../components/ui/data-table'
 import type { ColumnDef } from '@tanstack/react-table'
 import { useRealtimeRefetch } from '../hooks/useRealtimeInvalidation'
+import { hoyLocal } from '../lib/fechaLocal'
 
 interface TablaInfo {
   key: string
@@ -611,7 +612,7 @@ function exportarCSV(datos: Registro[], tabla: TablaInfo) {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `${tabla.key}-${new Date().toISOString().slice(0, 10)}.csv`
+  a.download = `${tabla.key}-${hoyLocal()}.csv`
   a.click()
   URL.revokeObjectURL(url)
 }

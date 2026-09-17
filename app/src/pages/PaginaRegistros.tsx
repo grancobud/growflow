@@ -4,6 +4,7 @@ import type { LucideIcon } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { AREAS, SUBCATEGORIAS } from '../lib/cumcsJerarquia'
 import CamposCumcs from '../components/operaciones/CamposCumcs'
+import { hoyLocal } from '../lib/fechaLocal'
 
 interface TipoRegistro {
   codigo: string
@@ -39,7 +40,7 @@ export default function PaginaRegistros() {
   const [msgExito, setMsgExito] = useState('')
   const [msgError, setMsgError] = useState('')
   // Form state
-  const [formFecha, setFormFecha] = useState(new Date().toISOString().split('T')[0])
+  const [formFecha, setFormFecha] = useState(hoyLocal())
   const [formResponsable, setFormResponsable] = useState('')
   const [formObs, setFormObs] = useState('')
   const [formCampos, setFormCampos] = useState<Record<string, string>>({})
@@ -47,7 +48,7 @@ export default function PaginaRegistros() {
   const setFormCampo = (k: string, v: string) => setFormCampos(prev => ({ ...prev, [k]: v }))
 
   const limpiarForm = () => {
-    setFormFecha(new Date().toISOString().split('T')[0])
+    setFormFecha(hoyLocal())
     setFormResponsable('')
     setFormObs('')
     setFormCampos({})

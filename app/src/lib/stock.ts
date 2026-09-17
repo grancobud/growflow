@@ -1,6 +1,7 @@
 // Capa de datos de Stock & Insumos: inventario del cultivo + mantenimiento.
 
 import { supabase } from './supabase'
+import { fechaLocal } from './fechaLocal'
 
 export type CategoriaInsumo =
   | 'Fertilizante' | 'Iluminacion' | 'Climatizacion' | 'Riego' | 'CO2'
@@ -62,7 +63,7 @@ export interface Mantenimiento {
 export function sumarDias(fecha: string, dias: number): string {
   const d = new Date(fecha + 'T00:00:00')
   d.setDate(d.getDate() + dias)
-  return d.toISOString().slice(0, 10)
+  return fechaLocal(d)
 }
 
 // Proximo mantenimiento efectivo (el guardado, o calculado por frecuencia).

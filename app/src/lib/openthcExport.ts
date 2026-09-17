@@ -2,6 +2,7 @@
 // https://openthc.org/cre | https://github.com/openthc
 
 import { getAllSnapshots } from './snapshotService'
+import { hoyLocal } from './fechaLocal'
 
 type Lote = {
   id: string; codigo_lote: string; cantidad: number; estado: string
@@ -102,7 +103,7 @@ export async function exportOpenTHC(lotes: Lote[], orgNombre = 'FIS S.A.S.') {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `canntrace_openthc_cre_${new Date().toISOString().slice(0, 10)}.json`
+  a.download = `canntrace_openthc_cre_${hoyLocal()}.json`
   a.click()
   URL.revokeObjectURL(url)
 }

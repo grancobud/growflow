@@ -20,6 +20,7 @@ import { reciboReembolso, comprobanteDispensacion } from '../../lib/documentosLe
 import { VisorDocumento } from './ActaParaLibro'
 import type { Genetica } from '../../lib/cultivo'
 import { btnPrimario, btnSutil } from '../../lib/ui'
+import { hoyLocal } from '../../lib/fechaLocal'
 
 const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#8a8a9c] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1'
@@ -55,7 +56,7 @@ export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPor
   const reprocannVencidoDe = (id?: string | null) => {
     const pac = pacientes.find(p => p.id === id)
     if (!pac) return undefined
-    const hoy = new Date().toISOString().slice(0, 10)
+    const hoy = hoyLocal()
     return pac.reprocann_estado === 'Vencido' ||
       (!!pac.reprocann_vencimiento && pac.reprocann_vencimiento < hoy)
   }
@@ -107,7 +108,7 @@ export function Dispensas({ dispensas, pacientes, asociados, geneticas, costoPor
         <div className="flex items-center gap-2 flex-wrap">
           <HandCoins className="w-4 h-4 text-[#bef264]" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Dispensas</h3>
-          <button onClick={() => setForm({ fecha: new Date().toISOString().slice(0, 10), producto: 'flor', modalidad: 'retiro' })}
+          <button onClick={() => setForm({ fecha: hoyLocal(), producto: 'flor', modalidad: 'retiro' })}
             className={`${btnPrimario} ml-auto`}><Plus className="w-3.5 h-3.5" /> Registrar</button>
         </div>
         <p className="text-[11.5px] text-[#8a8a9c] mt-2">

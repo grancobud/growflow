@@ -5,6 +5,7 @@ import { supabase } from './supabase'
 import {
   SECTORES, SECTOR_KEYS, type ActivityEvent, type SectorKey,
 } from './awareness'
+import { fechaLocal } from './fechaLocal'
 
 interface FetchOptions {
   // Cuantos por tabla pedir (default 10)
@@ -96,8 +97,8 @@ export async function fetchCalendarEvents(
   rangeEnd: Date,
   sectors: SectorKey[] = SECTOR_KEYS,
 ): Promise<ActivityEvent[]> {
-  const startIso = rangeStart.toISOString().slice(0, 10) // YYYY-MM-DD
-  const endIso = rangeEnd.toISOString().slice(0, 10)
+  const startIso = fechaLocal(rangeStart) // YYYY-MM-DD
+  const endIso = fechaLocal(rangeEnd)
 
   const promises = sectors.map(async (sector): Promise<ActivityEvent[]> => {
     const def = SECTORES[sector]

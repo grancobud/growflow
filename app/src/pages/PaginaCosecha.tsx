@@ -9,6 +9,7 @@ import {
   Scale, Scissors, Trophy, X, Loader2, Plus, Star, Layers, Sprout, RefreshCw, Pencil, Trash2, ChevronDown,
 } from 'lucide-react'
 import { cultivoService, FASES_COSECHABLES, type ResumenPlanta, type Cosecha } from '../lib/cultivo'
+import { hoyLocal } from '../lib/fechaLocal'
 
 // Los 16px del input no son estéticos: abajo de eso iOS hace zoom al tocar el
 // campo y te deja la pantalla corrida. En desktop se achica con el sm:.
@@ -51,7 +52,7 @@ interface FilaVariedad {
   faltan: number
 }
 
-const hoy = () => new Date().toISOString().slice(0, 10)
+const hoy = () => hoyLocal()
 const prom = (vs: number[]) => (vs.length ? vs.reduce((a, b) => a + b, 0) / vs.length : null)
 
 export default function PaginaCosecha() {

@@ -4,6 +4,7 @@ import { FileText, Upload, Loader2, Copy, Check, FlaskConical, AlertCircle, Data
 import { toast } from 'sonner'
 import { EmptyState } from '../components/ui/empty-state'
 import { supabase } from '../lib/supabase'
+import { hoyLocal } from '../lib/fechaLocal'
 
 type Cannabinoide = 'thc' | 'cbd' | 'thca' | 'cbda' | 'cbg' | 'cbn' | 'cbc'
 type Terpeno = 'myrcene' | 'limonene' | 'pinene' | 'linalool' | 'caryophyllene' | 'humulene' | 'terpinolene' | 'ocimene'
@@ -107,7 +108,7 @@ export default function PaginaCoAParser() {
     const { error } = await supabase.from('resultados_laboratorio').insert({
       lote_id: loteId,
       laboratorio: resultado.meta.laboratorio || 'Sin especificar',
-      fecha_analisis: resultado.meta.fecha || new Date().toISOString().slice(0, 10),
+      fecha_analisis: resultado.meta.fecha || hoyLocal(),
       metodo: resultado.meta.metodo || null,
       cannabinoides: resultado.cannabinoides,
       terpenos: resultado.terpenos,

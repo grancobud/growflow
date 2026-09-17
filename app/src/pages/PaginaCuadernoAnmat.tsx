@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useRealtimeRefetch } from '../hooks/useRealtimeInvalidation'
+import { fechaLocal, hoyLocal } from '../lib/fechaLocal'
 
 const CAMADAS_VALIDAS = ['C7', 'C9', 'C11', 'C12', 'C15', 'C16'] as const
 type Camada = typeof CAMADAS_VALIDAS[number]
@@ -51,8 +52,8 @@ const CAT_COLORES: Record<EntradaCuaderno['categoria'], string> = {
 }
 
 export default function PaginaCuadernoAnmat() {
-  const hoy = new Date().toISOString().slice(0, 10)
-  const haceUnMes = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10)
+  const hoy = hoyLocal()
+  const haceUnMes = fechaLocal(new Date(Date.now() - 30 * 86400000))
 
   const [camada, setCamada] = useState<Camada | ''>('')
   const [desde, setDesde] = useState(haceUnMes)

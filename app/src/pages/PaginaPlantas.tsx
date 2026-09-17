@@ -13,6 +13,7 @@ import {
 import { registroService, type Paciente } from '../lib/registro'
 import DetallePlanta from '../components/DetallePlanta'
 import { btnPrimario, btnSutil, nombreTocable } from '../lib/ui'
+import { hoyLocal } from '../lib/fechaLocal'
 
 
 // Chip de tipo de genética (Auto/Fem/…) — color + abreviatura.
@@ -119,7 +120,7 @@ export default function PaginaPlantas() {
     try {
       await cultivoService.crearCosecha({
         planta_id: plantaId,
-        fecha: new Date().toISOString().slice(0, 10),
+        fecha: hoyLocal(),
         peso_seco_g: pesoSeco,
         valoracion: valoracion || null,
       })
@@ -556,7 +557,7 @@ function ModalPlanta({ geneticas, pacientes, onCerrar, onCreada, onNuevaGenetica
   onNuevaGenetica: () => void
 }) {
   const [guardando, setGuardando] = useState(false)
-  const hoy = new Date().toISOString().slice(0, 10)
+  const hoy = hoyLocal()
   const [form, setForm] = useState({
     genetica_id: geneticas[0]?.id ?? '', paciente_id: '', apodo: '', fecha: hoy,
     fase: 'Germinacion', sustrato: '', maceta: '', ubicacion: '', cantidad: '1',

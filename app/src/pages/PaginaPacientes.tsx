@@ -20,6 +20,7 @@ import { FotoPrivada } from '../components/FotoPrivada'
 import { btnPrimario, btnSutil, nombreTocable } from '../lib/ui'
 import { HistoriaClinica } from '../components/ong/HistoriaClinica'
 import { useDirectorMedico } from '../lib/useDirectorMedico'
+import { hoyLocal } from '../lib/fechaLocal'
 
 const COLOR_ESTADO: Record<EstadoReprocann, { text: string; bg: string; border: string }> = {
   Vigente:      { text: '#bef264', bg: 'rgba(163,230,53,0.14)', border: '#404d20' },
@@ -396,7 +397,7 @@ type FormState = {
 function ModalPaciente({ paciente, onCerrar, onGuardado }: {
   paciente: Paciente | null; onCerrar: () => void; onGuardado: () => void
 }) {
-  const hoy = new Date().toISOString().slice(0, 10)
+  const hoy = hoyLocal()
   const [form, setForm] = useState<FormState>({
     nombre_completo: paciente?.nombre_completo ?? '', dni: paciente?.dni ?? '',
     fecha_nacimiento: paciente?.fecha_nacimiento ?? '', telefono: paciente?.telefono ?? '',

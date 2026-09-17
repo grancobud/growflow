@@ -14,6 +14,7 @@
 // no las escribe — extension futura incremental siguiendo este mismo patron.
 
 import { supabase } from './supabase'
+import { hoyLocal } from './fechaLocal'
 
 /** Mapping CUMCS code → tabla destino en Supabase. */
 const CUMCS_A_TABLA: Record<string, string> = {
@@ -223,8 +224,8 @@ export async function insertarRegistroCumcs(
       formCampos.fecha_cosecha ||
       formCampos.fecha_transplante ||
       formCampos.fecha_recepcion ||
-      new Date().toISOString().slice(0, 10)
-    payload.fecha = toDate(fechaRaw) ?? new Date().toISOString().slice(0, 10)
+      hoyLocal()
+    payload.fecha = toDate(fechaRaw) ?? hoyLocal()
   }
 
   // FK opcional a lotes si existe columna lote_id en la tabla destino

@@ -7,6 +7,7 @@ import {
   Droplets, FlaskConical, Scissors, Shovel, SprayCan, Sprout, Scale,
   Wrench, Repeat, BellRing, CircleDashed, type LucideIcon,
 } from 'lucide-react'
+import { fechaLocal } from './fechaLocal'
 
 export type TipoCal =
   | 'Riego' | 'Fertilizacion' | 'Poda' | 'Trasplante' | 'Fumigacion'
@@ -92,7 +93,7 @@ export interface EventoCal {
 }
 
 // ----- helpers de fechas (YYYY-MM-DD) -----
-const dISO = (d: Date) => d.toISOString().slice(0, 10)
+const dISO = (d: Date) => fechaLocal(d)
 const parse = (s: string) => new Date(s + 'T00:00:00')
 function addDays(s: string, n: number) { const d = parse(s); d.setDate(d.getDate() + n); return dISO(d) }
 function addMonths(s: string, n: number) { const d = parse(s); d.setMonth(d.getMonth() + n); return dISO(d) }

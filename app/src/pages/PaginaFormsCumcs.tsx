@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { supabase } from '../lib/supabase'
 import { camposParaCodigo } from '../lib/camposChatCumcs'
 import { useConfirm } from '../hooks/useConfirm'
+import { hoyLocal } from '../lib/fechaLocal'
 
 type Tipo = { codigo: string; nombre: string; grupo: string; tabla_destino: string }
 
@@ -56,7 +57,7 @@ export default function PaginaFormsCumcs() {
       const payload: any = {
         ...valores,
         tipo: codigoSel,
-        fecha: valores.fecha || new Date().toISOString().slice(0, 10),
+        fecha: valores.fecha || hoyLocal(),
         creado_por: user.user?.id,
       }
       // convertir boolean strings

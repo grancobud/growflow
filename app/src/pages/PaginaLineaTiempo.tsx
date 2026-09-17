@@ -11,6 +11,7 @@ import { CalendarRange, Sprout, Pencil, X, Loader2, ExternalLink } from 'lucide-
 import { supabase } from '../lib/supabase'
 import { cultivoService, type Genetica } from '../lib/cultivo'
 import { btnPrimario, btnSutil } from '../lib/ui'
+import { fechaLocal, hoyLocal } from '../lib/fechaLocal'
 
 const VERDE = '#a8cf8e', LILA = '#c9b8e8', GRIS = '#b7b3c2'
 
@@ -19,9 +20,9 @@ const VERDE = '#a8cf8e', LILA = '#c9b8e8', GRIS = '#b7b3c2'
 const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#8a8a9c] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1'
 
-const hoyISO = () => new Date().toISOString().slice(0, 10)
+const hoyISO = () => hoyLocal()
 const diff = (a: string, b: string) => Math.round((new Date(b + 'T00:00:00').getTime() - new Date(a + 'T00:00:00').getTime()) / 86400000)
-const sumar = (f: string, d: number) => { const x = new Date(f + 'T00:00:00'); x.setDate(x.getDate() + d); return x.toISOString().slice(0, 10) }
+const sumar = (f: string, d: number) => { const x = new Date(f + 'T00:00:00'); x.setDate(x.getDate() + d); return fechaLocal(x) }
 const fmt = (f: string | null) => f ? new Date(f + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: '2-digit' }) : '—'
 
 interface PlantaMin { id: string; genetica_id: string | null; fecha_germinacion: string | null; fase: string; activa: boolean }

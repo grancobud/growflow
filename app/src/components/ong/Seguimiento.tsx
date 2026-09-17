@@ -23,6 +23,7 @@ import type { Paciente } from '../../lib/registro'
 import { btnPrimario, btnSutil } from '../../lib/ui'
 import { armarInforme, tendencia, redactarInformeSemestral, MINIMO_PARA_TENDENCIA } from '../../lib/informeMedico'
 import { VisorDocumento } from './ActaParaLibro'
+import { hoyLocal } from '../../lib/fechaLocal'
 
 const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#8a8a9c] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1'
@@ -199,7 +200,7 @@ export function Seguimiento({ dispensas, feedbacks, pacientes, caja, entidad = n
             <button onClick={asentarPendientes} disabled={asentando} className={btnSutil}>
               <Wand2 className="w-3.5 h-3.5" /> Asentar reembolsos
             </button>
-            <button onClick={() => setAsiento({ tipo: 'ingreso', fecha: new Date().toISOString().slice(0, 10) })}
+            <button onClick={() => setAsiento({ tipo: 'ingreso', fecha: hoyLocal() })}
               className={btnPrimario}>
               <Plus className="w-3.5 h-3.5" /> Asiento
             </button>

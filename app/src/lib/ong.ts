@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { fechaLocal, hoyLocal } from './fechaLocal'
 
 /**
  * Capa institucional de la asociación civil.
@@ -917,7 +918,7 @@ export function semestreDe(iso: string): string {
 }
 
 export function semestreActual(hoy = new Date()): string {
-  return semestreDe(hoy.toISOString().slice(0, 10))
+  return semestreDe(fechaLocal(hoy))
 }
 
 /** Último día del semestre: es la fecha contra la que corre el vencimiento. */
@@ -1078,7 +1079,7 @@ export function cupoReprocann(
   pacientes: PacienteCupo[], plantas: PlantaCupo[], porPacienteDefault = 9,
 ): CupoReprocann {
   const activas = plantas.filter(p => p.activa !== false)
-  const hoy = new Date().toISOString().slice(0, 10)
+  const hoy = hoyLocal()
 
   const personas: CupoPersona[] = pacientes
     .filter(p => p.activo !== false)
@@ -1149,7 +1150,7 @@ export function cupoMovil30Dias(
 ): CupoMovil {
   const fin = new Date(hasta + 'T00:00:00')
   const ini = new Date(fin); ini.setDate(ini.getDate() - 30)
-  const iso = (d: Date) => d.toISOString().slice(0, 10)
+  const iso = (d: Date) => fechaLocal(d)
   const enVentana = dispensas.filter(d =>
     d.paciente_id === pacienteId && d.id !== excluirId &&
     d.fecha >= iso(ini) && d.fecha <= hasta)

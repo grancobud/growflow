@@ -15,13 +15,14 @@ import {
   calendarioService, COLOR_CAL, TIPOS_CAL, REPETICIONES, LABEL_CAL, ICONO_CAL,
   type EventoCal, type TipoCal, type Recordatorio, type Repeticion, iconoCal } from '../lib/calendario'
 import { btnPrimario, btnSutil } from '../lib/ui'
+import { hoyLocal } from '../lib/fechaLocal'
 
 // text-[16px] en celular: iOS Safari hace zoom sobre cualquier campo con letra
 // menor y deja el formulario descuadrado. En desktop vuelve al tamaño real.
 const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#8a8a9c] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1'
 
-const hoyISO = () => new Date().toISOString().slice(0, 10)
+const hoyISO = () => hoyLocal()
 
 /**
  * Como se dibuja cada evento adentro de una celda del calendario.

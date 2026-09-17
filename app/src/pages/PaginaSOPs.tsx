@@ -4,6 +4,7 @@ import { FileText, Upload, Loader2, Plus, ExternalLink, X, GitBranch } from 'luc
 import { toast } from 'sonner'
 import { supabase } from '../lib/supabase'
 import { EmptyState } from '../components/ui/empty-state'
+import { hoyLocal } from '../lib/fechaLocal'
 
 type SOP = {
   id: string; codigo: string; titulo: string; version: string; estado: string
@@ -43,7 +44,7 @@ export default function PaginaSOPs() {
     setGuardando(true)
     const { error } = await supabase.from('sops').insert({
       ...nuevo,
-      fecha_vigencia: nuevo.estado === 'vigente' ? new Date().toISOString().slice(0, 10) : null,
+      fecha_vigencia: nuevo.estado === 'vigente' ? hoyLocal() : null,
     })
     setGuardando(false)
     if (error) {
@@ -81,7 +82,7 @@ export default function PaginaSOPs() {
   async function cambiarEstado(id: string, estado: string) {
     const { error } = await supabase
       .from('sops')
-      .update({ estado, fecha_vigencia: estado === 'vigente' ? new Date().toISOString().slice(0, 10) : null })
+      .update({ estado, fecha_vigencia: estado === 'vigente' ? hoyLocal() : null })
       .eq('id', id)
     if (error) toast.error('Error: ' + error.message)
     else {

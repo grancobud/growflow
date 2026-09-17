@@ -13,6 +13,7 @@ import { operacionesService } from '../../lib/servicios'
 import { supabase } from '../../lib/supabase'
 import { cargarSugerencias as cargarSugerenciasLib, formatearIdLote, existeEnSugerencias, type Sugerencias } from '../../lib/sugerenciasCumcs'
 import { toast } from 'sonner'
+import { hoyLocal } from '../../lib/fechaLocal'
 
 interface VarianteOpcion {
   codigo: string
@@ -87,7 +88,7 @@ export default function ChatGuiado() {
     }
     if (campo.tipo === 'date') {
       // ISO YYYY-MM-DD o DD/MM/YYYY o "hoy"
-      if (v.toLowerCase() === 'hoy') return { ok: true, valor: new Date().toISOString().slice(0, 10) }
+      if (v.toLowerCase() === 'hoy') return { ok: true, valor: hoyLocal() }
       if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return { ok: true, valor: v }
       const m = v.match(/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})$/)
       if (m) return { ok: true, valor: `${m[3]}-${m[2]}-${m[1]}` }
@@ -298,7 +299,7 @@ export default function ChatGuiado() {
       const datos: any = {
         tipo_operacion: variante.tipoOperacion,
         responsable: responsable.trim(),
-        fecha_operacion: valores.fecha || new Date().toISOString().slice(0, 10),
+        fecha_operacion: valores.fecha || hoyLocal(),
         json_estructurado: { via: 'chat_guiado', codigo: variante.codigo },
         datos_extra: { registro_cumcs: variante.codigo, ...valores },
       }

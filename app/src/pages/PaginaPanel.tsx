@@ -12,6 +12,7 @@ import { ongService, calcularVencimientos, type Vencimiento } from '../lib/ong'
 import { toast } from 'sonner'
 import { cultivoService, type ResumenPlanta, type Evento, colorFase } from '../lib/cultivo'
 import { stockService, proximoEfectivo, diasParaProximo, type Mantenimiento, type Insumo } from '../lib/stock'
+import { fechaLocal, hoyLocal } from '../lib/fechaLocal'
 
 const EASE = [0.22, 1, 0.36, 1] as const
 const stagger = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05, delayChildren: 0.04 } } }
@@ -70,13 +71,13 @@ export default function PaginaPanel() {
 
   const hechoHoy = async (m: Mantenimiento) => {
     try {
-      const proximo = m.frecuencia_dias ? new Date(Date.now() + m.frecuencia_dias * 86400000).toISOString().slice(0, 10) : null
-      await stockService.actualizarMantenimiento(m.id, { fecha_realizado: new Date().toISOString().slice(0, 10), proximo })
+      const proximo = m.frecuencia_dias ? fechaLocal(new Date(Date.now() + m.frecuencia_dias * 86400000)) : null
+      await stockService.actualizarMantenimiento(m.id, { fecha_realizado: hoyLocal(), proximo })
       toast.success('Registrado como hecho hoy'); cargar()
     } catch (err) { toast.error(`Error: ${(err as Error).message}`) }
   }
 
-  const hoy = new Date().toISOString().slice(0, 10)
+  const hoy = hoyLocal()
   const enFlora = plantas.filter(p => p.fase === 'Floracion').length
   const riegosHoy = eventos.filter(e => e.tipo === 'Riego' && e.fecha === hoy).length
   const sinRiegoDias = (p: ResumenPlanta) =>

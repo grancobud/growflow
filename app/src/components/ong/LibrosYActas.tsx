@@ -11,6 +11,7 @@ import {
 } from '../../lib/ong'
 import { btnPrimario, btnSutil } from '../../lib/ui'
 import { Asistentes, VisorActa } from './ActaParaLibro'
+import { hoyLocal } from '../../lib/fechaLocal'
 
 const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#8a8a9c] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1'
@@ -163,7 +164,7 @@ export function Actas({ actas, libros, asociados = [], autoridades = [], entidad
 
   const nuevo = async (tipo: string) => {
     const numero = await ongService.proximoNumeroActa(tipo)
-    setForm({ tipo, numero, fecha: new Date().toISOString().slice(0, 10), estado: 'borrador', quorum_ok: true })
+    setForm({ tipo, numero, fecha: hoyLocal(), estado: 'borrador', quorum_ok: true })
   }
   const guardar = async () => {
     if (!form?.tipo || !form?.numero || !form?.fecha) { toast.error('Tipo, número y fecha son obligatorios'); return }

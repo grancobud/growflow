@@ -18,6 +18,7 @@ import type { Paciente } from '../../lib/registro'
 import { guiaTransitoInterno, ddjjTransporteDomicilio } from '../../lib/documentosLegales'
 import { VisorDocumento } from './ActaParaLibro'
 import { btnPrimario, btnSutil } from '../../lib/ui'
+import { hoyLocal } from '../../lib/fechaLocal'
 
 const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#8a8a9c] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1'
@@ -47,7 +48,7 @@ export function Declaraciones({ ddjj, traslados, pacientes, cultivo, entidad = n
     plantas_floracion: cultivo.plantasFloracion,
     pacientes_vinculados: cultivo.pacientesVinculados,
     variedades: cultivo.variedades.join(', '),
-    fecha_presentacion: new Date().toISOString().slice(0, 10),
+    fecha_presentacion: hoyLocal(),
   })
 
   const borrarDDJJ = async (d: DDJJ) => {
@@ -121,7 +122,7 @@ export function Declaraciones({ ddjj, traslados, pacientes, cultivo, entidad = n
         <div className="flex items-center gap-2 flex-wrap">
           <Truck className="w-4 h-4 text-[#c4b5fd]" strokeWidth={1.8} />
           <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Traslados y cartas de porte</h3>
-          <button onClick={() => setTras({ fecha: new Date().toISOString().slice(0, 10), tipo_material: 'flores' })}
+          <button onClick={() => setTras({ fecha: hoyLocal(), tipo_material: 'flores' })}
             className={`${btnPrimario} ml-auto`}>
             <Plus className="w-3.5 h-3.5" /> Registrar traslado
           </button>

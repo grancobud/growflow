@@ -14,6 +14,7 @@
 import type { Entidad, Asociado, Dispensa, Traslado } from './ong'
 import type { Paciente } from './registro'
 import { fechaEnLetras } from './actaTexto'
+import { hoyLocal } from './fechaLocal'
 
 const FALTA = (q: string) => `[${q}]`
 const fmtPesos = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
@@ -247,7 +248,7 @@ export function ddjjMandato(
   if (!pac?.reprocann_nro) f.push('el N° de REPROCANN')
   if (!e?.cuit) f.push('el CUIT de la entidad')
 
-  const hoy = aso.mandato_fecha || new Date().toISOString().slice(0, 10)
+  const hoy = aso.mandato_fecha || hoyLocal()
   const dni = pac?.dni || aso.dni
   const L = [
     'DECLARACIÓN JURADA DE VINCULACIÓN EXCLUSIVA',

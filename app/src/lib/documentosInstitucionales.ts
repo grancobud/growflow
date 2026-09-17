@@ -7,6 +7,7 @@
 import type { Entidad } from './ong'
 import { fechaEnLetras } from './actaTexto'
 import type { DocumentoGenerado } from './documentosLegales'
+import { hoyLocal } from './fechaLocal'
 
 const FALTA = (q: string) => `[${q}]`
 
@@ -122,7 +123,7 @@ export function comodato(
   if (!d.direccion) f.push('la dirección del inmueble')
   if (!e?.cuit) f.push('el CUIT de la entidad')
 
-  const desde = d.desde || new Date().toISOString().slice(0, 10)
+  const desde = d.desde || hoyLocal()
   const L = [
     esSede
       ? 'CONTRATO DE COMODATO — SEDE SOCIAL ADMINISTRATIVA'

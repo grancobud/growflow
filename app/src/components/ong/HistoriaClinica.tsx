@@ -18,6 +18,7 @@ import {
   type FichaClinica, type Evolucion, type TipoEvolucion,
 } from '../../lib/clinica'
 import { btnPrimario, btnSutil } from '../../lib/ui'
+import { hoyLocal } from '../../lib/fechaLocal'
 
 const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#8a8a9c] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1'
@@ -185,7 +186,7 @@ export function HistoriaClinica({ pacienteId, pacienteNombre, firmante, matricul
               </span>
               {!nueva && (
                 <button className={`${btnPrimario} ml-auto`}
-                  onClick={() => setNueva({ tipo: 'evolucion', fecha: new Date().toISOString().slice(0, 10), texto: '' })}>
+                  onClick={() => setNueva({ tipo: 'evolucion', fecha: hoyLocal(), texto: '' })}>
                   <Plus className="w-3.5 h-3.5" /> Agregar
                 </button>
               )}

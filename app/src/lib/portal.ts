@@ -20,6 +20,7 @@ import { supabase } from './supabase'
 import type { Dispensa, FeedbackClinico, Asociado, AsientoCaja } from './ong'
 import { feedbackPendiente } from './ong'
 import type { Paciente } from './registro'
+import { fechaLocal, hoyLocal } from './fechaLocal'
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -238,7 +239,7 @@ export function cupoConReservas(
   pacienteId: string, dispensas: Dispensa[], pedidos: Pedido[],
   topeMensualG: number | null, ahora: Date = new Date(), excluirPedidoId?: string,
 ): CupoConReservas {
-  const iso = (d: Date) => d.toISOString().slice(0, 10)
+  const iso = (d: Date) => fechaLocal(d)
   const desde = new Date(ahora); desde.setDate(desde.getDate() - 30)
   const hasta = iso(ahora)
 
@@ -555,7 +556,7 @@ export const portalService = {
     const ahora = new Date()
     const { error } = await supabase.from('ong_asociados').update({
       mandato_aceptado: true,
-      mandato_fecha: ahora.toISOString().slice(0, 10),
+      mandato_fecha: fechaLocal(ahora),
       mandato_hora: ahora.toISOString(),
       ip_firma_mandato: ip,
       mandato_version: version,
@@ -608,7 +609,7 @@ export interface ResultadoEntrega {
 export function consolidarEntrega(
   p: Pedido, lote: Lote, opts: { entregadoPor?: string | null; reciboNumero?: number | null } = {},
 ): ResultadoEntrega {
-  const hoy = new Date().toISOString().slice(0, 10)
+  const hoy = hoyLocal()
   return {
     dispensa: {
       paciente_id: p.paciente_id ?? null,

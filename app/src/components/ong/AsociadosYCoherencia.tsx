@@ -19,6 +19,7 @@ import {
 } from '../../lib/ong'
 import type { Paciente } from '../../lib/registro'
 import { btnPrimario, btnSutil } from '../../lib/ui'
+import { hoyLocal } from '../../lib/fechaLocal'
 
 const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#8a8a9c] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
 const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1'
@@ -292,7 +293,7 @@ function Cobranza({ asociados, cuotas, cuotasEmitidas, onCambio }: {
     try {
       await ongService.guardarCuotaEmitida({
         id: c.id, pagada: !c.pagada,
-        fecha_pago: !c.pagada ? new Date().toISOString().slice(0, 10) : null,
+        fecha_pago: !c.pagada ? hoyLocal() : null,
       })
       onCambio()
     } catch (e) { toast.error((e as Error).message) }

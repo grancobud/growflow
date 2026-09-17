@@ -14,6 +14,7 @@ import CamposCumcs from './CamposCumcs'
 import InputConSugerencias from './InputConSugerencias'
 import { useSugerencias, formatearIdLote } from '../../lib/sugerenciasCumcs'
 import { supabase } from '../../lib/supabase'
+import { hoyLocal } from '../../lib/fechaLocal'
 
 const ICONOS_LUCIDE: Record<TipoOperacion, LucideIcon> = {
   ingreso_insumos: Package, planta_madre: Sprout, fertilizacion: Droplet,
@@ -56,7 +57,7 @@ export default function FormularioOperacion() {
   const [loteOrigenId, setLoteOrigenId] = useState('')
   const [responsable, setResponsable] = useState('')
   const [observaciones, setObservaciones] = useState('')
-  const [fechaOp, setFechaOp] = useState(new Date().toISOString().split('T')[0])
+  const [fechaOp, setFechaOp] = useState(hoyLocal())
 
   // Catalogo liviano de lotes (solo para el <select> de vincular)
   const [lotes, setLotes] = useState<any[]>([])
@@ -112,7 +113,7 @@ export default function FormularioOperacion() {
     setResponsable('')
     setObservaciones('')
     setFormCampos({})
-    setFechaOp(new Date().toISOString().split('T')[0])
+    setFechaOp(hoyLocal())
     setError('')
     setExito('')
   }

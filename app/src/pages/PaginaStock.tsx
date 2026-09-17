@@ -11,6 +11,7 @@ import { ETIQUETAS_OPERACION, type TipoOperacion } from '../types'
 import { FilterBar, type FilterChip } from '../components/ui/filter-bar'
 import { DataTable } from '../components/ui/data-table'
 import type { ColumnDef } from '@tanstack/react-table'
+import { hoyLocal } from '../lib/fechaLocal'
 
 // ─── Paleta dark ────────────────────────────────────────────────────────────
 const coloresEstado: Record<string, { pill: string; dot: string }> = {
@@ -330,7 +331,7 @@ export default function PaginaStock() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `stock-${new Date().toISOString().slice(0, 10)}.csv`
+    a.download = `stock-${hoyLocal()}.csv`
     a.click()
     URL.revokeObjectURL(url)
   }

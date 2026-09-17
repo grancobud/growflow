@@ -7,6 +7,7 @@ import { BarChart, DonutChart, AreaChart, SparkAreaChart } from '@tremor/react'
 import { RefreshCw, BarChart3, Sparkles, Activity, Leaf, Package, Calendar, TrendingUp, Layers, Beaker } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useRealtimeRefetch } from '../hooks/useRealtimeInvalidation'
+import { fechaLocal } from '../lib/fechaLocal'
 
 const EASE = [0.22, 1, 0.36, 1] as const
 const stagger = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.06, delayChildren: 0.05 } } }
@@ -122,7 +123,7 @@ export default function PaginaDashboard() {
     for (let i = dias - 1; i >= 0; i--) {
       const d = new Date(hoy)
       d.setDate(d.getDate() - i)
-      const k = d.toISOString().slice(0, 10)
+      const k = fechaLocal(d)
       const gHoy = operaciones
         .filter(o => o.fecha_operacion?.slice(0, 10) === k && o.tipo_operacion === 'trimming')
         .reduce((a, o) => a + (parseFloat(o.peso_neto_g) || 0), 0)

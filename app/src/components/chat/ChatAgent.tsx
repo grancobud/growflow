@@ -17,6 +17,7 @@ import { buildSystemPrompt } from '../../lib/cumcsPrompts'
 import { CAMPOS_CUMCS, type CampoChat } from '../../lib/camposChatCumcs'
 import { REGLAS_CUMCS } from '../../lib/cumcsPrompts'
 import { cargarSugerencias as cargarSugerenciasLib, formatearIdLote as formatearIdLoteLib, type Sugerencias } from '../../lib/sugerenciasCumcs'
+import { hoyLocal } from '../../lib/fechaLocal'
 
 interface DraftPreview {
   id: string
@@ -612,7 +613,7 @@ function normalizarValor(
   // Fecha
   if (c.tipo === 'date') {
     if (v.toLowerCase() === 'hoy') {
-      return { valor: new Date().toISOString().slice(0, 10), original, confianza: 100, razon: 'Hoy normalizado a fecha ISO' }
+      return { valor: hoyLocal(), original, confianza: 100, razon: 'Hoy normalizado a fecha ISO' }
     }
     if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return { valor: v, original, confianza: 100, razon: 'Formato ISO valido' }
     const m = v.match(/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})$/)
