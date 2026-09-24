@@ -31,9 +31,32 @@ export function PestanasSeccion({ secciones, etiqueta }: {
   // Antes del return condicional de abajo: un hook no puede quedar detrás de un
   // early return.
   const { refWrapper, refScroller } = useDesbordeHorizontal<HTMLDivElement, HTMLElement>(secciones.length)
-  const actual = secciones.find(s => pathname.startsWith(s.ruta))
+  // POR SEGMENTO, NO POR PREFIJO DE STRING.
+  //
+  // Con `startsWith` a secas, `/plantas` empieza con `/plan` — asi que al sumar
+  // la seccion del plan de cultivo, entrar a Plantas mostraba el Plan con la
+  // URL diciendo `/plantas`. Una pantalla que no es la que pediste y una URL
+  // que jura que si.
+  //
+  // No es un caso raro ni buscado: pasa cada vez que una ruta nueva es prefijo
+  // de una vieja, y el orden del arreglo decide cual gana. Comparar por
+  // segmento lo saca del azar.
+  const esLaSeccion = (ruta: string) => pathname === ruta || pathname.startsWith(ruta + '/')
+  const actual = secciones.find(s => esLaSeccion(s.ruta))
 
-  // La ruta contenedora (/cultivo, /instalacion) cae en la primera vista.
+  // SIN SECCIONES NO SE DIBUJA NADA, y esto no es defensivo de mas: paso.
+  //
+  // Al agrupar el modulo agronomico las secciones pasaron a filtrarse por
+  // permiso, y `tienePermiso` contesta que no mientras el usuario todavia se
+  // esta cargando. Con la lista vacia el `Navigate` de abajo leia
+  // `secciones[0].ruta` y tiraba la pantalla entera al ErrorBoundary — pantalla
+  // en negro y «Cannot read properties of undefined».
+  //
+  // Un componente que recibe una lista no puede reventar con la lista vacia,
+  // aunque hoy el unico que se la pase vacia sea un caso de carrera.
+  if (secciones.length === 0) return null
+
+  // La ruta contenedora (/agronomico, /cultivo) cae en la primera vista.
   if (!actual) return <Navigate to={secciones[0].ruta} replace />
   const { Vista } = actual
 
@@ -41,11 +64,16 @@ export function PestanasSeccion({ secciones, etiqueta }: {
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-[#0a0a0f]">
       <div ref={refWrapper} className="ct-tabs-fade flex-shrink-0 border-b border-[#1f1f2b] bg-[#0a0a0f]">
         <nav aria-label={etiqueta} ref={refScroller}
-          className="scrollbar-none flex gap-1 px-2 sm:px-4 overflow-x-auto">
+          // Mismo criterio que `BarraPestanas`: el padding de la página menos el del
+          // botón, para que el texto de la primera pestaña arranque donde arranca
+          // el contenido. Con `px-2 sm:px-4` y botones de `px-3` el texto caía en
+          // 20 px, contra los 12 del título y los 16 de la otra barra: tres
+          // márgenes izquierdos distintos en la misma pantalla.
+          className="scrollbar-none flex gap-1 px-0 sm:px-3 overflow-x-auto">
           {secciones.map(({ ruta, label, icono: Ic }) => (
             <NavLink key={ruta} to={ruta}
               className={({ isActive }) =>
-                `flex items-center gap-1.5 whitespace-nowrap px-3 py-3 min-h-[44px] text-[12.5px] font-medium border-b-2 -mb-px transition-colors ${
+                `flex items-center gap-1.5 whitespace-nowrap px-3 py-3 min-h-[44px] text-[12px] font-medium border-b-2 -mb-px transition-colors ${
                   isActive
                     ? 'border-[#a3e635] text-[#d9f99d]'
                     : 'border-transparent text-[#8f8f9f] hover:text-[#d4d4dd]'}`}>

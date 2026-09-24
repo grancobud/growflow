@@ -17,8 +17,8 @@
 //    y el exceso se descubriría en el mostrador, con el material ya comprometido.
 
 import { supabase } from './supabase'
-import type { Dispensa, FeedbackClinico, Asociado, AsientoCaja } from './ong'
-import { feedbackPendiente } from './ong'
+import type { Dispensa, FeedbackClinico, Asociado, AsientoCaja, Unidad } from './ong'
+import { feedbackPendiente, sufijoUnidad } from './ong'
 import type { Paciente } from './registro'
 import { fechaLocal, hoyLocal } from './fechaLocal'
 
@@ -42,10 +42,94 @@ export interface Lote {
   fecha_analisis?: string | null
   analisis_path?: string | null
   aporte_por_gramo?: number | null
+  /**
+   * De donde salio el material. Sin esto el modelo asume cultivo propio: un
+   * lote sin `cosecha_id` era indistinguible de uno comprado, y el ingreso real
+   * de una instalacion que compra a terceros no se podia sumar.
+   */
+  origen?: OrigenLote | null
+  /** En que se mide `gramos_totales`. Ver UNIDADES en ong.ts. */
+  unidad?: Unidad | null
+  /** Costo del gramo puesto en el estante. Null = sin cargar, NO cero. */
+  costo_por_gramo?: number | null
+  proveedor?: string | null
   activo?: boolean
   notas?: string | null
   creado_en?: string
 }
+
+export type OrigenLote = 'propio' | 'comprado' | 'propio_sin_cosecha'
+
+export const ORIGENES_LOTE: { valor: OrigenLote; label: string; ayuda: string }[] = [
+  { valor: 'propio',   label: 'Cultivo propio', ayuda: 'Salio de una cosecha de la instalacion.' },
+  { valor: 'comprado', label: 'Comprado',       ayuda: 'Se adquirio a un tercero con orden de servicio.' },
+  {
+    valor: 'propio_sin_cosecha',
+    label: 'Propio, sin cosecha registrada',
+    ayuda: 'Es produccion de la asociacion pero la cosecha nunca se cargo. Suma al ingreso y queda marcado como pendiente de trazar.',
+  },
+]
+
+/**
+ * Un lote sin `origen` cargado se decide por `cosecha_id`: si no viene de
+ * ninguna cosecha no pudo salir del cultivo propio. Hace falta porque el codigo
+ * corre contra filas anteriores a la migracion, donde la columna no existe.
+ */
+export const origenDeLote = (l: Pick<Lote, 'origen' | 'cosecha_id'>): OrigenLote =>
+  l.origen === 'propio' || l.origen === 'comprado' || l.origen === 'propio_sin_cosecha'
+    ? l.origen
+    : (l.cosecha_id ? 'propio' : 'comprado')
+
+/**
+ * Cuanto material cosechado todavia no esta puesto en ningun lote.
+ *
+ * EL HUECO QUE TAPA. El circuito para entregar material propio es
+ * cosecha → lote → dispensa, y el paso del medio no existia en ninguna
+ * pantalla: `cosecha_id` se leia para decidir el origen de un lote, pero
+ * ninguna pantalla lo escribia y el alta de lote no ofrecia elegir una cosecha.
+ * El 27/08/2026 en Panacea cargaron quince cosechas y despues no encontraban
+ * nada para dispensar — no fallaba nada, simplemente el material nunca habia
+ * llegado a ser un lote, y una entrega engancha por `lote_codigo`.
+ *
+ * SE MIDE EN GRAMOS, NO POR COSECHA. Un lote puede juntar varias cosechas —las
+ * quince de ese dia eran 21,4 g cada una, y quince lotes de 21,4 g no los usa
+ * nadie— y `ong_lotes.cosecha_id` es una sola FK, asi que aparear de a uno
+ * daria por pendiente lo que ya se cargo. Comparar totales no puede dar un
+ * falso positivo: o el gramo esta en un lote propio o no esta.
+ *
+ * NO CUENTA LOS LOTES COMPRADOS ni los `propio_sin_cosecha`: esos entraron por
+ * su cuenta y ya suman al ingreso por separado. Contarlos aca daria el material
+ * propio por lotado usando material de otro lado.
+ */
+export function materialSinLotear(
+  gramosCosechados: number, lotes: Pick<Lote, 'origen' | 'cosecha_id' | 'gramos_totales' | 'unidad'>[] = [],
+): number {
+  const enLotesPropios = lotes
+    .filter(l => (l.unidad ?? 'g') === 'g' && origenDeLote(l) === 'propio')
+    .reduce((s, l) => s + (Number(l.gramos_totales) || 0), 0)
+  // Nunca negativo: que haya MAS lote propio que cosecha es otro problema
+  // —falta cargar una cosecha— y de ese se ocupa el balance de materia.
+  return Math.max(0, (Number(gramosCosechados) || 0) - enLotesPropios)
+}
+
+/**
+ * Produccion propia cuya cosecha nunca se registro.
+ *
+ * SUMA AL INGRESO, igual que un lote comprado, porque el material existio y se
+ * dispenso. Lo que NO hace es decir que salio de una cosecha: eso es
+ * justamente lo que no consta.
+ *
+ * Existe porque `propio` y `comprado` no alcanzaban para el caso real: en
+ * Panacea hay 4.722 g de produccion propia cargados como compra a si mismos, y
+ * marcarlos `propio` los saca del ingreso —su cosecha «ya estaria contada»— sin
+ * que haya ninguna cosecha que los reponga. El stock quedaba en -4.453 g.
+ */
+export const esPropioSinCosecha = (l: Pick<Lote, 'origen' | 'cosecha_id'>) =>
+  origenDeLote(l) === 'propio_sin_cosecha'
+
+export const esComprado = (l: Pick<Lote, 'origen' | 'cosecha_id'>) =>
+  origenDeLote(l) === 'comprado'
+
 
 export interface Pedido {
   id: string
@@ -151,8 +235,15 @@ export interface Disponibilidad {
   totales: number
   /** Apartado por reservas todavía vivas. */
   reservado: number
+  /** Todo lo que salió del lote: portal + mostrador. */
   entregado: number
+  /** La parte de `entregado` que salió por una reserva del portal. */
+  porPedido: number
+  /** La parte de `entregado` que salió por una dispensa de mostrador. */
+  porDispensa: number
   disponible: number
+  /** 'g' | 'u' | 'ml' — para que la pantalla no diga "21 g" de 21 frascos. */
+  sufijo: string
 }
 
 /**
@@ -161,32 +252,69 @@ export interface Disponibilidad {
  * físicamente siga en el frasco.
  */
 export function disponibleDeLote(
-  lote: Lote, pedidos: Pedido[], ahora: Date = new Date(),
+  lote: Lote, pedidos: Pedido[], dispensas: Dispensa[] = [], ahora: Date = new Date(),
 ): Disponibilidad {
   const suyos = pedidos.filter(p => p.lote_id === lote.id)
-  const entregado = suyos
+  const porPedido = suyos
     .filter(p => p.estado_pedido === 'Entregado')
     .reduce((s, p) => s + (Number(p.gramos) || 0), 0)
+  // Material que salio por mostrador, sin pasar por el portal. Es la via por la
+  // que sale TODO en una instalacion que no usa reservas: contar solo pedidos
+  // daba un catalogo con stock que ya no estaba en el estante.
+  const porDispensa = dispensas
+    .filter(d => d.lote_codigo != null && d.lote_codigo === lote.codigo)
+    .reduce((s, d) => s + (Number(d.gramos) || 0), 0)
+  const entregado = porPedido + porDispensa
   const reservado = suyos
     .filter(p => estaVivo(p) && !estaVencido(p, ahora))
     .reduce((s, p) => s + (Number(p.gramos) || 0), 0)
   const totales = Number(lote.gramos_totales) || 0
   return {
-    totales, reservado, entregado,
+    totales, reservado, entregado, porPedido, porDispensa,
     disponible: Math.max(0, totales - entregado - reservado),
+    sufijo: sufijoUnidad(lote.unidad),
   }
 }
 
 /** Total del catálogo disponible, para el encabezado. */
-export function resumenCatalogo(lotes: Lote[], pedidos: Pedido[], ahora: Date = new Date()) {
+export function resumenCatalogo(
+  lotes: Lote[], pedidos: Pedido[], dispensas: Dispensa[] = [], ahora: Date = new Date(),
+) {
   const activos = lotes.filter(l => l.activo !== false)
-  const d = activos.map(l => disponibleDeLote(l, pedidos, ahora))
+  // Los totales del encabezado suman SOLO los lotes en gramos. Sumar frascos de
+  // aceite con gramos de flor da un numero que no significa nada, y era lo que
+  // hacia: 21 frascos entraban al total como si fueran 21 g.
+  const enGramos = activos.filter(l => sufijoUnidad(l.unidad) === 'g')
+  const d = enGramos.map(l => disponibleDeLote(l, pedidos, dispensas, ahora))
+  // Cuanto vale esto. La app venia CAPTURANDO el costo por gramo en el alta del
+  // lote y no lo sumaba en ningun lado: el dato estaba guardado y era invisible,
+  // igual que pasaba con los asientos de caja. Panacea lo miraba en la hoja
+  // Inventario porque en la app no habia donde.
+  //
+  // `costo_por_gramo` es por unidad de medida, no por gramo: en un lote de
+  // frascos es el costo del frasco. Por eso cantidad x costo sirve para los dos
+  // y da exacto contra el total de la planilla.
+  const valorDe = (l: Lote) => (Number(l.gramos_totales) || 0) * (Number(l.costo_por_gramo) || 0)
+  // Lo invertido va sobre TODOS los lotes, no solo los activos: es lo que se
+  // gasto en mercaderia desde que arrancaron, incluyendo lo ya entregado.
+  const invertido = lotes.reduce((s, l) => s + valorDe(l), 0)
+  const enStock = activos.reduce((s, l) => {
+    const costo = Number(l.costo_por_gramo) || 0
+    if (!costo) return s
+    return s + disponibleDeLote(l, pedidos, dispensas, ahora).disponible * costo
+  }, 0)
   return {
     lotes: activos.length,
+    /** Cuantos de `lotes` no se miden en gramos y por eso no entran a los totales. */
+    otrasUnidades: activos.length - enGramos.length,
     disponible: d.reduce((s, x) => s + x.disponible, 0),
     reservado: d.reduce((s, x) => s + x.reservado, 0),
     entregado: d.reduce((s, x) => s + x.entregado, 0),
     sinAnalisis: activos.filter(l => !l.fecha_analisis).length,
+    invertido,
+    enStock,
+    /** Lotes sin costo cargado: no entran a los dos totales de arriba. */
+    sinCosto: lotes.filter(l => !(Number(l.costo_por_gramo) > 0)).length,
   }
 }
 
@@ -311,28 +439,42 @@ export function evaluarPaciente(
     a.paciente_id === paciente.id || a.nombre === paciente.nombre_completo) ?? null
   const bloqueos: Bloqueo[] = []
 
-  // RN-01: sin REPROCANN vigente y vinculado, no se dispensa.
+  // RN-01: el estado del REPROCANN.
+  //
+  // El SRS v3.2 lo define como bloqueo duro (HTTP 403). Panacea decidio el
+  // 20/08/2026 que NO bloquee: 141 de sus 211 pacientes no tienen registro y
+  // bloquearlos seria dejar sin acceso a gente que ya venia siendo atendida.
+  // Entra en su lugar la tarifa de transicion (ver ong_tarifas): quien no lo
+  // tiene paga la plena mientras lo gestiona.
+  //
+  // AVISA FUERTE Y NO SE PUEDE PERDER DE VISTA. Que no bloquee no es que no
+  // importe: sin REPROCANN vinculado la entrega no esta amparada por la 27.350,
+  // y quien la autoriza tiene que verlo escrito en el momento de autorizarla.
+  // Por eso queda como `alerta` en vez de desaparecer.
   if (!paciente.reprocann_nro) {
     bloqueos.push({
-      nivel: 'error', regla: 'RN-01',
-      texto: 'No tiene número de REPROCANN cargado.',
-      comoSeResuelve: 'Cargalo en la ficha del paciente.',
+      nivel: 'alerta', regla: 'RN-01',
+      texto: 'Sin número de REPROCANN: la entrega no está amparada y va con tarifa de transición.',
+      comoSeResuelve: 'Cargá el número en la ficha apenas lo tramite.',
     })
   } else if (vencido(paciente.reprocann_vencimiento, ahora)) {
     bloqueos.push({
-      nivel: 'error', regla: 'RN-01',
+      nivel: 'alerta', regla: 'RN-01',
       texto: `El REPROCANN venció el ${paciente.reprocann_vencimiento}.`,
       comoSeResuelve: 'Hay que renovarlo antes de la próxima entrega.',
     })
   } else if (paciente.reprocann_estado && paciente.reprocann_estado !== 'Vigente') {
     bloqueos.push({
-      nivel: 'error', regla: 'RN-01',
+      nivel: 'alerta', regla: 'RN-01',
       texto: `El REPROCANN figura como "${paciente.reprocann_estado}", no vigente.`,
     })
   }
 
+  // Esto NO es la regla del REPROCANN y sigue siendo bloqueo duro: una ficha
+  // dada de baja es alguien que la entidad decidio que no recibe mas. Que RN-01
+  // haya pasado a aviso no lo alcanza.
   if (paciente.activo === false) {
-    bloqueos.push({ nivel: 'error', regla: 'RN-01', texto: 'La ficha está dada de baja.' })
+    bloqueos.push({ nivel: 'error', regla: 'Ficha de baja', texto: 'La ficha está dada de baja.' })
   }
 
   // RN-03 / CU-04: sin mandato firmado la entrega parecería una compraventa.
@@ -390,7 +532,7 @@ export function evaluarPaciente(
 
 export function revisarReserva(
   gramos: number, lote: Lote | null, estado: EstadoPaciente | null,
-  pedidos: Pedido[], ahora: Date = new Date(),
+  pedidos: Pedido[], dispensas: Dispensa[] = [], ahora: Date = new Date(),
 ): Bloqueo[] {
   const av: Bloqueo[] = [...(estado?.bloqueos ?? [])]
   if (!lote) {
@@ -402,7 +544,7 @@ export function revisarReserva(
     return av
   }
 
-  const d = disponibleDeLote(lote, pedidos, ahora)
+  const d = disponibleDeLote(lote, pedidos, dispensas, ahora)
   if (gramos > d.disponible) {
     av.push({
       nivel: 'error', regla: 'RN-06',

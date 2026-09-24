@@ -1,3 +1,4 @@
+import { useDialogo } from '../../lib/useDialogo'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   FlaskConical, Beaker, Droplets, ChevronDown, Sparkles, AlertTriangle,
@@ -240,6 +241,9 @@ function NumField({ value, onChange, className, placeholder, min }: {
 }) {
   const [txt, setTxt] = useState<string>(value ? String(value) : '')
   const editando = useRef(false)
+  // Sincroniza el texto con el valor externo solo cuando no se esta tipeando:
+  // derivarlo en el render pisaria lo que la persona escribe a medias ("1,").
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { if (!editando.current) setTxt(value ? String(value) : '') }, [value])
   const commit = (s: string) => {
     const norm = s.replace(',', '.')
@@ -2467,6 +2471,7 @@ function ProveedoresTab({ salesTodas, recargarInventario, recargarProveedores }:
   const [form, setForm] = useState(vacio)
   const [guardando, setGuardando] = useState(false)
   const [detalle, setDetalle] = useState<Proveedor | null>(null) // ficha abierta (ver/editar)
+  const refDetalle = useDialogo(() => setDetalle(null), !!detalle)
   const [filtroSal, setFiltroSal] = useState('') // '' = todas
   const cargar = () => { proveedoresService.list().then(p => { setProvs(p); recargarProveedores() }).catch(() => setProvs([])) }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -2716,13 +2721,13 @@ function ProveedoresTab({ salesTodas, recargarInventario, recargarProveedores }:
 
       {/* Modal ficha detalle / edición */}
       {detalle && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setDetalle(null)}>
+        <div ref={refDetalle} className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setDetalle(null)}>
           <div className="bg-[#101016] border border-[#2a2a38] rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-4 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-2 mb-3">
               <Store className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
               <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Ficha del proveedor</h3>
               <span className="text-[11.5px] text-[#8a8a9c]">· {salNombre(detalle.sal_id)}</span>
-              <button onClick={() => setDetalle(null)} className="ml-auto p-1 rounded text-[#8a8a9c] hover:text-[#d4d4dd]"><X className="w-4 h-4" strokeWidth={1.8} /></button>
+              <button onClick={() => setDetalle(null)} aria-label="Cerrar" className="ml-auto p-1 rounded text-[#8a8a9c] hover:text-[#d4d4dd]"><X className="w-4 h-4" strokeWidth={1.8} /></button>
             </div>
 
             {/* imagen grande */}

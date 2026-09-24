@@ -4,6 +4,7 @@
 // sale cada elemento y el PDF de respaldo. Es lo que permite clonar una marca
 // sabiendo el origen real de cada cosa, en vez de adivinar.
 
+import { useDialogo } from '../../lib/useDialogo'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   FileText, Plus, Upload, Trash2, Pencil, Search, ExternalLink,
@@ -43,6 +44,9 @@ export default function FichasTab({ onClonar }: { onClonar?: (p: Perfil, nombre:
       .catch(e => toast.error('No se pudieron cargar las fichas: ' + e.message))
       .finally(() => setCargando(false))
   }
+  // Cargar al montar: `recargar` arranca marcando «cargando», que es lo que la
+  // regla marca, pero sin ese aviso la lista vacia se leeria como "no hay fichas".
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(recargar, [])
 
   const filtradas = useMemo(() => {
@@ -234,6 +238,7 @@ function TarjetaFicha({ f, onEditar, onBorrar, onClonar }: {
 function ModalFicha({ inicial, onCerrar, onGuardado }: {
   inicial: FichaComercial | null; onCerrar: () => void; onGuardado: () => void
 }) {
+  const refDialogo = useDialogo(onCerrar)
   const [f, setF] = useState<FichaNueva>(() => inicial ? { ...inicial } : { ...FICHA_VACIA })
   const [salesTexto, setSalesTexto] = useState(() => (inicial?.sales_origen ?? []).join(', '))
   const [archivo, setArchivo] = useState<File | null>(null)
@@ -289,7 +294,7 @@ function ModalFicha({ inicial, onCerrar, onGuardado }: {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onCerrar}>
+    <div ref={refDialogo} className="fixed inset-0 z-50 bg-black/70 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onCerrar}>
       <div onClick={e => e.stopPropagation()}
         className="w-full sm:max-w-2xl bg-[#0d0d12] border border-[#1f1f2b] rounded-t-2xl sm:rounded-2xl max-h-[92vh] max-h-[92dvh] overflow-y-auto overscroll-contain">
         <div className="sticky top-0 bg-[#0d0d12] border-b border-[#1f1f2b] px-4 py-3 flex items-center gap-2 z-10">

@@ -25,7 +25,8 @@ type Vista = 'reservas' | 'catalogo'
 interface Genetica { id: string; nombre: string }
 
 export function Portal({
-  pacientes, asociados, dispensas, feedbacks, caja, entidad, geneticas, onCambio,
+  pacientes, asociados, dispensas, feedbacks, caja, entidad, geneticas,
+  gramosCosechados = 0, documentos = [], onCambio,
 }: {
   pacientes: Paciente[]
   asociados: Asociado[]
@@ -34,9 +35,20 @@ export function Portal({
   caja: AsientoCaja[]
   entidad: Entidad | null
   geneticas: Genetica[]
+  /** Pasa al catálogo, que avisa si lo cosechado todavía no es un lote. */
+  gramosCosechados?: number
+  /** Sólo por su proveedor: la lista se comparte con el comprobante de gasto. */
+  documentos?: { proveedor?: string | null }[]
   onCambio: () => void
 }) {
-  const [vista, setVista] = useState<Vista>('reservas')
+  // La solapa puede venir pedida por la URL: `?vista=catalogo`.
+  //
+  // El flujo de comprar material manda acá a crear el lote, y los lotes viven en
+  // Catálogo. Abrir siempre en Reservas dejaba en la pantalla correcta y en la
+  // solapa equivocada, que es la mitad del problema que la guía vino a resolver.
+  const vistaPedida = new URLSearchParams(window.location.search).get('vista')
+  const [vista, setVista] = useState<Vista>(
+    vistaPedida === 'catalogo' || vistaPedida === 'reservas' ? vistaPedida : 'reservas')
   const [lotes, setLotes] = useState<Lote[]>([])
   const [pedidos, setPedidos] = useState<Pedido[]>([])
   const [cargando, setCargando] = useState(true)
@@ -83,7 +95,7 @@ export function Portal({
               <Store className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
               <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">Autodispensación</h3>
             </div>
-            <p className="text-[11.5px] text-[#8a8a9c] mt-1.5 leading-relaxed max-w-prose">
+            <p className="text-[11px] text-[#8a8a9c] mt-1.5 leading-relaxed max-w-prose">
               El paciente reserva del catálogo, tiene 72 horas para retirar y en la sede se valida y se
               entrega. Recién ahí nace la dispensa, el asiento en caja y el recibo: una reserva sin
               retirar todavía no es una entrega.
@@ -122,7 +134,9 @@ export function Portal({
           <p className="text-[12px] text-[#8a8a9c]">Cargando el portal…</p>
         </div>
       ) : vista === 'catalogo' ? (
-        <Catalogo lotes={lotes} pedidos={pedidos} geneticas={geneticas} onCambio={cargar} />
+        <Catalogo lotes={lotes} pedidos={pedidos} dispensas={dispensas} geneticas={geneticas}
+          gramosCosechados={gramosCosechados}
+          documentos={documentos} onCambio={cargar} />
       ) : (
         <Reservas {...{ pedidos, lotes, pacientes, asociados, dispensas, caja, entidad }}
           onCambio={refrescar} />

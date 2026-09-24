@@ -1,4 +1,9 @@
 // PinLock — teclado numerico para desbloquear (o configurar) el PIN de 4 digitos.
+//
+// modal-exceptuado: es la pantalla de BLOQUEO. Poder cerrarla con el boton
+// atras la volveria decorativa — cualquiera entraria apretando atras. Cuando
+// se usa para CONFIGURAR el PIN si recibe onCancelar y dibuja su X, porque ahi
+// no esta bloqueando nada.
 
 import { useState } from 'react'
 import { Leaf, Delete, X } from 'lucide-react'

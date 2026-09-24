@@ -1,13 +1,14 @@
 // Tablero eléctrico — documentación de tableros del cultivo + guía de armado + unifilar.
 // Datos en Supabase (tableros / tableros_circuitos). Cálculos orientativos (ver lib/tableros).
 
+import { useDialogo } from '../lib/useDialogo'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 import { Zap, Plus, Trash2, Pencil, X, ShoppingCart, FileText, Cable, AlertTriangle } from 'lucide-react'
 import {
   tablerosService, resumenTablero, corrienteNominal, termicaSugerida,
   cableSugerido, necesitaContactor, TIPOS_CIRCUITO, TENSION_LINEA,
-  type Tablero, type Circuito, type TipoCircuito,
+  type Tablero, type Circuito, type TipoCircuito, type ResumenTablero,
 } from '../lib/tableros'
 
 type Tab = 'doc' | 'unifilar' | 'guia'
@@ -126,7 +127,23 @@ export default function PaginaTablero() {
 
 // --- Documentación -----------------------------------------------------------
 
-function DocTab(p: any) {
+interface DocTabProps {
+  cargando: boolean
+  tableros: Tablero[]
+  sel: Tablero | null
+  selId: string | null
+  setSelId: (id: string | null) => void
+  circuitos: Circuito[]
+  resumen: ResumenTablero
+  onNuevoTablero: () => void
+  onEditTablero: (t: Tablero) => void
+  onBorrarTablero: (id: string) => void
+  onNuevoCircuito: () => void
+  onEditCircuito: (c: Circuito) => void
+  onBorrarCircuito: (id: string) => void
+}
+
+function DocTab(p: DocTabProps) {
   const { cargando, tableros, sel, selId, setSelId, circuitos, resumen,
     onNuevoTablero, onEditTablero, onBorrarTablero, onNuevoCircuito, onEditCircuito, onBorrarCircuito } = p
 
@@ -258,7 +275,7 @@ function Stat({ label, valor }: { label: string; valor: string }) {
 
 // --- Unifilar (SVG generado) -------------------------------------------------
 
-function UnifilarTab({ sel, circuitos, resumen }: { sel: Tablero | null; circuitos: Circuito[]; resumen: any }) {
+function UnifilarTab({ sel, circuitos, resumen }: { sel: Tablero | null; circuitos: Circuito[]; resumen: ResumenTablero }) {
   if (!sel) return <p className="text-[12px] text-[#8a8a9c] text-center py-16">Seleccioná un tablero en la pestaña Documentación.</p>
   if (!circuitos.length) return <p className="text-[12px] text-[#8a8a9c] text-center py-16">Este tablero no tiene circuitos para diagramar.</p>
 
@@ -384,14 +401,18 @@ function Bloque({ titulo, children }: { titulo: string; children: React.ReactNod
 // --- Modales -----------------------------------------------------------------
 
 function ModalBase({ titulo, onCerrar, children }: { titulo: string; onCerrar: () => void; children: React.ReactNode }) {
+  const refDialogo = useDialogo(onCerrar)
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onCerrar}>
+    <div ref={refDialogo} className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onCerrar}>
       <div className="bg-[#101016] border border-[#1f1f2b] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 bg-[#101016] border-b border-[#1f1f2b] px-4 py-3 flex items-center justify-between">
           <h3 className="text-[14px] font-semibold text-[#ececf1]">{titulo}</h3>
-          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#8a8a9c] hover:text-[#ececf1]"><X className="w-4 h-4" /></button>
+          <button onClick={onCerrar} aria-label="Cerrar" className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#8a8a9c] hover:text-[#ececf1]"><X className="w-4 h-4" /></button>
         </div>
         <div className="p-4 space-y-3">{children}</div>
+        <div className="px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] flex justify-end">
+          <button onClick={onCerrar} className="px-4 min-h-[44px] sm:min-h-[36px] rounded-lg border border-[#2a2a38] text-[13px] text-[#d4d4dd] hover:bg-[#1f1f2b]">Cerrar</button>
+        </div>
       </div>
     </div>
   )

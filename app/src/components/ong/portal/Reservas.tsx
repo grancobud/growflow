@@ -8,7 +8,7 @@
 // dispensa, el asiento en el Libro de Caja y el recibo. Salen todas del mismo
 // lugar (consolidarEntrega) justamente para que después no dejen de coincidir.
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, lazy, Suspense } from 'react'
 import { toast } from 'sonner'
 import QR from '../../QR'
 import {
@@ -23,10 +23,18 @@ import { ongService, type Dispensa, type Entidad, type Asociado, type AsientoCaj
 import { reciboReembolso } from '../../../lib/documentosLegales'
 import type { Paciente } from '../../../lib/registro'
 import { VisorDocumento } from '../ActaParaLibro'
-import { EscanerQR } from './EscanerQR'
-import { btnPrimario, btnSutil, btnIcono, selectFiltro, campoBase } from '../../../lib/ui'
+// A pedido, y no con el resto de la pantalla.
+//
+// `@zxing/browser` + `@zxing/library` son ~400 kB, el bulto más grande de todo
+// el panel de la O.N.G. Estaban en el chunk de la página y se descargaban al
+// abrirla, para una cámara que se prende cuando alguien toca «Escanear». El
+// primer toque tarda un poco más; abrir la pantalla, mucho menos.
+const EscanerQR = lazy(() => import('./EscanerQR').then(m => ({ default: m.EscanerQR })))
+import { btnPrimario, btnSutil, btnIcono, selectFiltro, campoBase, tarjeta } from '../../../lib/ui'
+import { useDialogo } from '../../../lib/useDialogo'
+import { confirmarBorrado } from '../../../lib/confirmar'
+import { nombreParaMostrar } from '../../../lib/buscarPersonas'
 
-const card = 'rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4'
 
 /** Prioridad de atención: lo que vence primero va arriba. */
 const PESO_ESTADO: Record<EstadoPedido, number> = {
@@ -50,9 +58,14 @@ export function Reservas({
   const [entregando, setEntregando] = useState<Pedido | null>(null)
   const [qr, setQr] = useState<Pedido | null>(null)
   const [escaneando, setEscaneando] = useState(false)
-  const [recibo, setRecibo] = useState<{ titulo: string; texto: string; faltantes: string[] } | null>(null)
+  const [recibo, setRecibo] = useState<
+    { doc: { titulo: string; texto: string; faltantes: string[] }; de: Dispensa | null } | null
+  >(null)
 
-  const nombre = (id?: string | null) => pacientes.find(p => p.id === id)?.nombre_completo ?? 'sin paciente'
+  const nombre = (id?: string | null) => {
+    const p = pacientes.find(x => x.id === id)
+    return p ? nombreParaMostrar(p) : 'sin paciente'
+  }
   const codigoLote = (id: string) => lotes.find(l => l.id === id)?.codigo ?? '—'
 
   const visibles = useMemo(() => {
@@ -105,7 +118,7 @@ export function Reservas({
       toast.error('Una reserva entregada no se borra: es el respaldo de una dispensa registrada. Anulá la dispensa si hace falta.')
       return
     }
-    if (!confirm(`¿Borrar la reserva ${p.codigo_reserva}?`)) return
+    if (!await confirmarBorrado(`¿Borrar la reserva ${p.codigo_reserva}?`)) return
     try { await portalService.borrarPedido(p.id); toast.success('Reserva borrada'); onCambio() }
     catch (e) { toast.error((e as Error).message) }
   }
@@ -115,12 +128,12 @@ export function Reservas({
     if (!d) { toast.error('No se encontró la dispensa de esta reserva'); return }
     const pac = pacientes.find(x => x.id === d.paciente_id) ?? null
     const aso = asociados.find(a => a.id === p.asociado_id) ?? null
-    setRecibo(reciboReembolso(d, entidad, pac, aso))
+    setRecibo({ doc: reciboReembolso(d, entidad, pac, aso), de: d })
   }
 
   return (
     <div className="space-y-3">
-      <div className={card}>
+      <div className={tarjeta}>
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2">
             <Ticket className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
@@ -151,9 +164,9 @@ export function Reservas({
       </div>
 
       {visibles.length === 0 ? (
-        <div className={`${card} text-center py-8`}>
+        <div className={`${tarjeta} text-center py-8`}>
           <Ticket className="w-7 h-7 text-[#2a2a3a] mx-auto" strokeWidth={1.5} />
-          <p className="text-[12.5px] text-[#8a8a9c] mt-2">
+          <p className="text-[12px] text-[#8a8a9c] mt-2">
             {pedidos.length === 0
               ? 'Todavía no hay reservas. Se crean desde el botón "Reservar".'
               : 'Ninguna reserva coincide con el filtro.'}
@@ -165,11 +178,11 @@ export function Reservas({
             const vencida = estaVencido(p)
             const chequeo = chequearRetiro(p)
             return (
-              <div key={p.id} className={card}>
+              <div key={p.id} className={tarjeta}>
                 <div className="flex items-start gap-2 flex-wrap">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono text-[12.5px] text-[#ececf1]">{p.codigo_reserva}</span>
+                      <span className="font-mono text-[12px] text-[#ececf1]">{p.codigo_reserva}</span>
                       <Chip texto={etiquetaPedido(vencida ? 'Expirado' : p.estado_pedido)}
                         color={colorPedido(vencida ? 'Expirado' : p.estado_pedido)} />
                       <Chip texto={etiquetaPago(p.estado_pago)} color={colorPago(p.estado_pago)} />
@@ -212,7 +225,7 @@ export function Reservas({
                       </button>
                     )}
                     <button onClick={() => setEntregando(p)} disabled={!chequeo.puedeEntregar && !chequeo.cobrarEnSede}
-                      className={`${btnPrimario} ml-auto`}>
+                      className={`${btnPrimario} flex-shrink-0`}>
                       Entregar
                     </button>
                     <button onClick={() => cambiarEstado(p, 'Cancelado')} className={btnSutil}>Cancelar</button>
@@ -225,7 +238,7 @@ export function Reservas({
       )}
 
       {escaneando && (
-        <EscanerQR onCerrar={() => setEscaneando(false)}
+        <Suspense fallback={null}><EscanerQR onCerrar={() => setEscaneando(false)}
           onLeido={codigo => {
             setEscaneando(false)
             const p = pedidos.find(x => x.codigo_reserva === codigo.trim())
@@ -241,7 +254,7 @@ export function Reservas({
             // escanear y tener que buscar el botón es un paso de más.
             if (estaVivo(p) && !estaVencido(p)) setEntregando(p)
             else toast.error(`La reserva ${p.codigo_reserva} está ${etiquetaPedido(estaVencido(p) ? 'Expirado' : p.estado_pedido).toLowerCase()}`)
-          }} />
+          }} /></Suspense>
       )}
 
       {qr && (
@@ -255,11 +268,20 @@ export function Reservas({
           asociado={asociados.find(a => a.id === entregando.asociado_id) ?? null}
           dispensas={dispensas} caja={caja} entidad={entidad}
           onCerrar={() => setEntregando(null)}
-          onEntregado={doc => { setEntregando(null); setRecibo(doc); onCambio() }} />
+          onEntregado={(doc, de) => { setEntregando(null); setRecibo({ doc, de }); onCambio() }} />
       )}
 
       {recibo && (
-        <VisorDocumento titulo={recibo.titulo} texto={recibo.texto} faltantes={recibo.faltantes}
+        <VisorDocumento titulo={recibo.doc.titulo} texto={recibo.doc.texto} faltantes={recibo.doc.faltantes}
+          entidad={entidad}
+          onEmitido={onCambio}
+          archivo={{
+            subtipo: 'Recibo de reembolso',
+            numero: recibo.de?.recibo_numero != null ? String(recibo.de.recibo_numero) : null,
+            paciente_id: recibo.de?.paciente_id ?? null,
+            dispensa_id: recibo.de?.id || null,
+            monto: Number(recibo.de?.aporte) || null,
+          }}
           nota="Se imprime y se entrega junto con el material. Lleva al pie la leyenda legal obligatoria."
           onCerrar={() => setRecibo(null)} />
       )}
@@ -279,10 +301,15 @@ function Chip({ texto, color }: { texto: string; color: string }) {
 function ModalQR({ pedido, lote, nombre, onCerrar }: {
   pedido: Pedido; lote: Lote | null; nombre: string; onCerrar: () => void
 }) {
+  const refDialogo1 = useDialogo(onCerrar)
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4" onClick={onCerrar}>
-      <div className="bg-[#0d0d12] border border-[#1f1f2b] rounded-2xl p-5 text-center max-w-xs w-full"
+    <div ref={refDialogo1} className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4" onClick={onCerrar}>
+      <div className="relative bg-[#0d0d12] border border-[#1f1f2b] rounded-2xl p-5 text-center max-w-xs w-full"
         onClick={e => e.stopPropagation()}>
+        <button onClick={onCerrar} aria-label="Cerrar"
+          className="absolute top-1 right-1 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-[#8a8a9c] hover:text-[#ececf1] hover:bg-[#1f1f2b] transition-colors">
+          <X className="w-4 h-4" />
+        </button>
         <QR value={pedido.codigo_reserva} size={168} />
         <p className="font-mono text-[14px] text-[#ececf1] mt-3">{pedido.codigo_reserva}</p>
         <p className="text-[12px] text-[#a6a6b5] mt-1">{nombre}</p>
@@ -316,8 +343,17 @@ function ModalEntrega({
   caja: AsientoCaja[]
   entidad: Entidad | null
   onCerrar: () => void
-  onEntregado: (doc: { titulo: string; texto: string; faltantes: string[] }) => void
+  /**
+   * El recibo generado y la dispensa de la que salio. Van juntos porque el
+   * papel se archiva con el numero, el paciente y el monto, y todo eso vive en
+   * la dispensa, no en el texto.
+   */
+  onEntregado: (
+    doc: { titulo: string; texto: string; faltantes: string[] },
+    de: Dispensa | null,
+  ) => void
 }) {
+  const refDialogo2 = useDialogo(onCerrar)
   const chequeo = chequearRetiro(pedido)
   const [cobrado, setCobrado] = useState(false)
   const [entregadoPor, setEntregadoPor] = useState('')
@@ -356,25 +392,29 @@ function ModalEntrega({
       })
 
       toast.success(`Entregado · recibo N° ${proximoRecibo} · $${Number(pedido.monto_reembolso).toLocaleString('es-AR')} a caja`)
-      onEntregado(reciboReembolso(
-        nueva ?? ({ ...dispensa, id: '' } as Dispensa), entidad, paciente, asociado))
+      const emitida = nueva ?? ({ ...dispensa, id: '' } as Dispensa)
+      onEntregado(reciboReembolso(emitida, entidad, paciente, asociado), emitida)
     } catch (e) { toast.error((e as Error).message) }
     finally { setGuardando(false) }
   }
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={onCerrar}>
-      <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto"
+    <div ref={refDialogo2} className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={onCerrar}>
+      <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl max-h-[92dvh] overflow-y-auto overscroll-contain"
         onClick={e => e.stopPropagation()}>
-        <div className="px-4 py-3 border-b border-[#1f1f2b]">
+        <div className="px-4 py-3 border-b border-[#1f1f2b] flex items-center gap-2">
           <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">
             Entregar {pedido.codigo_reserva}
           </h3>
+          <button onClick={onCerrar} aria-label="Cerrar"
+            className="ml-auto min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center rounded-lg text-[#8a8a9c] hover:text-[#ececf1] hover:bg-[#1f1f2b] transition-colors">
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
         <div className="p-4 space-y-3">
           <div className="rounded-lg bg-[#15151d] border border-[#1f1f2b] p-3 space-y-1">
-            <p className="text-[12.5px] text-[#ececf1]">{paciente?.nombre_completo ?? 'sin paciente'}</p>
+            <p className="text-[12px] text-[#ececf1]">{paciente ? nombreParaMostrar(paciente) : 'sin paciente'}</p>
             <p className="text-[11px] text-[#8a8a9c]">
               DNI {paciente?.dni ?? '—'} · REPROCANN {paciente?.reprocann_nro ?? '—'}
             </p>
@@ -388,8 +428,8 @@ function ModalEntrega({
               style={{ background: 'rgba(255,138,122,0.08)', borderColor: 'rgba(255,138,122,0.30)' }}>
               <X className="w-3.5 h-3.5 text-[#ff8a7a] flex-shrink-0 mt-px" />
               <div>
-                <p className="text-[11.5px] text-[#d4d4dd] leading-snug">{m.texto}</p>
-                {m.comoSeResuelve && <p className="text-[10.5px] text-[#8a8a9c] mt-0.5">{m.comoSeResuelve}</p>}
+                <p className="text-[11px] text-[#d4d4dd] leading-snug">{m.texto}</p>
+                {m.comoSeResuelve && <p className="text-[10px] text-[#8a8a9c] mt-0.5">{m.comoSeResuelve}</p>}
               </div>
             </div>
           ))}
@@ -398,9 +438,9 @@ function ModalEntrega({
             <label className="flex items-start gap-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] p-3 min-h-[44px] cursor-pointer">
               <input type="checkbox" checked={cobrado} onChange={e => setCobrado(e.target.checked)}
                 className="w-4 h-4 accent-[#a3e635] mt-0.5" />
-              <span className="text-[11.5px] text-[#d4d4dd] leading-snug">
+              <span className="text-[11px] text-[#d4d4dd] leading-snug">
                 Cobré ${Number(pedido.monto_reembolso).toLocaleString('es-AR')} en efectivo.
-                <span className="block text-[10.5px] text-[#8a8a9c] mt-0.5">
+                <span className="block text-[10px] text-[#8a8a9c] mt-0.5">
                   Al confirmar se asienta como ingreso en el Libro de Caja.
                 </span>
               </span>
@@ -411,7 +451,7 @@ function ModalEntrega({
             <span className="block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1">
               Quién entrega
             </span>
-            <input className={`w-full px-3 py-2.5 sm:py-2 sm:text-[12.5px] ${campoBase}`}
+            <input className={`w-full px-3 py-2.5 sm:py-2 sm:text-[12px] ${campoBase}`}
               value={entregadoPor} onChange={e => setEntregadoPor(e.target.value)}
               placeholder="Nombre de quien atiende" />
           </label>

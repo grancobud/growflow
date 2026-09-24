@@ -23,11 +23,21 @@ export interface OperacionPendiente {
   ultimo_error?: string
 }
 
-class CannTraceDB extends Dexie {
+class BaseOffline extends Dexie {
   cache!: Table<CacheEntry>
   pendientes!: Table<OperacionPendiente>
 
   constructor() {
+    // EL NOMBRE DE LA BASE NO SE TOCA, AUNQUE DIGA CANNTRACE.
+    //
+    // Dexie abre la base por este string. Cambiarlo no la renombra: crea una
+    // NUEVA base vacia y deja la vieja donde estaba, invisible. Y en la vieja
+    // esta la cola de `pendientes` — las operaciones que alguien cargo adentro
+    // de una sala, donde no llega el wifi, esperando a subir.
+    //
+    // O sea que renombrarlo por prolijidad es perder datos que el operador cree
+    // guardados, en silencio y sin ningun error. El string es un identificador
+    // interno que no ve nadie; el costo de que sea feo es cero.
     super('canntrace_offline')
     this.version(1).stores({
       cache: 'key, fecha',
@@ -36,7 +46,7 @@ class CannTraceDB extends Dexie {
   }
 }
 
-export const offlineDb = new CannTraceDB()
+export const offlineDb = new BaseOffline()
 
 // Guardar lectura en cache
 export async function cacheGuardar(key: string, data: any) {

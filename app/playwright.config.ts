@@ -1,21 +1,17 @@
 import { defineConfig, devices } from '@playwright/test'
 
 /**
- * Tests end-to-end.
+ * Tests end-to-end de GrowFlow.
  *
- * OJO CON EL `baseURL`: apuntaba a `canntrace.pages.dev`, que es OTRO producto
- * —un resto del fork— y hacia que toda la suite corriera contra un sitio ajeno.
- * Se corrigio el 02/09/2026, portando el mismo arreglo que ya se habia hecho en
- * la instalacion de Aguara.
+ * OJO CON EL `baseURL`: apuntaba a `growflow-panacea.pages.dev`, que es OTRO producto.
+ * Es un resto del fork y hacia que toda la suite corriera contra un sitio ajeno.
  *
- *   npm run test:e2e         contra el sitio publicado
- *   npm run revision:diseno  la revision de diseno contra el dev server, que
- *                            corre en MODO DEMO y auto-loguea: es la unica
- *                            forma de revisar las pantallas de adentro sin
- *                            poner una contrasena en ningun archivo. Levantar
- *                            `growflow-dev` antes (puerto 5173).
- *
- * Abre el HTML report con: `npx playwright show-report`.
+ *   npm run test:e2e         contra el sitio publicado (solo /login y /sumate:
+ *                            el resto pide sesion)
+ *   npm run test:e2e:local   contra el dev server, que corre en MODO DEMO y
+ *                            auto-loguea — es la unica forma de revisar las
+ *                            diez pantallas sin poner una contrasena en ningun
+ *                            archivo. Levantar `panacea-dev` antes (puerto 5199).
  */
 export default defineConfig({
   testDir: './e2e',

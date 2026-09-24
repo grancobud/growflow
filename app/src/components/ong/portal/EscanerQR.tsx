@@ -9,11 +9,13 @@ import { BrowserMultiFormatReader } from '@zxing/browser'
 import { DecodeHintType, BarcodeFormat } from '@zxing/library'
 import { X, Camera } from 'lucide-react'
 import { btnSutil } from '../../../lib/ui'
+import { useDialogo } from '../../../lib/useDialogo'
 
 export function EscanerQR({ onLeido, onCerrar }: {
   onLeido: (texto: string) => void
   onCerrar: () => void
 }) {
+  const refDialogo = useDialogo(onCerrar)
   const videoRef = useRef<HTMLVideoElement>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -44,15 +46,18 @@ export function EscanerQR({ onLeido, onCerrar }: {
   }, [onLeido])
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/85 p-4" onClick={onCerrar}>
+    <div ref={refDialogo} className="fixed inset-0 z-[80] flex items-center justify-center bg-black/85 p-4" onClick={onCerrar}>
       <div className="w-full max-w-sm" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-2">
-          <p className="text-[12.5px] text-[#ececf1] flex items-center gap-1.5">
+          <p className="text-[12px] text-[#ececf1] flex items-center gap-1.5">
             <Camera className="w-3.5 h-3.5 text-[#a3e635]" /> Escaneá el QR de la reserva
           </p>
           <button onClick={onCerrar} className={btnSutil} aria-label="Cerrar escáner">
             <X className="w-3.5 h-3.5" />
           </button>
+        </div>
+        <div className="px-4 pb-4">
+          <button onClick={onCerrar} className="w-full min-h-[44px] flex items-center justify-center rounded-lg border border-[#2a2a3a] text-[12px] text-[#a6a6b5] hover:text-[#ececf1] hover:bg-[#1f1f2b] transition-colors">Cancelar</button>
         </div>
 
         {error ? (

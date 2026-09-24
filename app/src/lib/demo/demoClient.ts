@@ -97,6 +97,9 @@ function computarResumenPlantas(): Fila[] {
       genetica: g?.nombre ?? null,
       banco: g?.banco ?? null,
       tipo: g?.tipo ?? null,
+      // Sin esto el demo deriva la fase de las automaticas con el default y la
+      // produccion con el vege de la variedad: dos apps dando numeros distintos.
+      tiempo_vege_dias: g?.tiempo_vege_dias ?? null,
       fase: p.fase,
       fecha_germinacion: p.fecha_germinacion,
       dias_de_vida,
@@ -113,8 +116,36 @@ function computarResumenPlantas(): Fila[] {
   })
 }
 
+// Las vistas que sirven la MISMA fila con menos columnas segun el rol.
+//
+// En produccion `pacientes_segun_rol` anula patologia y medico tratante para
+// quien no atiende pacientes, y `dispensas_segun_rol` anula los importes para
+// quien no ve plata. Aca no hay roles —el demo auto-loguea— asi que devuelven
+// la tabla entera, que es lo correcto: el demo muestra COMO se usa la pantalla.
+//
+// TIENEN QUE ESTAR EN ESTE MAPA. `cargarFuente` devuelve `[]` para lo que no
+// conoce, sin error y sin aviso: una vista sin registrar deja la pantalla de
+// Pacientes VACIA en el dev local, con el toast de exito igual. Es el gotcha
+// mas caro de este repo y se paga en silencio.
+const VISTAS_SOBRE_TABLA: Record<string, string> = {
+  pacientes_segun_rol: 'pacientes',
+  dispensas_segun_rol: 'ong_dispensas',
+}
+
+// `cupo_conteos` no es una vista sobre UNA tabla: son agregados de dos. Va
+// computada, igual que `resumen_plantas`.
+function computarCupoConteos(): Fila[] {
+  return [{
+    pacientes_activos: leerTabla('pacientes').filter((p) => p.activo !== false).length,
+    predios_activos: leerTabla('ong_predios').filter((p) => p.activo !== false).length,
+  }]
+}
+
 function cargarFuente(tabla: string): Fila[] {
   if (tabla === 'resumen_plantas') return computarResumenPlantas()
+  if (tabla === 'cupo_conteos') return computarCupoConteos()
+  const base = VISTAS_SOBRE_TABLA[tabla]
+  if (base) return leerTabla(base)
   if (TABLAS_CONOCIDAS.includes(tabla)) return leerTabla(tabla)
   return [] // tabla desconocida -> degradacion con gracia
 }
@@ -479,13 +510,90 @@ const authDemo = {
   },
 }
 
+/**
+ * Las funciones de la base que la demo sí sabe imitar.
+ *
+ * Sólo las del circuito público de alta, y a propósito: son las únicas que la
+ * demo NECESITA para que /sumate funcione sin backend. Imitar el resto sería
+ * escribir dos veces la lógica que ya vive en SQL, y la copia se atrasa.
+ *
+ * OJO: esto NO reproduce la seguridad. En la base real `anon` no puede tocar
+ * `ong_solicitudes` y sólo entra por estas dos funciones; acá todo es
+ * localStorage del propio navegador y no hay nada que proteger. Lo que se imita
+ * son las REGLAS —los frenos, la validación, qué campos vuelven— para que la
+ * pantalla se comporte igual.
+ */
+function rpcDemo(fn: string, args: Record<string, unknown>): { data: unknown; error: unknown } | null {
+  const err = (message: string) => ({ data: null, error: { message } })
+
+  if (fn === 'solicitud_crear') {
+    const nombre = String(args.p_nombre ?? '').trim()
+    const dni = String(args.p_dni ?? '').replace(/\D/g, '')
+    if (nombre.length < 3) return err('Falta el nombre y apellido')
+    if (dni.length < 7 || dni.length > 9) return err('El documento no parece valido')
+
+    const filas = leerTabla('ong_solicitudes')
+    const hace24h = Date.now() - 24 * 60 * 60 * 1000
+    const enCurso = filas.find(f =>
+      f.dni === dni && ['pendiente', 'en_revision'].includes(String(f.estado)) &&
+      Date.parse(String(f.creada_en)) > hace24h)
+    if (enCurso) {
+      return err('Ya hay una solicitud en curso con ese documento. Usá el link que te dimos para ver cómo va.')
+    }
+
+    const token = (uuid() + uuid()).replace(/-/g, '')
+    const ahora = new Date().toISOString()
+    filas.push({
+      id: uuid(), token, nombre, dni,
+      email: String(args.p_email ?? '').trim() || null,
+      telefono: String(args.p_telefono ?? '').trim() || null,
+      notas: String(args.p_notas ?? '').trim() || null,
+      estado: 'pendiente', motivo: null, paciente_id: null, asociado_id: null,
+      creada_en: ahora, actualizada_en: ahora, revisada_por: null,
+      // La firma del mandato, igual que la funcion de la base: si el demo no la
+      // guardara, la demo mostraria un alta sin mandato y la instalacion real
+      // una con mandato. Una demo que se comporta distinto que produccion es
+      // peor que no tenerla: es donde se prueban las cosas antes de creerlas.
+      //
+      // La FECHA la pone el demo, no quien llama, por lo mismo que en la base.
+      mandato_aceptado: args.p_mandato_aceptado === true,
+      mandato_version: args.p_mandato_aceptado === true
+        ? (String(args.p_mandato_version ?? '').trim() || null) : null,
+      mandato_fecha: args.p_mandato_aceptado === true ? ahora : null,
+    })
+    escribirTabla('ong_solicitudes', filas)
+    return { data: token, error: null }
+  }
+
+  if (fn === 'solicitud_estado') {
+    const token = String(args.p_token ?? '')
+    if (token.length !== 64) return { data: [], error: null }
+    const s = leerTabla('ong_solicitudes').find(f => f.token === token)
+    if (!s) return { data: [], error: null }
+    const e = leerTabla('ong_entidad')[0] ?? {}
+    // Los mismos campos que devuelve la función real: sin el DNI.
+    return {
+      data: [{
+        estado: s.estado, nombre: s.nombre,
+        creada_en: s.creada_en, actualizada_en: s.actualizada_en, motivo: s.motivo,
+        entidad: e.razon_social ?? null, codigo_vinculacion: e.codigo_vinculacion ?? null,
+      }],
+      error: null,
+    }
+  }
+
+  return null
+}
+
 export function crearClienteDemo() {
   asegurarSeed()
   return {
     from(tabla: string) { return new QueryBuilder(tabla) },
-    rpc(_fn: string, _args?: any) {
-      // no soportado en demo: devolver vacio
-      return Promise.resolve({ data: null, error: null }) as any
+    rpc(fn: string, args?: any) {
+      const r = rpcDemo(fn, args ?? {})
+      // El resto sigue devolviendo vacio con gracia: una funcion que la demo no
+      // conoce no tiene por que tumbar la pantalla.
+      return Promise.resolve(r ?? { data: null, error: null }) as any
     },
     channel(_nombre: string, _opts?: any) { return canalDemo() },
     removeChannel(_canal: any) { return Promise.resolve('ok') },

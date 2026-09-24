@@ -1,7 +1,7 @@
 import { QueryClient } from '@tanstack/react-query'
 
 /**
- * QueryClient global para CannTrace.
+ * QueryClient global para GrowFlow.
  * - staleTime 30s: data "fresca" por 30s, evita refetches innecesarios al navegar
  * - gcTime 5min: cache entries viven 5min antes de GC
  * - refetchOnWindowFocus false: el usuario decide cuando sincronizar

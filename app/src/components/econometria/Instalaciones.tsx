@@ -15,12 +15,14 @@ import {
   type ItemInstalacion, type ProveedorInstalacion, type Presupuesto, type PresupuestoItem,
   type OfertaInstalacion,
 } from '../../lib/instalaciones'
-import { btnPrimario, btnSutil } from '../../lib/ui'
+import { useDesbordeHorizontal } from '../../lib/useDesbordeHorizontal'
+import { btnPrimario, btnSutil, etiquetaCampo, inputFormulario } from '../../lib/ui'
+import { useDialogo } from '../../lib/useDialogo'
+import { confirmarBorrado } from '../../lib/confirmar'
+import { pedirTexto } from '../../lib/pedirDatos'
 
 // text-[16px] en celular: iOS Safari hace zoom sobre cualquier campo con letra
 // menor y deja el formulario descuadrado. En desktop vuelve al tamaño real.
-const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#8a8a9c] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
-const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1'
 const fmt = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
 
 const escapeHtml = (s: string) => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!))
@@ -137,15 +139,17 @@ export default function Instalaciones() {
   const grupos = useMemo(() => porSistema(items), [items])
 
   const borrarItem = async (i: ItemInstalacion) => {
-    if (!window.confirm(`¿Borrar "${i.nombre}" del catálogo?`)) return
+    if (!(await confirmarBorrado(`¿Borrar "${i.nombre}" del catálogo?`))) return
     try { await instalacionesService.eliminarItem(i.id); toast.success('Ítem borrado'); cargar() }
     catch (err) { toast.error(`No se pudo borrar: ${(err as Error).message}`) }
   }
   const borrarProv = async (p: ProveedorInstalacion) => {
-    if (!window.confirm(`¿Borrar el proveedor "${p.nombre}"?`)) return
+    if (!(await confirmarBorrado(`¿Borrar el proveedor "${p.nombre}"?`))) return
     try { await instalacionesService.eliminarProveedor(p.id); toast.success('Proveedor borrado'); cargar() }
     catch (err) { toast.error(`No se pudo borrar: ${(err as Error).message}`) }
   }
+
+  const { refWrapper: refVistas, refScroller: refScrollVistas } = useDesbordeHorizontal<HTMLDivElement, HTMLDivElement>()
 
   if (presupSel) {
     return <DetallePresupuesto presupuesto={presupSel} items={items} provPorId={provPorId}
@@ -154,14 +158,28 @@ export default function Instalaciones() {
 
   return (
     <div>
-      <div className="flex items-center gap-1 mb-4">
+      {/* Esta fila no envolvia ni scrolleaba: era un `flex` a secas con tres
+          pastillas, un espaciador y el boton de accion. A 375px no entraban, y
+          lo que se cortaba contra el borde era el BOTON —«+ Íte…»—, o sea lo
+          unico que hay para hacer en la pantalla. Un contenido cortado es malo;
+          la accion cortada es una pantalla rota.
+
+          Ahora son dos cosas separadas: las vistas scrollean con el mismo
+          degradado que el resto de la app, y la accion baja a su propio renglon
+          de ancho completo en el telefono. De `sm:` para arriba vuelven a la
+          misma fila, que es donde entraban desde siempre. */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4">
+      <div ref={refVistas} className="ct-tabs-fade min-w-0 sm:flex-1">
+      <div ref={refScrollVistas} className="scrollbar-none flex items-center gap-1 overflow-x-auto [-webkit-overflow-scrolling:touch]">
         {([['catalogo', 'Catálogo', Boxes], ['proveedores', 'Proveedores', Truck], ['presupuestos', 'Presupuestos', FileText]] as const).map(([v, lbl, Ico]) => (
           <button key={v} onClick={() => setVista(v)}
-            className={`px-3 py-1.5 rounded-lg text-[12px] font-medium border transition-colors flex items-center gap-1.5 ${vista === v ? 'border-[#a3e635]/50 bg-[#a3e635]/10 text-[#d9f99d]' : 'border-[#2a2a3a] bg-[#15151d] text-[#8a8a9c] hover:text-[#a6a6b5]'}`}>
+            className={`flex-shrink-0 min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-lg text-[12px] font-medium border transition-colors flex items-center gap-1.5 ${vista === v ? 'border-[#a3e635]/50 bg-[#a3e635]/10 text-[#d9f99d]' : 'border-[#2a2a3a] bg-[#15151d] text-[#8a8a9c] hover:text-[#a6a6b5]'}`}>
             <Ico className="w-3.5 h-3.5" /> {lbl}
           </button>
         ))}
-        <div className="flex-1" />
+      </div>
+      </div>
+        <div className="flex gap-2 [&>*]:flex-1 sm:[&>*]:flex-none [&>*]:justify-center sm:[&>*]:justify-start">
         {vista === 'catalogo' && <button onClick={() => setModalItem('nuevo')} className={btnPrimario}><Plus className="w-3.5 h-3.5" /> Ítem</button>}
         {vista === 'proveedores' && <button onClick={() => setModalProv('nuevo')} className={btnPrimario}><Plus className="w-3.5 h-3.5" /> Proveedor</button>}
         {vista === 'presupuestos' && (
@@ -174,6 +192,7 @@ export default function Instalaciones() {
             <NuevoPresupuestoBtn onCreado={cargar} onAbrir={setPresupSel} />
           </>
         )}
+        </div>
       </div>
 
       {cargando ? (
@@ -203,10 +222,10 @@ export default function Instalaciones() {
                       <li key={i.id} className="flex items-center gap-3 px-4 py-2.5 group">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-[12.5px] text-[#ececf1] truncate">{i.nombre}</span>
-                            {(i.marca || i.modelo) && <span className="text-[10.5px] text-[#8a8a9c]">{[i.marca, i.modelo].filter(Boolean).join(' · ')}</span>}
+                            <span className="text-[12px] text-[#ececf1] truncate">{i.nombre}</span>
+                            {(i.marca || i.modelo) && <span className="text-[10px] text-[#8a8a9c]">{[i.marca, i.modelo].filter(Boolean).join(' · ')}</span>}
                           </div>
-                          <div className="mt-0.5 flex items-center gap-2 text-[10.5px] text-[#8a8a9c]">
+                          <div className="mt-0.5 flex items-center gap-2 text-[10px] text-[#8a8a9c]">
                             {prov ? <span className="text-[#84cc16]">{prov.nombre}</span> : <span className="text-[#8a8a9c]">sin proveedor</span>}
                             {of && of.n > 0 && <button onClick={() => setModalOfertas(i)} className="inline-flex items-center gap-0.5 text-[#fbbf24] hover:underline"><Tag className="w-3 h-3" /> {of.n} oferta{of.n === 1 ? '' : 's'}{of.min != null ? ` · mejor ${fmt(of.min)}` : ''}</button>}
                             {i.url && <a href={i.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 text-[#38bdf8] hover:underline"><ExternalLink className="w-3 h-3" /> link</a>}
@@ -214,13 +233,13 @@ export default function Instalaciones() {
                           </div>
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <div className="text-[12.5px] font-medium text-[#ececf1]">{i.precio != null ? fmt(Number(i.precio)) : '—'}</div>
-                          <div className="text-[9.5px] text-[#8a8a9c]">por {i.unidad || 'u'}</div>
+                          <div className="text-[12px] font-medium text-[#ececf1]">{i.precio != null ? fmt(Number(i.precio)) : '—'}</div>
+                          <div className="text-[10px] text-[#8a8a9c]">por {i.unidad || 'u'}</div>
                         </div>
                         <div className="flex flex-col gap-1 flex-shrink-0">
-                          <button onClick={() => setModalOfertas(i)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#8a8a9c] hover:text-[#fbbf24] hover:bg-[#15151d] rounded-lg transition-colors" title="Ofertas / comparar precios"><Tag className="w-3.5 h-3.5" /></button>
-                          <button onClick={() => setModalItem(i)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#8a8a9c] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
-                          <button onClick={() => borrarItem(i)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#8a8a9c] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => setModalOfertas(i)} className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#8a8a9c] hover:text-[#fbbf24] hover:bg-[#15151d] rounded-lg transition-colors" title="Ofertas / comparar precios"><Tag className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => setModalItem(i)} className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#8a8a9c] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => borrarItem(i)} className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#8a8a9c] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
                         </div>
                       </li>
                     )
@@ -246,15 +265,15 @@ export default function Instalaciones() {
                         {p.zona && <span className="px-1.5 py-0.5 rounded-md text-[10px] bg-[#15151d] border border-[#2a2a3a] text-[#a6a6b5]">{p.zona}</span>}
                         <span className="text-[10px] text-[#8a8a9c]">{nItems} ítem{nItems === 1 ? '' : 's'}</span>
                       </div>
-                      <div className="mt-0.5 flex items-center gap-3 text-[10.5px] text-[#8a8a9c]">
+                      <div className="mt-0.5 flex items-center gap-3 text-[10px] text-[#8a8a9c]">
                         {p.contacto && <span>{p.contacto}</span>}
                         {p.url && <a href={p.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 text-[#38bdf8] hover:underline"><ExternalLink className="w-3 h-3" /> {p.url.replace(/^https?:\/\//, '').slice(0, 32)}</a>}
                       </div>
-                      {p.notas && <div className="mt-0.5 text-[10.5px] text-[#8a8a9c] truncate">{p.notas}</div>}
+                      {p.notas && <div className="mt-0.5 text-[10px] text-[#8a8a9c] truncate">{p.notas}</div>}
                     </div>
                     <div className="flex flex-col gap-1 flex-shrink-0">
-                      <button onClick={() => setModalProv(p)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#8a8a9c] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => borrarProv(p)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#8a8a9c] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => setModalProv(p)} className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#8a8a9c] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => borrarProv(p)} className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#8a8a9c] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </li>
                 )
@@ -271,13 +290,13 @@ export default function Instalaciones() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {presupuestos.map(p => (
               <button key={p.id} onClick={() => setPresupSel(p)}
-                className="text-left rounded-xl bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] transition-colors p-4">
+                className="text-left rounded-xl bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] transition-colors p-3 sm:p-4">
                 <div className="flex items-center gap-2">
                   <FileText className="w-4 h-4 text-[#a78bfa]" />
-                  <span className="font-display font-semibold text-[13.5px] text-[#ececf1]">{p.nombre}</span>
+                  <span className="font-display font-semibold text-[13px] text-[#ececf1]">{p.nombre}</span>
                 </div>
                 {p.notas && <div className="mt-1 text-[11px] text-[#8a8a9c] line-clamp-2">{p.notas}</div>}
-                <div className="mt-2 text-[10.5px] text-[#8a8a9c]">Abrir para ver el detalle y el total →</div>
+                <div className="mt-2 text-[10px] text-[#8a8a9c]">Abrir para ver el detalle y el total →</div>
               </button>
             ))}
           </div>
@@ -298,10 +317,13 @@ export default function Instalaciones() {
 function ModalOfertas({ item, proveedores, onCerrar, onCambio }: {
   item: ItemInstalacion; proveedores: ProveedorInstalacion[]; onCerrar: () => void; onCambio: () => void
 }) {
+  const refDialogo1 = useDialogo(onCerrar)
   const [ofertas, setOfertas] = useState<OfertaInstalacion[]>([])
   const [cargando, setCargando] = useState(true)
   const [edit, setEdit] = useState<OfertaInstalacion | 'nueva' | null>(null)
   const [verImg, setVerImg] = useState<string | null>(null)
+  // El visor de la foto tapa al modal de ofertas: el atras cierra el de arriba.
+  const refDialogo2 = useDialogo(() => setVerImg(null), verImg != null)
   const provPorId = useMemo(() => new Map(proveedores.map(p => [p.id, p])), [proveedores])
 
   const cargar = useCallback(async () => {
@@ -318,7 +340,7 @@ function ModalOfertas({ item, proveedores, onCerrar, onCambio }: {
     } catch (err) { toast.error(`Error: ${(err as Error).message}`) }
   }
   const borrar = async (o: OfertaInstalacion) => {
-    if (!window.confirm('¿Borrar esta oferta?')) return
+    if (!(await confirmarBorrado('¿Borrar esta oferta?'))) return
     try { await instalacionesService.eliminarOferta(o.id); await cargar(); onCambio() }
     catch (err) { toast.error(`Error: ${(err as Error).message}`) }
   }
@@ -326,14 +348,14 @@ function ModalOfertas({ item, proveedores, onCerrar, onCambio }: {
   const mejor = ofertas.filter(o => o.precio != null).reduce<number | null>((m, o) => m == null ? Number(o.precio) : Math.min(m, Number(o.precio)), null)
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={onCerrar}>
-      <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+    <div ref={refDialogo1} className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={onCerrar}>
+      <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92dvh] overflow-y-auto overscroll-contain" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 bg-[#0d0d12] border-b border-[#1f1f2b] px-4 py-3 flex items-center justify-between">
           <div className="min-w-0">
             <h2 className="font-display font-bold text-[15px] text-[#ececf1] truncate flex items-center gap-2"><Tag className="w-4 h-4 text-[#fbbf24]" /> Ofertas · {item.nombre}</h2>
-            <div className="text-[10.5px] text-[#8a8a9c]">Cargá cada cotización con su foto y elegí ⭐ la de mejor precio</div>
+            <div className="text-[10px] text-[#8a8a9c]">Cargá cada cotización con su foto y elegí ⭐ la de mejor precio</div>
           </div>
-          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#8a8a9c] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
+          <button onClick={onCerrar} className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#8a8a9c] hover:text-[#ececf1]" aria-label="Cerrar"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4 space-y-3">
           {cargando ? (
@@ -348,19 +370,19 @@ function ModalOfertas({ item, proveedores, onCerrar, onCambio }: {
                 return (
                   <li key={o.id} className={`rounded-xl border p-2.5 flex items-center gap-3 ${o.elegido ? 'border-[#a3e635]/50 bg-[#a3e635]/[0.06]' : 'border-[#1f1f2b] bg-[#101016]'}`}>
                     {o.imagen
-                      ? <button onClick={() => setVerImg(o.imagen!)} className="flex-shrink-0"><img src={o.imagen} alt="" className="w-12 h-12 rounded-lg object-cover border border-[#2a2a3a]" /></button>
+                      ? <button onClick={() => setVerImg(o.imagen!)} className="flex-shrink-0"><img src={o.imagen} alt="" width={48} height={48} loading="lazy" className="w-12 h-12 rounded-lg object-cover border border-[#2a2a3a]" /></button>
                       : <div className="w-12 h-12 rounded-lg bg-[#15151d] border border-[#2a2a3a] flex items-center justify-center flex-shrink-0"><ImagePlus className="w-4 h-4 text-[#3a3a48]" /></div>}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[12.5px] font-medium text-[#ececf1]">{o.precio != null ? fmt(Number(o.precio)) : 's/precio'}</span>
-                        {esMejor && <span className="px-1.5 py-0.5 rounded-md text-[9px] bg-[#22c55e]/15 text-[#4ade80] border border-[#22c55e]/30">mejor</span>}
-                        {o.elegido && <span className="px-1.5 py-0.5 rounded-md text-[9px] bg-[#a3e635]/15 text-[#d9f99d] border border-[#a3e635]/30">referencia</span>}
+                        <span className="text-[12px] font-medium text-[#ececf1]">{o.precio != null ? fmt(Number(o.precio)) : 's/precio'}</span>
+                        {esMejor && <span className="px-1.5 py-0.5 rounded-md text-[10px] bg-[#22c55e]/15 text-[#4ade80] border border-[#22c55e]/30">mejor</span>}
+                        {o.elegido && <span className="px-1.5 py-0.5 rounded-md text-[10px] bg-[#a3e635]/15 text-[#d9f99d] border border-[#a3e635]/30">referencia</span>}
                       </div>
-                      <div className="text-[10.5px] text-[#8a8a9c] truncate">{prov?.nombre ?? 'sin proveedor'}{o.presentacion ? ` · ${o.presentacion}` : ''}{o.nota ? ` · ${o.nota}` : ''}</div>
+                      <div className="text-[10px] text-[#8a8a9c] truncate">{prov?.nombre ?? 'sin proveedor'}{o.presentacion ? ` · ${o.presentacion}` : ''}{o.nota ? ` · ${o.nota}` : ''}</div>
                     </div>
-                    <button onClick={() => elegir(o)} title="Elegir como referencia" className={`min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 rounded-lg transition-colors ${o.elegido ? 'text-[#a3e635]' : 'text-[#8a8a9c] hover:text-[#a3e635] hover:bg-[#15151d]'}`}><Star className={`w-4 h-4 ${o.elegido ? 'fill-[#a3e635]' : ''}`} /></button>
-                    <button onClick={() => setEdit(o)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#8a8a9c] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => borrar(o)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#8a8a9c] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => elegir(o)} title="Elegir como referencia" className={`inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 rounded-lg transition-colors ${o.elegido ? 'text-[#a3e635]' : 'text-[#8a8a9c] hover:text-[#a3e635] hover:bg-[#15151d]'}`}><Star className={`w-4 h-4 ${o.elegido ? 'fill-[#a3e635]' : ''}`} /></button>
+                    <button onClick={() => setEdit(o)} className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#8a8a9c] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => borrar(o)} className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#8a8a9c] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
                   </li>
                 )
               })}
@@ -368,13 +390,26 @@ function ModalOfertas({ item, proveedores, onCerrar, onCambio }: {
           )}
           <button onClick={() => setEdit('nueva')} className={`${btnSutil} w-full justify-center`}><Plus className="w-3.5 h-3.5" /> Agregar oferta</button>
         </div>
+        <div className="px-4 py-3 border-t border-[#1f1f2b] sticky bottom-0 bg-[#0d0d12]">
+          <button onClick={onCerrar} className="w-full min-h-[44px] flex items-center justify-center rounded-lg border border-[#2a2a3a] text-[12px] text-[#a6a6b5] hover:text-[#ececf1] hover:bg-[#1f1f2b] transition-colors">Cerrar</button>
+        </div>
       </div>
 
       {edit && <ModalOferta item={item} oferta={edit === 'nueva' ? null : edit} proveedores={proveedores}
         onCerrar={() => setEdit(null)} onGuardado={() => { setEdit(null); cargar(); onCambio() }} />}
       {verImg && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/85 p-4" onClick={() => setVerImg(null)}>
-          <img src={verImg} alt="" className="max-w-full max-h-full rounded-lg" />
+        <div ref={refDialogo2} className="fixed inset-0 z-[70] flex items-center justify-center bg-black/85 p-4" onClick={() => setVerImg(null)}>
+          {/* El contorno, por lo mismo que en FotoPrivada: sobre el negro al 85%
+              de este visor, una foto oscura no tiene dónde terminar. */}
+          <img src={verImg} alt="" className="max-w-full max-h-full rounded-lg [outline:1px_solid_rgba(255,255,255,0.1)] [outline-offset:-1px]" />
+          <button onClick={() => setVerImg(null)} aria-label="Cerrar"
+            className="absolute top-3 right-3 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full bg-black/50 text-white/80 hover:text-white">
+            <X className="w-5 h-5" />
+          </button>
+          <button onClick={() => setVerImg(null)}
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 min-h-[44px] px-6 flex items-center justify-center rounded-lg bg-black/60 border border-white/20 text-[12px] text-white/90 hover:bg-black/80">
+            Cerrar
+          </button>
         </div>
       )}
     </div>
@@ -417,31 +452,31 @@ function ModalOferta({ item, oferta, proveedores, onCerrar, onGuardado }: {
     <ModalShell titulo={oferta ? 'Editar oferta' : 'Nueva oferta'} onCerrar={onCerrar} onGuardar={guardar} guardando={guardando}>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className={labelCls}>Proveedor</label>
-          <select className={inputCls} value={f.proveedor_id ?? ''} onChange={e => set('proveedor_id', e.target.value || null)}>
+          <label className={etiquetaCampo}>Proveedor</label>
+          <select className={inputFormulario} value={f.proveedor_id ?? ''} onChange={e => set('proveedor_id', e.target.value || null)}>
             <option value="">— sin proveedor —</option>
             {proveedores.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
           </select>
         </div>
-        <div><label className={labelCls}>Precio ($)</label><input type="number" className={inputCls} value={f.precio ?? ''} onChange={e => set('precio', e.target.value === '' ? '' : Number(e.target.value))} placeholder="0" /></div>
+        <div><label className={etiquetaCampo}>Precio ($)</label><input type="number" className={inputFormulario} value={f.precio ?? ''} onChange={e => set('precio', e.target.value === '' ? '' : Number(e.target.value))} placeholder="0" /></div>
       </div>
-      <div><label className={labelCls}>Presentación</label><input className={inputCls} value={f.presentacion ?? ''} onChange={e => set('presentacion', e.target.value)} placeholder="Ej: caja x10 · bolsa 25kg · por hora" /></div>
+      <div><label className={etiquetaCampo}>Presentación</label><input className={inputFormulario} value={f.presentacion ?? ''} onChange={e => set('presentacion', e.target.value)} placeholder="Ej: caja x10 · bolsa 25kg · por hora" /></div>
       <div>
-        <label className={labelCls}>Foto de la cotización (captura ML, etc.)</label>
+        <label className={etiquetaCampo}>Foto de la cotización (captura ML, etc.)</label>
         <div className="flex items-center gap-3">
           {f.imagen
-            ? <img src={f.imagen} alt="" className="w-16 h-16 rounded-lg object-cover border border-[#2a2a3a]" />
+            ? <img src={f.imagen} alt="" width={64} height={64} className="w-16 h-16 rounded-lg object-cover border border-[#2a2a3a]" />
             : <div className="w-16 h-16 rounded-lg bg-[#15151d] border border-[#2a2a3a] flex items-center justify-center"><ImagePlus className="w-5 h-5 text-[#3a3a48]" /></div>}
           <div className="flex flex-col gap-1.5">
             <label className={`${btnSutil} cursor-pointer`}>
               {subiendo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ImagePlus className="w-3.5 h-3.5" />} {f.imagen ? 'Cambiar' : 'Subir foto'}
               <input type="file" accept="image/*" className="hidden" onChange={onFoto} />
             </label>
-            {f.imagen && <button onClick={() => set('imagen', null)} className="text-[10.5px] text-[#ff8a7a] hover:underline text-left">Quitar</button>}
+            {f.imagen && <button onClick={() => set('imagen', null)} className="text-[10px] text-[#ff8a7a] hover:underline text-left">Quitar</button>}
           </div>
         </div>
       </div>
-      <div><label className={labelCls}>Nota</label><input className={inputCls} value={f.nota ?? ''} onChange={e => set('nota', e.target.value)} placeholder="Opcional" /></div>
+      <div><label className={etiquetaCampo}>Nota</label><input className={inputFormulario} value={f.nota ?? ''} onChange={e => set('nota', e.target.value)} placeholder="Opcional" /></div>
     </ModalShell>
   )
 }
@@ -451,7 +486,7 @@ function Vacio({ icono: Ico, titulo, texto, accion, onAccion }: { icono: React.C
     <div className="py-12 text-center">
       <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><Ico className="w-5 h-5 text-[#8a8a9c]" /></div>
       <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">{titulo}</div>
-      <div className="mt-1 text-[11.5px] text-[#8a8a9c] max-w-md mx-auto">{texto}</div>
+      <div className="mt-1 text-[11px] text-[#8a8a9c] max-w-md mx-auto">{texto}</div>
       <button onClick={onAccion} className={`${btnPrimario} mt-3`}><Plus className="w-3.5 h-3.5" /> {accion}</button>
     </div>
   )
@@ -460,11 +495,13 @@ function Vacio({ icono: Ico, titulo, texto, accion, onAccion }: { icono: React.C
 function NuevoPresupuestoBtn({ onCreado, onAbrir }: { onCreado: () => void; onAbrir: (p: Presupuesto) => void }) {
   const [creando, setCreando] = useState(false)
   const crear = async () => {
-    const nombre = window.prompt('Nombre del presupuesto (ej: Setup 4×4 indoor):')
-    if (!nombre?.trim()) return
+    const nombre = await pedirTexto('Nuevo presupuesto', {
+      etiqueta: 'Nombre', placeholder: 'Setup 4×4 indoor',
+    })
+    if (!nombre) return
     setCreando(true)
     try {
-      const p = await instalacionesService.crearPresupuesto({ nombre: nombre.trim() })
+      const p = await instalacionesService.crearPresupuesto({ nombre })
       toast.success('Presupuesto creado'); onCreado(); onAbrir(p)
     } catch (err) { toast.error(`Error: ${(err as Error).message}`) }
     finally { setCreando(false) }
@@ -519,9 +556,9 @@ function DetallePresupuesto({ presupuesto, items, provPorId, onVolver }: {
         <Vacio icono={FileText} titulo="Presupuesto vacío" texto="Agregá ítems desde el catálogo o cargalos a mano. Cada línea guarda el precio del momento." accion="Agregar ítem" onAccion={() => setAgregando(true)} />
       ) : (
         <div className="space-y-4">
-          <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+          <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4 flex flex-wrap items-center gap-x-5 gap-y-2">
             <div>
-              <div className="text-[10px] uppercase tracking-[0.12em] text-[#8a8a9c]">Total presupuesto</div>
+              <div className="text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium">Total presupuesto</div>
               <div className="font-display font-bold text-[22px] text-[#bef264] leading-tight">{fmt(total)}</div>
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1">
@@ -543,14 +580,14 @@ function DetallePresupuesto({ presupuesto, items, provPorId, onVolver }: {
                 {g.items.map(l => (
                   <li key={l.id} className="flex items-center gap-3 px-4 py-2.5">
                     <div className="min-w-0 flex-1">
-                      <div className="text-[12.5px] text-[#ececf1] truncate">{l.nombre}</div>
-                      <div className="text-[10.5px] text-[#8a8a9c]">{l.proveedor || 'sin proveedor'} · {fmt(l.precio_unit)} c/u</div>
+                      <div className="text-[12px] text-[#ececf1] truncate">{l.nombre}</div>
+                      <div className="text-[10px] text-[#8a8a9c]">{l.proveedor || 'sin proveedor'} · {fmt(l.precio_unit)} c/u</div>
                     </div>
                     <input type="number" min={0} step={1} value={l.cantidad}
                       onChange={e => setCantidad(l, Number(e.target.value) || 0)}
-                      className="w-16 px-2 py-1.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12.5px] text-[#ececf1] text-center focus:outline-none focus:border-[#a3e635]/60" />
+                      className="w-16 px-2 py-1.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[12px] text-[#ececf1] text-center focus:outline-none focus:border-[#a3e635]/60" />
                     <div className="text-right flex-shrink-0 w-24">
-                      <div className="text-[12.5px] font-medium text-[#ececf1]">{fmt(totalLinea(l))}</div>
+                      <div className="text-[12px] font-medium text-[#ececf1]">{fmt(totalLinea(l))}</div>
                     </div>
                     <button onClick={() => borrarLinea(l)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#8a8a9c] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors flex-shrink-0" title="Quitar"><Trash2 className="w-3.5 h-3.5" /></button>
                   </li>
@@ -602,7 +639,7 @@ function CompararPresupuestos({ presupuestos, onAbrir }: { presupuestos: Presupu
         {datos.map(d => (
           <button key={d.p.id} onClick={() => onAbrir(d.p)} className="w-full text-left rounded-xl bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] transition-colors p-3">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[12.5px] text-[#ececf1] font-medium truncate">{d.p.nombre}</span>
+              <span className="text-[12px] text-[#ececf1] font-medium truncate">{d.p.nombre}</span>
               <span className="font-display font-bold text-[13px] text-[#bef264] flex-shrink-0 ml-2">{fmt(d.total)}</span>
             </div>
             <div className="h-2 rounded-full bg-[#15151d] overflow-hidden">
@@ -614,7 +651,7 @@ function CompararPresupuestos({ presupuestos, onAbrir }: { presupuestos: Presupu
 
       {sistemas.length > 0 && (
         <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-x-auto">
-          <table className="w-full text-[11.5px] border-collapse">
+          <table className="w-full text-[11px] border-collapse">
             <thead>
               <tr className="text-[#8a8a9c]">
                 <th className="text-left font-medium px-3 py-2 sticky left-0 bg-[#101016]">Sistema</th>
@@ -690,11 +727,11 @@ function ModalAgregarLinea({ presupuestoId, catalogo, provPorId, onCerrar, onGua
       </div>
       {modo === 'catalogo' ? (
         <div>
-          <label className={labelCls}>Ítem del catálogo</label>
+          <label className={etiquetaCampo}>Ítem del catálogo</label>
           {catalogo.length === 0 ? (
-            <p className="text-[11.5px] text-[#8a8a9c]">El catálogo está vacío. Cargá ítems primero o usá "A mano".</p>
+            <p className="text-[11px] text-[#8a8a9c]">El catálogo está vacío. Cargá ítems primero o usá "A mano".</p>
           ) : (
-            <select className={inputCls} value={itemId} onChange={e => setItemId(e.target.value)}>
+            <select className={inputFormulario} value={itemId} onChange={e => setItemId(e.target.value)}>
               <option value="">— elegí —</option>
               {porSistema(catalogo).map(g => (
                 <optgroup key={g.sistema} label={g.sistema}>
@@ -706,20 +743,20 @@ function ModalAgregarLinea({ presupuestoId, catalogo, provPorId, onCerrar, onGua
         </div>
       ) : (
         <>
-          <div><label className={labelCls}>Nombre *</label><input className={inputCls} value={manual.nombre} onChange={e => setManual({ ...manual, nombre: e.target.value })} placeholder="Ej: Bomba sumergible 2000 L/h" /></div>
+          <div><label className={etiquetaCampo}>Nombre *</label><input className={inputFormulario} value={manual.nombre} onChange={e => setManual({ ...manual, nombre: e.target.value })} placeholder="Ej: Bomba sumergible 2000 L/h" /></div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelCls}>Sistema</label>
-              <select className={inputCls} value={manual.sistema} onChange={e => setManual({ ...manual, sistema: e.target.value })}>
+              <label className={etiquetaCampo}>Sistema</label>
+              <select className={inputFormulario} value={manual.sistema} onChange={e => setManual({ ...manual, sistema: e.target.value })}>
                 {SISTEMAS.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
-            <div><label className={labelCls}>Precio unit. ($)</label><input type="number" className={inputCls} value={manual.precio_unit || ''} onChange={e => setManual({ ...manual, precio_unit: Number(e.target.value) || 0 })} placeholder="0" /></div>
+            <div><label className={etiquetaCampo}>Precio unit. ($)</label><input type="number" className={inputFormulario} value={manual.precio_unit || ''} onChange={e => setManual({ ...manual, precio_unit: Number(e.target.value) || 0 })} placeholder="0" /></div>
           </div>
-          <div><label className={labelCls}>Proveedor</label><input className={inputCls} value={manual.proveedor} onChange={e => setManual({ ...manual, proveedor: e.target.value })} placeholder="Opcional" /></div>
+          <div><label className={etiquetaCampo}>Proveedor</label><input className={inputFormulario} value={manual.proveedor} onChange={e => setManual({ ...manual, proveedor: e.target.value })} placeholder="Opcional" /></div>
         </>
       )}
-      <div><label className={labelCls}>Cantidad</label><input type="number" min={0} step={1} className={inputCls} value={cantidad} onChange={e => setCantidad(Number(e.target.value) || 0)} /></div>
+      <div><label className={etiquetaCampo}>Cantidad</label><input type="number" min={0} step={1} className={inputFormulario} value={cantidad} onChange={e => setCantidad(Number(e.target.value) || 0)} /></div>
     </ModalShell>
   )
 }
@@ -747,38 +784,38 @@ function ModalItem({ item, proveedores, onCerrar, onGuardado }: { item: ItemInst
 
   return (
     <ModalShell titulo={item ? 'Editar ítem' : 'Nuevo ítem'} onCerrar={onCerrar} onGuardar={guardar} guardando={guardando}>
-      <div><label className={labelCls}>Nombre *</label><input className={inputCls} value={f.nombre ?? ''} onChange={e => set('nombre', e.target.value)} placeholder="Ej: Controlador de CO₂" /></div>
+      <div><label className={etiquetaCampo}>Nombre *</label><input className={inputFormulario} value={f.nombre ?? ''} onChange={e => set('nombre', e.target.value)} placeholder="Ej: Controlador de CO₂" /></div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className={labelCls}>Sistema</label>
-          <select className={inputCls} value={f.sistema ?? 'Otro'} onChange={e => set('sistema', e.target.value)}>
+          <label className={etiquetaCampo}>Sistema</label>
+          <select className={inputFormulario} value={f.sistema ?? 'Otro'} onChange={e => set('sistema', e.target.value)}>
             {SISTEMAS.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
         </div>
         <div>
-          <label className={labelCls}>Proveedor</label>
-          <select className={inputCls} value={f.proveedor_id ?? ''} onChange={e => set('proveedor_id', e.target.value || null)}>
+          <label className={etiquetaCampo}>Proveedor</label>
+          <select className={inputFormulario} value={f.proveedor_id ?? ''} onChange={e => set('proveedor_id', e.target.value || null)}>
             <option value="">— sin proveedor —</option>
             {proveedores.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
           </select>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <div><label className={labelCls}>Marca</label><input className={inputCls} value={f.marca ?? ''} onChange={e => set('marca', e.target.value)} placeholder="Opcional" /></div>
-        <div><label className={labelCls}>Modelo</label><input className={inputCls} value={f.modelo ?? ''} onChange={e => set('modelo', e.target.value)} placeholder="Opcional" /></div>
+        <div><label className={etiquetaCampo}>Marca</label><input className={inputFormulario} value={f.marca ?? ''} onChange={e => set('marca', e.target.value)} placeholder="Opcional" /></div>
+        <div><label className={etiquetaCampo}>Modelo</label><input className={inputFormulario} value={f.modelo ?? ''} onChange={e => set('modelo', e.target.value)} placeholder="Opcional" /></div>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <div><label className={labelCls}>Precio unit. ($)</label><input type="number" className={inputCls} value={f.precio ?? ''} onChange={e => set('precio', e.target.value === '' ? '' : Number(e.target.value))} placeholder="0" /></div>
+        <div><label className={etiquetaCampo}>Precio unit. ($)</label><input type="number" className={inputFormulario} value={f.precio ?? ''} onChange={e => set('precio', e.target.value === '' ? '' : Number(e.target.value))} placeholder="0" /></div>
         <div>
-          <label className={labelCls}>Unidad</label>
-          <select className={inputCls} value={f.unidad ?? 'u'} onChange={e => set('unidad', e.target.value)}>
+          <label className={etiquetaCampo}>Unidad</label>
+          <select className={inputFormulario} value={f.unidad ?? 'u'} onChange={e => set('unidad', e.target.value)}>
             {UNIDADES_INST.map(u => <option key={u} value={u}>{u}</option>)}
           </select>
         </div>
       </div>
-      <div><label className={labelCls}>Specs</label><input className={inputCls} value={f.specs ?? ''} onChange={e => set('specs', e.target.value)} placeholder="Ej: 2000 L/h, 40 W" /></div>
-      <div><label className={labelCls}>Link (URL)</label><input className={inputCls} value={f.url ?? ''} onChange={e => set('url', e.target.value)} placeholder="https://..." /></div>
-      <div><label className={labelCls}>Notas</label><textarea rows={2} className={inputCls + ' resize-none'} value={f.notas ?? ''} onChange={e => set('notas', e.target.value)} /></div>
+      <div><label className={etiquetaCampo}>Specs</label><input className={inputFormulario} value={f.specs ?? ''} onChange={e => set('specs', e.target.value)} placeholder="Ej: 2000 L/h, 40 W" /></div>
+      <div><label className={etiquetaCampo}>Link (URL)</label><input className={inputFormulario} value={f.url ?? ''} onChange={e => set('url', e.target.value)} placeholder="https://..." /></div>
+      <div><label className={etiquetaCampo}>Notas</label><textarea rows={2} className={inputFormulario + ' resize-none'} value={f.notas ?? ''} onChange={e => set('notas', e.target.value)} /></div>
     </ModalShell>
   )
 }
@@ -804,24 +841,25 @@ function ModalProveedor({ prov, onCerrar, onGuardado }: { prov: ProveedorInstala
 
   return (
     <ModalShell titulo={prov ? 'Editar proveedor' : 'Nuevo proveedor'} onCerrar={onCerrar} onGuardar={guardar} guardando={guardando}>
-      <div><label className={labelCls}>Nombre *</label><input className={inputCls} value={f.nombre ?? ''} onChange={e => set('nombre', e.target.value)} placeholder="Ej: Casa de Riego Corrientes" /></div>
+      <div><label className={etiquetaCampo}>Nombre *</label><input className={inputFormulario} value={f.nombre ?? ''} onChange={e => set('nombre', e.target.value)} placeholder="Ej: Casa de Riego Corrientes" /></div>
       <div className="grid grid-cols-2 gap-3">
-        <div><label className={labelCls}>Contacto</label><input className={inputCls} value={f.contacto ?? ''} onChange={e => set('contacto', e.target.value)} placeholder="Tel / email / WhatsApp" /></div>
-        <div><label className={labelCls}>Zona</label><input className={inputCls} value={f.zona ?? ''} onChange={e => set('zona', e.target.value)} placeholder="Ciudad / provincia" /></div>
+        <div><label className={etiquetaCampo}>Contacto</label><input className={inputFormulario} value={f.contacto ?? ''} onChange={e => set('contacto', e.target.value)} placeholder="Tel / email / WhatsApp" /></div>
+        <div><label className={etiquetaCampo}>Zona</label><input className={inputFormulario} value={f.zona ?? ''} onChange={e => set('zona', e.target.value)} placeholder="Ciudad / provincia" /></div>
       </div>
-      <div><label className={labelCls}>Link (URL)</label><input className={inputCls} value={f.url ?? ''} onChange={e => set('url', e.target.value)} placeholder="https://..." /></div>
-      <div><label className={labelCls}>Notas</label><textarea rows={2} className={inputCls + ' resize-none'} value={f.notas ?? ''} onChange={e => set('notas', e.target.value)} /></div>
+      <div><label className={etiquetaCampo}>Link (URL)</label><input className={inputFormulario} value={f.url ?? ''} onChange={e => set('url', e.target.value)} placeholder="https://..." /></div>
+      <div><label className={etiquetaCampo}>Notas</label><textarea rows={2} className={inputFormulario + ' resize-none'} value={f.notas ?? ''} onChange={e => set('notas', e.target.value)} /></div>
     </ModalShell>
   )
 }
 
 function ModalShell({ titulo, children, onCerrar, onGuardar, guardando }: { titulo: string; children: React.ReactNode; onCerrar: () => void; onGuardar: () => void; guardando: boolean }) {
+  const refDialogo3 = useDialogo(onCerrar)
   return (
-    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={onCerrar}>
-      <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+    <div ref={refDialogo3} className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={onCerrar}>
+      <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92dvh] overflow-y-auto overscroll-contain" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 bg-[#0d0d12] border-b border-[#1f1f2b] px-4 py-3 flex items-center justify-between">
           <h2 className="font-display font-bold text-[15px] text-[#ececf1]">{titulo}</h2>
-          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#8a8a9c] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
+          <button onClick={onCerrar} className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#8a8a9c] hover:text-[#ececf1]" aria-label="Cerrar"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4 space-y-3">{children}</div>
         <div className="sticky bottom-0 bg-[#0d0d12] border-t border-[#1f1f2b] px-4 py-3 flex justify-end gap-2">

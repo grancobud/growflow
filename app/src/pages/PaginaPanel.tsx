@@ -1,67 +1,154 @@
-// PaginaPanel — dashboard del cultivo personal.
-// Esquema simplificado: plantas, eventos, cosechas.
+// PaginaPanel — la RUTINA DE APERTURA de la sede, no un resumen de todo.
+//
+// Fue un dashboard de cultivo y dejo de serlo en dos pasos, los dos a pedido
+// de Panacea: el 02/09/2026 se fue la lista de plantas activas («todo eso no me
+// hace falta en panel») y el 03/09/2026 se fue «Ultima actividad».
+//
+// Lo que queda es lo que se mira al abrir la sede, en orden: la lectura de
+// sala, la caja, el stock y las novedades. Lo demas esta a un toque en su
+// pantalla, que es donde alguien lo va a buscar cuando lo necesite.
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { motion } from 'framer-motion'
 import {
-  Leaf, Droplets, Flower2, Scale, ArrowRight, Sprout,
-  Activity, FileText, Dna, BellRing, Wrench, CheckCircle2, AlertTriangle,
+  ArrowRight, Sprout, BellRing, Wrench, CheckCircle2, AlertTriangle,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { ongService, calcularVencimientos, type Vencimiento } from '../lib/ong'
+import {
+  ongService, calcularVencimientos, credencialesDelPadron, diasHasta, resumenCaja, sufijoUnidad,
+  DIAS_AVISO_CREDENCIAL, type Vencimiento, type CredencialesDelPadron, type ResumenCaja, type Dispensa,
+} from '../lib/ong'
 import { toast } from 'sonner'
-import { cultivoService, type ResumenPlanta, type Evento, colorFase } from '../lib/cultivo'
+import { registroService } from '../lib/registro'
+import { portalService, disponibleDeLote, type Lote, type Pedido } from '../lib/portal'
+import { AperturaDeSede, type LoteEnStock } from '../components/panel/AperturaDeSede'
+import { ModalArqueo } from '../components/panel/ModalArqueo'
+import { arqueosService, type Arqueo } from '../lib/arqueos'
+import { BotoneraPanel } from '../components/BotoneraPanel'
+import { accionesOng, type Accion } from '../lib/accionesOng'
 import { stockService, proximoEfectivo, diasParaProximo, type Mantenimiento, type Insumo } from '../lib/stock'
-import { fechaLocal, hoyLocal } from '../lib/fechaLocal'
+import {
+  ambienteService, vpd, faltaLecturaDelTurno, turnoDe, TURNO_LABEL, type Lectura,
+  diasSinLectura, tituloFaltaLectura,
+} from '../lib/ambiente'
+import { EASE } from '../lib/motion'
+import { useAuth } from '../hooks/useAuth'
+import { nombreParaMostrar } from '../lib/buscarPersonas'
+import { fechaLocal } from '../lib/fechaLocal'
 
-const EASE = [0.22, 1, 0.36, 1] as const
-const stagger = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05, delayChildren: 0.04 } } }
-const fadeUp = { hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: { duration: 0.36, ease: EASE } } }
 
-
-const ICONO_EVENTO: Record<string, string> = {
-  Riego: '💧', Fertilizacion: '🧪', Poda: '✂️', Trasplante: '🪴',
-  CambioFase: '🔄', Entrenamiento: '🪢', Problema: '⚠️', Foto: '📷', Nota: '📝',
-}
 
 export default function PaginaPanel() {
-  const [plantas, setPlantas] = useState<ResumenPlanta[]>([])
-  const [eventos, setEventos] = useState<Evento[]>([])
-  const [pesoSecoTotal, setPesoSecoTotal] = useState(0)
+  const { tienePermiso } = useAuth()
   const [mantes, setMantes] = useState<Mantenimiento[]>([])
   // Vencimientos de la ONG: si el mandato o el REPROCANN se caen, no se puede
   // hacer ningun tramite. Tienen que verse apenas entras, no dentro de /ong.
   const [vencONG, setVencONG] = useState<Vencimiento[]>([])
+  // Las credenciales REPROCANN del padron. Hasta ahora solo se veian entrando a
+  // Coherencia, y una credencial vencida no la busca nadie: aparece el dia que
+  // alguien viene a retirar y ya no se le puede entregar.
+  const [credenciales, setCredenciales] = useState<CredencialesDelPadron | null>(null)
+  const [ultimaAmb, setUltimaAmb] = useState<Lectura | null>(null)
+  const [haySalas, setHaySalas] = useState(false)
   const [insumos, setInsumos] = useState<Insumo[]>([])
-  const [cargando, setCargando] = useState(true)
+  // Las acciones del Panel salen de la MISMA fuente que las de la O.N.G.:
+  // accionesOng ya sabe el estado de cada una y por que. Duplicar la lista aca
+  // seria condenarlas a desincronizarse.
+  const [acciones, setAcciones] = useState<Accion[]>([])
+
+  // LO QUE EL ENCARGADO MIRA AL ABRIR: caja y stock.
+  //
+  // Van en su propio `Promise.all` y con `catch` por rama, como el resto de lo
+  // que cuelga del panel: si la caja no carga, el stock igual se ve. Y se piden
+  // SOLO si el rol los puede ver — no por prolijidad, sino porque el RLS le
+  // devolveria cero filas a quien no corresponde y el panel mostraria una caja
+  // en $0, que se lee como un dato y no como un permiso. Es exactamente el
+  // sintoma que ya costo caro con las pestanas de la O.N.G.
+  const [caja, setCaja] = useState<ResumenCaja | null>(null)
+  const [lotes, setLotes] = useState<Lote[] | null>(null)
+  const [pedidos, setPedidos] = useState<Pedido[]>([])
+  const [dispensas, setDispensas] = useState<Dispensa[]>([])
+  const refNovedades = useRef<HTMLDivElement | null>(null)
+  // El último arqueo. Sirve para dos cosas: saber si los pasos 2 y 3 ya se
+  // hicieron HOY, y no tener que pedir la lista entera para eso.
+  const [ultimoArqueo, setUltimoArqueo] = useState<Arqueo | null>(null)
+  const [arqueando, setArqueando] = useState(false)
 
   async function cargar() {
     try {
-      const [resumen, ultimosEventos, cosechas, man, ins] = await Promise.all([
-        cultivoService.getResumenPlantas(true),
-        cultivoService.getEventos(undefined, 10),
-        cultivoService.getCosechas(),
+      // TRES CONSULTAS MENOS EN LA PANTALLA DE ENTRADA. Se fueron con lo que
+      // las pedia: las cosechas con el total de gramos secos de las tarjetas,
+      // el resumen de plantas con la lista de plantas activas, y los ultimos
+      // eventos con «Ultima actividad». El resumen de plantas quedaba servido
+      // solo para poder poner el nombre de la planta al lado de cada evento.
+      const [man, ins] = await Promise.all([
         stockService.getMantenimientos().catch(() => []),
         stockService.getInsumos().catch(() => []),
       ])
-      setPlantas(resumen)
-      setEventos(ultimosEventos)
-      setPesoSecoTotal(cosechas.reduce((acc, c) => acc + (c.peso_seco_g ?? 0), 0))
       setMantes(man)
       setInsumos(ins)
     } catch (err) {
       console.error('Error cargando panel:', err)
-    } finally {
-      setCargando(false)
     }
   }
+  // LA REGLA EMPEZO A CORRER RECIEN AL SACAR «Ultima actividad» (03/09/2026), y
+  // no porque la carga haya cambiado: el compilador de React se plantaba antes
+  // en este componente y con el bloque menos pudo analizarlo. El aviso es un
+  // falso positivo del mismo tipo que el de `Layout` y `Solicitudes`: `cargar`
+  // es `async` y su primera instruccion es un `await`, asi que ningun `setState`
+  // corre sincronico dentro del efecto — corren todos despues del microtask.
+  // Traer datos al montar ES lo que un efecto tiene que hacer.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     cargar()
+    // Las credenciales del padron. Si falla, el panel sigue andando igual: es un
+    // aviso, no el contenido de la pantalla.
+    registroService.getPacientes(true)
+      .then(ps => setCredenciales(credencialesDelPadron(ps)))
+      .catch(() => {})
     // Vencimientos de la ONG a 60 días: si falla, el panel sigue andando igual.
     ongService.getEntidad()
       .then(e => setVencONG(calcularVencimientos(e).filter(v => v.fecha && v.dias != null && v.dias <= 60)))
       .catch(() => {})
-  }, [])
+    // La botonera necesita saber si hay pacientes, lotes, socios y cuotas para
+    // decidir que se puede hacer. Si algo falla queda vacio y la seccion no se
+    // muestra: mejor sin botonera que con una que miente sobre lo que se puede.
+    Promise.all([
+      ongService.getEntidad().catch(() => null),
+      registroService.getPacientes().catch(() => []),
+      portalService.getLotes().catch(() => []),
+      ongService.getAsociados().catch(() => []),
+      ongService.getCuotas().catch(() => []),
+    ])
+      .then(([ent, pac, lot, aso, cuo]) =>
+        setAcciones(accionesOng({ entidad: ent, pacientes: pac.length, lotes: lot, asociados: aso, cuotas: cuo })))
+      .catch(() => {})
+    // Ambiente: mismo criterio, si falla no arrastra al resto del panel.
+    Promise.all([ambienteService.ultimaLectura(), ambienteService.getSalas()])
+      .then(([u, s]) => { setUltimaAmb(u); setHaySalas(s.some(x => x.activa)) })
+      .catch(() => {})
+    // La caja del paso 2, solo para quien la puede ver.
+    if (tienePermiso('ver_plata')) {
+      ongService.getCaja().then(a => setCaja(resumenCaja(a))).catch(() => {})
+      arqueosService.listar(1).then(a => setUltimoArqueo(a[0] ?? null)).catch(() => {})
+    }
+    // El stock del paso 3. Son tres tablas porque el disponible de un lote se
+    // CALCULA: `disponibleDeLote` descuenta las reservas del portal y las
+    // dispensas de mostrador. No hay una columna «queda tanto» que leer, y
+    // guardarla seria el derivado que se desincroniza a la primera correccion
+    // — el mismo criterio que el VPD y que la capacidad de un area.
+    if (tienePermiso('ver_ong')) {
+      Promise.all([
+        portalService.getLotes().catch(() => []),
+        portalService.getPedidos().catch(() => []),
+        ongService.getDispensas().catch(() => []),
+      ])
+        .then(([l, p, d]) => { setLotes(l); setPedidos(p); setDispensas(d) })
+        .catch(() => {})
+    }
+    // `tienePermiso` es estable por rol (useCallback sobre usuario.rol), asi que
+    // esto corre una vez y no en cada render.
+  }, [tienePermiso])
 
   // Alarmas de mantenimiento: vencidas, para hoy o mañana (diasParaProximo <= 1).
   const alarmas = mantes
@@ -71,48 +158,123 @@ export default function PaginaPanel() {
 
   const hechoHoy = async (m: Mantenimiento) => {
     try {
-      const proximo = m.frecuencia_dias ? fechaLocal(new Date(Date.now() + m.frecuencia_dias * 86400000)) : null
-      await stockService.actualizarMantenimiento(m.id, { fecha_realizado: hoyLocal(), proximo })
+      // UNA SOLA LECTURA DEL RELOJ para las dos fechas. Leerlo dos veces —una
+      // para el proximo y otra para el realizado— deja que a las 23:59:59 el
+      // mantenimiento quede hecho un dia y agendado desde el siguiente.
+      const ahora = new Date()
+      const proximo = m.frecuencia_dias
+        ? fechaLocal(new Date(ahora.getTime() + m.frecuencia_dias * 86400000))
+        : null
+      await stockService.actualizarMantenimiento(m.id, { fecha_realizado: fechaLocal(ahora), proximo })
       toast.success('Registrado como hecho hoy'); cargar()
     } catch (err) { toast.error(`Error: ${(err as Error).message}`) }
   }
 
-  const hoy = hoyLocal()
-  const enFlora = plantas.filter(p => p.fase === 'Floracion').length
-  const riegosHoy = eventos.filter(e => e.tipo === 'Riego' && e.fecha === hoy).length
-  const sinRiegoDias = (p: ResumenPlanta) =>
-    p.ultimo_riego ? Math.floor((Date.now() - new Date(p.ultimo_riego).getTime()) / 86400000) : null
 
-  const tarjetas = [
-    { label: 'Plantas activas', valor: plantas.length, icono: Leaf, hint: 'en el cultivo', color: '#d9f99d', bg: 'rgba(163,230,53,0.10)', border: '#404d20' },
-    { label: 'En floración', valor: enFlora, icono: Flower2, hint: 'camino a cosecha', color: '#c4b5fd', bg: 'rgba(139,92,246,0.12)', border: '#463a66' },
-    { label: 'Riegos hoy', valor: riegosHoy, icono: Droplets, hint: 'registrados', color: '#38bdf8', bg: 'rgba(56,189,248,0.10)', border: '#1d3a5a' },
-    { label: 'Cosechado', valor: pesoSecoTotal, icono: Scale, hint: 'gramos secos', color: '#f59e0b', bg: 'rgba(245,158,11,0.10)', border: '#5a4a20' },
-  ]
+  // El paso 3: lo que queda de cada lote, ordenado de mayor a menor.
+  //
+  // Se muestran los cinco primeros y no los ciento uno: es un resumen para
+  // mirar de parado, y la lista entera vive en el catalogo, a un toque. Se
+  // filtran los vacios porque un lote en cero no es stock, es historia.
+  const stock = useMemo(() => {
+    if (!lotes) return null
+    const ahora = new Date()
+    const conSaldo: LoteEnStock[] = lotes
+      .filter(l => l.activo !== false)
+      .map(l => ({
+        codigo: l.codigo,
+        producto: l.producto,
+        disponible: disponibleDeLote(l, pedidos, dispensas, ahora).disponible,
+        sufijo: sufijoUnidad(l.unidad),
+      }))
+      .filter(l => l.disponible > 0)
+      .sort((a, b) => b.disponible - a.disponible)
+    return {
+      // El total suma SOLO gramos. Sumar frascos de aceite con gramos de flor da
+      // un numero que no significa nada; es el mismo criterio de `resumenCatalogo`.
+      total: conSaldo.filter(l => l.sufijo === 'g').reduce((s, l) => s + l.disponible, 0),
+      otrasUnidades: conSaldo.filter(l => l.sufijo !== 'g').length,
+      lotes: conSaldo.slice(0, 5),
+    }
+  }, [lotes, pedidos, dispensas])
 
-  const nombrePlanta = (id: string | null) =>
-    plantas.find(p => p.id === id)?.nombre ?? 'General'
+  /**
+   * ¿Se controló HOY, y qué parte?
+   *
+   * Por día y no por turno: el arqueo es de apertura, y pedir uno por turno
+   * convertiría el tilde en algo que se apaga a mitad de la tarde sin que nadie
+   * haya hecho nada mal. Se mira cada parte por separado porque se puede contar
+   * sólo la caja, sólo el stock, o las dos.
+   */
+  const arqueoDeHoy = useMemo(() => {
+    if (!ultimoArqueo) return null
+    const hoy = new Date().toDateString()
+    if (new Date(ultimoArqueo.momento).toDateString() !== hoy) return null
+    return {
+      caja: ultimoArqueo.contado_efectivo != null || ultimoArqueo.contado_transferencia != null,
+      stock: ultimoArqueo.contado_stock_g != null,
+      hora: new Date(ultimoArqueo.momento).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
+    }
+  }, [ultimoArqueo])
+
+  // El paso 1. `faltaLecturaDelTurno` devuelve `null` cuando no hay salas: no
+  // hay rutina que reclamar hasta que alguien cargue una.
+  const ambiente = useMemo(() => {
+    const falta = faltaLecturaDelTurno(ultimaAmb, haySalas)
+    const turno = TURNO_LABEL[turnoDe(new Date().toISOString())]
+    const tituloFalta = tituloFaltaLectura(diasSinLectura(ultimaAmb), turno)
+    if (falta === null) return null
+    if (falta) {
+      return { falta, turno, tituloFalta, detalle: ultimaAmb
+        ? `Última: ${new Date(ultimaAmb.medido_en).toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })} — tocá para cargarla.`
+        : 'Todavía no cargaste ninguna — tocá para cargarla.' }
+    }
+    const t = Number(ultimaAmb!.temp_c), h = Number(ultimaAmb!.humedad_pct)
+    return { falta, turno, tituloFalta, detalle: `${t} °C · ${h} % · VPD ${vpd(t, h)} — lectura de la ${TURNO_LABEL[turnoDe(ultimaAmb!.medido_en)]} cargada.` }
+  }, [ultimaAmb, haySalas])
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#0a0a0f] text-[#d4d4dd] font-sans">
-      <div className="sticky top-0 z-40 bg-[#0a0a0f]/95 backdrop-blur-[2px] border-b border-[#1f1f2b]">
+    <div className="flex-1 min-h-0 overflow-y-auto bg-[#0a0a0f] text-[#d4d4dd] font-sans">
+      <div className="sticky top-0 z-40 bg-[#0a0a0f] border-b border-[#1f1f2b]">
         <div className="flex items-center gap-2 sm:gap-4 px-3 sm:px-6 py-3">
           <div className="min-w-0">
-            <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Mi Cultivo</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#8a8a9c]">
-              Resumen de plantas y actividad
+            <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">
+              Grow<span className="text-[#bef264]">Flow</span>
+            </h1>
+            <div className="mt-0.5 text-[10px] sm:text-[11px] text-[#8a8a9c]">
+              Lo de todos los días, en orden
             </div>
           </div>
           <div className="flex-1" />
           {/* min-h-[44px] en mobile: con py-1.5 el boton queda en 31px de alto. */}
           <Link to="/plantas"
-            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 min-h-[44px] sm:min-h-0 rounded-md border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[11.5px] font-medium text-[#d9f99d]">
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 min-h-[44px] sm:min-h-0 rounded-md border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[11px] font-medium text-[#d9f99d]">
             <Sprout className="w-3.5 h-3.5" /> Plantas
           </Link>
         </div>
       </div>
 
       <div className="px-3 sm:px-6 py-4 sm:py-5 pb-20 space-y-4 sm:space-y-5">
+        {/* LA RUTINA DE APERTURA VA PRIMERO, arriba de los vencimientos y de las
+            alarmas. No es que importe mas: es que es lo que se hace TODOS los
+            dias, y lo otro son excepciones. Una pantalla que abre con la
+            excepcion obliga a saltearla para llegar a lo de siempre. */}
+        <AperturaDeSede ambiente={ambiente} caja={caja} stock={stock}
+          arqueoDeHoy={arqueoDeHoy}
+          onArquear={() => setArqueando(true)}
+          onNovedades={() => refNovedades.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />
+
+        {arqueando && (
+          <ModalArqueo
+            esperado={{
+              efectivo: caja?.netoEfectivo ?? null,
+              transferencia: caja?.netoTransferencia ?? null,
+              stockG: stock?.total ?? null,
+            }}
+            onCerrar={() => setArqueando(false)}
+            onListo={() => arqueosService.listar(1).then(a => setUltimoArqueo(a[0] ?? null)).catch(() => {})} />
+        )}
+
         {/* Vencimientos institucionales: con esto caido no se puede tramitar nada */}
         {vencONG.length > 0 && (
           <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: EASE }}
@@ -126,7 +288,7 @@ export default function PaginaPanel() {
               </div>
               <ul className="space-y-1">
                 {vencONG.map(v => (
-                  <li key={v.clave} className="text-[11.5px] text-[#c4c4d0] flex items-baseline gap-2">
+                  <li key={v.clave} className="text-[11px] text-[#c4c4d0] flex items-baseline gap-2">
                     <span className="text-[#ececf1]">{v.titulo}</span>
                     <span className="font-mono tabular-nums" style={{ color: (v.dias ?? 0) < 0 ? '#ff8a7a' : '#f59e0b' }}>
                       {(v.dias ?? 0) < 0 ? `vencido hace ${Math.abs(v.dias ?? 0)} d` : `en ${v.dias} d`}
@@ -150,7 +312,7 @@ export default function PaginaPanel() {
               <h3 className="font-display font-bold text-[13px] text-[#fbbf24]">
                 {alarmas.length} alarma{alarmas.length === 1 ? '' : 's'} de mantenimiento
               </h3>
-              <span className="hidden sm:inline text-[10.5px] text-[#a6a6b5]">— para hoy, mañana o vencidas</span>
+              <span className="hidden sm:inline text-[10px] text-[#a6a6b5]">— para hoy, mañana o vencidas</span>
               <Link to="/stock" className="ml-auto text-[11px] text-[#fbbf24] hover:text-[#fde68a] font-medium flex items-center gap-1 flex-shrink-0">
                 Ver todo <ArrowRight className="w-3 h-3" />
               </Link>
@@ -164,10 +326,10 @@ export default function PaginaPanel() {
                 return (
                   <li key={m.id} className="flex items-center gap-2.5 px-4 py-2">
                     <Wrench className="w-3.5 h-3.5 text-[#a78bfa] flex-shrink-0" />
-                    <span className="font-medium text-[12.5px] text-[#ececf1] truncate">{titulo}</span>
-                    <span className="hidden sm:inline text-[10.5px] text-[#a6a6b5] truncate">· {m.tipo} · próx {proximoEfectivo(m) ? new Date(proximoEfectivo(m)! + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }) : '—'}</span>
+                    <span className="font-medium text-[12px] text-[#ececf1] truncate">{titulo}</span>
+                    <span className="hidden sm:inline text-[10px] text-[#a6a6b5] truncate">· {m.tipo} · próx {proximoEfectivo(m) ? new Date(proximoEfectivo(m)! + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }) : '—'}</span>
                     <span className="ml-auto text-[11px] font-semibold flex-shrink-0" style={{ color: cuando.col }}>{cuando.txt}</span>
-                    <button onClick={() => hechoHoy(m)} className="flex-shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-md border border-[#404d20] bg-[#a3e635]/10 hover:bg-[#a3e635]/20 text-[10.5px] font-medium text-[#d9f99d] transition-colors" title="Marcar como hecho hoy">
+                    <button onClick={() => hechoHoy(m)} className="flex-shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-md border border-[#404d20] bg-[#a3e635]/10 hover:bg-[#a3e635]/20 text-[10px] font-medium text-[#d9f99d] transition-colors" title="Marcar como hecho hoy">
                       <CheckCircle2 className="w-3 h-3" /> Hecho
                     </button>
                   </li>
@@ -177,148 +339,113 @@ export default function PaginaPanel() {
           </motion.div>
         )}
 
-        {/* KPI cards */}
-        {cargando ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {[0, 1, 2, 3].map(i => (
-              <div key={i} className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4 animate-pulse h-[100px]" />
-            ))}
-          </div>
-        ) : (
-          <motion.div className="grid grid-cols-2 lg:grid-cols-4 gap-3" initial="hidden" animate="visible" variants={stagger}>
-            {tarjetas.map((stat) => (
-              <motion.div key={stat.label} variants={fadeUp}
-                className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4 hover:border-[#404d20] transition-colors">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium">{stat.label}</p>
-                    <p className="font-display font-bold tracking-tight text-[24px] sm:text-[28px] text-[#ececf1] mt-1.5 leading-none tabular-nums">
-                      {stat.valor.toLocaleString('es-AR')}
-                    </p>
-                    <p className="text-[10.5px] text-[#8a8a9c] mt-1.5">{stat.hint}</p>
-                  </div>
-                  <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 border"
-                    style={{ background: stat.bg, borderColor: stat.border, color: stat.color }}>
-                    <stat.icono className="w-4 h-4" strokeWidth={1.8} />
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
 
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-4 sm:gap-5">
-          {/* Plantas activas */}
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: EASE }}
-            className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden min-w-0">
-            <div className="px-4 sm:px-5 py-3 border-b border-[#1f1f2b] flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <Leaf className="w-3.5 h-3.5 text-[#bef264] flex-shrink-0" />
-                <h3 className="font-display font-semibold text-[13px] text-[#ececf1] truncate">Plantas activas</h3>
-              </div>
-              {/* En mobile se oculta el texto y queda solo la flecha de 12px. El
-                  after:-inset-4 agranda el area tocable a ~44px sin cambiar el
-                  tamano visible ni empujar el header. */}
-              <Link to="/plantas" aria-label="Gestionar plantas"
-                className="relative after:absolute after:-inset-4 after:content-[''] sm:after:hidden text-[11px] text-[#d9f99d] hover:text-[#bef264] font-medium flex items-center gap-1 flex-shrink-0">
-                <span className="hidden sm:inline">Gestionar</span>
-                <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
-
-            {cargando ? (
-              <div className="px-4 sm:px-5 py-3 space-y-2">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="h-12 bg-[#15151d] border border-[#1f1f2b] rounded-md animate-pulse" />
-                ))}
-              </div>
-            ) : plantas.length === 0 ? (
-              <div className="px-6 py-10 text-center">
-                <div className="mx-auto w-9 h-9 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-2">
-                  <Sprout className="w-4 h-4 text-[#8a8a9c]" />
-                </div>
-                <div className="font-display font-semibold text-[#d4d4dd] text-[13px]">Sin plantas todavía</div>
-                <div className="mt-1 text-[11px] text-[#8a8a9c] max-w-xs mx-auto">Cargá tu primera genética y después tus plantas.</div>
-                <Link to="/plantas" className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[11.5px] font-medium text-[#d9f99d]">
-                  <Dna className="w-3 h-3" /> Agregar planta
-                </Link>
-              </div>
-            ) : (
-              <ul className="divide-y divide-[#1f1f2b]">
-                {plantas.map((p) => {
-                  const cf = colorFase(p.fase)
-                  const dias = sinRiegoDias(p)
-                  return (
-                    <li key={p.id} className="flex items-center gap-3 px-4 sm:px-5 py-2.5 hover:bg-[#15151d] transition-colors">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[12.5px] font-medium text-[#ececf1] truncate leading-tight">{p.nombre}</p>
-                        <p className="text-[10.5px] text-[#8a8a9c] truncate mt-0.5">
-                          {p.genetica ?? 'Sin genética'}{p.banco ? ` · ${p.banco}` : ''}
-                          {p.dias_de_vida != null ? ` · día ${p.dias_de_vida}` : ''}
-                        </p>
-                      </div>
-                      {dias != null && dias >= 2 && (
-                        <span className="inline-flex items-center gap-1 text-[10px] text-[#38bdf8] tabular-nums flex-shrink-0" title={`Último riego hace ${dias} días`}>
-                          <Droplets className="w-3 h-3" /> {dias}d
-                        </span>
-                      )}
-                      <span className="px-2 py-0.5 rounded-full border text-[10px] font-medium flex-shrink-0"
-                        style={{ color: cf.text, background: cf.bg, borderColor: cf.border }}>
-                        {p.fase}
-                      </span>
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
-          </motion.div>
-
-          {/* Ultimos eventos */}
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.4, ease: EASE }}
-            className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden min-w-0">
-            <div className="px-4 sm:px-5 py-3 border-b border-[#1f1f2b] flex items-center gap-2">
-              <Activity className="w-3.5 h-3.5 text-[#bef264] flex-shrink-0" />
-              <h3 className="font-display font-semibold text-[13px] text-[#ececf1] truncate">Última actividad</h3>
-            </div>
-            {cargando ? (
-              <div className="px-4 sm:px-5 py-3 space-y-2">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="h-10 bg-[#15151d] border border-[#1f1f2b] rounded-md animate-pulse" />
-                ))}
-              </div>
-            ) : eventos.length === 0 ? (
-              <div className="px-6 py-10 text-center">
-                <div className="mx-auto w-9 h-9 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-2">
-                  <FileText className="w-4 h-4 text-[#8a8a9c]" />
-                </div>
-                <div className="font-display font-semibold text-[#d4d4dd] text-[13px]">Sin actividad</div>
-                <div className="mt-1 text-[11px] text-[#8a8a9c]">Los riegos, podas y notas aparecen acá.</div>
-              </div>
-            ) : (
-              <ul className="divide-y divide-[#1f1f2b]">
-                {eventos.map((e) => (
-                  <li key={e.id} className="flex items-center gap-3 px-4 sm:px-5 py-2.5 hover:bg-[#15151d] transition-colors">
-                    <span className="text-[16px] flex-shrink-0 leading-none" aria-hidden="true">
-                      {ICONO_EVENTO[e.tipo] ?? '📝'}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[12px] font-medium text-[#ececf1] truncate leading-tight">
-                        {e.tipo} · <span className="text-[#a6a6b5]">{nombrePlanta(e.planta_id)}</span>
-                      </p>
-                      {e.detalle && (
-                        <p className="text-[10.5px] text-[#8a8a9c] truncate mt-0.5">{e.detalle}</p>
-                      )}
-                    </div>
-                    <span className="text-[10.5px] text-[#8a8a9c] tabular-nums font-mono flex-shrink-0">
-                      {new Date(e.fecha + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </motion.div>
+        {/* SÓLO LO QUE ESTE ROL PUEDE HACER. Antes se mostraban las treinta y
+            nueve a todo el mundo: un cultivador veía «Anotar un gasto o un pago»
+            en su pantalla de entrada, la tocaba, y la base se lo rechazaba. Es
+            el mismo problema que resolvió `PERMISO_DE_TAB` con las pestañas —una
+            pantalla que no te corresponde se lee como rota, no como prohibida—,
+            y acá pesa más porque es la primera pantalla que se ve. */}
+        <div ref={refNovedades}>
+          <BotoneraPanel acciones={acciones.filter(a => tienePermiso(a.permiso))} />
         </div>
+
+        <TarjetaCredenciales cred={credenciales} />
+
       </div>
     </div>
+  )
+}
+
+/**
+ * Recordatorio de la lectura de ambiente.
+ *
+ * No es una tarjeta de numeros mas: la carga manual es una rutina de dos veces
+ * por dia, y una rutina se sostiene solo si algo la recuerda. El Panel es la
+ * pantalla que se abre primero, asi que es el lugar donde el recordatorio
+ * llega a tiempo.
+ *
+ * Cambia de tono segun haga falta: cuando la lectura del turno esta cargada se
+ * queda quieta mostrando el ultimo valor, y cuando falta se enciende. Una
+ * alerta que esta siempre prendida deja de leerse a la semana.
+ *
+ * Si todavia no hay ninguna sala no muestra nada: retar a alguien por no
+ * cargar algo que no puede cargar es peor que quedarse callado.
+ */
+/**
+ * Las credenciales REPROCANN que se vencieron o estan por vencerse.
+ *
+ * POR QUE ESTA ACA Y NO SOLO EN COHERENCIA
+ *
+ * El cruce `credenciales_vencidas` existe desde el 27/08/2026, pero solo se ve
+ * entrando a Coherencia — y a Coherencia se entra cuando uno sospecha que algo
+ * anda mal. Un vencimiento no despierta ninguna sospecha: no mueve ningun
+ * total, el padron sigue teniendo la misma gente y las mismas plantas
+ * habilitadas. Se descubre el dia que la persona viene a retirar, que es
+ * exactamente cuando ya no se puede hacer nada.
+ *
+ * Por eso sale al Panel, que es lo primero que se abre — el mismo criterio que
+ * ya se habia tomado con los vencimientos de la ONG.
+ *
+ * No hay tarjeta de «todo en orden»: si no hay nada que avisar no se dibuja
+ * nada. Un aviso que esta siempre encendido deja de leerse, y el Panel ya tiene
+ * donde mirar el estado completo.
+ */
+function TarjetaCredenciales({ cred }: { cred: CredencialesDelPadron | null }) {
+  if (!cred) return null
+  const { vencidas, porVencer } = cred
+  if (vencidas.length === 0 && porVencer.length === 0) return null
+
+  // Lo vencido gana sobre lo por vencer: si hay una caida, el aviso es rojo
+  // aunque ademas haya tres proximas.
+  const hayVencidas = vencidas.length > 0
+  const color = hayVencidas ? '#ff8a7a' : '#f59e0b'
+  const borde = hayVencidas ? '#7a2820' : '#5a4a20'
+
+  // Primero las vencidas y despues las que se caen antes: es el orden en que
+  // hay que ocuparse.
+  const filas = [...vencidas, ...porVencer]
+    .sort((a, b) => String(a.reprocann_vencimiento).localeCompare(String(b.reprocann_vencimiento)))
+    .slice(0, 4)
+  const resto = vencidas.length + porVencer.length - filas.length
+
+  return (
+    <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: EASE }}
+      className="rounded-xl border overflow-hidden"
+      style={{ borderColor: borde, background: `${borde}1a` }}>
+      <Link to="/ong/pacientes" className="block px-4 py-3 transition-colors hover:brightness-125">
+        <div className="flex items-center gap-2 mb-1.5">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" style={{ color }} />
+          <h3 className="font-display font-bold text-[13px]" style={{ color }}>
+            {hayVencidas
+              ? `${vencidas.length} credencial${vencidas.length === 1 ? '' : 'es'} REPROCANN vencida${vencidas.length === 1 ? '' : 's'}`
+              : `${porVencer.length} credencial${porVencer.length === 1 ? '' : 'es'} vence${porVencer.length === 1 ? '' : 'n'} en ${DIAS_AVISO_CREDENCIAL} días`}
+          </h3>
+        </div>
+        <ul className="space-y-1">
+          {filas.map(p => {
+            const d = diasHasta(String(p.reprocann_vencimiento))
+            return (
+              <li key={p.id} className="text-[11px] text-[#c4c4d0] flex items-baseline gap-2">
+                <span className="text-[#ececf1] truncate">{nombreParaMostrar(p) || 'Sin nombre'}</span>
+                <span className="font-mono tabular-nums flex-shrink-0"
+                  style={{ color: d < 0 ? '#ff8a7a' : '#f59e0b' }}>
+                  {d < 0 ? `vencida hace ${Math.abs(d)} d` : d === 0 ? 'vence hoy' : `en ${d} d`}
+                </span>
+              </li>
+            )
+          })}
+          {resto > 0 && (
+            <li className="text-[11px] text-[#8a8a9c]">y {resto} más</li>
+          )}
+        </ul>
+        <p className="text-[10px] text-[#8a8a9c] mt-2">
+          {hayVencidas
+            ? 'Lo que se le entregue a esa persona no está amparado por la 27.350. Tocá para ver la ficha.'
+            : 'Todavía están vigentes: es el momento de avisarles, no cuando ya no se les pueda entregar.'}
+        </p>
+      </Link>
+    </motion.div>
   )
 }

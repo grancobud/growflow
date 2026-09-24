@@ -3,10 +3,11 @@
 // (eventos + riegos + aplicaciones + cosechas). Por privacidad no expone la patología.
 
 import { useState, useEffect, useCallback } from 'react'
+import type { LucideIcon } from 'lucide-react'
 import { useParams, Link } from 'react-router-dom'
 import {
   Leaf, Loader2, ArrowLeft, Droplets, Scissors, FlaskConical, StickyNote, Sprout,
-  Flower2, Repeat, AlertTriangle, RefreshCw, Image as ImageIcon, Scale, SprayCan, IdCard, Dna,
+  Flower2, Repeat, AlertTriangle, RefreshCw, Image as ImageIcon, Scale, SprayCan, IdCard, Dna, X,
 } from 'lucide-react'
 import {
   cultivoService, type Planta, type Genetica, type ItemHistoria,
@@ -14,8 +15,10 @@ import {
 import { registroService, type Paciente } from '../lib/registro'
 import { FotoPrivada } from '../components/FotoPrivada'
 import QR from '../components/QR'
+import { useDialogo } from '../lib/useDialogo'
+import { nombreParaMostrar } from '../lib/buscarPersonas'
 
-const ICONO: Record<string, { Ic: any; color: string }> = {
+const ICONO: Record<string, { Ic: LucideIcon; color: string }> = {
   Riego: { Ic: Droplets, color: '#38bdf8' }, Fertilizacion: { Ic: FlaskConical, color: '#bef264' },
   Poda: { Ic: Scissors, color: '#c4b5fd' }, Trasplante: { Ic: Repeat, color: '#fb923c' },
   CambioFase: { Ic: Flower2, color: '#e879f9' }, Entrenamiento: { Ic: RefreshCw, color: '#facc15' },
@@ -29,8 +32,8 @@ function Chip({ label, valor }: { label: string; valor: React.ReactNode }) {
   if (valor == null || valor === '' ) return null
   return (
     <div className="rounded-lg border border-[#1f1f2b] bg-[#0d0d13] px-3 py-2">
-      <div className="text-[9.5px] uppercase tracking-[0.14em] text-[#8a8a9c]">{label}</div>
-      <div className="text-[12.5px] text-[#d4d4dd] mt-0.5">{valor}</div>
+      <div className="text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium">{label}</div>
+      <div className="text-[12px] text-[#d4d4dd] mt-0.5">{valor}</div>
     </div>
   )
 }
@@ -44,6 +47,7 @@ export default function PaginaHistoriaPlanta() {
   const [cargando, setCargando] = useState(true)
   const [noExiste, setNoExiste] = useState(false)
   const [visor, setVisor] = useState<string | null>(null)
+  const refDialogo = useDialogo(() => setVisor(null), visor != null)
 
   const cargar = useCallback(async () => {
     if (!codigo) return
@@ -85,20 +89,20 @@ export default function PaginaHistoriaPlanta() {
 
   const g = genetica
   return (
-    <div className="flex-1 overflow-y-auto bg-[#0a0a0f] text-[#d4d4dd] font-sans">
-      <div className="sticky top-0 z-40 bg-[#0a0a0f]/95 backdrop-blur-[2px] border-b border-[#1f1f2b]">
+    <div className="flex-1 min-h-0 overflow-y-auto bg-[#0a0a0f] text-[#d4d4dd] font-sans">
+      <div className="sticky top-0 z-40 bg-[#0a0a0f] border-b border-[#1f1f2b]">
         <div className="flex items-center gap-3 px-3 sm:px-6 py-3">
           <Link to="/plantas" className="p-1.5 rounded-lg text-[#8a8a9c] hover:text-[#ececf1] hover:bg-[#15151d]"><ArrowLeft className="w-4 h-4" /></Link>
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1] truncate">Historia clínica</h1>
-            <div className="mt-0.5 text-[10.5px] text-[#8a8a9c] font-mono">{planta.codigo}</div>
+            <div className="mt-0.5 text-[10px] text-[#8a8a9c] font-mono">{planta.codigo}</div>
           </div>
         </div>
       </div>
 
       <div className="px-3 sm:px-6 py-4 pb-20 max-w-3xl mx-auto">
         {/* Cabecera: identidad + QR */}
-        <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4 flex flex-col sm:flex-row gap-4 items-start">
+        <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4 flex flex-col sm:flex-row gap-4 items-start">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <Sprout className="w-4 h-4 text-[#bef264]" />
@@ -118,30 +122,30 @@ export default function PaginaHistoriaPlanta() {
           </div>
           <div className="flex flex-col items-center gap-1 mx-auto sm:mx-0">
             <QR value={urlQR} size={120} />
-            <span className="text-[9.5px] text-[#8a8a9c]">Escaneá para esta historia</span>
+            <span className="text-[10px] text-[#8a8a9c]">Escaneá para esta historia</span>
           </div>
         </div>
 
         {/* Paciente asignado */}
-        <div className="mt-3 rounded-xl bg-[#101016] border border-[#1f1f2b] p-4">
-          <div className="flex items-center gap-2 mb-2"><IdCard className="w-4 h-4 text-[#a78bfa]" /><h3 className="font-display font-semibold text-[12.5px] text-[#ececf1]">Paciente asignado</h3></div>
+        <div className="mt-3 rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4">
+          <div className="flex items-center gap-2 mb-2"><IdCard className="w-4 h-4 text-[#a78bfa]" /><h3 className="font-display font-semibold text-[12px] text-[#ececf1]">Paciente asignado</h3></div>
           {paciente ? (
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
-                <div className="text-[13px] text-[#ececf1] truncate">{paciente.nombre_completo}</div>
+                <div className="text-[13px] text-[#ececf1] truncate">{nombreParaMostrar(paciente)}</div>
                 <div className="text-[11px] text-[#8a8a9c]">{paciente.reprocann_nro ? `REPROCANN ${paciente.reprocann_nro}` : 'Sin N° REPROCANN'} · {paciente.reprocann_estado}</div>
               </div>
               <Link to="/registro" className="text-[11px] text-[#bef264] hover:underline flex-shrink-0">Ver registro</Link>
             </div>
           ) : (
-            <p className="text-[11.5px] text-[#8a8a9c]">Esta planta todavía no está asignada a ningún paciente.</p>
+            <p className="text-[11px] text-[#8a8a9c]">Esta planta todavía no está asignada a ningún paciente.</p>
           )}
         </div>
 
         {/* Ficha de genética (resumen) */}
         {g && (g.genotipo || g.thc_estimado != null || g.usos_medicinales) && (
-          <div className="mt-3 rounded-xl bg-[#101016] border border-[#1f1f2b] p-4">
-            <div className="flex items-center gap-2 mb-2"><Dna className="w-4 h-4 text-[#38bdf8]" /><h3 className="font-display font-semibold text-[12.5px] text-[#ececf1]">Genética</h3></div>
+          <div className="mt-3 rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4">
+            <div className="flex items-center gap-2 mb-2"><Dna className="w-4 h-4 text-[#38bdf8]" /><h3 className="font-display font-semibold text-[12px] text-[#ececf1]">Genética</h3></div>
             <div className="grid grid-cols-2 gap-2">
               <Chip label="Genotipo" valor={g.genotipo} />
               <Chip label="THC / CBD" valor={[g.thc_estimado != null ? `THC ${g.thc_estimado}%` : null, g.cbd_estimado != null ? `CBD ${g.cbd_estimado}%` : null].filter(Boolean).join(' · ') || null} />
@@ -153,10 +157,10 @@ export default function PaginaHistoriaPlanta() {
         )}
 
         {/* Línea de tiempo */}
-        <div className="mt-3 rounded-xl bg-[#101016] border border-[#1f1f2b] p-4">
-          <h3 className="font-display font-semibold text-[12.5px] text-[#ececf1] mb-3">Línea de tiempo ({items.length})</h3>
+        <div className="mt-3 rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4">
+          <h3 className="font-display font-semibold text-[12px] text-[#ececf1] mb-3">Línea de tiempo ({items.length})</h3>
           {items.length === 0 ? (
-            <p className="text-[11.5px] text-[#8a8a9c] py-4 text-center">Sin registros todavía.</p>
+            <p className="text-[11px] text-[#8a8a9c] py-4 text-center">Sin registros todavía.</p>
           ) : (
             <ol className="relative border-l border-[#2a2a3a] ml-2">
               {items.map(it => {
@@ -167,10 +171,10 @@ export default function PaginaHistoriaPlanta() {
                       <cfg.Ic className="w-2 h-2" style={{ color: cfg.color }} />
                     </span>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-[12.5px] font-semibold text-[#ececf1]">{it.esCosecha ? 'Cosecha' : it.tipo}</span>
-                      <span className="text-[10.5px] text-[#8a8a9c] tabular-nums font-mono">{fmt(it.fecha)}</span>
+                      <span className="text-[12px] font-semibold text-[#ececf1]">{it.esCosecha ? 'Cosecha' : it.tipo}</span>
+                      <span className="text-[10px] text-[#8a8a9c] tabular-nums font-mono">{fmt(it.fecha)}</span>
                     </div>
-                    {it.detalle && <p className="text-[11.5px] text-[#a6a6b5] mt-0.5 leading-snug">{it.detalle}</p>}
+                    {it.detalle && <p className="text-[11px] text-[#a6a6b5] mt-0.5 leading-snug">{it.detalle}</p>}
                     {it.foto_url && <FotoPrivada valor={it.foto_url} onClick={() => setVisor(it.foto_url)} className="mt-2 rounded-lg border border-[#1f1f2b] max-h-44 object-cover cursor-zoom-in" />}
                   </li>
                 )
@@ -181,8 +185,18 @@ export default function PaginaHistoriaPlanta() {
       </div>
 
       {visor && (
-        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setVisor(null)}>
+        <div ref={refDialogo} className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setVisor(null)}>
           <FotoPrivada valor={visor} className="max-w-full max-h-full rounded-lg" />
+          {/* Tocar en cualquier lado ya cerraba, pero sobre una foto a pantalla
+              completa nadie adivina que el fondo es un boton. */}
+          <button onClick={() => setVisor(null)} aria-label="Cerrar"
+            className="absolute top-3 right-3 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full bg-black/50 text-white/80 hover:text-white">
+            <X className="w-5 h-5" />
+          </button>
+          <button onClick={() => setVisor(null)}
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 min-h-[44px] px-6 flex items-center justify-center rounded-lg bg-black/60 border border-white/20 text-[12px] text-white/90 hover:bg-black/80">
+            Cerrar
+          </button>
         </div>
       )}
     </div>

@@ -2,6 +2,7 @@
 // Carga tipo Proveedores (dropdown de sal del catálogo) + cantidad, prioridad, nota.
 // Persiste en Supabase (tabla insumos_faltantes vía faltantesService).
 
+import { useDialogo } from '../lib/useDialogo'
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { toast } from 'sonner'
 import {
@@ -35,6 +36,7 @@ export default function PaginaInsumosFaltantes() {
   const [faltantes, setFaltantes] = useState<InsumoFaltante[]>([])
   const [cargando, setCargando] = useState(true)
   const [detalle, setDetalle] = useState<InsumoFaltante | null>(null)
+  const refDetalle = useDialogo(() => setDetalle(null), !!detalle)
 
   // form
   const [nombre, setNombre] = useState('')
@@ -405,7 +407,7 @@ export default function PaginaInsumosFaltantes() {
       </div>
 
       {detalle && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div ref={refDetalle} className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/70" onClick={() => setDetalle(null)} />
           <div className="ct-page-scroll relative w-full max-w-lg max-h-[90vh] max-h-[90dvh] overflow-y-auto overscroll-contain rounded-xl bg-[#101016] border border-[#2a2a3a] shadow-2xl">
             <div className="sticky top-0 bg-[#101016] flex items-center justify-between px-5 py-3.5 border-b border-[#1f1f2b]">

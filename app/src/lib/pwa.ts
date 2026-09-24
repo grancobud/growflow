@@ -1,6 +1,8 @@
 // Registro del service worker con prompt de actualizacion via sonner.
-// VitePWA usa workbox con skipWaiting + clientsClaim + cleanupOutdatedCaches (vite.config.ts).
-// index.html y manifest.webmanifest NO se cachean (navigateFallback: null + _headers no-cache).
+// vite.config.ts usa registerType 'prompt' con skipWaiting: false: el SW nuevo
+// espera hasta que el usuario toca "Recargar" en el toast de onNeedRefresh.
+// /sw.js, /index.html y /manifest.webmanifest van con no-cache (public/_headers),
+// que es lo que evita quedar clavado en una version vieja.
 
 import { registerSW } from 'virtual:pwa-register'
 import { toast } from 'sonner'

@@ -34,9 +34,9 @@ e2e/capturas/
 test-results/
 playwright-report/
 
-# Empaquetado Android (TWA). El keystore es LA clave de firma: si se pierde,
-# Google Play no vuelve a aceptar una actualizacion de la app nunca mas, y si
-# se filtra cualquiera puede firmar un APK haciendose pasar por GrowFlow.
+# Empaquetado Android (TWA/APK). El keystore es LA clave de firma: si se pierde,
+# no se puede volver a publicar una actualizacion de la app, y si se filtra
+# cualquiera puede firmar un APK haciendose pasar por la asociacion.
 # Va fuera del repo, con backup aparte.
 *.keystore
 *.jks

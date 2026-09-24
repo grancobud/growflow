@@ -10,13 +10,24 @@ import {
   Sprout, Flower2, Repeat, AlertTriangle, RefreshCw, Image as ImageIcon, Scale, SprayCan,
   QrCode, ExternalLink, IdCard, Pencil,
 } from 'lucide-react'
-import { cultivoService, type ResumenPlanta, type Evento, type Cosecha } from '../lib/cultivo'
+import { cultivoService, faseFueDerivada, type ResumenPlanta, type Cosecha } from '../lib/cultivo'
+import type { LucideIcon } from 'lucide-react'
+import { gruposService, type EventoConNivel, type NivelEvento } from '../lib/grupos'
 import { registroService, type Paciente } from '../lib/registro'
 import { supabase } from '../lib/supabase'
 import { FotoPrivada } from './FotoPrivada'
 import QR from './QR'
+import { useDialogo } from '../lib/useDialogo'
+import { SelectorPersona } from './ong/SelectorPersona'
 
-const ICONO: Record<string, { Ic: any; color: string }> = {
+/** Lo que la línea de tiempo usa de una aplicación. Mismo criterio que en lib/cultivo. */
+interface FilaAplicacionDetalle {
+  id: string; fecha: string
+  categoria?: string | null; producto?: string | null
+  dosis?: string | null; notas?: string | null
+}
+
+const ICONO: Record<string, { Ic: LucideIcon; color: string }> = {
   Riego: { Ic: Droplets, color: '#38bdf8' },
   Fertilizacion: { Ic: FlaskConical, color: '#bef264' },
   Poda: { Ic: Scissors, color: '#c4b5fd' },
@@ -36,6 +47,9 @@ interface Item {
   detalle: string | null
   foto_url: string | null
   esCosecha?: boolean
+  /** A qué nivel se registró: la planta, su grupo o todo el lote. */
+  nivel?: NivelEvento
+  nivelNombre?: string | null
 }
 
 export default function DetallePlanta({ planta, onCerrar, onCambio }: {
@@ -43,6 +57,7 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
   onCerrar: () => void
   onCambio: () => void
 }) {
+  const refDialogo = useDialogo(onCerrar)
   const [items, setItems] = useState<Item[]>([])
   const [cargando, setCargando] = useState(true)
   const [subiendo, setSubiendo] = useState(false)
@@ -57,14 +72,20 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
     setCargando(true)
     try {
       const [evs, cosechas, aplic] = await Promise.all([
-        cultivoService.getEventos(planta.id, 200),
+        // Trae lo de la planta MAS lo de su grupo y su lote. Sin esto, un riego
+        // al grupo entero dejaria de verse en la planta que lo recibio, y B2
+        // seria un retroceso: registrar una vez no puede significar ver menos.
+        gruposService.timelineDePlanta(planta.id, 200),
         cultivoService.getCosechas(),
         supabase.from('aplicaciones').select('id,fecha,categoria,producto,dosis,notas').eq('planta_id', planta.id),
       ])
       const cos = (cosechas as Cosecha[]).filter(c => c.planta_id === planta.id)
       const lista: Item[] = [
-        ...(evs as Evento[]).map(e => ({ id: e.id, tipo: e.tipo, fecha: e.fecha, detalle: e.detalle, foto_url: e.foto_url })),
-        ...((aplic.data ?? []) as any[]).map(a => ({
+        ...(evs as EventoConNivel[]).map(e => ({
+          id: e.id, tipo: e.tipo, fecha: e.fecha, detalle: e.detalle, foto_url: e.foto_url,
+          nivel: e.nivel, nivelNombre: e.nivelNombre,
+        })),
+        ...((aplic.data ?? []) as FilaAplicacionDetalle[]).map(a => ({
           id: a.id, tipo: 'Aplicacion', fecha: a.fecha, foto_url: null,
           detalle: [a.categoria, a.producto, a.dosis, a.notas].filter(Boolean).join(' · '),
         })),
@@ -187,9 +208,9 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
   const fmt = (f: string) => new Date(f + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: '2-digit' })
 
   return (
-    <div className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center sm:p-4">
+    <div ref={refDialogo} className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center sm:p-4">
       <div className="absolute inset-0 bg-black/70" onClick={onCerrar} />
-      <div className="relative w-full sm:max-w-lg sm:max-h-[88vh] flex flex-col bg-[#101016] sm:rounded-xl border-y sm:border border-[#2a2a3a] shadow-2xl">
+      <div className="relative w-full sm:max-w-lg sm:max-h-[88dvh] flex flex-col bg-[#101016] sm:rounded-xl border-y sm:border border-[#2a2a3a] shadow-2xl">
         {/* Header */}
         <div className="flex items-center gap-3 px-5 py-3.5 border-b border-[#1f1f2b] flex-shrink-0">
           <div className="min-w-0 flex-1">
@@ -197,9 +218,15 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
             <p className="text-[11px] text-[#8a8a9c] truncate">
               {planta.genetica ?? 'Sin genética'}{planta.dias_de_vida != null ? ` · día ${planta.dias_de_vida}` : ''} · {planta.fase}
             </p>
+            {/* La ficha es el unico lugar con espacio para explicar por que el
+                sistema cuenta una fase que nadie escribio. */}
+            {faseFueDerivada(planta) && (
+            <p className="text-[10px] text-[#f59e0b] truncate">
+              Automática: se cuenta en floración por edad. En la ficha figura {planta.fase_guardada}.</p>
+            )}
           </div>
           <button onClick={() => fileRef.current?.click()} disabled={subiendo}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[11.5px] font-medium text-[#d9f99d] disabled:opacity-50">
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[11px] font-medium text-[#d9f99d] disabled:opacity-50">
             {subiendo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Camera className="w-3.5 h-3.5" />}
             <span className="hidden sm:inline">Foto</span>
           </button>
@@ -214,7 +241,7 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
         <div className="px-5 py-3 border-b border-[#1f1f2b] flex-shrink-0 space-y-2.5">
           <div className="flex items-center gap-2 flex-wrap">
             {planta.codigo && (
-              <span className="inline-flex items-center gap-1.5 rounded-md bg-[#15151d] border border-[#2a2a3a] px-2 py-1 font-mono text-[11.5px] text-[#d9f99d]">
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-[#15151d] border border-[#2a2a3a] px-2 py-1 font-mono text-[11px] text-[#d9f99d]">
                 {planta.codigo}
               </span>
             )}
@@ -230,7 +257,7 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
           {mostrarQR && planta.codigo && (
             <div className="flex items-center gap-3 py-1">
               <QR value={urlQR} size={110} />
-              <div className="text-[10.5px] text-[#8f8f9f] leading-relaxed">
+              <div className="text-[10px] text-[#8f8f9f] leading-relaxed">
                 Escaneá este QR con la cámara del teléfono para abrir la historia clínica de la planta.
                 <div className="font-mono text-[#8a8a9c] mt-1 break-all">{urlQR}</div>
               </div>
@@ -238,23 +265,24 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
           )}
           <div className="flex items-center gap-2">
             <IdCard className="w-3.5 h-3.5 text-[#a78bfa] flex-shrink-0" />
-            <span className="text-[10.5px] text-[#8a8a9c] uppercase tracking-[0.12em]">Paciente</span>
-            <select value={pacienteId} onChange={e => asignarPaciente(e.target.value)}
-              className="flex-1 px-2 py-1.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11.5px] text-[#ececf1] focus:outline-none focus:border-[#a3e635]/60 cursor-pointer">
-              <option value="">Sin asignar</option>
-              {pacientes.map(p => <option key={p.id} value={p.id}>{p.nombre_completo}{p.reprocann_nro ? ` (${p.reprocann_nro})` : ''}</option>)}
-            </select>
+            <span className="text-[10px] text-[#8a8a9c] uppercase tracking-[0.14em]">Paciente</span>
+            <div className="flex-1 min-w-0">
+              <SelectorPersona personas={pacientes} valor={pacienteId || null}
+                placeholder="Buscar, o dejar sin asignar…"
+                etiquetaExtra={p => p.reprocann_nro ?? null}
+                onElegir={id => asignarPaciente(id ?? '')} />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-[9.5px] uppercase tracking-[0.12em] text-[#8a8a9c] mb-1">Fecha de cosecha</label>
+              <label className="block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1">Fecha de cosecha</label>
               <input type="date" value={fechas.cosecha} onChange={e => guardarFecha('fecha_cosecha', e.target.value)}
-                className="w-full px-2 py-1.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11.5px] text-[#ececf1] focus:outline-none focus:border-[#a3e635]/60" />
+                className="w-full px-2 py-1.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11px] text-[#ececf1] focus:outline-none focus:border-[#a3e635]/60" />
             </div>
             <div>
-              <label className="block text-[9.5px] uppercase tracking-[0.12em] text-[#8a8a9c] mb-1">Fecha de envasado</label>
+              <label className="block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1">Fecha de envasado</label>
               <input type="date" value={fechas.envasado} onChange={e => guardarFecha('fecha_envasado', e.target.value)}
-                className="w-full px-2 py-1.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11.5px] text-[#ececf1] focus:outline-none focus:border-[#a3e635]/60" />
+                className="w-full px-2 py-1.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[11px] text-[#ececf1] focus:outline-none focus:border-[#a3e635]/60" />
             </div>
           </div>
         </div>
@@ -282,8 +310,18 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
                       <cfg.Ic className="w-2 h-2" style={{ color: cfg.color }} />
                     </span>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-[12.5px] font-semibold text-[#ececf1]">{it.esCosecha ? 'Cosecha' : it.tipo}</span>
-                      <span className="text-[10.5px] text-[#8a8a9c] tabular-nums font-mono">{fmt(it.fecha)}</span>
+                      <span className="text-[12px] font-semibold text-[#ececf1]">{it.esCosecha ? 'Cosecha' : it.tipo}</span>
+                      <span className="text-[10px] text-[#8a8a9c] tabular-nums font-mono">{fmt(it.fecha)}</span>
+                      {/* Un evento del grupo o del lote se ve en TODAS sus
+                          plantas. Sin este cartel parecería que se registró en
+                          ésta, y no se entendería por qué borrarlo lo saca de
+                          las otras 59. */}
+                      {it.nivel && it.nivel !== 'planta' && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded border border-[#38bdf8]/40 bg-[#38bdf8]/10 text-[#7dd3fc] whitespace-nowrap">
+                          {it.nivel === 'grupo' ? 'todo el grupo' : 'todo el lote'}
+                          {it.nivelNombre ? ` · ${it.nivelNombre}` : ''}
+                        </span>
+                      )}
                       {/* Los controles se revelan al pasar el mouse SOLO en
                           desktop. En mobile no hay hover: con `opacity-0` a
                           secas quedaban invisibles y no habia forma de borrar
@@ -298,7 +336,7 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
                         )}
                         <button onClick={() => borrar(it)}
                           className="p-2 sm:p-1 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center text-[#8a8a9c] hover:text-[#ff8a7a] rounded transition-colors"
-                          title="Borrar">
+                          title="Borrar" aria-label="Cerrar">
                           <X className="w-3 h-3" />
                         </button>
                       </div>
@@ -331,7 +369,7 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
                         </div>
                       </div>
                     ) : (
-                      it.detalle && <p className="text-[11.5px] text-[#a6a6b5] mt-0.5 leading-snug">{it.detalle}</p>
+                      it.detalle && <p className="text-[11px] text-[#a6a6b5] mt-0.5 leading-snug">{it.detalle}</p>
                     )}
                     {it.foto_url && (
                       <FotoPrivada valor={it.foto_url} onClick={() => setVisor(it.foto_url)}
@@ -349,7 +387,7 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
       {visor && (
         <div className="absolute inset-0 z-10 bg-black/90 flex items-center justify-center p-4" onClick={() => setVisor(null)}>
           <FotoPrivada valor={visor} className="max-w-full max-h-full rounded-lg" />
-          <button className="absolute top-4 right-4 text-white/80 hover:text-white" onClick={() => setVisor(null)}>
+          <button className="absolute top-4 right-4 text-white/80 hover:text-white" onClick={() => setVisor(null)} aria-label="Cerrar">
             <X className="w-6 h-6" />
           </button>
         </div>

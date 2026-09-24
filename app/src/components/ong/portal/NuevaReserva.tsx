@@ -15,7 +15,7 @@ import { toast } from 'sonner'
 // objeto, no como componente. Rompe recién al renderizar, no al compilar.
 import QR from '../../QR'
 import {
-  ShieldCheck, AlertTriangle, ClipboardList, FileSignature, Upload, Check, Loader2,
+  ShieldCheck, AlertTriangle, ClipboardList, FileSignature, Upload, Check, Loader2, X,
 } from 'lucide-react'
 import {
   portalService, evaluarPaciente, revisarReserva, disponibleDeLote, codigoReserva,
@@ -27,9 +27,11 @@ import type { Dispensa, FeedbackClinico, Asociado, Entidad } from '../../../lib/
 import type { Paciente } from '../../../lib/registro'
 import { ModalFeedback } from '../Seguimiento'
 import { VisorDocumento } from '../ActaParaLibro'
-import { btnPrimario, btnSutil, inputFormulario } from '../../../lib/ui'
+import { btnPrimario, btnSutil, inputFormulario, etiquetaCampo } from '../../../lib/ui'
+import { useDialogo } from '../../../lib/useDialogo'
+import { SelectorPersona } from '../SelectorPersona'
+import { nombreParaMostrar } from '../../../lib/buscarPersonas'
 
-const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1'
 
 export function NuevaReserva({
   lotes, pedidos, pacientes, asociados, dispensas, feedbacks, entidad, onCerrar, onCambio,
@@ -65,12 +67,15 @@ export function NuevaReserva({
 
   const g = Number(gramos) || 0
   const avisos = useMemo(
-    () => paciente ? revisarReserva(g, lote, estado, pedidos) : [],
-    [paciente, g, lote, estado, pedidos])
-  const bloqueado = avisos.some(a => a.nivel === 'error')
+    () => paciente ? revisarReserva(g, lote, estado, pedidos, dispensas) : [],
+    [paciente, g, lote, estado, pedidos, dispensas])
+  // En modo beta los errores se siguen viendo —en rojo, con su regla— pero no
+  // frenan. El freno no se borra: se suspende, y Coherencia avisa que esta asi.
+  const hayError = avisos.some(a => a.nivel === 'error')
+  const bloqueado = hayError && !entidad?.modo_beta
   const monto = lote ? montoSugerido(lote, g) : 0
 
-  const disponibles = lotes.filter(l => l.activo !== false && disponibleDeLote(l, pedidos).disponible > 0)
+  const disponibles = lotes.filter(l => l.activo !== false && disponibleDeLote(l, pedidos, dispensas).disponible > 0)
 
   // CU-04: la firma queda con timestamp e IP, que es lo que acredita cuándo y
   // desde dónde se aceptó el mandato.
@@ -126,14 +131,14 @@ export function NuevaReserva({
   if (creada) {
     return (
       <Marco titulo={`Reserva ${creada.codigo_reserva}`} onCerrar={onCerrar}
-        pie={<button onClick={onCerrar} className={`${btnPrimario} flex-1`}>Listo</button>}>
+        pie={null}>
         <div className="text-center">
           <QR value={creada.codigo_reserva} size={168} />
           <p className="font-mono text-[15px] text-[#ececf1] mt-3">{creada.codigo_reserva}</p>
           <p className="text-[12px] text-[#a6a6b5] mt-1">
             {creada.gramos} g de {lote?.codigo} · ${monto.toLocaleString('es-AR')}
           </p>
-          <p className="text-[11.5px] text-[#fbbf24] mt-2">
+          <p className="text-[11px] text-[#fbbf24] mt-2">
             Vence el {new Date(creada.fecha_expiracion).toLocaleString('es-AR')}
           </p>
           <p className="text-[11px] text-[#8a8a9c] mt-3 leading-relaxed">
@@ -150,7 +155,12 @@ export function NuevaReserva({
       <Marco titulo="Nueva reserva" onCerrar={onCerrar}
         pie={
           <>
-            <button onClick={onCerrar} className={btnSutil}>Cancelar</button>
+            {hayError && entidad?.modo_beta && (
+              <p className="text-[11px] text-[#fbbf24] leading-relaxed mb-2">
+                Hay bloqueos activos, pero el <b>modo beta</b> está prendido y no frenan.
+                Se registra igual y queda constancia de lo que faltaba.
+              </p>
+            )}
             <button onClick={reservar} disabled={bloqueado || guardando || !paciente || !lote}
               className={`${btnPrimario} flex-1`}>
               {guardando ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Reservando…</> : 'Reservar 72 h'}
@@ -158,11 +168,9 @@ export function NuevaReserva({
           </>
         }>
 
-        <label><span className={labelCls}>1 · Quién retira</span>
-          <select className={inputFormulario} value={pacienteId} onChange={e => setPacienteId(e.target.value)}>
-            <option value="">Elegir paciente…</option>
-            {pacientes.map(p => <option key={p.id} value={p.id}>{p.nombre_completo}</option>)}
-          </select>
+        <label><span className={etiquetaCampo}>1 · Quién retira</span>
+          <SelectorPersona personas={pacientes} valor={pacienteId}
+            onElegir={id => setPacienteId(id ?? '')} />
         </label>
 
         {estado && (
@@ -171,7 +179,7 @@ export function NuevaReserva({
 
             {estado.mandatoPendiente && estado.asociado && (
               <div className="rounded-lg bg-[#15151d] border border-[#2a2a3a] p-3 space-y-2">
-                <p className="text-[11.5px] text-[#d4d4dd] leading-relaxed">
+                <p className="text-[11px] text-[#d4d4dd] leading-relaxed">
                   <FileSignature className="w-3.5 h-3.5 inline text-[#a3e635] mr-1" />
                   Hace falta la Declaración Jurada de Vinculación Exclusiva y Mandato de Gestión
                   Operativa. Es lo que sostiene que la entrega no es una compraventa.
@@ -189,7 +197,7 @@ export function NuevaReserva({
             {estado.dispensaSinReporte && (
               <button onClick={() => setEncuesta(estado.dispensaSinReporte)}
                 className="w-full text-left rounded-lg bg-[#15151d] border border-[#2a2a3a] hover:border-[#404d20] p-3 min-h-[44px] transition-colors">
-                <p className="text-[11.5px] text-[#d4d4dd] leading-relaxed">
+                <p className="text-[11px] text-[#d4d4dd] leading-relaxed">
                   <ClipboardList className="w-3.5 h-3.5 inline text-[#a3e635] mr-1" />
                   Completar la Encuesta de Seguimiento Terapéutico de la entrega del{' '}
                   {estado.dispensaSinReporte.fecha} para destrabar el catálogo.
@@ -202,11 +210,11 @@ export function NuevaReserva({
         {estado?.puedeReservar && (
           <>
             <div className="pt-2 border-t border-[#1f1f2b]">
-              <label><span className={labelCls}>2 · De qué lote</span>
+              <label><span className={etiquetaCampo}>2 · De qué lote</span>
                 <select className={inputFormulario} value={loteId} onChange={e => setLoteId(e.target.value)}>
                   <option value="">Elegir lote…</option>
                   {disponibles.map(l => {
-                    const d = disponibleDeLote(l, pedidos)
+                    const d = disponibleDeLote(l, pedidos, dispensas)
                     return (
                       <option key={l.id} value={l.id}>
                         {l.codigo} · {l.producto} · {Math.round(d.disponible)} g disponibles
@@ -223,11 +231,11 @@ export function NuevaReserva({
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <label><span className={labelCls}>Gramos</span>
+              <label><span className={etiquetaCampo}>Gramos</span>
                 <input className={inputFormulario} type="number" inputMode="decimal" value={gramos}
                   onChange={e => setGramos(e.target.value)} placeholder="0" /></label>
               <div>
-                <span className={labelCls}>Reembolso</span>
+                <span className={etiquetaCampo}>Reembolso</span>
                 <div className="px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] min-h-[44px] sm:min-h-0 flex items-center">
                   <span className="font-display font-semibold text-[15px] text-[#a3e635]">
                     ${monto.toLocaleString('es-AR')}
@@ -237,7 +245,7 @@ export function NuevaReserva({
             </div>
 
             <div>
-              <span className={labelCls}>3 · Cómo paga</span>
+              <span className={etiquetaCampo}>3 · Cómo paga</span>
               <div className="space-y-1.5">
                 {METODOS_PAGO.map(m => (
                   <button key={m.valor} type="button" onClick={() => setMetodo(m.valor)}
@@ -245,10 +253,10 @@ export function NuevaReserva({
                     style={metodo === m.valor
                       ? { borderColor: '#404d20', background: 'rgba(163,230,53,0.10)' }
                       : { borderColor: '#2a2a3a', background: '#15151d' }}>
-                    <p className="text-[12.5px]" style={{ color: metodo === m.valor ? '#d9f99d' : '#ececf1' }}>
+                    <p className="text-[12px]" style={{ color: metodo === m.valor ? '#d9f99d' : '#ececf1' }}>
                       {m.label}
                     </p>
-                    <p className="text-[10.5px] text-[#8a8a9c] mt-0.5">{m.detalle}</p>
+                    <p className="text-[10px] text-[#8a8a9c] mt-0.5">{m.detalle}</p>
                   </button>
                 ))}
               </div>
@@ -256,10 +264,10 @@ export function NuevaReserva({
 
             {metodo === 'Transferencia_Billetera' && (
               <label className="block">
-                <span className={labelCls}>Comprobante</span>
+                <span className={etiquetaCampo}>Comprobante</span>
                 <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] min-h-[44px]">
                   <Upload className="w-3.5 h-3.5 text-[#8a8a9c] flex-shrink-0" />
-                  <span className="text-[11.5px] text-[#a6a6b5] truncate">
+                  <span className="text-[11px] text-[#a6a6b5] truncate">
                     {comprobante?.name ?? 'Adjuntar (opcional ahora, obligatorio para acreditar)'}
                   </span>
                 </div>
@@ -268,7 +276,7 @@ export function NuevaReserva({
               </label>
             )}
 
-            <label><span className={labelCls}>Notas</span>
+            <label><span className={etiquetaCampo}>Notas</span>
               <input className={inputFormulario} value={notas} onChange={e => setNotas(e.target.value)} /></label>
           </>
         )}
@@ -279,12 +287,15 @@ export function NuevaReserva({
       {verMandato && estado?.asociado && (() => {
         const doc = ddjjMandato(estado.asociado, entidad, paciente)
         return <VisorDocumento titulo={doc.titulo} texto={doc.texto} faltantes={doc.faltantes}
+          entidad={entidad}
+          onEmitido={onCambio}
+          archivo={{ subtipo: 'Mandato de cultivo solidario', paciente_id: paciente?.id ?? null }}
           nota="Se imprime y se firma en papel. El botón 'Firmar mandato' registra la aceptación en el sistema con fecha, hora e IP."
           onCerrar={() => setVerMandato(false)} />
       })()}
 
       {encuesta && (
-        <ModalFeedback dispensa={encuesta} nombre={paciente?.nombre_completo ?? ''}
+        <ModalFeedback dispensa={encuesta} nombre={paciente ? nombreParaMostrar(paciente) : ''}
           onCerrar={() => setEncuesta(null)} onCambio={onCambio} />
       )}
     </>
@@ -299,7 +310,7 @@ function FichaHabilitacion({ estado }: { estado: ReturnType<typeof evaluarPacien
         {estado.puedeReservar
           ? <ShieldCheck className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} />
           : <AlertTriangle className="w-4 h-4 text-[#ff8a7a]" strokeWidth={1.8} />}
-        <p className="text-[12.5px] font-medium" style={{ color: estado.puedeReservar ? '#d9f99d' : '#ff8a7a' }}>
+        <p className="text-[12px] font-medium" style={{ color: estado.puedeReservar ? '#d9f99d' : '#ff8a7a' }}>
           {estado.puedeReservar ? 'Habilitado para reservar' : 'No puede reservar todavía'}
         </p>
       </div>
@@ -312,7 +323,7 @@ function FichaHabilitacion({ estado }: { estado: ReturnType<typeof evaluarPacien
             c: cupo.remanente === 0 ? '#ff8a7a' : '#a3e635' },
         ].map(k => (
           <div key={k.l}>
-            <p className="text-[9.5px] uppercase tracking-[0.12em] text-[#8a8a9c] font-medium">{k.l}</p>
+            <p className="text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium">{k.l}</p>
             <p className="font-display font-semibold text-[14px] mt-0.5" style={{ color: k.c ?? '#ececf1' }}>{k.v}</p>
           </div>
         ))}
@@ -336,12 +347,12 @@ function Aviso({ a }: { a: Bloqueo }) {
         : { background: 'rgba(251,191,36,0.08)', borderColor: 'rgba(251,191,36,0.30)' }}>
       <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-px" style={{ color: err ? '#ff8a7a' : '#fbbf24' }} />
       <div className="min-w-0">
-        <p className="text-[11.5px] text-[#d4d4dd] leading-snug">
+        <p className="text-[11px] text-[#d4d4dd] leading-snug">
           <span className="text-[#8a8a9c] font-mono text-[10px] mr-1">{a.regla}</span>
           {a.texto}
         </p>
         {a.comoSeResuelve && (
-          <p className="text-[10.5px] text-[#8a8a9c] mt-0.5 leading-snug">{a.comoSeResuelve}</p>
+          <p className="text-[10px] text-[#8a8a9c] mt-0.5 leading-snug">{a.comoSeResuelve}</p>
         )}
       </div>
     </div>
@@ -351,15 +362,25 @@ function Aviso({ a }: { a: Bloqueo }) {
 function Marco({ titulo, onCerrar, pie, children }: {
   titulo: string; onCerrar: () => void; pie: React.ReactNode; children: React.ReactNode
 }) {
+  const refDialogo = useDialogo(onCerrar)
   return (
-    <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={onCerrar}>
-      <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto"
+    <div ref={refDialogo} className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={onCerrar}>
+      <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92dvh] overflow-y-auto overscroll-contain"
         onClick={e => e.stopPropagation()}>
-        <div className="px-4 py-3 border-b border-[#1f1f2b] sticky top-0 bg-[#0d0d12] z-10">
+        <div className="px-4 py-3 border-b border-[#1f1f2b] sticky top-0 bg-[#0d0d12] z-10 flex items-center gap-2">
           <h3 className="font-display font-semibold text-[14px] text-[#ececf1]">{titulo}</h3>
+          {/* La X vive en el marco, no en el pie: el pie lo arma cada uso y
+              puede no traer ningun boton que cierre. */}
+          <button onClick={onCerrar} aria-label="Cerrar"
+            className="ml-auto min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center rounded-lg text-[#8a8a9c] hover:text-[#ececf1] hover:bg-[#1f1f2b] transition-colors">
+            <X className="w-4 h-4" />
+          </button>
         </div>
         <div className="p-4 space-y-3">{children}</div>
-        <div className="px-4 py-3 border-t border-[#1f1f2b] flex gap-2 sticky bottom-0 bg-[#0d0d12]">{pie}</div>
+        <div className="px-4 py-3 border-t border-[#1f1f2b] flex gap-2 sticky bottom-0 bg-[#0d0d12]">
+          <button onClick={onCerrar} className={btnSutil}>Cancelar</button>
+          {pie}
+        </div>
       </div>
     </div>
   )

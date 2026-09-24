@@ -2,7 +2,8 @@
 // Una solapa por tabla; editar celda con click, agregar y borrar filas.
 // La IA (chat) escribe en las mismas tablas, asi que todo queda sincronizado.
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { btnSutil } from '../lib/ui'
 import { toast } from 'sonner'
 import { Plus, Trash2, RefreshCw, Table2, Download, Upload, X, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -11,20 +12,98 @@ import { CATEGORIAS_INSUMO, TIPOS_MANTENIMIENTO, UNIDADES } from '../lib/stock'
 import { SISTEMAS, UNIDADES_INST } from '../lib/instalaciones'
 import { exportarFull, importarFull } from '../lib/backup'
 import { useDesbordeHorizontal } from '../lib/useDesbordeHorizontal'
+import { useDialogo } from '../lib/useDialogo'
+import { confirmarBorrado } from '../lib/confirmar'
+import { useAuth } from '../hooks/useAuth'
 
 const TIPOS_COSTO = ['fijo', 'variable'] as const
 const PERIODICIDADES_COSTO = ['unico', 'mensual', 'bimestral', 'por_ciclo', 'anual'] as const
 
 type TipoCol = 'text' | 'number' | 'date' | 'bool' | { select: readonly string[] }
 interface Col { campo: string; titulo: string; tipo: TipoCol; ancho?: string }
-interface DefTabla { id: string; nombre: string; orden: string; cols: Col[] }
+interface DefTabla {
+  id: string; nombre: string; orden: string; cols: Col[]
+  /**
+   * Si la tabla muestra plata.
+   *
+   * A quien no tenga `ver_plata` no se le ofrece: el RLS le devuelve CERO filas,
+   * así que vería una pestaña vacía y la leería como un error de carga, no como
+   * un permiso. Es la misma razón que `TABS_DE_PLATA` en la O.N.G.
+   *
+   * `ong_lotes` está marcada aunque suene a inventario: tiene `costo_por_gramo`
+   * en 97 de 105 filas. El stock sin la plata se ve en Cosecha › Stock, que lee
+   * de la vista `lotes_stock`.
+   */
+  plata?: true
+}
+
+const TIPOS_AREA_TABLA = ['carpa', 'cama', 'sector', 'sala', 'mesa', 'invernadero'] as const
 
 const TABLAS: DefTabla[] = [
+  {
+    id: 'ong_documentos_institucionales', nombre: 'Papeles institucionales', orden: 'fecha',
+    cols: [
+      { campo: 'tipo', titulo: 'Papel', tipo: 'text' },
+      { campo: 'titulo', titulo: 'Titulo', tipo: 'text' },
+      { campo: 'numero', titulo: 'Numero', tipo: 'text' },
+      { campo: 'fecha', titulo: 'Fecha', tipo: 'date' },
+      { campo: 'vigente', titulo: 'Vigente', tipo: 'bool' },
+      { campo: 'persona_juridica', titulo: 'Persona juridica', tipo: 'text' },
+      { campo: 'archivo_nombre', titulo: 'Archivo', tipo: 'text' },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text' },
+    ],
+  },
+  {
+    id: 'ong_pagos_proveedor', nombre: 'Pagos a proveedor', orden: 'fecha', plata: true,
+    cols: [
+      { campo: 'fecha', titulo: 'Fecha', tipo: 'date' },
+      { campo: 'orden_servicio', titulo: 'Orden de servicio', tipo: 'text' },
+      { campo: 'proveedor', titulo: 'Proveedor', tipo: 'text' },
+      { campo: 'monto', titulo: 'Monto', tipo: 'number' },
+      { campo: 'medio', titulo: 'Medio', tipo: 'text' },
+      { campo: 'referencia', titulo: 'Referencia', tipo: 'text' },
+    ],
+  },
+  {
+    id: 'cultivo_lotes', nombre: 'Lotes de cultivo', orden: 'fecha_germinacion',
+    cols: [
+      { campo: 'nombre', titulo: 'Nombre', tipo: 'text' },
+      { campo: 'fecha_germinacion', titulo: 'Germinación', tipo: 'date' },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text' },
+      { campo: 'activo', titulo: 'Activo', tipo: 'bool' },
+    ],
+  },
+  {
+    id: 'cultivo_grupos', nombre: 'Grupos de cultivo', orden: 'orden',
+    cols: [
+      { campo: 'nombre', titulo: 'Grupo', tipo: 'text' },
+      { campo: 'sustrato', titulo: 'Sustrato', tipo: 'text' },
+      { campo: 'maceta', titulo: 'Maceta', tipo: 'text' },
+      { campo: 'variable', titulo: 'Qué cambia', tipo: 'text' },
+      { campo: 'orden', titulo: 'Orden', tipo: 'number' },
+    ],
+  },
+  {
+    id: 'cultivo_areas', nombre: 'Áreas de cultivo', orden: 'orden',
+    cols: [
+      { campo: 'nombre', titulo: 'Nombre', tipo: 'text' },
+      { campo: 'tipo', titulo: 'Tipo', tipo: { select: TIPOS_AREA_TABLA } },
+      { campo: 'ancho_m', titulo: 'Ancho (m)', tipo: 'number' },
+      { campo: 'largo_m', titulo: 'Largo (m)', tipo: 'number' },
+      { campo: 'cols', titulo: 'Columnas', tipo: 'number' },
+      { campo: 'rows', titulo: 'Filas', tipo: 'number' },
+      { campo: 'orden', titulo: 'Orden', tipo: 'number' },
+      { campo: 'activa', titulo: 'Activa', tipo: 'bool' },
+    ],
+  },
   {
     id: 'plantas', nombre: 'Plantas', orden: 'apodo',
     cols: [
       { campo: 'apodo', titulo: 'Apodo', tipo: 'text' },
       { campo: 'fase', titulo: 'Fase', tipo: { select: FASES } },
+      // C4: texto libre y no un select, porque las opciones dependen de la fase
+      // (ver SUBFASES en lib/cultivo.ts) y esta tabla no sabe de dependencias.
+      { campo: 'subfase', titulo: 'Sub-fase', tipo: 'text' },
       { campo: 'fecha_germinacion', titulo: 'Germinación', tipo: 'date' },
       { campo: 'sustrato', titulo: 'Sustrato', tipo: { select: SUSTRATOS } },
       { campo: 'maceta', titulo: 'Maceta', tipo: 'text' },
@@ -96,7 +175,7 @@ const TABLAS: DefTabla[] = [
     ],
   },
   {
-    id: 'insumos', nombre: 'Insumos', orden: 'nombre',
+    id: 'insumos', nombre: 'Insumos', orden: 'nombre', plata: true,
     cols: [
       { campo: 'nombre', titulo: 'Nombre', tipo: 'text', ancho: 'min-w-[180px]' },
       { campo: 'categoria', titulo: 'Categoría', tipo: { select: CATEGORIAS_INSUMO } },
@@ -115,7 +194,7 @@ const TABLAS: DefTabla[] = [
     ],
   },
   {
-    id: 'costos', nombre: 'Costos', orden: 'nombre',
+    id: 'costos', nombre: 'Costos', orden: 'nombre', plata: true,
     cols: [
       { campo: 'nombre', titulo: 'Nombre', tipo: 'text', ancho: 'min-w-[180px]' },
       { campo: 'tipo', titulo: 'Tipo', tipo: { select: TIPOS_COSTO } },
@@ -196,7 +275,7 @@ const TABLAS: DefTabla[] = [
     ],
   },
   {
-    id: 'ong_caja', nombre: 'ONG · libro de caja', orden: 'fecha',
+    id: 'ong_caja', nombre: 'ONG · libro de caja', orden: 'fecha', plata: true,
     cols: [
       { campo: 'fecha', titulo: 'Fecha', tipo: 'date' },
       { campo: 'tipo', titulo: 'Tipo', tipo: { select: ['ingreso', 'egreso'] } },
@@ -208,7 +287,7 @@ const TABLAS: DefTabla[] = [
     ],
   },
   {
-    id: 'ong_lotes', nombre: 'ONG · catálogo (lotes)', orden: 'codigo',
+    id: 'ong_lotes', nombre: 'ONG · catálogo (lotes)', orden: 'codigo', plata: true,
     cols: [
       { campo: 'codigo', titulo: 'Código', tipo: 'text' },
       { campo: 'producto', titulo: 'Producto', tipo: { select: ['flor', 'aceite', 'extracto', 'tópico', 'otro'] } },
@@ -220,6 +299,51 @@ const TABLAS: DefTabla[] = [
       { campo: 'fecha_analisis', titulo: 'Análisis', tipo: 'date' },
       { campo: 'fecha_elaboracion', titulo: 'Elaborado', tipo: 'date' },
       { campo: 'activo', titulo: 'Activo', tipo: 'bool' },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[160px]' },
+    ],
+  },
+  {
+    // El arqueo NO se edita desde acá: la tabla no tiene update ni delete, a
+    // propósito. Un arqueo es la foto de un momento; si se contó mal se carga
+    // otro, porque corregir el anterior borraría la única evidencia de que la
+    // diferencia existió. Se lista para poder leer el histórico.
+    id: 'arqueos', nombre: 'Arqueos de caja y stock', orden: 'momento',
+    cols: [
+      { campo: 'momento', titulo: 'Cuándo', tipo: 'text' },
+      { campo: 'esperado_efectivo', titulo: 'Efectivo esperado', tipo: 'number' },
+      { campo: 'contado_efectivo', titulo: 'Efectivo contado', tipo: 'number' },
+      { campo: 'esperado_transferencia', titulo: 'Transf. esperada', tipo: 'number' },
+      { campo: 'contado_transferencia', titulo: 'Transf. contada', tipo: 'number' },
+      { campo: 'esperado_stock_g', titulo: 'Stock esperado (g)', tipo: 'number' },
+      { campo: 'contado_stock_g', titulo: 'Stock contado (g)', tipo: 'number' },
+      { campo: 'nota', titulo: 'Nota', tipo: 'text', ancho: 'min-w-[200px]' },
+    ],
+  },
+  {
+    id: 'ong_visitas', nombre: 'ONG · visitas', orden: 'fecha',
+    cols: [
+      { campo: 'fecha', titulo: 'Fecha', tipo: 'date' },
+      { campo: 'nombre_libre', titulo: 'Nombre (sin ficha)', tipo: 'text', ancho: 'min-w-[160px]' },
+      { campo: 'motivo', titulo: 'Motivo', tipo: 'text', ancho: 'min-w-[140px]' },
+      { campo: 'resultado', titulo: 'Resultado', tipo: 'text', ancho: 'min-w-[160px]' },
+      { campo: 'atendio', titulo: 'Atendió', tipo: 'text' },
+      { campo: 'contacto', titulo: 'Contacto', tipo: 'text' },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[180px]' },
+    ],
+  },
+  {
+    // El token NO se lista. Es la credencial con la que la persona abre su
+    // propia pantalla: mostrarlo en una tabla exportable lo convierte en algo
+    // que viaja en un Excel.
+    id: 'ong_solicitudes', nombre: 'ONG · solicitudes de alta', orden: 'creada_en',
+    cols: [
+      { campo: 'nombre', titulo: 'Nombre', tipo: 'text', ancho: 'min-w-[160px]' },
+      { campo: 'dni', titulo: 'DNI', tipo: 'text' },
+      { campo: 'estado', titulo: 'Estado', tipo: { select: ['pendiente', 'en_revision', 'aceptada', 'rechazada'] } },
+      { campo: 'email', titulo: 'Mail', tipo: 'text' },
+      { campo: 'telefono', titulo: 'Teléfono', tipo: 'text' },
+      { campo: 'creada_en', titulo: 'Entró', tipo: 'text' },
+      { campo: 'motivo', titulo: 'Motivo', tipo: 'text', ancho: 'min-w-[160px]' },
       { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[160px]' },
     ],
   },
@@ -265,7 +389,7 @@ const TABLAS: DefTabla[] = [
     ],
   },
   {
-    id: 'ong_documentos', nombre: 'ONG · documentos', orden: 'fecha',
+    id: 'ong_documentos', nombre: 'ONG · documentos', orden: 'fecha', plata: true,
     cols: [
       { campo: 'tipo', titulo: 'Tipo', tipo: { select: ['emitido', 'gasto'] } },
       { campo: 'subtipo', titulo: 'Clase', tipo: 'text' },
@@ -280,7 +404,7 @@ const TABLAS: DefTabla[] = [
     ],
   },
   {
-    id: 'ong_cuotas_emitidas', nombre: 'ONG · cuotas emitidas', orden: 'periodo',
+    id: 'ong_cuotas_emitidas', nombre: 'ONG · cuotas emitidas', orden: 'periodo', plata: true,
     cols: [
       { campo: 'periodo', titulo: 'Periodo', tipo: 'text' },
       { campo: 'tipo', titulo: 'Tipo', tipo: { select: ['social', 'cultivo'] } },
@@ -346,7 +470,7 @@ const TABLAS: DefTabla[] = [
     ],
   },
   {
-    id: 'ong_categorias_socio', nombre: 'ONG · categorias de socio', orden: 'nombre',
+    id: 'ong_categorias_socio', nombre: 'ONG · categorias de socio', orden: 'nombre', plata: true,
     cols: [
       { campo: 'nombre', titulo: 'Nombre', tipo: 'text', ancho: 'min-w-[150px]' },
       { campo: 'requiere_reprocann', titulo: 'Requiere REPROCANN', tipo: 'bool' },
@@ -356,7 +480,7 @@ const TABLAS: DefTabla[] = [
     ],
   },
   {
-    id: 'ong_cuotas', nombre: 'ONG · cuotas', orden: 'vigente_desde',
+    id: 'ong_cuotas', nombre: 'ONG · cuotas', orden: 'vigente_desde', plata: true,
     cols: [
       { campo: 'tipo', titulo: 'Tipo', tipo: { select: ['social', 'cultivo'] } },
       { campo: 'categoria', titulo: 'Categoria', tipo: 'text', ancho: 'min-w-[130px]' },
@@ -365,6 +489,43 @@ const TABLAS: DefTabla[] = [
       { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[160px]' },
     ],
   },
+  // `instalaciones_items` es UNA sola solapa aunque la usen dos pantallas: el
+  // catalogo del modulo Instalacion y el equipamiento que amortiza Econometria.
+  // Dos solapas con el mismo id rompen la lista (claves duplicadas en React).
+  {
+    id: 'instalaciones_items', nombre: 'Econometría · equipamiento', orden: 'nombre', plata: true,
+    cols: [
+      { campo: 'nombre', titulo: 'Nombre', tipo: 'text', ancho: 'min-w-[180px]' },
+      { campo: 'sistema', titulo: 'Sistema', tipo: { select: SISTEMAS } },
+      { campo: 'marca', titulo: 'Marca', tipo: 'text' },
+      { campo: 'modelo', titulo: 'Modelo', tipo: 'text' },
+      { campo: 'precio', titulo: 'Precio', tipo: 'number' },
+      { campo: 'unidad', titulo: 'Unidad', tipo: { select: UNIDADES_INST } },
+      { campo: 'specs', titulo: 'Specs', tipo: 'text', ancho: 'min-w-[160px]' },
+      { campo: 'url', titulo: 'URL', tipo: 'text', ancho: 'min-w-[160px]' },
+      { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[160px]' },
+    ],
+  },
+  {
+    id: 'ambiente_salas', nombre: 'Ambiente · salas', orden: 'orden',
+    cols: [
+      { campo: 'nombre', titulo: 'Nombre', tipo: 'text', ancho: 'min-w-[160px]' },
+      { campo: 'etapa', titulo: 'Etapa', tipo: { select: ['vegetativo', 'floracion'] } },
+      { campo: 'activa', titulo: 'Activa', tipo: 'bool' },
+      { campo: 'orden', titulo: 'Orden', tipo: 'number' },
+    ],
+  },
+  {
+    id: 'ambiente_lecturas', nombre: 'Ambiente · lecturas', orden: 'medido_en',
+    cols: [
+      { campo: 'sala_id', titulo: 'Sala (id)', tipo: 'text', ancho: 'min-w-[160px]' },
+      { campo: 'medido_en', titulo: 'Medido', tipo: 'text', ancho: 'min-w-[160px]' },
+      { campo: 'temp_c', titulo: 'Temp (°C)', tipo: 'number' },
+      { campo: 'humedad_pct', titulo: 'Humedad (%)', tipo: 'number' },
+      { campo: 'nota', titulo: 'Nota', tipo: 'text', ancho: 'min-w-[180px]' },
+    ],
+  },
+  // Tablas propias de GrowFlow: nutrientes, instalacion, tableros.
   {
     id: 'fichas_comerciales', nombre: 'Fichas tecnicas (comerciales)', orden: 'marca',
     cols: [
@@ -448,20 +609,6 @@ const TABLAS: DefTabla[] = [
     ],
   },
   {
-    id: 'instalaciones_items', nombre: 'Instalación (catálogo)', orden: 'nombre',
-    cols: [
-      { campo: 'nombre', titulo: 'Nombre', tipo: 'text', ancho: 'min-w-[180px]' },
-      { campo: 'sistema', titulo: 'Sistema', tipo: { select: SISTEMAS } },
-      { campo: 'marca', titulo: 'Marca', tipo: 'text' },
-      { campo: 'modelo', titulo: 'Modelo', tipo: 'text' },
-      { campo: 'precio', titulo: 'Precio', tipo: 'number' },
-      { campo: 'unidad', titulo: 'Unidad', tipo: { select: UNIDADES_INST } },
-      { campo: 'specs', titulo: 'Specs', tipo: 'text', ancho: 'min-w-[160px]' },
-      { campo: 'url', titulo: 'URL', tipo: 'text', ancho: 'min-w-[160px]' },
-      { campo: 'notas', titulo: 'Notas', tipo: 'text', ancho: 'min-w-[160px]' },
-    ],
-  },
-  {
     id: 'presupuestos_instalacion', nombre: 'Presupuestos (instalación)', orden: 'nombre',
     cols: [
       { campo: 'nombre', titulo: 'Nombre', tipo: 'text', ancho: 'min-w-[200px]' },
@@ -523,13 +670,19 @@ const TABLAS: DefTabla[] = [
 const CON_PLANTA = new Set(['eventos', 'cosechas', 'riegos', 'aplicaciones'])
 
 const celdaCls = 'px-2.5 py-1.5 text-[12px] text-[#d4d4dd] border-b border-r border-[#1f1f2b] whitespace-nowrap'
-const inputCls = 'w-full bg-[#1c1c27] border border-[#a3e635]/50 rounded px-1.5 py-0.5 text-[16px] sm:text-[12px] text-[#ececf1] focus:outline-none'
+const inputCls = 'w-full bg-[#1c1c27] border border-[#a3e635]/50 rounded px-1.5 py-0.5 text-[16px] sm:text-[12px] text-[#ececf1] focus:outline-none focus:border-[#a3e635]/60'
 
 export default function PaginaTablas() {
   // Las solapas scrollean sin barra: la franja gris del navegador quedaba
   // cruzando la pantalla aun cuando entraban todas. Dos degradados la reemplazan.
-  const { refWrapper, refScroller } = useDesbordeHorizontal<HTMLDivElement, HTMLDivElement>(TABLAS.length)
-  const [tabla, setTabla] = useState<DefTabla>(TABLAS[0])
+  // Las de plata sólo para quien la puede ver. Sin esto, un administrador de
+  // sistema abría «Pagos a proveedor» y veía una tabla vacía: el RLS le devuelve
+  // cero filas, y una pantalla vacía por permiso se lee como una rota.
+  const { tienePermiso } = useAuth()
+  const tablas = useMemo(
+    () => TABLAS.filter(t => !t.plata || tienePermiso('ver_plata')), [tienePermiso])
+  const { refWrapper, refScroller } = useDesbordeHorizontal<HTMLDivElement, HTMLDivElement>(tablas.length)
+  const [tabla, setTabla] = useState<DefTabla>(tablas[0])
   const [filas, setFilas] = useState<any[]>([])
   const [plantas, setPlantas] = useState<Record<string, string>>({})
   const [geneticasMap, setGeneticasMap] = useState<Record<string, string>>({})
@@ -537,6 +690,7 @@ export default function PaginaTablas() {
   const [editando, setEditando] = useState<{ fila: string; campo: string } | null>(null)
   const [valor, setValor] = useState('')
   const [modalImport, setModalImport] = useState(false)
+  const refDialogo = useDialogo(() => setModalImport(false), modalImport)
   const [textoImport, setTextoImport] = useState('')
   const [procesando, setProcesando] = useState(false)
 
@@ -612,7 +766,7 @@ export default function PaginaTablas() {
   }
 
   const borrarFila = async (fila: any) => {
-    if (!window.confirm('¿Borrar esta fila? No se puede deshacer.')) return
+    if (!(await confirmarBorrado('¿Borrar esta fila? No se puede deshacer.'))) return
     try {
       const { error } = await supabase.from(tabla.id).delete().eq('id', fila.id)
       if (error) throw new Error(error.message)
@@ -696,40 +850,40 @@ export default function PaginaTablas() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-[#0a0a0f] text-[#d4d4dd] font-sans overflow-hidden">
-      <div className="bg-[#0a0a0f]/95 border-b border-[#1f1f2b] flex-shrink-0">
+    <div className="flex-1 flex flex-col min-h-0 bg-[#0a0a0f] text-[#d4d4dd] font-sans overflow-hidden">
+      <div className="bg-[#0a0a0f] border-b border-[#1f1f2b] flex-shrink-0">
         <div className="flex items-center gap-2 sm:gap-4 px-3 sm:px-6 py-3">
           <div className="min-w-0">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Tablas</h1>
-            <div className="mt-0.5 text-[10.5px] sm:text-[11px] text-[#8a8a9c]">
+            <div className="mt-0.5 text-[10px] sm:text-[11px] text-[#8a8a9c]">
               {filas.length} filas · click en una celda para editar
             </div>
           </div>
           <div className="flex-1" />
           <button onClick={exportar}
-            className="inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] hover:border-[#404d20] transition-colors text-[11px] text-[#a6a6b5] hover:text-[#ececf1]"
+            className={btnSutil}
             title="Copiar backup completo del cultivo (todas las tablas) al portapapeles">
             <Download className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Export</span>
           </button>
           <button onClick={() => setModalImport(true)}
-            className="inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] hover:border-[#404d20] transition-colors text-[11px] text-[#a6a6b5] hover:text-[#ececf1]"
+            className={btnSutil}
             title="Pegar un backup para restaurar/mezclar">
             <Upload className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Import</span>
           </button>
           <button onClick={cargar}
-            className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] transition-colors text-[#a6a6b5]"
+            className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 rounded-lg border border-[#2a2a3a] bg-[#15151d] hover:bg-[#1c1c27] transition-colors text-[#a6a6b5]"
             title="Refrescar">
             <RefreshCw className={`w-3.5 h-3.5 ${cargando ? 'animate-spin' : ''}`} />
           </button>
           <button onClick={agregarFila}
-            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 min-h-[44px] sm:min-h-0 rounded-lg border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[11.5px] font-medium text-[#d9f99d]">
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 min-h-[44px] sm:min-h-0 rounded-lg border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 transition-colors text-[11px] font-medium text-[#d9f99d]">
             <Plus className="w-3.5 h-3.5" /> Fila
           </button>
         </div>
         {/* Solapas */}
         <div ref={refWrapper} className="ct-tabs-fade">
           <div ref={refScroller} className="scrollbar-none flex gap-1 px-3 sm:px-6 pb-0 overflow-x-auto">
-            {TABLAS.map(t => (
+            {tablas.map(t => (
               <button key={t.id} onClick={() => setTabla(t)}
                 className={`px-3.5 py-2 min-h-[44px] sm:min-h-0 rounded-t-lg text-[12px] font-medium border border-b-0 transition-colors whitespace-nowrap ${
                   tabla.id === t.id
@@ -756,20 +910,27 @@ export default function PaginaTablas() {
               <Table2 className="w-5 h-5 text-[#8a8a9c]" />
             </div>
             <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">Tabla vacía</div>
-            <div className="mt-1 text-[11.5px] text-[#8a8a9c]">Agregá una fila o pedíselo al chat.</div>
+            <div className="mt-1 text-[11px] text-[#8a8a9c]">Agregá una fila o pedíselo al chat.</div>
           </div>
         ) : (
+          /* La tabla scrollea en SU caja, no arrastrando la pantalla.
+             Sin este envoltorio la tabla mide 698 px contra un viewport de 390 y,
+             como ningun ancestro acota el eje horizontal, la que se corria era la
+             PAGINA: 308 px de desplazamiento lateral, con la cabecera y todo lo
+             demas moviendose junto con las columnas. Medido el 29/08 a 390 px.
+             `min-w-full` la deja ocupar todo cuando entra, y crecer cuando no. */
+          <div className="overflow-x-auto">
           <table className="border-collapse text-left min-w-full">
             <thead className="sticky top-0 bg-[#0e0e15] z-10">
               <tr>
                 {CON_PLANTA.has(tabla.id) && (
-                  <th className="px-2.5 py-2 text-[10px] uppercase tracking-[0.12em] text-[#8a8a9c] font-medium border-b border-r border-[#1f1f2b] whitespace-nowrap">Planta</th>
+                  <th className="px-2.5 py-2 text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium border-b border-r border-[#1f1f2b] whitespace-nowrap">Planta</th>
                 )}
                 {tabla.id === 'plantas' && (
-                  <th className="px-2.5 py-2 text-[10px] uppercase tracking-[0.12em] text-[#8a8a9c] font-medium border-b border-r border-[#1f1f2b] whitespace-nowrap">Variedad</th>
+                  <th className="px-2.5 py-2 text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium border-b border-r border-[#1f1f2b] whitespace-nowrap">Variedad</th>
                 )}
                 {tabla.cols.map(c => (
-                  <th key={c.campo} className="px-2.5 py-2 text-[10px] uppercase tracking-[0.12em] text-[#8a8a9c] font-medium border-b border-r border-[#1f1f2b] whitespace-nowrap">{c.titulo}</th>
+                  <th key={c.campo} className="px-2.5 py-2 text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium border-b border-r border-[#1f1f2b] whitespace-nowrap">{c.titulo}</th>
                 ))}
                 <th className="px-2 py-2 border-b border-[#1f1f2b] w-9" />
               </tr>
@@ -786,7 +947,7 @@ export default function PaginaTablas() {
                   {tabla.cols.map(c => renderCelda(fila, c))}
                   <td className="px-2 py-1.5 border-b border-[#1f1f2b]">
                     <button onClick={() => borrarFila(fila)}
-                      className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#8a8a9c] opacity-0 group-hover:opacity-100 hover:text-[#ff8a7a] rounded transition-all"
+                      className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#8a8a9c] opacity-0 group-hover:opacity-100 hover:text-[#ff8a7a] rounded transition"
                       title="Borrar fila">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -795,22 +956,23 @@ export default function PaginaTablas() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 
       {modalImport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div ref={refDialogo} className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60" onClick={() => setModalImport(false)} />
           <div className="relative w-full max-w-lg rounded-xl bg-[#101016] border border-[#2a2a3a] shadow-2xl">
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#1f1f2b]">
               <h2 className="font-display font-semibold text-[14px] text-[#ececf1]">Importar backup</h2>
-              <button onClick={() => setModalImport(false)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#8a8a9c] hover:text-[#ececf1]" aria-label="Cerrar">
+              <button onClick={() => setModalImport(false)} className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#8a8a9c] hover:text-[#ececf1]" aria-label="Cerrar">
                 <X className="w-4 h-4" />
               </button>
             </div>
             <div className="p-5 space-y-3">
-              <p className="text-[11.5px] text-[#8f8f9f] leading-relaxed">
-                Pegá un backup exportado desde otra instancia (formato <code className="font-mono text-[10.5px] text-[#c4b5fd] bg-[#15151d] px-1 py-0.5 rounded">growflow-full-v1</code>).
+              <p className="text-[11px] text-[#8f8f9f] leading-relaxed">
+                Pegá un backup exportado desde otra instancia (formato <code className="font-mono text-[10px] text-[#c4b5fd] bg-[#15151d] px-1 py-0.5 rounded">growflow-full-v1</code>).
                 Las genéticas y plantas se actualizan por nombre/apodo; los eventos y cosechas se suman sin duplicar.
               </p>
               <textarea autoFocus rows={8} value={textoImport}
@@ -822,6 +984,7 @@ export default function PaginaTablas() {
                 {procesando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
                 Importar
               </button>
+              <button onClick={() => setModalImport(false)} className="w-full min-h-[44px] flex items-center justify-center rounded-lg border border-[#2a2a3a] text-[12px] text-[#a6a6b5] hover:text-[#ececf1] hover:bg-[#1f1f2b] transition-colors">Cancelar</button>
             </div>
           </div>
         </div>

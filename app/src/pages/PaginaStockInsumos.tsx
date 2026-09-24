@@ -5,26 +5,24 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
-import {
-  Boxes, Plus, X, Search, Loader2, Trash2, Pencil, Eye, Wrench, CheckCircle2,
-  FlaskConical, Lightbulb, Thermometer, Droplets, Wind, Sprout, Bug, Gauge, Package,
-  AlertTriangle, CalendarClock, BellRing,
-} from 'lucide-react'
+import { Boxes, Plus, X, Search, Loader2, Trash2, Pencil, Wrench, CheckCircle2, FlaskConical, Lightbulb, Thermometer, Droplets, Wind, Sprout, Bug, Gauge, Package, AlertTriangle, CalendarClock, BellRing,  } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import {
   stockService, CATEGORIAS_INSUMO, TIPOS_MANTENIMIENTO, UNIDADES,
   proximoEfectivo, diasParaProximo,
-  type Insumo, type Mantenimiento, type CategoriaInsumo,
+  type Insumo, type Mantenimiento, type CategoriaInsumo, type TipoMantenimiento,
 } from '../lib/stock'
-import { btnPrimario, btnSutil } from '../lib/ui'
+import { btnPrimario, btnSutil, etiquetaCampo, inputFormulario } from '../lib/ui'
+import { useDialogo } from '../lib/useDialogo'
+import { confirmarBorrado } from '../lib/confirmar'
+import { useAbrirAlLlegar } from '../lib/useAbrirAlLlegar'
 import { fechaLocal, hoyLocal } from '../lib/fechaLocal'
 
 // text-[16px] en celular: iOS Safari hace zoom sobre cualquier campo con letra
 // menor y deja el formulario descuadrado. En desktop vuelve al tamaño real.
-const inputCls = 'w-full px-3 py-2.5 sm:py-2 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder-[#8a8a9c] focus:outline-none focus:border-[#a3e635]/60 transition-colors'
-const labelCls = 'block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1'
 const fmtPesos = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
 
-type Estilo = { text: string; bg: string; border: string; icono: any }
+type Estilo = { text: string; bg: string; border: string; icono: LucideIcon }
 const CAT: Record<CategoriaInsumo, Estilo> = {
   Fertilizante:  { text: '#bef264', bg: 'rgba(163,230,53,0.12)', border: '#404d20', icono: FlaskConical },
   Iluminacion:   { text: '#fbbf24', bg: 'rgba(251,191,36,0.12)', border: '#5a4a20', icono: Lightbulb },
@@ -67,6 +65,13 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
   const [editInsumo, setEditInsumo] = useState<Insumo | null>(null)
   const [verInsumo, setVerInsumo] = useState<Insumo | null>(null)
   const [modalMant, setModalMant] = useState(false)
+
+  // Las dos altas de esta pantalla, cada una con SU clave: comparten el
+  // booleano de «hay modal abierto», y por eso la clave tiene que decir cual.
+  const nuevoInsumo = useCallback(() => { setEditInsumo(null); setModalInsumo(true) }, [])
+  useAbrirAlLlegar(nuevoInsumo, 'insumo', modalInsumo || modalMant)
+  const nuevoMant = useCallback(() => { setEditMant(null); setModalMant(true) }, [])
+  useAbrirAlLlegar(nuevoMant, 'mantenimiento', modalInsumo || modalMant)
   const [editMant, setEditMant] = useState<Mantenimiento | null>(null)
 
   const cargar = useCallback(async (avisar = false) => {
@@ -82,12 +87,12 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
   useEffect(() => { cargar() }, [cargar])
 
   const borrarInsumo = async (i: Insumo) => {
-    if (!window.confirm(`¿Borrar "${i.nombre}" del inventario?`)) return
+    if (!(await confirmarBorrado(`¿Borrar "${i.nombre}" del inventario?`))) return
     try { await stockService.eliminarInsumo(i.id); toast.success('Insumo borrado'); cargar(true) }
     catch (err) { toast.error(`No se pudo borrar: ${(err as Error).message}`) }
   }
   const borrarMant = async (m: Mantenimiento) => {
-    if (!window.confirm('¿Borrar este registro de mantenimiento?')) return
+    if (!(await confirmarBorrado('¿Borrar este registro de mantenimiento?'))) return
     try { await stockService.eliminarMantenimiento(m.id); toast.success('Mantenimiento borrado'); cargar(true) }
     catch (err) { toast.error(`No se pudo borrar: ${(err as Error).message}`) }
   }
@@ -128,7 +133,7 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
     <div className={embebida ? '' : 'flex-1 overflow-y-auto bg-[#0a0a0f] text-[#d4d4dd] font-sans'}>
       <div className={embebida
         ? 'rounded-xl bg-[#101016] border border-[#1f1f2b] px-3 sm:px-4 py-3 mb-4'
-        : 'sticky top-0 z-40 bg-[#0a0a0f]/95 backdrop-blur-[2px] border-b border-[#1f1f2b]'}>
+        : 'sticky top-0 z-40 bg-[#0a0a0f] border-b border-[#1f1f2b]'}>
         <div className={`flex items-center flex-wrap gap-2 sm:gap-x-4 ${embebida ? '' : 'px-3 sm:px-6 pt-3'}`}>
           <div className="min-w-0">
             {!embebida && (
@@ -136,7 +141,7 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
                 <Boxes className="w-4 h-4 text-[#bef264]" /> Stock &amp; Insumos
               </h1>
             )}
-            <div className={embebida ? 'text-[12.5px] text-[#a6a6b5]' : 'mt-0.5 text-[10.5px] sm:text-[11px] text-[#8a8a9c]'}>
+            <div className={embebida ? 'text-[12px] text-[#a6a6b5]' : 'mt-0.5 text-[10px] sm:text-[11px] text-[#8a8a9c]'}>
               {insumos.length} insumos · {porReponer} por reponer · {mantPendientes} mantenimiento{mantPendientes === 1 ? '' : 's'} pendiente{mantPendientes === 1 ? '' : 's'}
             </div>
           </div>
@@ -151,16 +156,26 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
               {alarmas.length} alarma{alarmas.length === 1 ? '' : 's'}
             </button>
           )}
-          <div className="flex-1" />
-          <button onClick={() => { if (tab === 'inventario') { setEditInsumo(null); setModalInsumo(true) } else { setEditMant(null); setModalMant(true) } }} className={btnPrimario}>
-            <Plus className="w-3.5 h-3.5" /> <span className="hidden sm:inline">{tab === 'inventario' ? 'Insumo' : 'Mantenimiento'}</span>
+          {/* §7.12 otra vez: el espaciador suelto en un `flex-wrap` empujaba el
+              boton al renglon de abajo, donde quedaba como un cuadrado de 44px
+              en x=25 —un «+» sin texto, alineado con nada—. Es lo que se veia en
+              Inventario y en Mantenimiento. Ahora el espaciador vive de `sm:`
+              para arriba y en el telefono el boton toma el ancho entero.
+
+              La etiqueta tampoco se esconde mas: sin ella el boton no dice si
+              agrega un insumo o un mantenimiento, que es justo lo que cambia
+              segun la pestaña. */}
+          <div className="hidden sm:block flex-1" />
+          <button onClick={() => { if (tab === 'inventario') { setEditInsumo(null); setModalInsumo(true) } else { setEditMant(null); setModalMant(true) } }}
+            className={`${btnPrimario} w-full sm:w-auto justify-center`}>
+            <Plus className="w-3.5 h-3.5" /> <span>{tab === 'inventario' ? 'Insumo' : 'Mantenimiento'}</span>
           </button>
         </div>
         {/* El contenedor pone las pestañas cuando está embebida. */}
         {!embebida && <div className="flex gap-1 px-3 sm:px-6 pt-2">
           {(['inventario', 'mantenimiento'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
-              className={`px-3 py-2 min-h-[44px] sm:min-h-0 text-[12px] font-medium border-b-2 -mb-px transition-colors flex items-center gap-1.5 ${tab === t ? 'border-[#a3e635] text-[#d9f99d]' : 'border-transparent text-[#8a8a9c] hover:text-[#a6a6b5]'}`}>
+              className={`px-3 py-2 text-[12px] font-medium border-b-2 -mb-px transition-colors flex items-center gap-1.5 ${tab === t ? 'border-[#a3e635] text-[#d9f99d]' : 'border-transparent text-[#8a8a9c] hover:text-[#a6a6b5]'}`}>
               {t === 'inventario' ? <Boxes className="w-3.5 h-3.5" /> : <Wrench className="w-3.5 h-3.5" />}
               {t === 'inventario' ? 'Inventario' : 'Mantenimiento'}
             </button>
@@ -200,27 +215,43 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
             <div className="py-16 text-center">
               <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><Boxes className="w-5 h-5 text-[#8a8a9c]" /></div>
               <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">{insumos.length === 0 ? 'Inventario vacío' : 'Sin resultados'}</div>
-              <div className="mt-1 text-[11.5px] text-[#8a8a9c]">{insumos.length === 0 ? 'Agregá tu primer equipo, fertilizante o herramienta.' : 'Probá con otra búsqueda o categoría.'}</div>
+              <div className="mt-1 text-[11px] text-[#8a8a9c]">{insumos.length === 0 ? 'Agregá tu primer equipo, fertilizante o herramienta.' : 'Probá con otra búsqueda o categoría.'}</div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-fr">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:auto-rows-fr">
+              {/* `md:auto-rows-fr` y no `auto-rows-fr` a secas.
+              `auto-rows-fr` iguala todas las filas a la mas alta. Con DOS o tres
+              columnas eso es lo que se quiere: las tarjetas de una misma fila
+              miden lo mismo. Pero en el telefono la grilla es de UNA columna, asi
+              que cada tarjeta es su propia fila — y todas quedaban estiradas al
+              alto de la mas alta, la que tiene foto. Medido el 29/08/2026: las
+              fichas vacias median 548 px para mostrar cuarenta caracteres.
+              Emparejar solo tiene sentido cuando hay mas de una por fila. */}
               {insumosFiltrados.map(i => {
                 const e = CAT[i.categoria]
                 const min = i.stock_minimo ?? 0
                 const bajo = min > 0 && i.cantidad <= min
                 const pct = min > 0 ? Math.max(6, Math.min(100, Math.round((i.cantidad / (min * 2)) * 100))) : 0
                 return (
-                  <div key={i.id} className="rounded-xl bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] transition-colors p-3.5 h-full flex flex-col">
+                  <div key={i.id} className="group relative rounded-xl bg-[#101016] border border-[#1f1f2b] hover:border-[#404d20] transition-colors p-3.5 h-full flex flex-col">
+                    {/* La tarjeta entera abre la ficha. Mismo criterio que en
+                        Genéticas: «Ver ficha» y «Editar ficha» eran dos botones
+                        para el mismo destino, encima de una tarjeta que ya se
+                        veía tocable. Absoluto y no envolviendo, porque adentro
+                        queda el botón de borrar. */}
+                    <button type="button" onClick={() => setVerInsumo(i)}
+                      aria-label={`Ver la ficha de ${i.nombre}`}
+                      className="absolute inset-0 z-0 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[#a3e635]/60" />
                     <div className="flex items-start gap-2.5">
                       <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 border" style={{ background: e.bg, borderColor: e.border }}>
                         <e.icono className="w-4 h-4" style={{ color: e.text }} />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-display font-semibold text-[13.5px] text-[#ececf1] truncate">{i.nombre}</h3>
-                          {bajo && <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9.5px] font-medium bg-[#ff8a7a]/12 border border-[#5a2a26] text-[#ff8a7a] flex-shrink-0"><AlertTriangle className="w-2.5 h-2.5" /> Reponer</span>}
+                          <h3 className="font-display font-semibold text-[13px] text-[#ececf1] truncate">{i.nombre}</h3>
+                          {bajo && <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-[#ff8a7a]/12 border border-[#5a2a26] text-[#ff8a7a] flex-shrink-0"><AlertTriangle className="w-2.5 h-2.5" /> Reponer</span>}
                         </div>
-                        <div className="text-[10.5px] text-[#8a8a9c] truncate">
+                        <div className="text-[10px] text-[#8a8a9c] truncate">
                           <span style={{ color: e.text }}>{i.categoria}</span>
                           {(i.marca || i.modelo) && ` · ${[i.marca, i.modelo].filter(Boolean).join(' ')}`}
                         </div>
@@ -239,19 +270,22 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
                     {min > 0 && (
                       <div className="mt-2.5">
                         <div className="h-1.5 rounded-full bg-[#1c1c27] overflow-hidden">
-                          <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: bajo ? '#ff8a7a' : '#a3e635' }} />
+                          <div className="h-full w-full rounded-full origin-left transition-transform" style={{ transform: `scaleX(${pct / 100})`, background: bajo ? '#ff8a7a' : '#a3e635' }} />
                         </div>
-                        <div className="mt-1 text-[9.5px] text-[#8a8a9c]">Mínimo: {min} {i.unidad || 'u'}{bajo ? ' · stock bajo' : ''}</div>
+                        <div className="mt-1 text-[10px] text-[#8a8a9c]">Mínimo: {min} {i.unidad || 'u'}{bajo ? ' · stock bajo' : ''}</div>
                       </div>
                     )}
 
                     {i.uso && <p className="mt-2 text-[11px] text-[#a6a6b5] leading-relaxed line-clamp-2">{i.uso}</p>}
-                    {i.specs && <p className="mt-1 text-[10.5px] text-[#8a8a9c] leading-relaxed line-clamp-2">{i.specs}</p>}
+                    {i.specs && <p className="mt-1 text-[10px] text-[#8a8a9c] leading-relaxed line-clamp-2">{i.specs}</p>}
 
-                    <div className="mt-auto pt-3 flex gap-1.5">
-                      <button onClick={() => setVerInsumo(i)} className={btnSutil}><Eye className="w-3.5 h-3.5" /> Ver ficha</button>
-                      <button onClick={() => { setEditInsumo(i); setModalInsumo(true) }} className={btnSutil}><Pencil className="w-3.5 h-3.5" /> Editar ficha</button>
-                      <button onClick={() => borrarInsumo(i)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#8a8a9c] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors ml-auto" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
+                    {/* Borrar es lo único que no puede vivir en el click de la
+                        tarjeta: es lo único que no se deshace. */}
+                    <div className="mt-auto pt-3 flex items-center gap-1.5">
+                      <span className="text-[10px] text-[#8a8a9c] group-hover:text-[#7c8b5c] transition-colors">Ver ficha</span>
+                      <button onClick={() => borrarInsumo(i)}
+                        className="inline-flex items-center justify-center relative z-10 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#8a8a9c] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors ml-auto"
+                        aria-label={`Borrar ${i.nombre}`} title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </div>
                 )
@@ -269,7 +303,7 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
                   <BellRing className="w-4 h-4 text-[#fbbf24] relative" />
                 </span>
                 <h3 className="font-display font-bold text-[13px] text-[#fbbf24]">{alarmas.length} alarma{alarmas.length === 1 ? '' : 's'} de mantenimiento</h3>
-                <span className="hidden sm:inline text-[10.5px] text-[#a6a6b5]">— para hoy, mañana o vencidas</span>
+                <span className="hidden sm:inline text-[10px] text-[#a6a6b5]">— para hoy, mañana o vencidas</span>
               </div>
               <ul className="divide-y divide-[#5a4a20]/30">
                 {alarmas.map(m => {
@@ -280,10 +314,10 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
                   return (
                     <li key={m.id} className="flex items-center gap-2.5 px-4 py-2">
                       <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: cuando.col }} />
-                      <span className="font-medium text-[12.5px] text-[#ececf1] truncate">{titulo}</span>
-                      <span className="hidden sm:inline text-[10.5px] text-[#a6a6b5] truncate">· {m.tipo}</span>
+                      <span className="font-medium text-[12px] text-[#ececf1] truncate">{titulo}</span>
+                      <span className="hidden sm:inline text-[10px] text-[#a6a6b5] truncate">· {m.tipo}</span>
                       <span className="ml-auto text-[11px] font-semibold flex-shrink-0" style={{ color: cuando.col }}>{cuando.txt}</span>
-                      <button onClick={() => hechoHoy(m)} className="flex-shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-md border border-[#404d20] bg-[#a3e635]/10 hover:bg-[#a3e635]/20 text-[10.5px] font-medium text-[#d9f99d] transition-colors" title="Marcar como hecho hoy">
+                      <button onClick={() => hechoHoy(m)} className="flex-shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-md border border-[#404d20] bg-[#a3e635]/10 hover:bg-[#a3e635]/20 text-[10px] font-medium text-[#d9f99d] transition-colors" title="Marcar como hecho hoy">
                         <CheckCircle2 className="w-3 h-3" /> Hecho
                       </button>
                     </li>
@@ -296,7 +330,7 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
             <div className="py-16 text-center">
               <div className="mx-auto w-11 h-11 rounded-full bg-[#1c1c27] border border-[#20202c] flex items-center justify-center mb-3"><Wrench className="w-5 h-5 text-[#8a8a9c]" /></div>
               <div className="font-display font-semibold text-[#d4d4dd] text-[14px]">Sin mantenimientos cargados</div>
-              <div className="mt-1 text-[11.5px] text-[#8a8a9c]">Registrá limpiezas, recargas de CO2, cambios de filtro y su frecuencia.</div>
+              <div className="mt-1 text-[11px] text-[#8a8a9c]">Registrá limpiezas, recargas de CO2, cambios de filtro y su frecuencia.</div>
             </div>
           ) : (
             <div className="space-y-2.5">
@@ -319,11 +353,11 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-display font-semibold text-[13.5px] text-[#ececf1] truncate">{titulo}</h3>
+                        <h3 className="font-display font-semibold text-[13px] text-[#ececf1] truncate">{titulo}</h3>
                         <span className="px-1.5 py-0.5 rounded-md text-[10px] bg-[#15151d] border border-[#2a2a3a] text-[#a6a6b5]">{m.tipo}</span>
                         <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-medium" style={{ background: badge.bg, borderColor: badge.border, color: badge.text, borderWidth: 1 }}>{badge.label}</span>
                       </div>
-                      <div className="mt-1 text-[10.5px] text-[#8a8a9c] flex flex-wrap gap-x-3 gap-y-0.5">
+                      <div className="mt-1 text-[10px] text-[#8a8a9c] flex flex-wrap gap-x-3 gap-y-0.5">
                         <span>Último: {fmtFecha(m.fecha_realizado)}</span>
                         {m.frecuencia_dias ? <span>Cada {m.frecuencia_dias} días</span> : null}
                         <span>Próximo: {fmtFecha(prox)}</span>
@@ -332,9 +366,9 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
                       {m.notas && <p className="mt-1.5 text-[11px] text-[#a6a6b5] leading-relaxed">{m.notas}</p>}
                     </div>
                     <div className="flex flex-col gap-1 flex-shrink-0">
-                      <button onClick={() => hechoHoy(m)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#8a8a9c] hover:text-[#bef264] hover:bg-[#15151d] rounded-lg transition-colors" title="Marcar hecho hoy"><CheckCircle2 className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => { setEditMant(m); setModalMant(true) }} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#8a8a9c] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => borrarMant(m)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#8a8a9c] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => hechoHoy(m)} className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#8a8a9c] hover:text-[#bef264] hover:bg-[#15151d] rounded-lg transition-colors" title="Marcar hecho hoy"><CheckCircle2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => { setEditMant(m); setModalMant(true) }} className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#8a8a9c] hover:text-[#d9f99d] hover:bg-[#15151d] rounded-lg transition-colors" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => borrarMant(m)} className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#8a8a9c] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors" title="Borrar"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </div>
                 )
@@ -346,15 +380,19 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
 
       {modalInsumo && <ModalInsumo insumo={editInsumo} onCerrar={() => setModalInsumo(false)} onGuardado={() => { setModalInsumo(false); cargar(true) }} />}
       {modalMant && <ModalMant mant={editMant} insumos={insumos} onCerrar={() => setModalMant(false)} onGuardado={() => { setModalMant(false); cargar(true) }} />}
-      {verInsumo && <ModalVerInsumo insumo={verInsumo} onCerrar={() => setVerInsumo(null)} />}
+      {verInsumo && (
+        <ModalVerInsumo insumo={verInsumo} onCerrar={() => setVerInsumo(null)}
+          onEditar={() => { setEditInsumo(verInsumo); setVerInsumo(null); setModalInsumo(true) }} />
+      )}
     </div>
   )
 }
 
 export function ModalInsumo({ insumo, onCerrar, onGuardado }: { insumo: Insumo | null; onCerrar: () => void; onGuardado: () => void }) {
+  const refDialogo1 = useDialogo(onCerrar)
   const [f, setF] = useState<Partial<Insumo>>(insumo ?? { categoria: 'Fertilizante', cantidad: 0, unidad: 'u', stock_minimo: 0 })
   const [guardando, setGuardando] = useState(false)
-  const set = (k: keyof Insumo, v: any) => setF(prev => ({ ...prev, [k]: v }))
+  const set = <K extends keyof Insumo>(k: K, v: Insumo[K]) => setF(prev => ({ ...prev, [k]: v }))
   const num = (v: string) => v === '' ? null : Number(v)
 
   const guardar = async () => {
@@ -375,51 +413,51 @@ export function ModalInsumo({ insumo, onCerrar, onGuardado }: { insumo: Insumo |
   }
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={onCerrar}>
-      <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+    <div ref={refDialogo1} className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={onCerrar}>
+      <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92dvh] overflow-y-auto overscroll-contain" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 bg-[#0d0d12] border-b border-[#1f1f2b] px-4 py-3 flex items-center justify-between">
           <h2 className="font-display font-bold text-[15px] text-[#ececf1]">{insumo ? 'Editar insumo' : 'Nuevo insumo'}</h2>
-          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#8a8a9c] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
+          <button onClick={onCerrar} className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#8a8a9c] hover:text-[#ececf1]" aria-label="Cerrar"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4 space-y-3">
           <div>
-            <label className={labelCls}>Nombre *</label>
-            <input className={inputCls} value={f.nombre ?? ''} onChange={e => set('nombre', e.target.value)} placeholder="Ej: Luz LED de cultivo, Bomba de agua, Top Crop..." />
+            <label className={etiquetaCampo}>Nombre *</label>
+            <input className={inputFormulario} value={f.nombre ?? ''} onChange={e => set('nombre', e.target.value)} placeholder="Ej: Luz LED de cultivo, Bomba de agua, Top Crop..." />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelCls}>Categoría</label>
-              <select className={inputCls} value={f.categoria} onChange={e => set('categoria', e.target.value)}>
+              <label className={etiquetaCampo}>Categoría</label>
+              <select className={inputFormulario} value={f.categoria} onChange={e => set('categoria', e.target.value as CategoriaInsumo)}>
                 {CATEGORIAS_INSUMO.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div>
-              <label className={labelCls}>Potencia (W)</label>
-              <input type="number" className={inputCls} value={f.potencia_w ?? ''} onChange={e => set('potencia_w', num(e.target.value))} placeholder="Ej: 240" />
+              <label className={etiquetaCampo}>Potencia (W)</label>
+              <input type="number" className={inputFormulario} value={f.potencia_w ?? ''} onChange={e => set('potencia_w', num(e.target.value))} placeholder="Ej: 240" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div><label className={labelCls}>Marca</label><input className={inputCls} value={f.marca ?? ''} onChange={e => set('marca', e.target.value)} /></div>
-            <div><label className={labelCls}>Modelo</label><input className={inputCls} value={f.modelo ?? ''} onChange={e => set('modelo', e.target.value)} /></div>
+            <div><label className={etiquetaCampo}>Marca</label><input className={inputFormulario} value={f.marca ?? ''} onChange={e => set('marca', e.target.value)} /></div>
+            <div><label className={etiquetaCampo}>Modelo</label><input className={inputFormulario} value={f.modelo ?? ''} onChange={e => set('modelo', e.target.value)} /></div>
           </div>
           <div className="grid grid-cols-3 gap-3">
-            <div><label className={labelCls}>Cantidad</label><input type="number" className={inputCls} value={f.cantidad ?? 0} onChange={e => set('cantidad', num(e.target.value) ?? 0)} /></div>
+            <div><label className={etiquetaCampo}>Cantidad</label><input type="number" className={inputFormulario} value={f.cantidad ?? 0} onChange={e => set('cantidad', num(e.target.value) ?? 0)} /></div>
             <div>
-              <label className={labelCls}>Unidad</label>
-              <select className={inputCls} value={f.unidad ?? 'u'} onChange={e => set('unidad', e.target.value)}>
+              <label className={etiquetaCampo}>Unidad</label>
+              <select className={inputFormulario} value={f.unidad ?? 'u'} onChange={e => set('unidad', e.target.value)}>
                 {UNIDADES.map(u => <option key={u} value={u}>{u}</option>)}
               </select>
             </div>
-            <div><label className={labelCls}>Stock mínimo</label><input type="number" className={inputCls} value={f.stock_minimo ?? 0} onChange={e => set('stock_minimo', num(e.target.value) ?? 0)} placeholder="Aviso" /></div>
+            <div><label className={etiquetaCampo}>Stock mínimo</label><input type="number" className={inputFormulario} value={f.stock_minimo ?? 0} onChange={e => set('stock_minimo', num(e.target.value) ?? 0)} placeholder="Aviso" /></div>
           </div>
-          <div><label className={labelCls}>Dosis / uso (fertilizantes)</label><input className={inputCls} value={f.dosis ?? ''} onChange={e => set('dosis', e.target.value)} placeholder="Ej: 2 ml/L en vege" /></div>
-          <div><label className={labelCls}>Para qué se usa</label><input className={inputCls} value={f.uso ?? ''} onChange={e => set('uso', e.target.value)} placeholder="Ej: Engorde de flores en floración" /></div>
+          <div><label className={etiquetaCampo}>Dosis / uso (fertilizantes)</label><input className={inputFormulario} value={f.dosis ?? ''} onChange={e => set('dosis', e.target.value)} placeholder="Ej: 2 ml/L en vege" /></div>
+          <div><label className={etiquetaCampo}>Para qué se usa</label><input className={inputFormulario} value={f.uso ?? ''} onChange={e => set('uso', e.target.value)} placeholder="Ej: Engorde de flores en floración" /></div>
           <div className="grid grid-cols-2 gap-3">
-            <div><label className={labelCls}>Proveedor</label><input className={inputCls} value={f.proveedor ?? ''} onChange={e => set('proveedor', e.target.value)} /></div>
-            <div><label className={labelCls}>Precio ($)</label><input type="number" className={inputCls} value={f.precio ?? ''} onChange={e => set('precio', num(e.target.value))} /></div>
+            <div><label className={etiquetaCampo}>Proveedor</label><input className={inputFormulario} value={f.proveedor ?? ''} onChange={e => set('proveedor', e.target.value)} /></div>
+            <div><label className={etiquetaCampo}>Precio ($)</label><input type="number" className={inputFormulario} value={f.precio ?? ''} onChange={e => set('precio', num(e.target.value))} /></div>
           </div>
-          <div><label className={labelCls}>Specs / detalle</label><textarea rows={2} className={inputCls + ' resize-none'} value={f.specs ?? ''} onChange={e => set('specs', e.target.value)} placeholder="Ej: 240W reales, espectro full, cobertura 1x1m" /></div>
-          <div><label className={labelCls}>Notas</label><textarea rows={2} className={inputCls + ' resize-none'} value={f.notas ?? ''} onChange={e => set('notas', e.target.value)} /></div>
+          <div><label className={etiquetaCampo}>Specs / detalle</label><textarea rows={2} className={inputFormulario + ' resize-none'} value={f.specs ?? ''} onChange={e => set('specs', e.target.value)} placeholder="Ej: 240W reales, espectro full, cobertura 1x1m" /></div>
+          <div><label className={etiquetaCampo}>Notas</label><textarea rows={2} className={inputFormulario + ' resize-none'} value={f.notas ?? ''} onChange={e => set('notas', e.target.value)} /></div>
         </div>
         <div className="sticky bottom-0 bg-[#0d0d12] border-t border-[#1f1f2b] px-4 py-3 flex justify-end gap-2">
           <button onClick={onCerrar} className={btnSutil}>Cancelar</button>
@@ -431,9 +469,10 @@ export function ModalInsumo({ insumo, onCerrar, onGuardado }: { insumo: Insumo |
 }
 
 function ModalMant({ mant, insumos, onCerrar, onGuardado }: { mant: Mantenimiento | null; insumos: Insumo[]; onCerrar: () => void; onGuardado: () => void }) {
+  const refDialogo2 = useDialogo(onCerrar)
   const [f, setF] = useState<Partial<Mantenimiento>>(mant ?? { tipo: 'Limpieza', fecha_realizado: hoyISO() })
   const [guardando, setGuardando] = useState(false)
-  const set = (k: keyof Mantenimiento, v: any) => setF(prev => ({ ...prev, [k]: v }))
+  const set = <K extends keyof Mantenimiento>(k: K, v: Mantenimiento[K]) => setF(prev => ({ ...prev, [k]: v }))
 
   const guardar = async () => {
     if (!f.insumo_id && !f.equipo?.trim()) { toast.error('Indicá el equipo o vinculá un insumo'); return }
@@ -453,39 +492,39 @@ function ModalMant({ mant, insumos, onCerrar, onGuardado }: { mant: Mantenimient
   }
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={onCerrar}>
-      <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+    <div ref={refDialogo2} className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={onCerrar}>
+      <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92dvh] overflow-y-auto overscroll-contain" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 bg-[#0d0d12] border-b border-[#1f1f2b] px-4 py-3 flex items-center justify-between">
           <h2 className="font-display font-bold text-[15px] text-[#ececf1]">{mant ? 'Editar mantenimiento' : 'Nuevo mantenimiento'}</h2>
-          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#8a8a9c] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
+          <button onClick={onCerrar} className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#8a8a9c] hover:text-[#ececf1]" aria-label="Cerrar"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4 space-y-3">
           <div>
-            <label className={labelCls}>Equipo / insumo del inventario</label>
-            <select className={inputCls} value={f.insumo_id ?? ''} onChange={e => set('insumo_id', e.target.value || null)}>
+            <label className={etiquetaCampo}>Equipo / insumo del inventario</label>
+            <select className={inputFormulario} value={f.insumo_id ?? ''} onChange={e => set('insumo_id', e.target.value || null)}>
               <option value="">— Escribir a mano abajo —</option>
               {insumos.map(i => <option key={i.id} value={i.id}>{i.nombre}</option>)}
             </select>
           </div>
           {!f.insumo_id && (
-            <div><label className={labelCls}>Equipo (texto libre)</label><input className={inputCls} value={f.equipo ?? ''} onChange={e => set('equipo', e.target.value)} placeholder="Ej: Tubo de CO2, Aire acondicionado" /></div>
+            <div><label className={etiquetaCampo}>Equipo (texto libre)</label><input className={inputFormulario} value={f.equipo ?? ''} onChange={e => set('equipo', e.target.value)} placeholder="Ej: Tubo de CO2, Aire acondicionado" /></div>
           )}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelCls}>Tipo</label>
-              <select className={inputCls} value={f.tipo} onChange={e => set('tipo', e.target.value)}>
+              <label className={etiquetaCampo}>Tipo</label>
+              <select className={inputFormulario} value={f.tipo} onChange={e => set('tipo', e.target.value as TipoMantenimiento)}>
                 {TIPOS_MANTENIMIENTO.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
-            <div><label className={labelCls}>Frecuencia (días)</label><input type="number" className={inputCls} value={f.frecuencia_dias ?? ''} onChange={e => set('frecuencia_dias', e.target.value === '' ? null : Number(e.target.value))} placeholder="Ej: 30" /></div>
+            <div><label className={etiquetaCampo}>Frecuencia (días)</label><input type="number" className={inputFormulario} value={f.frecuencia_dias ?? ''} onChange={e => set('frecuencia_dias', e.target.value === '' ? null : Number(e.target.value))} placeholder="Ej: 30" /></div>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div><label className={labelCls}>Fecha realizado</label><input type="date" className={inputCls} value={f.fecha_realizado ?? hoyISO()} onChange={e => set('fecha_realizado', e.target.value)} /></div>
-            <div><label className={labelCls}>Próximo (opcional)</label><input type="date" className={inputCls} value={f.proximo ?? ''} onChange={e => set('proximo', e.target.value || null)} /></div>
+            <div><label className={etiquetaCampo}>Fecha realizado</label><input type="date" className={inputFormulario} value={f.fecha_realizado ?? hoyISO()} onChange={e => set('fecha_realizado', e.target.value)} /></div>
+            <div><label className={etiquetaCampo}>Próximo (opcional)</label><input type="date" className={inputFormulario} value={f.proximo ?? ''} onChange={e => set('proximo', e.target.value || null)} /></div>
           </div>
-          <div><label className={labelCls}>Responsable</label><input className={inputCls} value={f.responsable ?? ''} onChange={e => set('responsable', e.target.value)} /></div>
-          <div><label className={labelCls}>Notas</label><textarea rows={2} className={inputCls + ' resize-none'} value={f.notas ?? ''} onChange={e => set('notas', e.target.value)} placeholder="Ej: Se recargó a 50 bar, cambiar válvula la próxima" /></div>
-          <p className="text-[10.5px] text-[#8a8a9c]">Si ponés frecuencia y no fecha de próximo, se calcula sola (último + frecuencia).</p>
+          <div><label className={etiquetaCampo}>Responsable</label><input className={inputFormulario} value={f.responsable ?? ''} onChange={e => set('responsable', e.target.value)} /></div>
+          <div><label className={etiquetaCampo}>Notas</label><textarea rows={2} className={inputFormulario + ' resize-none'} value={f.notas ?? ''} onChange={e => set('notas', e.target.value)} placeholder="Ej: Se recargó a 50 bar, cambiar válvula la próxima" /></div>
+          <p className="text-[10px] text-[#8a8a9c]">Si ponés frecuencia y no fecha de próximo, se calcula sola (último + frecuencia).</p>
         </div>
         <div className="sticky bottom-0 bg-[#0d0d12] border-t border-[#1f1f2b] px-4 py-3 flex justify-end gap-2">
           <button onClick={onCerrar} className={btnSutil}>Cancelar</button>
@@ -500,20 +539,25 @@ function CampoFicha({ label, valor }: { label: string; valor: React.ReactNode })
   if (valor == null || valor === '') return null
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] mb-0.5">{label}</div>
-      <div className="text-[12.5px] text-[#ececf1] break-words">{valor}</div>
+      <div className="text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-0.5">{label}</div>
+      <div className="text-[12px] text-[#ececf1] break-words">{valor}</div>
     </div>
   )
 }
 
-export function ModalVerInsumo({ insumo, onCerrar }: { insumo: Insumo; onCerrar: () => void }) {
+export function ModalVerInsumo({ insumo, onCerrar, onEditar }: {
+  insumo: Insumo; onCerrar: () => void
+  /** Sin esto la ficha sería un callejón: se entra a mirar y no se puede corregir. */
+  onEditar: () => void
+}) {
+  const refDialogo3 = useDialogo(onCerrar)
   const i = insumo
   const e = CAT[i.categoria]
   const min = i.stock_minimo ?? 0
   const bajo = min > 0 && i.cantidad <= min
   return (
-    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={onCerrar}>
-      <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto" onClick={ev => ev.stopPropagation()}>
+    <div ref={refDialogo3} className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={onCerrar}>
+      <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92dvh] overflow-y-auto overscroll-contain" onClick={ev => ev.stopPropagation()}>
         <div className="sticky top-0 bg-[#0d0d12] border-b border-[#1f1f2b] px-4 py-3 flex items-center justify-between gap-2">
           <h2 className="font-display font-bold text-[15px] text-[#ececf1] flex items-center gap-2 min-w-0">
             <span className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 border" style={{ background: e.bg, borderColor: e.border }}>
@@ -521,12 +565,12 @@ export function ModalVerInsumo({ insumo, onCerrar }: { insumo: Insumo; onCerrar:
             </span>
             <span className="truncate">{i.nombre}</span>
           </h2>
-          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#8a8a9c] hover:text-[#ececf1] flex-shrink-0"><X className="w-5 h-5" /></button>
+          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#8a8a9c] hover:text-[#ececf1] flex-shrink-0" aria-label="Cerrar"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4 space-y-4">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="px-2 py-0.5 rounded-full border text-[11px] font-medium" style={{ color: e.text, background: e.bg, borderColor: e.border }}>{i.categoria}</span>
-            {bajo && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-medium bg-[#ff8a7a]/12 border border-[#5a2a26] text-[#ff8a7a]"><AlertTriangle className="w-3 h-3" /> Stock bajo</span>}
+            {bajo && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-[#ff8a7a]/12 border border-[#5a2a26] text-[#ff8a7a]"><AlertTriangle className="w-3 h-3" /> Stock bajo</span>}
           </div>
           <div className="grid grid-cols-2 gap-x-4 gap-y-3">
             <CampoFicha label="Cantidad" valor={`${i.cantidad} ${i.unidad || 'u'}`} />
@@ -541,7 +585,12 @@ export function ModalVerInsumo({ insumo, onCerrar }: { insumo: Insumo; onCerrar:
           <CampoFicha label="Para qué se usa" valor={i.uso} />
           <CampoFicha label="Specs / detalle" valor={i.specs} />
           <CampoFicha label="Notas" valor={i.notas} />
-          <button onClick={onCerrar} className={`${btnSutil} w-full justify-center`}>Cerrar</button>
+          <div className="flex gap-2">
+            <button onClick={onEditar} className={`${btnPrimario} flex-1 justify-center`}>
+              <Pencil className="w-3.5 h-3.5" /> Editar ficha
+            </button>
+            <button onClick={onCerrar} className={`${btnSutil} justify-center`}>Cerrar</button>
+          </div>
         </div>
       </div>
     </div>

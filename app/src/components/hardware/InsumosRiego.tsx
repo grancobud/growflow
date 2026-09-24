@@ -2,6 +2,7 @@
 // Reusa la capa de datos de Instalaciones (lib/instalaciones) scopeada al sistema "Riego":
 // cada insumo tiene ofertas de proveedor con precio + imagen; la elegida vincula el precio.
 
+import { useDialogo } from '../../lib/useDialogo'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { Plus, ChevronDown, Star, Trash2, Pencil, ImagePlus, Loader2, X, Store } from 'lucide-react'
@@ -48,6 +49,7 @@ export default function InsumosRiego() {
   const [abierto, setAbierto] = useState<string | null>(null)
   const [nuevoOpen, setNuevoOpen] = useState(false)
   const [verImg, setVerImg] = useState<string | null>(null)
+  const refVerImg = useDialogo(() => setVerImg(null), !!verImg)
   const [editItem, setEditItem] = useState<string | null>(null)
   const [editOferta, setEditOferta] = useState<string | null>(null)
   const provNombre = useMemo(() => Object.fromEntries(provs.map(p => [p.id, p.nombre])), [provs])
@@ -65,6 +67,8 @@ export default function InsumosRiego() {
       setProvs(ps)
     } catch (e) { toast.error(String(e)) }
   }
+  // Cargar al montar: los datos llegan de forma asincronica, no hay render en cadena.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { cargar() }, [])
 
   async function toggleFav(it: ItemInstalacion) {
@@ -167,9 +171,10 @@ export default function InsumosRiego() {
       ))}
 
       {verImg && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-6" onClick={() => setVerImg(null)}>
-          <img src={verImg} alt="" className="max-w-full max-h-full rounded-lg" />
-          <button className="absolute top-4 right-4 text-white"><X className="w-6 h-6" /></button>
+        <div ref={refVerImg} className="fixed inset-0 z-50 bg-black/80 flex flex-col items-center justify-center gap-4 p-6" onClick={() => setVerImg(null)}>
+          <img src={verImg} alt="" className="max-w-full max-h-[80vh] rounded-lg" />
+          <button onClick={() => setVerImg(null)} aria-label="Cerrar" className="absolute top-4 right-4 min-h-[44px] min-w-[44px] flex items-center justify-center text-white"><X className="w-6 h-6" /></button>
+          <button onClick={() => setVerImg(null)} className="px-5 min-h-[44px] rounded-lg border border-white/20 text-white text-[14px]">Cerrar</button>
         </div>
       )}
     </div>

@@ -2,6 +2,7 @@
 // del cultivo (riegos, fertilizaciones, podas, cosechas, mantenimientos) +
 // recordatorios propios con repeticion. Filtros por tipo (color).
 
+import { useDialogo } from '../lib/useDialogo'
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { toast } from 'sonner'
 import FullCalendar from '@fullcalendar/react'
@@ -90,6 +91,7 @@ export default function PaginaCalendarioCultivo() {
   const [editRec, setEditRec] = useState<Recordatorio | null>(null)
   const [fechaPre, setFechaPre] = useState<string | null>(null)
   const [detalle, setDetalle] = useState<EventoCal | null>(null)
+  const refDetalle = useDialogo(() => setDetalle(null), !!detalle)
   const recsRef = useRef<Recordatorio[]>([])
 
   const cargar = useCallback(async (desde: string, hasta: string) => {
@@ -122,7 +124,7 @@ export default function PaginaCalendarioCultivo() {
     })), [eventos, ocultos])
 
   const toggleTipo = (t: TipoCal) => setOcultos(prev => {
-    const n = new Set(prev); n.has(t) ? n.delete(t) : n.add(t); return n
+    const n = new Set(prev); if (n.has(t)) n.delete(t); else n.add(t); return n
   })
 
   const onEventClick = (arg: EventClickArg) => {
@@ -211,7 +213,7 @@ export default function PaginaCalendarioCultivo() {
       {modal && <ModalRecordatorio rec={editRec} fechaPre={fechaPre} onCerrar={() => setModal(false)} onGuardado={() => { setModal(false); recargar() }} />}
 
       {detalle && (
-        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={() => setDetalle(null)}>
+        <div ref={refDetalle} className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={() => setDetalle(null)}>
           <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-sm sm:rounded-2xl rounded-t-2xl" onClick={e => e.stopPropagation()}>
             <div className="px-4 py-3 border-b border-[#1f1f2b] flex items-center gap-2.5">
               {(() => { const Ic = iconoCal(detalle.tipo); return (
@@ -224,7 +226,7 @@ export default function PaginaCalendarioCultivo() {
                 <div className="font-display font-semibold text-[14px] text-[#ececf1] truncate">{detalle.titulo}</div>
                 <div className="text-[11px] text-[#8a8a9c] capitalize">{detalle.tipo} · {new Date(detalle.fecha + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: '2-digit', month: 'long' })}</div>
               </div>
-              <button onClick={() => setDetalle(null)} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#8a8a9c] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
+              <button onClick={() => setDetalle(null)} aria-label="Cerrar" className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#8a8a9c] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
             </div>
             <div className="px-4 py-3 space-y-1.5">
               {detalle.detalle && <p className="text-[12.5px] text-[#d4d4dd] leading-relaxed">{detalle.detalle}</p>}
@@ -246,9 +248,10 @@ export default function PaginaCalendarioCultivo() {
 }
 
 function ModalRecordatorio({ rec, fechaPre, onCerrar, onGuardado }: { rec: Recordatorio | null; fechaPre: string | null; onCerrar: () => void; onGuardado: () => void }) {
+  const refDialogo = useDialogo(onCerrar)
   const [f, setF] = useState<Partial<Recordatorio>>(rec ?? { tipo: 'Recordatorio', fecha: fechaPre ?? hoyISO(), repeticion: 'ninguna' })
   const [guardando, setGuardando] = useState(false)
-  const set = (k: keyof Recordatorio, v: any) => setF(prev => ({ ...prev, [k]: v }))
+  const set = <K extends keyof Recordatorio>(k: K, v: Recordatorio[K]) => setF(prev => ({ ...prev, [k]: v }))
 
   const guardar = async () => {
     if (!f.titulo?.trim()) { toast.error('Poné un título'); return }
@@ -274,18 +277,18 @@ function ModalRecordatorio({ rec, fechaPre, onCerrar, onGuardado }: { rec: Recor
   }
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={onCerrar}>
+    <div ref={refDialogo} className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={onCerrar}>
       <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 bg-[#0d0d12] border-b border-[#1f1f2b] px-4 py-3 flex items-center justify-between">
           <h2 className="font-display font-bold text-[15px] text-[#ececf1]">{rec ? 'Editar recordatorio' : 'Nuevo recordatorio'}</h2>
-          <button onClick={onCerrar} className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#8a8a9c] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
+          <button onClick={onCerrar} aria-label="Cerrar" className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 text-[#8a8a9c] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4 space-y-3">
           <div><label className={labelCls}>Título *</label><input className={inputCls} value={f.titulo ?? ''} onChange={e => set('titulo', e.target.value)} placeholder="Ej: Regar carpa, Cambiar solución, Revisar pH" /></div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelCls}>Tipo (color)</label>
-              <select className={inputCls} value={f.tipo} onChange={e => set('tipo', e.target.value)}>
+              <select className={inputCls} value={f.tipo} onChange={e => set('tipo', e.target.value as TipoCal)}>
                 {TIPOS_CAL.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>

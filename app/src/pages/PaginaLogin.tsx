@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Leaf, Mail, Lock, Eye, EyeOff, LogIn, Sprout, Droplets, FileText } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, LogIn, Sprout, Droplets, FileText, AlertTriangle } from 'lucide-react'
+import { EASE, DURACION } from '../lib/motion'
+import { Marca } from '../components/Marca'
+import { ENLACE_VENCIDO, ENLACE_FALLIDO, MOTIVO_DEL_ERROR } from '../lib/enlaceDeAcceso'
 
-const EASE = [0.22, 1, 0.36, 1] as const
 
 const FEATURES = [
   { icono: Sprout, color: '#bef264', texto: 'Genéticas, plantas y fases en un solo lugar' },
@@ -35,7 +37,7 @@ export default function PaginaLogin({ onLogin }: Props) {
     const emailReal = esAtajo ? aliasEmail : email.trim()
     const passwordReal = esAtajo ? aliasPassword : password
     try { await onLogin(emailReal, passwordReal) }
-    catch (err: any) { setError(err.message || 'Error al iniciar sesión') }
+    catch (err) { setError((err as Error).message || 'Error al iniciar sesión') }
     finally { setCargando(false) }
   }
 
@@ -50,23 +52,16 @@ export default function PaginaLogin({ onLogin }: Props) {
         {/* Top - Logo */}
         <motion.div
           initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: EASE }}
+          transition={{ duration: DURACION.pantalla, ease: EASE }}
           className="relative flex items-center gap-3"
         >
-          <div className="relative w-11 h-11 bg-[#a3e635]/15 backdrop-blur-sm border border-[#404d20] rounded-xl flex items-center justify-center">
-            <Leaf className="w-5 h-5 text-[#bef264]" strokeWidth={2} />
-            <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#bef264] shadow-[0_0_6px_rgba(163,230,53,0.8)]" />
-          </div>
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.22em] text-[#a78bfa] font-semibold leading-none">Mi Cultivo</p>
-            <div className="font-display font-bold text-[18px] text-[#ececf1] tracking-tight mt-1 leading-none">GrowFlow</div>
-          </div>
+          <Marca tamano="md" />
         </motion.div>
 
         {/* Middle - tagline */}
         <motion.div
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.6, ease: EASE }}
+          transition={{ delay: 0.06, duration: DURACION.pantalla, ease: EASE }}
           className="relative max-w-md"
         >
           <h1 className="font-display text-[36px] xl:text-[48px] font-bold tracking-tight leading-[1.05] text-[#ececf1]">
@@ -83,13 +78,13 @@ export default function PaginaLogin({ onLogin }: Props) {
         {/* Bottom - features */}
         <motion.div
           initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-          transition={{ delay: 0.25, duration: 0.5 }}
+          transition={{ delay: 0.12, duration: DURACION.pantalla }}
           className="relative space-y-3 border-t border-[#1f1f2b] pt-6"
         >
           {FEATURES.map(f => (
             <div key={f.texto} className="flex items-center gap-3">
               <f.icono className="w-4 h-4 flex-shrink-0" style={{ color: f.color }} strokeWidth={1.8} />
-              <span className="text-[12.5px] text-[#a6a6b5]">{f.texto}</span>
+              <span className="text-[12px] text-[#a6a6b5]">{f.texto}</span>
             </div>
           ))}
         </motion.div>
@@ -108,18 +103,48 @@ export default function PaginaLogin({ onLogin }: Props) {
 
         <motion.div
           initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: EASE }}
+          transition={{ duration: DURACION.entrada, ease: EASE }}
           className="relative w-full max-w-md"
         >
           {/* Mobile logo */}
-          <div className="lg:hidden text-center mb-5 pt-3">
-            <div className="relative w-12 h-12 sm:w-14 sm:h-14 bg-[#a3e635]/15 backdrop-blur-md border border-[#404d20] rounded-2xl flex items-center justify-center mx-auto mb-2.5 shadow-lg">
-              <Leaf className="w-6 h-6 sm:w-7 sm:h-7 text-[#bef264]" strokeWidth={2} />
-              <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#bef264] shadow-[0_0_6px_rgba(163,230,53,0.8)]" />
-            </div>
-            <p className="text-[9px] uppercase tracking-[0.22em] text-[#a78bfa] font-semibold leading-none mb-1">Mi Cultivo</p>
-            <h1 className="font-display text-[20px] sm:text-2xl font-bold text-[#ececf1] tracking-tight">GrowFlow</h1>
+          <div className="lg:hidden mb-5 pt-3">
+            <Marca tamano="lg" centrado />
           </div>
+
+          {/*
+            EL ENLACE VENCIDO SE AVISA ACA, QUE ES DONDE LA PERSONA CAE.
+            Sin esto escribe una contraseña que su cuenta todavía no tiene y no
+            pasa nada: ni error ni pista. Le dice además QUE HACER, porque pedir
+            otra invitación es lo único que puede hacer por su cuenta.
+          */}
+          {(ENLACE_VENCIDO || ENLACE_FALLIDO) && (
+            <div
+              role="alert"
+              className="mb-4 rounded-xl bg-[#2a1f14] border border-[#5c4420] px-4 py-3 flex gap-2.5"
+            >
+              <AlertTriangle className="w-4 h-4 text-[#f0b775] shrink-0 mt-0.5" strokeWidth={1.8} />
+              <div className="text-[12px] leading-relaxed">
+                {ENLACE_VENCIDO ? (
+                  <>
+                    <p className="text-[#ececf1] font-medium">Ese enlace ya venció</p>
+                    <p className="mt-1 text-[#c9bda8]">
+                      Los enlaces de invitación duran poco y se usan una sola vez. Tu cuenta
+                      todavía no tiene contraseña, así que desde acá no vas a poder entrar:
+                      pedile a quien te invitó que te mande uno nuevo y abrilo apenas te llegue.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-[#ececf1] font-medium">No se pudo usar ese enlace</p>
+                    <p className="mt-1 text-[#c9bda8]">
+                      {MOTIVO_DEL_ERROR || 'El enlace no era válido.'} Pedile a quien te invitó
+                      que te mande uno nuevo.
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Card form */}
           <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden">
@@ -137,7 +162,7 @@ export default function PaginaLogin({ onLogin }: Props) {
                     id="email" type="text" value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="admin"
-                    className="w-full pl-9 pr-3 py-2.5 sm:py-2 bg-[#0a0a0f] border border-[#1f1f2b] hover:border-[#2a2a3a] focus:border-[#404d20] rounded-md text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder:text-[#8a8a9c] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/40 transition-colors"
+                    className="w-full pl-9 pr-3 py-2.5 sm:py-2 bg-[#0a0a0f] border border-[#1f1f2b] hover:border-[#2a2a3a] focus:border-[#404d20] rounded-md text-[16px] sm:text-[12px] text-[#ececf1] placeholder:text-[#8a8a9c] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/40 transition-colors"
                     required autoComplete="email" autoFocus
                   />
                 </div>
@@ -151,7 +176,7 @@ export default function PaginaLogin({ onLogin }: Props) {
                     id="password" type={showPassword ? 'text' : 'password'} value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-9 pr-12 sm:pr-10 py-2.5 sm:py-2 bg-[#0a0a0f] border border-[#1f1f2b] hover:border-[#2a2a3a] focus:border-[#404d20] rounded-md text-[16px] sm:text-[12.5px] text-[#ececf1] placeholder:text-[#8a8a9c] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/40 transition-colors"
+                    className="w-full pl-9 pr-12 sm:pr-10 py-2.5 sm:py-2 bg-[#0a0a0f] border border-[#1f1f2b] hover:border-[#2a2a3a] focus:border-[#404d20] rounded-md text-[16px] sm:text-[12px] text-[#ececf1] placeholder:text-[#8a8a9c] focus:outline-none focus:ring-1 focus:ring-[#a3e635]/40 transition-colors"
                     required autoComplete="current-password"
                   />
                   <button
@@ -167,7 +192,7 @@ export default function PaginaLogin({ onLogin }: Props) {
               {error && (
                 <motion.div
                   initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-                  className="px-3 py-2 rounded-md bg-[#7a2820]/15 border border-[#7a2820]/50 text-[11.5px] text-[#ff8a7a]"
+                  className="px-3 py-2 rounded-md bg-[#7a2820]/15 border border-[#7a2820]/50 text-[11px] text-[#ff8a7a]"
                 >
                   {error}
                 </motion.div>
@@ -175,7 +200,7 @@ export default function PaginaLogin({ onLogin }: Props) {
 
               <button
                 type="submit" disabled={cargando || !email || !password}
-                className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-2 min-h-[44px] sm:min-h-0 rounded-md border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 active:bg-[#a3e635]/15 transition-colors text-[12.5px] font-medium text-[#d9f99d] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-2 min-h-[44px] sm:min-h-0 rounded-md border border-[#a3e635]/40 bg-[#a3e635]/10 hover:bg-[#a3e635]/20 active:bg-[#a3e635]/15 transition-colors text-[12px] font-medium text-[#d9f99d] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <LogIn className="w-3.5 h-3.5" strokeWidth={1.8} />
                 {cargando ? 'Ingresando…' : 'Ingresar'}

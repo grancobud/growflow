@@ -39,7 +39,7 @@ export function RutaConPermiso({ permiso, children }: {
         <h2 className="font-display font-semibold text-[16px] text-[#ececf1]">
           {sinActivar ? 'Tu cuenta todavía no está habilitada' : 'Esta sección no está en tu perfil'}
         </h2>
-        <p className="text-[12.5px] text-[#8a8a9c] mt-2 leading-relaxed">
+        <p className="text-[12px] text-[#8a8a9c] mt-2 leading-relaxed">
           {sinActivar
             ? 'Un administrador tiene que activarla y asignarte un rol. Mientras tanto no vas a ver datos del sistema.'
             : `Entraste como ${usuario?.rol?.replace('_', ' ')}. Si necesitás acceso a esta parte, pedíselo a un administrador.`}

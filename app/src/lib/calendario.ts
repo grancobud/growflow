@@ -117,6 +117,15 @@ function expandir(r: Recordatorio, desde: string, hasta: string): string[] {
   return out
 }
 
+// Las filas tal como las devuelve cada select de `cargarEventos`.
+interface FilaEvento { id: string; tipo: string; fecha: string; detalle: string | null; planta_id: string | null }
+interface FilaRiego { id: string; fecha: string; ppm: number | null; ph: number | null; escurrio: boolean | null; planta_id: string | null }
+interface FilaAplicacion { id: string; fecha: string; categoria: string; producto: string | null; planta_id: string | null }
+interface FilaCosecha { id: string; fecha: string; peso_seco_g: number | null; planta_id: string | null }
+interface FilaMantenimiento { id: string; equipo: string | null; tipo: string; fecha_realizado: string | null; proximo: string | null }
+interface FilaPlanta { id: string; apodo: string | null; genetica_id: string | null; fecha_germinacion: string | null; fecha_cosecha: string | null; activa: boolean | null }
+interface FilaGenetica { id: string; nombre: string; tipo: string | null; tiempo_vege_dias: number | null; tiempo_flora_dias: number | null; inicio_flora: string | null }
+
 export const calendarioService = {
   // Carga y normaliza TODO lo del rango. Las recurrencias se expanden.
   async cargarEventos(desde: string, hasta: string): Promise<EventoCal[]> {
@@ -133,7 +142,7 @@ export const calendarioService = {
     const out: EventoCal[] = []
     const nombrePlanta = (id: string | null) => {
       if (!id) return ''
-      const p = (plantas.data ?? []).find((x: any) => x.id === id)
+      const p = ((plantas.data ?? []) as FilaPlanta[]).find(x => x.id === id)
       return p?.apodo ? `${p.apodo}` : ''
     }
     const mapTipoEvento = (t: string): TipoCal => {
@@ -145,28 +154,28 @@ export const calendarioService = {
       return 'Otro'
     }
 
-    for (const e of (eventos.data ?? []) as any[]) {
+    for (const e of (eventos.data ?? []) as FilaEvento[]) {
       const tipo = mapTipoEvento(e.tipo)
       // El titulo sale de LABEL_CAL y no de `e.tipo`: el valor crudo escribia
       // "Fertilizacion" sin tilde adentro del calendario.
       const etiqueta = LABEL_CAL[tipo] ?? e.tipo
-      out.push({ id: `ev:${e.id}`, titulo: `${etiqueta}${nombrePlanta(e.planta_id) ? ' ' + nombrePlanta(e.planta_id) : ''}`, fecha: e.fecha, tipo, color: COLOR_CAL[tipo], fuente: 'evento', detalle: e.detalle, editable: false })
+      out.push({ id: `ev:${e.id}`, titulo: `${etiqueta}${nombrePlanta(e.planta_id) ? ' ' + nombrePlanta(e.planta_id) : ''}`, fecha: e.fecha, tipo, color: COLOR_CAL[tipo], fuente: 'evento', detalle: e.detalle ?? undefined, editable: false })
     }
-    for (const r of (riegos.data ?? []) as any[]) {
+    for (const r of (riegos.data ?? []) as FilaRiego[]) {
       const d = [r.ppm ? `${r.ppm}ppm` : '', r.ph ? `pH${r.ph}` : '', r.escurrio ? 'escurrió' : ''].filter(Boolean).join(' · ')
       out.push({ id: `ri:${r.id}`, titulo: `Riego ${nombrePlanta(r.planta_id)}`.trim(), fecha: r.fecha, tipo: 'Riego', color: COLOR_CAL.Riego, fuente: 'riego', detalle: d, editable: false })
     }
-    for (const a of (aplic.data ?? []) as any[]) {
+    for (const a of (aplic.data ?? []) as FilaAplicacion[]) {
       // `a.categoria` es texto libre de la carga ("Fumigacion", "Foliar"...):
       // se muestra tal cual, pero si coincide con un tipo conocido se usa su
       // etiqueta bien escrita.
       const cat = (LABEL_CAL as Record<string, string>)[a.categoria] ?? a.categoria
-      out.push({ id: `ap:${a.id}`, titulo: `${cat} ${nombrePlanta(a.planta_id)}`.trim(), fecha: a.fecha, tipo: 'Fumigacion', color: COLOR_CAL.Fumigacion, fuente: 'aplicacion', detalle: a.producto, editable: false })
+      out.push({ id: `ap:${a.id}`, titulo: `${cat} ${nombrePlanta(a.planta_id)}`.trim(), fecha: a.fecha, tipo: 'Fumigacion', color: COLOR_CAL.Fumigacion, fuente: 'aplicacion', detalle: a.producto ?? undefined, editable: false })
     }
-    for (const c of (cosechas.data ?? []) as any[]) {
+    for (const c of (cosechas.data ?? []) as FilaCosecha[]) {
       out.push({ id: `co:${c.id}`, titulo: `Cosecha ${nombrePlanta(c.planta_id)}`.trim(), fecha: c.fecha, tipo: 'Cosecha', color: COLOR_CAL.Cosecha, fuente: 'cosecha', detalle: c.peso_seco_g ? `${c.peso_seco_g}g seco` : undefined, editable: false })
     }
-    for (const m of (mantes.data ?? []) as any[]) {
+    for (const m of (mantes.data ?? []) as FilaMantenimiento[]) {
       const nombre = m.equipo || 'Equipo'
       const prox = m.proximo || null
       if (prox && prox >= desde && prox <= hasta) {
@@ -186,7 +195,7 @@ export const calendarioService = {
 
     // Germinacion y cosecha (estimada) por variedad. La cosecha se calcula desde
     // la genetica: inicio_flora + flora, o si no germinacion + vege + flora.
-    const genById = new Map((geneticas.data ?? []).map((g: any) => [g.id, g]))
+    const genById = new Map(((geneticas.data ?? []) as FilaGenetica[]).map(g => [g.id, g]))
     // Agrupa por (tipo, fecha, variedad) para no llenar el calendario con una
     // entrada por planta: muestra "Germinación · Northern Lights ×4".
     const agrup = new Map<string, { tipo: 'Germinacion' | 'Cosecha'; fecha: string; variedad: string; n: number; estimada: boolean }>()
@@ -197,9 +206,9 @@ export const calendarioService = {
       if (cur) cur.n++
       else agrup.set(k, { tipo, fecha, variedad, n: 1, estimada })
     }
-    for (const p of (plantas.data ?? []) as any[]) {
+    for (const p of (plantas.data ?? []) as FilaPlanta[]) {
       if (p.activa === false) continue
-      const g: any = p.genetica_id ? genById.get(p.genetica_id) : null
+      const g = p.genetica_id ? genById.get(p.genetica_id) ?? null : null
       const variedad = g?.nombre || 'Sin variedad'
       // Germinacion (fecha real de la planta)
       sumar('Germinacion', p.fecha_germinacion ?? null, variedad, false)

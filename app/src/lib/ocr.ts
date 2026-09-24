@@ -2,12 +2,34 @@
 // y la manda a un webhook local (n8n -> Ollama qwen3-vl) que devuelve los campos.
 // 100% local: la lectura la hace tu GPU, nada va a la nube.
 
-import * as pdfjsLib from 'pdfjs-dist'
-// Worker de pdf.js bundleado nativamente por Vite (?worker). Evita el import
-// dinamico por URL que fallaba en produccion (MIME / service worker).
-import PdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?worker'
+/**
+ * PDF.JS ENTRA TARDE, NO AL ARRANCAR.
+ *
+ * Estaba importado arriba, y ademas el worker se creaba en el momento en que se
+ * cargaba este modulo. Con eso el chunk `pdf-libs` —811 KB, el mas grande de
+ * todos— quedaba enganchado al arranque: se descargaba al abrir la app aunque
+ * nadie fuera a leer una credencial. En un telefono con datos moviles eso es
+ * casi un tercio de la carga inicial para una pantalla que la mayoria no abre.
+ *
+ * SE MEMORIZA LA PROMESA, no el modulo. Si se guardara el modulo, dos llamadas
+ * al mismo tiempo —que es lo normal al subir varios archivos— arrancarian dos
+ * importaciones y crearian DOS workers.
+ */
+let pdfjsCargando: Promise<typeof import('pdfjs-dist')> | null = null
 
-pdfjsLib.GlobalWorkerOptions.workerPort = new PdfWorker()
+function cargarPdfjs() {
+  if (!pdfjsCargando) {
+    pdfjsCargando = (async () => {
+      const [lib, { default: PdfWorker }] = await Promise.all([
+        import('pdfjs-dist'),
+        import('pdfjs-dist/build/pdf.worker.min.mjs?worker'),
+      ])
+      lib.GlobalWorkerOptions.workerPort = new PdfWorker()
+      return lib
+    })()
+  }
+  return pdfjsCargando
+}
 
 const OCR_URL = import.meta.env.VITE_OCR_WEBHOOK_URL || ''
 
@@ -37,6 +59,7 @@ export const OCR_DISPONIBLE = !!OCR_URL
 // Renderiza la primera pagina del PDF a un PNG base64 (sin el prefijo data:).
 async function pdfAImagen(file: File, escala = 2.5): Promise<string> {
   const buf = await file.arrayBuffer()
+  const pdfjsLib = await cargarPdfjs()
   const pdf = await pdfjsLib.getDocument({ data: buf }).promise
   const page = await pdf.getPage(1)
   const viewport = page.getViewport({ scale: escala })

@@ -1,75 +1,62 @@
 # GrowFlow
 
 **Del esqueje al recibo firmado.** Trazabilidad de cultivo de cannabis medicinal y gestión de la
-asociación civil que lo ampara, en un solo sistema: las plantas, lo que cuesta producirlas, a quién
-se le entrega y los papeles que eso exige.
+asociación civil que lo ampara: las plantas, lo que cuesta producirlas, a quién se le entrega y los
+papeles que eso exige.
 
 [![sitio](https://img.shields.io/badge/app-growflow--5vs.pages.dev-a3e635?style=flat-square)](https://growflow-5vs.pages.dev)
 ![stack](https://img.shields.io/badge/React%2019-Vite%208-61dafb?style=flat-square)
 ![supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?style=flat-square)
-![licencia](https://img.shields.io/badge/licencia-MIT-blue?style=flat-square)
+
+
+> **¿Recién empezás?** Leé [`ARRANQUE.md`](ARRANQUE.md): son los cinco pasos para
+> poner esto en marcha desde cero (base, sitio, claves y primer usuario). Y antes de
+> tocar código, [`CLAUDE.md`](CLAUDE.md), que junta los pozos conocidos.
 
 Pensado para el marco argentino: **Ley 27.350**, **Decreto 883/2020** y **Resolución 1780/2025**.
-No es un diario de cultivo con una planilla al lado — el cupo de plantas sale de los REPROCANN
-cargados, el aporte de un paciente se compara contra el costo real de producción, y cada entrega
-deja su dispensa, su asiento en el libro de caja y su recibo.
+El cupo de plantas sale de los REPROCANN cargados, el aporte de un paciente se compara contra el
+costo real de producción, y cada entrega deja su dispensa, su asiento en el libro de caja y su recibo.
 
 ---
 
-## Probalo ahora
+## Qué es esta instalación
 
-**[growflow-5vs.pages.dev](https://growflow-5vs.pages.dev)** — usuario `demo`, contraseña `demo`.
-
-Vas a entrar a la aplicación real, la misma que corre en producción. No es un
-video, ni capturas, ni un clon recortado: son las pantallas de verdad, con sus
-formularios, sus validaciones y sus mensajes.
-
-Lo único que no vas a encontrar son datos. Y eso es a propósito.
-
-### Por qué la demo está vacía
-
-Un sistema que registra pacientes con su diagnóstico no puede tener una demo
-poblada con datos de demostración que después alguien confunda con reales, ni
-mucho menos mostrar los de una asociación que lo esté usando. Así que la cuenta
-`demo` entra con un rol propio que no lee ni una fila: ni una planta, ni un
-costo, ni el nombre de un paciente.
-
-Eso no lo decide la interfaz escondiendo cosas. Lo decide Postgres: las policies
-de Row Level Security le devuelven cero filas a ese rol, así que aunque alguien
-saltee la aplicación y pegue directo contra la API, el resultado es el mismo.
-Podés comprobarlo — la clave está acá arriba.
-
-### Qué se ve entonces
-
-La forma del sistema, que es lo que importa para entender si te sirve:
+Es la instalación de **Gastón**: base propia, usuarios propios, sitio propio. Reúne lo propio de
+GrowFlow —Calendario, Calculadora de Fertilizantes, Instalación (hardware, riego y tablero),
+Ambiente en vivo con Growcast, historia clínica— con todas las mejoras de las instalaciones
+hermanas (Aguara, Cultivando Salud Chaco, Panacea) al 24/09/2026. El código no contiene datos de
+producción: las plantas, los pacientes y los costos viven únicamente en su base de Supabase.
 
 | | |
 |---|---|
-| **Cultivo** | Plantas, genéticas, línea de tiempo y el plano de la sala. Cómo se da de alta un lote de clones, cómo se riega una carpa entera de un saque |
-| **Cosecha** | El formulario de pesos y la merma de secado |
-| **Ambiente** | Temperatura, humedad, CO₂ y VPD |
-| **Econometría** | De dónde sale el costo por gramo, y qué pasa cuando falta un dato para calcularlo |
-| **O.N.G.** | Las quince pestañas: pacientes, entregas, libros, actas, DDJJ, autodispensación |
-| **Estadísticas** | Rendimiento por genética, gramos por vatio |
-| **Manual** | El manual de operación completo, con el paso a paso de las 38 tareas |
+| Sitio | https://growflow-5vs.pages.dev |
+| Base | Supabase `rtnidtpalynprizpbnuz`, región sa-east-1 |
+| Deploy | Cloudflare Pages, proyecto `growflow` (push a `main` = deploy) |
+| Sensores | Growcast, por el Worker `growcast-bridge` |
 
-Fijate especialmente en **Econometría**: con las tablas vacías, el costo por
-gramo muestra `—` y no `$0`. La diferencia no es estética. Un cero diría que
-producir no cuesta nada, y ese número es contra el que se compara el aporte de
-un paciente para que la entrega siga siendo un reembolso de costos y no otra
-cosa. Cuando falta un dato, el sistema lo dice; no lo inventa.
+---
 
-El resto de las pantallas hace lo mismo: en vez de quedar en blanco, explican
-qué falta cargar para que ese número exista.
+## Cómo se accede
 
-### Lo que la demo no muestra
+**Cuenta de demostración:** el botón de demo del login entra solo con el rol `demo`, que en la base
+**lee cero filas** (verificado): sirve para mostrar la interfaz sin exponer nada. Las cuentas reales
+las invita un administrador desde la app o desde el panel de Supabase, y después les asigna el rol.
 
-Instalación y Tablas quedan afuera, y no se puede escribir nada — ni crear una
-planta, ni editar un registro. Es una cuenta para mirar.
+El primer usuario de la base nace **administrador y activo**. Del segundo en adelante entran como
+`auditor` inactivo, y un administrador tiene que habilitarlos — así nadie que consiga registrarse
+ve datos por el solo hecho de tener una cuenta.
 
-Si querés ver el sistema con datos, el camino es levantarlo: `npm run dev` sin
-configurar nada arranca en modo demo local, con datos de ejemplo en tu propio
-navegador y todo habilitado. Ahí sí podés cargar, borrar y romper lo que quieras.
+| Rol | Qué ve |
+|---|---|
+| `administrador` | Todo, incluida la gestión de usuarios |
+| `cultivador` | Panel, cultivo, ambiente, cosecha y estadísticas. Edita cultivo |
+| `director_medico` | Lo clínico y la O.N.G., más el cultivo en modo lectura |
+| `administrativo` | La parte de dinero: econometría, costos y O.N.G. |
+| `auditor` | Lectura de todo lo suyo, sin editar nada |
+
+Los permisos no los decide la interfaz: los decide Postgres. Las policies de Row Level Security
+filtran por rol, así que aunque alguien saltee la aplicación y pegue directo contra la API, ve lo
+mismo que vería en pantalla.
 
 ---
 
@@ -80,11 +67,9 @@ navegador y todo habilitado. Ahí sí podés cargar, borrar y romper lo que quie
 | **Panel** | — | Plantas activas, en floración, riegos del día, gramos cosechados |
 | **Cultivo** | Plantas · Genéticas · Línea de tiempo · Sala | El ciclo completo: alta, fases, riegos por carpa, historial y QR por planta |
 | **Cosecha** | — | Peso húmedo/seco, merma, valoración y ranking por genética |
-| **Ambiente** | — | Temperatura, humedad, CO₂ y VPD en vivo + estado de cada equipo |
+| **Ambiente** | — | Temperatura, humedad, CO₂ y VPD + estado de cada equipo |
 | **Calendario** | — | Riegos, podas, fumigaciones, cosechas y mantenimientos |
-| **Calculadora Fertilizantes** | 17 sub-pestañas | Recetas de sales desde cero, clonado de marcas y preparados DIY |
-| **Instalación** | Hardware DIY · Riego · Tablero · Faltantes | Cómo está armado el equipamiento y qué falta comprar |
-| **Econometría** | Resumen · Costos · Inventario · Mantenimiento · Instalaciones | Cuánto cuesta producir un gramo y de dónde sale ese número |
+| **Econometría** | Resumen · Costos · Inventario · Mantenimiento | Cuánto cuesta producir un gramo y de dónde sale ese número |
 | **O.N.G.** | 15 pestañas | Pacientes, entregas, libros, actas, DDJJ y todo lo que pide la 1780 |
 | **Estadísticas** | — | Rendimiento por genética, gramos por vatio, merma de secado |
 | **Tablas** | — | Editor genérico de las 48 tablas, celda por celda |
@@ -94,8 +79,7 @@ navegador y todo habilitado. Ahí sí podés cargar, borrar y romper lo que quie
 
 ## El circuito de la ONG
 
-Es la parte que distingue a GrowFlow de un registro de cultivo. Seis pasos, cada uno habilita el
-siguiente, y el sistema no deja saltear ninguno:
+Seis pasos, cada uno habilita el siguiente, y el sistema no deja saltear ninguno:
 
 ```
 paciente → asociado → mandato firmado → reserva (72 h) → retiro en sede → reporte de seguimiento
@@ -103,11 +87,6 @@ paciente → asociado → mandato firmado → reserva (72 h) → retiro en sede 
                                         QR + cupo          dispensa +          desbloquea la
                                                           caja + recibo        próxima entrega
 ```
-
-### Las reglas que el sistema hace cumplir
-
-Cuando algo se bloquea, la pantalla dice qué regla es y cómo destrabarla. No se muestran de a una:
-si faltan tres cosas, se ven las tres.
 
 | Regla | Qué exige |
 |---|---|
@@ -119,30 +98,8 @@ si faltan tres cosas, se ven las tres.
 | **RN-06** | La reserva vence a las 72 h y el material vuelve al inventario |
 | **RN-07** | El reporte clínico es inmutable: la base rechaza el update aunque la UI se equivoque |
 
-<details>
-<summary><b>Por qué el cupo cuenta las reservas</b></summary>
-
-El cupo de 30 días suma lo entregado **más lo reservado y todavía sin retirar**. Contando sólo
-entregas, cinco reservas hechas el mismo día pasarían el tope las cinco, y el exceso aparecería
-recién en el mostrador con el material ya comprometido.
-
-</details>
-
-<details>
-<summary><b>Documentos que genera</b></summary>
-
-Se completan con lo que ya está cargado; lo que falta sale entre corchetes en vez de inventado.
-
-- Recibo oficial por reembolso de costos, con la leyenda legal obligatoria al pie
-- Comprobante de dispensación y guía de tránsito interno
-- Actas para transcribir al libro, con control de quórum y firmantes
-- Designaciones de Director Médico y Responsable Técnico
-- Comodatos de sede y de predio de cultivo
-- Informe de variedades genéticas y compromiso de análisis
-- Declaración Jurada de Vinculación Exclusiva y Mandato de Gestión Operativa
-- Informe semestral del Director Médico (diagnóstico → lotes → curva de alivio → efectos adversos)
-
-</details>
+Cuando algo se bloquea, la pantalla dice qué regla es y cómo destrabarla. Si faltan tres cosas, se
+ven las tres.
 
 ---
 
@@ -151,13 +108,10 @@ Se completan con lo que ya está cargado; lo que falta sale entre corchetes en v
 | Capa | Qué |
 |---|---|
 | Frontend | React 19 · Vite 8 · TypeScript · Tailwind CSS 4 |
-| Datos | Supabase (Postgres + RLS + Storage) — 48 tablas, 30 migraciones |
+| Datos | Supabase (Postgres + RLS + Storage) — 48 tablas |
 | Ruteo y estado | React Router 7 · TanStack Query |
-| Deploy | Cloudflare Pages, automático al pushear a `main` |
+| Deploy | Cloudflare Pages |
 | Extras | PWA instalable · QR (generación y escaneo) · lectura de PDF · export a Excel |
-
-Sin `.env` la app arranca en **modo demo**: guarda todo en `localStorage` y no necesita backend.
-Es suficiente para desarrollar y para probar el sistema entero.
 
 ---
 
@@ -166,12 +120,17 @@ Es suficiente para desarrollar y para probar el sistema entero.
 ```bash
 cd app
 npm install
-npm run dev          # http://localhost:5173 — modo demo, sin configurar nada
+npm run dev          # http://localhost:5173 — modo demo local, sin configurar nada
 ```
 
-Para usar una base real, copiá `.env.example` a `.env` y completá `VITE_SUPABASE_URL` y
-`VITE_SUPABASE_ANON_KEY`. Las migraciones están en `supabase/migrations/` y se aplican desde el SQL
-editor de Supabase (o con `supabase start` para una base local).
+Sin `.env` la app arranca en **modo demo**: guarda todo en `localStorage`, con datos de ejemplo
+ficticios y todo habilitado. No toca la base real y sirve para desarrollar.
+
+Para trabajar contra la base real, copiá `app/.env.example` a `app/.env` y completá
+`VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`.
+
+> **Ningún `.env` se versiona.** El `.gitignore` los bloquea a todos menos el `.example`.
+> Las claves de producción van en las variables de entorno de Cloudflare Pages, nunca en el repo.
 
 Antes de pushear:
 
@@ -187,18 +146,16 @@ npm run build        # tsc -b && vite build — tiene que quedar en verde
 app/
   src/
     pages/          66 pantallas
-    components/     por dominio: ong/, econometria/, nutrientes/, layout/, manual/
+    components/     por dominio: ong/, econometria/, layout/, manual/
     lib/            la lógica de verdad vive acá, no en los componentes
       ong.ts            reglas de la asociación, cupos, vencimientos
       portal.ts         autodispensación: reservas, 72 h, disponibilidad
       informeMedico.ts  el informe semestral del Director Médico
-      nutrientes.ts     motor de la calculadora: sales, solver NNLS, conversiones
       econometria.ts    costos, amortización, costo por gramo
       documentos*.ts    generadores de los documentos legales
     contenido/
       manual.md       el manual: se edita acá y la pantalla se actualiza sola
 supabase/migrations/  esquema completo
-scripts/              utilidades (versión web del manual, etc.)
 ```
 
 **La lógica va en `lib/`, no en los componentes.** Es lo que permite verificar una regla sin montar
@@ -206,36 +163,15 @@ una pantalla, y que la misma regla valga en todas las pantallas que la usan.
 
 ---
 
-## La calculadora de fertilizantes
-
-Módulo tipo **HydroBuddy** en español (`/nutrientes`). Arma recetas desde cero o **clonando marcas
-comerciales** (Athena, Advanced Nutrients, Jacks, Canna, Plagron, Ryanodine) con sales crudas.
-
-- **`lib/nutrientes.ts`** — el motor: base de sales con composición elemental, solver NNLS,
-  `kitParaPerfil`, presets por etapa, conversiones (óxido→elemental, EC por balance iónico,
-  ppm↔meq), costos y los servicios de Supabase.
-- **`components/nutrientes/CreadorNutrientes.tsx`** — la UI, con sus 17 sub-pestañas.
-
-Además de la receta, el módulo trae los **preparados DIY** que normalmente se compran hechos, con
-su fórmula y sus proveedores: gel de enraizado, elicitor, bioestimulantes e hipocloroso. Y las
-herramientas alrededor: análisis del agua de partida, soluciones madre A/B, ajuste de pH,
-estabilizantes y comparador de recetas.
-
-**Modelo químico:** 16 nutrientes (NO3, NH4, P, K, Mg, Ca, S, Fe, Zn, B, Cu, Mo, Mn, Na, Si, Cl).
-La composición de cada sal es su fracción elemental (0-1), y `ppm = fracción × g/L × 1000`. Las
-etiquetas en óxidos se convierten a elemental (P₂O₅ × 0.4364, K₂O × 0.8301).
-
----
-
 ## Convenciones
-
-Cosas que conviene saber antes de tocar el código:
 
 - **Toda tabla nueva se registra en dos lugares**: `pages/PaginaTablas.tsx` (para que sea editable)
   y `lib/demo/demoStore.ts` (para que exista en modo demo). Si falta una, la tabla no aparece.
 - **RLS siempre `to authenticated`.** Una policy sobre `public` incluye a `anon`: los datos quedan
   legibles sin login. Se verifica con la clave publicable, no con el service role — el service role
   saltea RLS y no prueba nada.
+- **Las policies se combinan con OR.** Una sola permisiva anula al resto. Después de tocar RLS,
+  listar las que quedaron: `select * from pg_policies where schemaname='public' and qual='true'`.
 - **Móvil primero.** Los inputs van en `text-[16px]` en celular o iOS hace zoom y descuadra el
   formulario; los botones, mínimo 44 px de alto.
 - **Un guion no es un cero.** Cuando falta un dato para calcular se muestra `—`. Un `$0` diría que
@@ -246,7 +182,7 @@ Cosas que conviene saber antes de tocar el código:
 
 ## Licencia
 
-MIT. Usalo, modificalo y compartilo.
+MIT.
 
 > GrowFlow es una herramienta de registro y gestión. No sustituye asesoramiento legal ni médico.
 > Verificá la normativa vigente en tu jurisdicción antes de operar.

@@ -187,11 +187,26 @@ export interface VariedadDeclarada {
  * genética y no reemplazan el análisis del lote, porque presentarlos como
  * resultado sería declarar algo que no se midió.
  */
+/**
+ * `dispensadas`: las variedades que se ENTREGARON sin salir del cultivo propio.
+ *
+ * Panacea compra casi todo: dispenso 20 variedades —Cookies, Shuga, Legendary,
+ * Purple Lemon— y cultiva UNA. Meterlas todas en la lista de "afectadas a su
+ * produccion" declararia un cultivo que no existe.
+ *
+ * Van en su propia seccion, dicho lo que son: adquiridas a terceros. Asi el
+ * informe queda completo —es lo que la entidad efectivamente manejo— sin
+ * mentir sobre que cultiva.
+ *
+ * El compromiso de analisis por lote aplica a las DOS: la 1780 lo pide tanto a
+ * las ONG como a los terceros cultivadores.
+ */
 export function informeGeneticas(
   variedades: VariedadDeclarada[], e: Entidad | null, responsable?: string,
+  dispensadas: { nombre: string; entregas: number; gramos: number }[] = [],
 ): DocumentoGenerado {
   const f: string[] = []
-  if (!variedades.length) f.push('cargar las variedades en cultivo')
+  if (!variedades.length && !dispensadas.length) f.push('cargar las variedades en cultivo')
   if (!responsable) f.push('el responsable técnico que firma')
   if (!e?.cuit) f.push('el CUIT de la entidad')
 
@@ -216,6 +231,19 @@ export function informeGeneticas(
       'afectadas a su producción:',
     '',
     ...filas,
+  ]
+  if (dispensadas.length) {
+    L.push('')
+    L.push('VARIEDADES ADQUIRIDAS A TERCEROS Y DISPENSADAS')
+    L.push('')
+    L.push('Las siguientes NO provienen del cultivo propio: se adquirieron a')
+    L.push('cultivadores registrados y se entregaron a las personas vinculadas.')
+    L.push('')
+    dispensadas.forEach((v, i) => {
+      L.push(`  ${i + 1}) ${v.nombre} — ${v.entregas} entrega(s) · ${Math.round(v.gramos)} g`)
+    })
+  }
+  L.push(...[
     '',
     'COMPROMISO. La institución se compromete a presentar un informe cromatográfico por cada lote',
     'producido, con determinación de cannabinoides por método validado, conservando los',
@@ -227,6 +255,6 @@ export function informeGeneticas(
     '',
     '_______________________________',
     `${responsable ?? FALTA('responsable técnico')} — Responsable Técnico`,
-  ]
+  ])
   return { titulo: 'Informe de genéticas', texto: L.join('\n'), faltantes: f }
 }

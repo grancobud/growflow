@@ -30,6 +30,89 @@ export function fechaEnLetras(iso: string): string {
 
 const FALTA = (q: string) => `[${q}]`
 
+// ---------------------------------------------------------------------------
+// Importes en letras
+// ---------------------------------------------------------------------------
+
+const UNIDADES = ['cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho',
+  'nueve', 'diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete',
+  'dieciocho', 'diecinueve', 'veinte', 'veintiuno', 'veintidós', 'veintitrés', 'veinticuatro',
+  'veinticinco', 'veintiséis', 'veintisiete', 'veintiocho', 'veintinueve']
+const DECENAS = ['', '', '', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta',
+  'ochenta', 'noventa']
+const CENTENAS = ['', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos',
+  'seiscientos', 'setecientos', 'ochocientos', 'novecientos']
+
+/** 0..99. El "y" va sólo de treinta para arriba: es "veintidós", no "veinte y dos". */
+function hasta99(n: number): string {
+  if (n < 30) return UNIDADES[n]
+  const d = Math.floor(n / 10), u = n % 10
+  return u === 0 ? DECENAS[d] : `${DECENAS[d]} y ${UNIDADES[u]}`
+}
+
+/** 1..999. Cien pelado es "cien"; con algo atrás es "ciento". */
+function hasta999(n: number): string {
+  if (n === 100) return 'cien'
+  const c = Math.floor(n / 100), r = n % 100
+  return [c > 0 ? CENTENAS[c] : '', r > 0 ? hasta99(r) : ''].filter(Boolean).join(' ')
+}
+
+/** El apócope: "veintiún mil", no "veintiuno mil". Sólo aplica al uno final. */
+function apocopar(s: string): string {
+  return s.replace(/\bveintiuno$/, 'veintiún').replace(/\buno$/, 'un')
+}
+
+/**
+ * El importe en letras, como lo lleva un recibo.
+ *
+ * Un recibo oficial escribe el importe en letras además de en números: es lo
+ * que impide que a "$ 120.000" alguien le agregue un cero después de firmado.
+ * El pack de plantillas lo pide (`{{monto_en_letras}}`) y era lo único de esa
+ * plantilla que se podía resolver entero desde el código, sin ningún dato nuevo.
+ *
+ * Los centavos van en quebrado —"con 96/100"— que es la convención de los
+ * recibos, no en letras. Si el importe es redondo no se escriben.
+ *
+ * Arriba de 999.999.999 devuelve los dígitos: preferible a redactar mal una
+ * cifra que va en un documento firmado. Con los montos de Panacea (el máximo es
+ * $6.840.000) no se llega ni cerca.
+ */
+export function pesosEnLetras(monto: number): string {
+  if (!Number.isFinite(monto)) return FALTA('importe')
+  const negativo = monto < 0
+  const abs = Math.abs(monto)
+  const entero = Math.floor(abs)
+  const centavos = Math.round((abs - entero) * 100)
+  if (entero > 999_999_999) return `${abs.toLocaleString('es-AR')} pesos`
+
+  let texto: string
+  if (entero === 0) {
+    texto = 'cero'
+  } else {
+    const millones = Math.floor(entero / 1_000_000)
+    const miles = Math.floor((entero % 1_000_000) / 1000)
+    const resto = entero % 1000
+    const partes: string[] = []
+    if (millones === 1) partes.push('un millón')
+    else if (millones > 1) partes.push(`${apocopar(hasta999(millones))} millones`)
+    if (miles === 1) partes.push('mil')
+    else if (miles > 1) partes.push(`${apocopar(hasta999(miles))} mil`)
+    if (resto > 0) partes.push(hasta999(resto))
+    texto = partes.join(' ')
+  }
+
+  // "un millón pesos" no se escribe: cuando la cifra termina justo en millón o
+  // millones va "de pesos". Y el uno se apocopa y el peso va en singular.
+  let unidad = 'pesos'
+  if (/mill(ón|ones)$/.test(texto)) unidad = 'de pesos'
+  else if (entero === 1) { texto = 'un'; unidad = 'peso' }
+
+  const conCentavos = centavos > 0
+    ? `${texto} ${unidad} con ${String(centavos).padStart(2, '0')}/100`
+    : `${texto} ${unidad}`
+  return negativo ? `menos ${conCentavos}` : conCentavos
+}
+
 /**
  * Los ids que usa la app contra el nombre que va en el acta. Se toma de
  * TIPOS_ACTA para que no puedan divergir: cuando estaban duplicados a mano, un

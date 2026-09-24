@@ -1,9 +1,16 @@
+// El Header abre y cierra el panel lateral por una funcion global, porque los
+// dos componentes no comparten arbol. Se DECLARA en vez de castear a `any`: asi
+// el compilador sabe la firma y avisa si alguno de los dos lados cambia.
+declare global {
+  interface Window { __toggleSidebar?: () => void }
+}
+
 import { Suspense, useState, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Loader2, Menu, X } from 'lucide-react'
 import Sidebar from './Sidebar'
-import BottomNav from './BottomNav'
 import PageTransition from './PageTransition'
+import { useDialogo } from '../../lib/useDialogo'
 
 const KEY_WIDTH = 'canntrace_sidebar_px'
 const WIDTH_DEFAULT = 240
@@ -18,12 +25,14 @@ function loadWidth(): number {
       const n = parseInt(v)
       if (!isNaN(n)) return n
     }
-  } catch {}
+  } catch { /* localStorage puede tirar en modo privado; el ancho del panel es una comodidad, no un dato */ }
   return WIDTH_DEFAULT
 }
 
 export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  // El menu lateral de celular es lo primero que se cierra con el atras.
+  const refDialogo = useDialogo(() => setMobileOpen(false), mobileOpen)
   const [isMobile, setIsMobile] = useState(false)
   const [width, setWidth] = useState<number>(loadWidth)
   const [drag, setDrag] = useState(false)
@@ -31,7 +40,17 @@ export default function Layout() {
   const startW = useRef(WIDTH_DEFAULT)
   const location = useLocation()
 
-  // Cerrar el cajón mobile al navegar a otra sección
+  // Cerrar el cajón mobile al navegar a otra sección.
+  //
+  // La regla `set-state-in-effect` avisa de los efectos que encadenan renders, y
+  // tiene razón como heurística. Este es el caso que la regla no distingue:
+  // reaccionar a que la RUTA cambió, que es un evento externo al render.
+  //
+  // La alternativa —cerrarlo en el onClick de cada link— deja el cajón abierto
+  // en toda navegación que no sea un click: el botón atrás del teléfono, un
+  // `navigate()` de un flujo, una redirección por permiso. Se prefiere el
+  // efecto, que cubre todas.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setMobileOpen(false) }, [location.pathname])
 
   useEffect(() => {
@@ -43,11 +62,11 @@ export default function Layout() {
 
   // Toggle global para Header
   useEffect(() => {
-    (window as any).__toggleSidebar = () => {
+    window.__toggleSidebar = () => {
       if (isMobile) return setMobileOpen(o => !o)
       setWidth(w => {
         const next = w <= WIDTH_COLLAPSED + 10 ? WIDTH_DEFAULT : WIDTH_COLLAPSED
-        try { localStorage.setItem(KEY_WIDTH, String(next)) } catch {}
+        try { localStorage.setItem(KEY_WIDTH, String(next)) } catch { /* localStorage puede tirar en modo privado; el ancho del panel es una comodidad, no un dato */ }
         return next
       })
     }
@@ -61,7 +80,7 @@ export default function Layout() {
         const tgt = e.target as HTMLElement | null
         if (tgt && (tgt.tagName === 'INPUT' || tgt.tagName === 'TEXTAREA' || tgt.isContentEditable)) return
         e.preventDefault()
-        ;(window as any).__toggleSidebar?.()
+        ;window.__toggleSidebar?.()
       }
     }
     window.addEventListener('keydown', onKey)
@@ -82,7 +101,7 @@ export default function Layout() {
     }
     const onUp = () => {
       setDrag(false)
-      setWidth(w => { try { localStorage.setItem(KEY_WIDTH, String(w)) } catch {}; return w })
+      setWidth(w => { try { localStorage.setItem(KEY_WIDTH, String(w)) } catch { /* localStorage puede tirar en modo privado; el ancho del panel es una comodidad, no un dato */ }; return w })
     }
     document.addEventListener('mousemove', onMove)
     document.addEventListener('mouseup', onUp)
@@ -101,21 +120,27 @@ export default function Layout() {
     return (
       <div className="flex h-[100dvh] overflow-hidden bg-primary-100 dark:bg-surface-950">
         {mobileOpen && (
-          <div className="fixed inset-0 z-50 flex">
+          <div ref={refDialogo} className="fixed inset-0 z-50 flex">
             <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
             <div className="relative w-64 h-full bg-surface-900 overflow-y-auto pt-[env(safe-area-inset-top)]">
               <button
                 onClick={() => setMobileOpen(false)}
-                className="absolute top-[calc(env(safe-area-inset-top)+0.75rem)] right-3 text-white p-1 z-10"
+                className="absolute top-[calc(env(safe-area-inset-top)+0.75rem)] right-3 text-white p-1 z-10 min-h-[44px] min-w-[44px] flex items-center justify-center"
                 aria-label="Cerrar menu"
               >
                 <X className="w-5 h-5" />
               </button>
               <Sidebar colapsado={false} />
+              <div className="px-3 pb-4">
+                <button onClick={() => setMobileOpen(false)}
+                  className="w-full min-h-[44px] flex items-center justify-center rounded-lg border border-surface-300 dark:border-surface-700 text-[12px] text-surface-600 dark:text-surface-300 hover:bg-surface-200/60 dark:hover:bg-surface-800">
+                  Cerrar
+                </button>
+              </div>
             </div>
           </div>
         )}
-        <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden pb-[calc(3.5rem+env(safe-area-inset-bottom))]">
+        <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden pb-[env(safe-area-inset-bottom)]">
           <div className="flex items-center gap-3 px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] bg-surface-900 text-white">
             {/* 44x44 minimo para el dedo. El -ml-1.5 compensa el padding extra
                 para que el icono siga alineado con el borde del contenedor. */}
@@ -132,7 +157,6 @@ export default function Layout() {
             <PageTransition />
           </Suspense>
         </div>
-        <BottomNav />
       </div>
     )
   }
@@ -140,7 +164,14 @@ export default function Layout() {
   // Desktop: flex con drag manual
   const colapsado = width <= WIDTH_COLLAPSED + 10
   return (
-    <div className="flex h-screen overflow-hidden bg-[#0a0a0f]">
+    /* `100dvh` y no `h-screen`, que es `100vh`.
+       En Safari de iOS `100vh` cuenta el alto CON la barra de direcciones
+       retraida, asi que la ultima franja del contenido queda tapada por ella.
+       La rama de arriba —la de mobile— ya usaba `dvh`; esta no, y `isMobile`
+       corta en 768px: un telefono ACOSTADO mide 844 y cae por aca, o sea que el
+       recorte aparecia justo al girar el telefono para ver una tabla.
+       En escritorio `dvh` y `vh` valen lo mismo: no hay barra que se mueva. */
+    <div className="flex h-[100dvh] overflow-hidden bg-[#0a0a0f]">
       {/* Skip link para accesibilidad - oculto hasta focus */}
       <a
         href="#main-content"
@@ -171,7 +202,7 @@ export default function Layout() {
       {/* Divider Claude-style: line + grip + tooltip */}
       <div
         onMouseDown={(e) => { startX.current = e.clientX; startW.current = width; setDrag(true) }}
-        onDoubleClick={() => { setWidth(WIDTH_DEFAULT); try { localStorage.setItem(KEY_WIDTH, String(WIDTH_DEFAULT)) } catch {} }}
+        onDoubleClick={() => { setWidth(WIDTH_DEFAULT); try { localStorage.setItem(KEY_WIDTH, String(WIDTH_DEFAULT)) } catch { /* localStorage puede tirar en modo privado; el ancho del panel es una comodidad, no un dato */ } }}
         className={`ct-resizer ${drag ? 'is-dragging' : ''}`}
         role="separator"
         aria-orientation="vertical"
@@ -183,7 +214,7 @@ export default function Layout() {
           {colapsado ? 'Expandir' : 'Contraer'} sidebar<span className="kbd">Ctrl+B</span>
         </div>
       </div>
-      <main id="main-content" className="flex-1 flex flex-col overflow-hidden min-w-0" tabIndex={-1}>
+      <main id="main-content" className="flex-1 flex flex-col min-h-0 overflow-hidden min-w-0" tabIndex={-1}>
         <Suspense fallback={<div className="flex-1 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary-600" aria-label="Cargando" /></div>}>
           <PageTransition />
         </Suspense>

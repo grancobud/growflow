@@ -54,7 +54,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             </h1>
             <p style={{ marginTop: '1rem' }}>
               {esChunk
-                ? 'CannTrace se actualizo mientras estabas en la pagina. Refrescamos para traerte la version nueva.'
+                ? 'GrowFlow se actualizo mientras estabas en la pagina. Refrescamos para traerte la version nueva.'
                 : String(this.state.error.message || this.state.error)}
             </p>
             {!esChunk && (

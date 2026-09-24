@@ -1,5 +1,5 @@
 // ============================================================================
-// CannTrace Personal - capa de datos del cultivo
+// GrowFlow - capa de datos del cultivo
 // Esquema simplificado: geneticas, plantas, eventos, cosechas
 // ============================================================================
 
@@ -25,8 +25,122 @@ export const FASES: FasePlanta[] = [
  */
 export const FASES_COSECHABLES = new Set<string>(['Floracion', 'Secado', 'Curado', 'Cosechada'])
 
+// ---------------------------------------------------------------------------
+// LA FASE DE UNA AUTOMATICA SE DERIVA DE LA EDAD (31/08/2026)
+//
+// Una automatica florece por EDAD, no por fotoperiodo: nadie la cambia de luz,
+// asi que no hay ningun momento que obligue a marcar el cambio de fase. Y nadie
+// va a mover sesenta fichas a mano.
+//
+// El costo de no derivarla no es cosmetico. El tope de la Res. 1780 se mide
+// sobre las plantas EN FLORACION: con las 60 automaticas de Panacea marcadas en
+// Vegetativo, el sistema declaraba CERO en floracion —el dia 30 de un ciclo de
+// 8 a 10 semanas— y eso es subdeclarar ante un control.
+//
+// Se DERIVA, no se guarda. Mismo criterio que el VPD de ambiente y la capacidad
+// de un area: un derivado guardado se desincroniza del dato que lo origina
+// apenas alguien corrige la fecha de germinacion. Lo guardado sigue siendo lo
+// que la persona escribio, y se puede ver (`fase_guardada`).
+//
+// LAS 4 SEMANAS SON UN DEFAULT, NO LA REGLA. Lo fijo Gaston (31/08/2026), que
+// es quien cultiva: una automatica hace aproximadamente cuatro semanas de vege y
+// ahi empieza a florecer. Pero DEPENDE DE LA GENETICA —un "super auto" puede
+// hacer seis semanas o mas— y encima pesan el fenotipo y las condiciones de
+// cultivo.
+//
+// Por eso son dos cosas y no una:
+//   - el default, aca abajo, para la variedad de la que no se sabe nada;
+//   - la excepcion por variedad, en `geneticas.tiempo_vege_dias`, que ya se
+//     carga desde la ficha de genetica y desde la linea de tiempo.
+//
+// El default no se toca para acomodar una variedad: se le carga el vege a esa
+// variedad. Si no, cada ajuste mueve las plantas de todas las demas.
+// ---------------------------------------------------------------------------
+
 /**
- * Colores por fase. Vivia DUPLICADA en PaginaPanel.tsx y PaginaPlantas.tsx.
+ * Dias de vegetativo de una automatica cuando la genetica no dice otra cosa.
+ * Es tambien el default que ya usaba la linea de tiempo para proyectar.
+ */
+export const DIA_FLORA_AUTOMATICA = 28
+
+/**
+ * Fases anteriores a la floracion: las unicas sobre las que se deriva.
+ *
+ * Nunca se pisa `Secado`, `Curado`, `Cosechada` ni `Muerta`: esas las marco una
+ * persona sobre algo que paso de verdad, y la edad no puede contradecirlas.
+ */
+const FASES_PREFLORA = new Set<FasePlanta>(['Germinacion', 'Plantula', 'Vegetativo'])
+
+/** Lo minimo que hace falta para decidir la fase. */
+export interface DatosDeFase {
+  tipo?: TipoGenetica | null
+  fase: FasePlanta
+  dias_de_vida?: number | null
+  /** Vege de la genetica, si lo cargaron. Manda sobre `DIA_FLORA_AUTOMATICA`. */
+  tiempo_vege_dias?: number | null
+}
+
+/** Desde que dia se cuenta en floracion esta planta, con la excepcion de su variedad. */
+export const diaDeFloraDe = (p: DatosDeFase): number =>
+  p.tiempo_vege_dias != null && p.tiempo_vege_dias > 0
+    ? p.tiempo_vege_dias
+    : DIA_FLORA_AUTOMATICA
+
+/**
+ * La fase que hay que MOSTRAR y CONTAR, que no siempre es la guardada.
+ *
+ * Devuelve la guardada tal cual salvo que se trate de una automatica en fase
+ * pre-floracion con edad suficiente. Sin `tipo` o sin `dias_de_vida` no deriva:
+ * un dato que falta no habilita a inventar el que sigue.
+ */
+export function faseEfectiva(p: DatosDeFase): FasePlanta {
+  if (p.tipo !== 'Automatica') return p.fase
+  if (!FASES_PREFLORA.has(p.fase)) return p.fase
+  if (p.dias_de_vida == null || p.dias_de_vida < diaDeFloraDe(p)) return p.fase
+  return 'Floracion'
+}
+
+/** Si lo que se esta mostrando lo dedujo el sistema y no lo escribio nadie. */
+export const faseFueDerivada = (p: { fase: FasePlanta; fase_guardada?: FasePlanta | null }): boolean =>
+  p.fase_guardada != null && p.fase_guardada !== p.fase
+
+/**
+ * Deja una fila de `resumen_plantas` con la fase que hay que mostrar.
+ *
+ * Va en la capa de datos y no en cada pantalla a proposito: hay una decena de
+ * lugares que cuentan `fase === 'Floracion'` —el cupo, el rinde, la cosecha,
+ * econometria, el panel— y derivar en algunos dejaria dos pantallas mostrando
+ * numeros distintos sobre las mismas plantas.
+ */
+export function conFaseEfectiva<T extends DatosDeFase>(p: T): T & { fase_guardada?: FasePlanta | null } {
+  const efectiva = faseEfectiva(p)
+  return efectiva === p.fase ? p : { ...p, fase: efectiva, fase_guardada: p.fase }
+}
+
+/**
+ * C4: la sub-fase. "Vegetativo temprano" se aplanaba a "Vegetativo".
+ *
+ * Va como campo aparte y NO como fase nueva: `FASES_COSECHABLES` y media app
+ * razonan sobre `fase`, y meter variantes ahi obligaria a revisar cada
+ * comparacion. Como sub-fase es un detalle que suma cuando esta y no molesta
+ * cuando falta.
+ */
+export const SUBFASES: Record<string, readonly string[]> = {
+  Germinacion: ['Remojo', 'Radicula', 'Cotiledones'],
+  Plantula:    ['Primer par', 'Tercer par'],
+  Vegetativo:  ['Temprano', 'Pleno', 'Pre-flora'],
+  Floracion:   ['Estiramiento', 'Cuaje', 'Engorde', 'Maduracion', 'Lavado'],
+  Secado:      ['Colgado', 'Manicurado'],
+  Curado:      ['Frascos', 'Estabilizado'],
+}
+
+/** Las sub-fases de una fase, o vacio si esa fase no tiene. */
+export const subfasesDe = (fase: string | null | undefined): readonly string[] =>
+  SUBFASES[fase ?? ''] ?? []
+
+/**
+ * Colores por fase. Vivia DUPLICADA en PaginaPanel.tsx y PaginaPlantas.tsx, con
+ * las ocho filas escritas dos veces.
  */
 export const COLOR_FASE: Record<FasePlanta, { text: string; bg: string; border: string }> = {
   Germinacion: { text: '#d9f99d', bg: 'rgba(163,230,53,0.10)', border: '#404d20' },
@@ -40,25 +154,17 @@ export const COLOR_FASE: Record<FasePlanta, { text: string; bg: string; border: 
 }
 
 /**
- * SIEMPRE por aca, nunca COLOR_FASE[x] directo.
+ * SIEMPRE por acá, nunca COLOR_FASE[x] directo.
  *
- * `fase` es una columna de texto de la base, y la base se migra por SQL sin
- * pasar por TypeScript. Un valor que el front no conoce devuelve undefined y
- * tumba la pantalla al leerle `.text`. Paso en la instalacion de Aguara el
- * 20/08/2026 con otro campo y dejo una pestana entera caida en produccion.
+ * `fase` es una columna de texto de la base y la base se migra por SQL y por la
+ * Edge Function `ingesta`, que no pasan por TypeScript. Un valor que el front no
+ * conoce devuelve undefined y tumba la pantalla entera al leerle `.text` — paso
+ * de verdad el 20/08/2026 con `reprocann_estado = 'Sin registro'`, que dejo la
+ * pestana Pacientes caida en produccion. El tipo da una falsa sensacion de
+ * exhaustividad sobre datos que vienen de afuera.
  */
 export const colorFase = (f: string | null | undefined) =>
   COLOR_FASE[f as FasePlanta] ?? COLOR_FASE.Cosechada
-
-/**
- * Las categorias de aplicacion. Vivian DUPLICADAS en PaginaSala.tsx y en
- * PaginaTablas.tsx: cambiar una dejaba a las dos pantallas ofreciendo opciones
- * distintas sobre LA MISMA columna.
- */
-export const CATEGORIAS_APLIC = [
-  'Fumigacion', 'Insecticida', 'Fungicida', 'Foliar',
-  'Acaricida', 'Bactericida', 'Inoculante', 'Otro',
-] as const
 
 export const TIPOS_EVENTO: TipoEvento[] = [
   'Riego', 'Fertilizacion', 'Poda', 'Trasplante', 'CambioFase',
@@ -74,9 +180,24 @@ export const SUSTRATOS = [
   'Coco Mix Reutilizado',
   'Coco + Sustrato',
   'Coco + Sustrato Reutilizado',
+  // C1: los dos del ensayo de Panacea. Faltaban, y por eso el Grupo B quedo con
+  // `sustrato` en null: no habia forma de cargarlo sin mentir.
   'Coco + perlita',
   'Organico',
   'Dwc',
+] as const
+
+/**
+ * C2: las categorias de aplicacion. Vivian DUPLICADAS en PaginaSala.tsx y en
+ * PaginaTablas.tsx, con la misma lista escrita dos veces: cambiar una dejaba a
+ * las dos pantallas ofreciendo opciones distintas sobre LA MISMA columna.
+ *
+ * `Inoculante` es nueva: micorrizas y trichodermas caian en "Otro" junto con
+ * todo lo demas, y son lo que distingue al Grupo B.
+ */
+export const CATEGORIAS_APLIC = [
+  'Fumigacion', 'Insecticida', 'Fungicida', 'Foliar',
+  'Acaricida', 'Bactericida', 'Inoculante', 'Otro',
 ] as const
 
 export type Genotipo = 'Indica' | 'Sativa' | 'Hibrida' | 'Ruderalis'
@@ -107,6 +228,15 @@ export interface Genetica {
   tiempo_vege_dias?: number | null
   altura?: Altura | null
   rendimiento_g?: string | null
+  /**
+   * Ciclo completo desde semilla, como lo publica el banco.
+   *
+   * TEXTO porque casi siempre es un rango —«8 a 10»— y porque en las
+   * automáticas es el dato que reemplaza al tiempo de floración: el banco no
+   * publica cuánto dura la flora sola. Cargar ese rango en
+   * `tiempo_flora_dias` diría «63 días de flora», que es falso.
+   */
+  ciclo_semanas?: string | null
   dificultad?: Dificultad | null
   terpenos?: string | null
   efectos?: string | null
@@ -134,6 +264,8 @@ export interface Planta {
   maceta: string | null
   ubicacion: string | null
   activa: boolean
+  /** C4: detalle dentro de la fase. Opcional; ver SUBFASES. */
+  subfase?: string | null
   notas: string | null
   creado_en: string
   actualizado_en: string
@@ -153,7 +285,11 @@ export function generarCodigoPlanta(nombreGenetica?: string | null): string {
 
 export interface Evento {
   id: string
+  /** Null cuando el evento es de un grupo o de un lote entero (ver lib/grupos.ts). */
   planta_id: string | null
+  /** Exactamente uno de planta_id / grupo_id / lote_id viene cargado. */
+  grupo_id?: string | null
+  lote_id?: string | null
   tipo: TipoEvento
   fecha: string
   detalle: string | null
@@ -169,7 +305,16 @@ export interface ResumenPlanta {
   genetica: string | null
   banco: string | null
   tipo: TipoGenetica | null
+  /** Vege de la genetica. Lo expone la vista para poder derivar la fase. */
+  tiempo_vege_dias?: number | null
+  /** La fase que hay que mostrar y contar. Ojo: puede venir DERIVADA, ver `faseEfectiva`. */
   fase: FasePlanta
+  /**
+   * Lo que dice la ficha, cuando difiere de `fase`. Null si nadie derivo nada.
+   * Es lo que va en un editor: un `select` que muestra la derivada rebota al
+   * valor viejo apenas se guarda, y parece que el cambio no funciono.
+   */
+  fase_guardada?: FasePlanta | null
   fecha_germinacion: string | null
   dias_de_vida: number | null
   sustrato: string | null
@@ -183,6 +328,36 @@ export interface ResumenPlanta {
 }
 
 // Item unificado de la linea de tiempo (historia clinica) de una planta.
+/**
+ * Una aplicación como la devuelve la base, con lo mínimo que la línea de tiempo
+ * necesita. Se escribe la forma UNA vez en vez de castear a `any` en cada uso:
+ * si mañana la consulta deja de traer `dosis`, el compilador lo dice acá.
+ */
+interface FilaAplicacion {
+  id: string
+  fecha: string
+  categoria?: string | null
+  producto?: string | null
+  dosis?: string | null
+  notas?: string | null
+}
+
+/** Saca las aplicaciones de la respuesta, que puede venir vacía o con error. */
+const aplicacionesDeLaPlanta = (r: { data?: unknown } | null): FilaAplicacion[] =>
+  ((r?.data ?? []) as FilaAplicacion[])
+
+/**
+ * Una cosecha con la genetica de su planta, como la trae el join. Se escribe la
+ * forma una vez: si la consulta deja de traer el anidado, lo dice el compilador
+ * y no un «Sin genetica» en toda la tabla.
+ */
+interface FilaEstadistica {
+  peso_seco_g?: number | null
+  peso_humedo_g?: number | null
+  valoracion?: number | null
+  plantas?: { geneticas?: { nombre?: string | null } | null } | null
+}
+
 export interface ItemHistoria {
   id: string
   tipo: string
@@ -237,6 +412,19 @@ export const cultivoService = {
     return this.subirFoto(file)
   },
 
+  /**
+   * Saca el archivo del bucket.
+   *
+   * Se llama al quitar una foto. Si falla NO se propaga: lo que importa es que
+   * la ficha deje de apuntarla; un archivo que quedó dando vueltas es basura,
+   * no un error que valga la pena mostrarle a nadie. Se avisa por consola para
+   * que quede rastro.
+   */
+  async borrarFoto(nombre: string): Promise<void> {
+    const { error } = await supabase.storage.from('fotos').remove([nombre])
+    if (error) console.warn('No se pudo borrar la foto del storage:', error.message)
+  },
+
   // --- plantas ---
   async getResumenPlantas(soloActivas = true): Promise<ResumenPlanta[]> {
     let q = supabase.from('resumen_plantas').select('*')
@@ -244,7 +432,7 @@ export const cultivoService = {
     const { data, error } = await q
     lanzar(error)
     // Orden natural: #2 antes que #10 (el order de SQL es alfabetico puro)
-    return ((data ?? []) as ResumenPlanta[]).sort((a, b) =>
+    return ((data ?? []) as ResumenPlanta[]).map(conFaseEfectiva).sort((a, b) =>
       a.nombre.localeCompare(b.nombre, 'es', { numeric: true }))
   },
 
@@ -278,7 +466,7 @@ export const cultivoService = {
   async getPlantasDePaciente(pacienteId: string): Promise<ResumenPlanta[]> {
     const { data, error } = await supabase.from('resumen_plantas').select('*').eq('paciente_id', pacienteId)
     lanzar(error)
-    return ((data ?? []) as ResumenPlanta[]).sort((a, b) =>
+    return ((data ?? []) as ResumenPlanta[]).map(conFaseEfectiva).sort((a, b) =>
       a.nombre.localeCompare(b.nombre, 'es', { numeric: true }))
   },
 
@@ -292,10 +480,10 @@ export const cultivoService = {
     const cos = (cosechas as Cosecha[]).filter(c => c.planta_id === plantaId)
     const lista: ItemHistoria[] = [
       ...evs.map(e => ({ id: e.id, tipo: e.tipo, fecha: e.fecha, detalle: e.detalle, foto_url: e.foto_url })),
-      ...(((aplic as any).data ?? []) as any[]).map(a => ({
+      ...(aplicacionesDeLaPlanta(aplic).map(a => ({
         id: a.id, tipo: 'Aplicacion', fecha: a.fecha, foto_url: null,
         detalle: [a.categoria, a.producto, a.dosis, a.notas].filter(Boolean).join(' · '),
-      })),
+      }))),
       ...cos.map(c => ({
         id: c.id, tipo: 'Cosecha', fecha: c.fecha, esCosecha: true, foto_url: null,
         detalle: [c.peso_seco_g ? `${c.peso_seco_g}g secos` : null, c.peso_humedo_g ? `${c.peso_humedo_g}g húmedos` : null,
@@ -411,7 +599,7 @@ export const cultivoService = {
       .select('peso_seco_g, peso_humedo_g, valoracion, plantas:planta_id (genetica_id, geneticas:genetica_id (nombre))')
     lanzar(error)
     const acc: Record<string, EstadisticaGenetica> = {}
-    for (const c of (data ?? []) as any[]) {
+    for (const c of (data ?? []) as FilaEstadistica[]) {
       const nombre = c.plantas?.geneticas?.nombre ?? 'Sin genética'
       const e = acc[nombre] ?? (acc[nombre] = { genetica: nombre, cosechas: 0, peso_seco_g: 0, peso_humedo_g: 0, valoraciones: [] })
       e.cosechas++

@@ -290,6 +290,69 @@ export function gramosParaCosto(totalCiclo: number, objetivoPorGramo: number): n
   return objetivoPorGramo > 0 ? totalCiclo / objetivoPorGramo : 0
 }
 
+// ---------------------------------------------------------------------------
+// EL MATERIAL QUE PRODUJO EL CICLO, que no es lo mismo que las cosechas
+//
+// EL BUG (01/09/2026). La pantalla mostraba **$56.146 por gramo**: los
+// $5.614.614 que cuesta el ciclo divididos por 100 g «secos cosechados en 15
+// cosechas». Y ese numero no se queda en Econometria — de ahi sale el margen de
+// CADA entrega en la O.N.G.
+//
+// Dos cosas estaban mal, y las dos son la misma familia de error:
+//
+// 1. EL MATERIAL PROPIO CASI NUNCA PASA POR UNA COSECHA. De 5.628 g propios,
+//    solo 100 tienen una cosecha registrada detras; el resto entra como lote
+//    `propio_sin_cosecha`, que es un concepto que el sistema invento el
+//    20/08/2026 justo para esto. `balanceMateria` ya lo usa. Econometria no se
+//    habia enterado — es el quinto lugar donde aparece la misma confusion entre
+//    produccion propia y compra (ver §7.11 del traspaso).
+//
+// 2. MEZCLABA UN ANIO DE HISTORIA CON EL CICLO EN CURSO. Desde el corte del
+//    29/08/2026 —«empezamos de nuevo y lo viejo queda como historia»— los
+//    100 g cosechados antes no son de este ciclo.
+//
+// LO COMPRADO NO ENTRA, y esa es la otra mitad: el costo por gramo reparte lo
+// que cuesta CULTIVAR entre lo que el cultivo dio. Un lote comprado trae su
+// propio `costo_por_gramo` y meterlo en el denominador abarataria el cultivo
+// propio con material que se pago aparte.
+// ---------------------------------------------------------------------------
+
+export interface MaterialDelCiclo {
+  /** Lo que el cultivo propio produjo desde el corte. Es el denominador. */
+  gramos: number
+  /** De cuanto viene de cosechas registradas y de cuanto de lotes propios. */
+  deCosechas: number
+  deLotesPropios: number
+  /** Lo que quedo afuera por ser anterior al corte. Se muestra, no se esconde. */
+  antesDelCorte: number
+}
+
+/**
+ * @param corte  Fecha del corte (`YYYY-MM-DD`). Vacia = se cuenta todo, que es
+ *               como se comporta una instalacion que nunca corto.
+ */
+export function materialDelCiclo(
+  cosechas: { fecha?: string | null; peso_seco_g?: number | null }[],
+  lotes: { origen?: string | null; unidad?: string | null; gramos_totales?: number | null; fecha_elaboracion?: string | null }[],
+  corte?: string | null,
+): MaterialDelCiclo {
+  const desde = corte || ''
+  const num = (n: unknown) => Number(n) || 0
+  const entra = (f?: string | null) => !desde || (f ?? '') >= desde
+
+  const deCosechas = cosechas.filter(c => entra(c.fecha)).reduce((s, c) => s + num(c.peso_seco_g), 0)
+  const propios = lotes.filter(l => l.origen === 'propio_sin_cosecha' && (l.unidad ?? 'g') === 'g')
+  const deLotesPropios = propios.filter(l => entra(l.fecha_elaboracion)).reduce((s, l) => s + num(l.gramos_totales), 0)
+
+  const antes = cosechas.filter(c => !entra(c.fecha)).reduce((s, c) => s + num(c.peso_seco_g), 0)
+    + propios.filter(l => !entra(l.fecha_elaboracion)).reduce((s, l) => s + num(l.gramos_totales), 0)
+
+  return {
+    gramos: deCosechas + deLotesPropios,
+    deCosechas, deLotesPropios, antesDelCorte: antes,
+  }
+}
+
 export const configService = {
   async get<T>(clave: string, porDefecto: T): Promise<T> {
     const { data, error } = await supabase

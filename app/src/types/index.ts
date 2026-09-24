@@ -1,18 +1,39 @@
 // ============================================================================
-// CannTrace - Tipos TypeScript (espejo del schema PostgreSQL)
+// GrowFlow - Tipos TypeScript (espejo del schema PostgreSQL)
 // ============================================================================
 
-// Los roles del circuito real. 'operador' y 'supervisor' quedan por
-// compatibilidad con filas viejas; no se asignan mas.
+// Los roles del circuito real.
+//
+// SE FUERON 'operador' Y 'supervisor' (01/09/2026). Estaban «por compatibilidad
+// con filas viejas» y se midio: hay CERO filas con esos roles. El motivo que los
+// sostenia ya no existia, y mientras existieran eran una trampa latente —
+// ninguna policy del RLS los nombra, asi que asignarle uno a alguien creaba un
+// usuario que entra y no ve absolutamente nada, sin ningun error que lo explique.
+//
+// La lista de roles vive en CINCO lugares (este, `PERMISOS_ROL`,
+// `ROLES_ASIGNABLES`, la Edge Function `usuarios-invitar` y el check de la base
+// mas las policies que los nombran). Se saco de los tres donde estaban.
 export type RolUsuario =
   | 'administrador'
+  /** Administra TODO, plata incluida: nacio como «todo menos la caja» y Gaston
+      lo cambio el 30/08/2026. Hoy es identico a `administrador` en permisos; la
+      diferencia es cual es la cuenta de la entidad y cual una persona. */
+  | 'administrador_sistema'
+  /**
+   * Quien abre la sede: toma los valores de la sala, controla caja y stock, y
+   * atiende el mostrador. Nada mas. Lo definio Cristian el 02/09/2026 mirando
+   * el panel de apertura — es el rol de Hugo.
+   */
+  | 'mostrador'
   | 'cultivador'
+  /** El responsable tecnico del cultivo (Res. 1780): el `cultivador` MAS los
+      traslados, las declaraciones juradas y los predios. Responde por lo que
+      sale del predio, asi que firma la carta de porte y lo que se declara. */
+  | 'director_cultivo'
   | 'director_medico'
   | 'administrativo'
   | 'auditor'
   | 'demo'
-  | 'operador'
-  | 'supervisor'
 
 export type TipoOperacion =
   | 'ingreso_insumos'
