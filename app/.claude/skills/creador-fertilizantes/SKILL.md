@@ -1,0 +1,116 @@
+---
+name: creador-fertilizantes
+description: Configurar/extender el Creador de Fertilizantes de growflow (calculadora tipo HydroBuddy en /nutrientes). Usar al agregar sales, productos comerciales, precios, kits, presets, ajustar el solver o clonar marcas. Incluye la química, la arquitectura, las tablas Supabase y el knowledge de cómo formula cada marca.
+---
+
+# Creador de Fertilizantes (growflow) — guía de configuración
+
+Calculadora tipo HydroBuddy en español, en growflow. Ruta `/nutrientes` → sidebar "Calculadora Fertilizantes". Online en https://growflow-5vs.pages.dev (Cloudflare Pages, auto-deploy desde `main` de github.com/grancobud/growflow). Supabase real: proyecto `rtnidtpalynprizpbnuz` (NO es modo demo; usa auto-login demo:demo a cuenta real).
+
+## Archivos
+- `app/src/lib/nutrientes.ts` — MOTOR: tipos, base de sales `SALES_DEFECTO`, presets, `KITS_SALES`, solver NNLS, `kitParaPerfil()`, conversión óxidos, pH, concentrados, ratios, costos, persistencia (services), `categoriaSal()`, `esComercial/marcaDe`, `recomendarEstabilizantes`.
+- `app/src/components/nutrientes/CreadorNutrientes.tsx` — UI, 9 sub-pestañas (Calculadora, Clonar marca, Sustancias, Agua, Concentrados A/B, Estabilizantes, pH, Comparar, Ratios y costo).
+- `app/src/pages/PaginaCreadorNutrientes.tsx` — página. Ruteada en `App.tsx` (`/nutrientes`), ítem en `Sidebar.tsx`.
+- Migraciones: `supabase/migrations/20260629000001..3_*.sql`.
+
+## Modelo químico (clave)
+16 nutrientes, igual HydroBuddy: `NO3, NH4, P, K, Mg, Ca, S, Fe, Zn, B, Cu, Mo, Mn, Na, Si, Cl`. N total = NO3+NH4 (`nTotal()`).
+Composición de cada sal = fracción elemental (0-1), W/W. ppm = fracción × g/L × 1000.
+Óxido→elemental (`OXIDOS`/`oxidoAElemental`): P₂O₅×0.4364, K₂O×0.8301, CaO×0.7147, MgO×0.6030, SO₃×0.4005, Na₂O×0.7419.
+Bidones: A=calcio, B=base/sulfatos/fosfatos, C=micros. Regla: Ca NO va con sulfato/fosfato en concentrado (precipita). `compatibilidad(sal)` lo deriva solo.
+
+## Cómo agregar una SAL/insumo (en lib SALES_DEFECTO)
+```ts
+{ id: 'unico', nombre: '...', formula: '...', bidon: 'A'|'B'|'C',
+  comp: { Ca: 0.19, NO3: 0.144 },   // fracciones; {} si es aditivo sin nutrientes
+  liquido?: true, densidad?: 1.1,    // si concentrado líquido
+  aditivo?: true,                    // estabilizante/hormona: el solver lo IGNORA (comp {})
+  descripcion: 'qué es / para qué / con qué va' }
+```
+
+## Cómo agregar un PRODUCTO COMERCIAL (para clonar)
+Mismo formato, id con prefijo de marca: `ryano_`, `an_sensi_`, `athena_`, `jacks_`, `canna_`, `plagron_` (así `esComercial()` los detecta y `categoriaSal()` los agrupa por marca). Convertir la etiqueta (óxidos) a fracción elemental. OJO: en casi todas las marcas la "parte B/Core/Calcis" es el CALCIO (nitrato de Ca), no solo N.
+
+## Cómo cargar/actualizar un PRECIO (Supabase, NO es código)
+Tabla `inventario_nutrientes` (sal_id text PK, costo_kg, stock, unidad, nota). Upsert vía supabase MCP, project_id `rtnidtpalynprizpbnuz`:
+```sql
+insert into inventario_nutrientes (sal_id, costo_kg, unidad, nota)
+values ('epsom', 2123.08, 'kg', 'Epsom 25kg ...')
+on conflict (sal_id) do update set costo_kg=excluded.costo_kg, nota=excluded.nota, actualizado_en=now();
+```
+`aplicarInventario()` mergea el precio sobre la sal en runtime (badge $/kg en la ficha).
+REGLA DE GASTÓN: NO pisar marcas. Cada marca/fuente de la misma materia prima = sustancia ALTERNATIVA propia (tabla `sustancias_nutrientes`, con su comp + costo_kg), no overwrite. Ej: nitrato de Ca Yara (default cano3_ag) vs Manuchar+B vs cristales = 3 entradas.
+Precios actuales y proveedores: ver memoria `reference_precios_sales_fertirriego_ar`. ML NO se puede scrapear (403/JS) → Gastón pasa CAPTURA y se lee el precio de la imagen.
+
+## Solver y CALIDAD (lo importante para "que no confunda")
+- Solver: `calcularReceta(perfil, salesDisp, agua)` → NNLS multiplicativo, minimiza ||Ax-b||² con x>=0.
+- PROBLEMA conocido: si hay muchas sales activas equivalentes, el solver reparte (8 calcios) y abusa sales multi-elemento (usa sulfato de Mn/Zn para conseguir S → arrastra Mn/Zn; Epsom para S → arrastra Mg).
+- SOLUCIÓN: `kitParaPerfil(perfil)` elige 1 fuente LIMPIA por nutriente y SOLO los micros que se piden. Se aplica auto al elegir preset y al clonar. Esto es lo que da recetas de calidad pro. Si agregás features, mantené este principio: pocas sales, una por rol, micros solo si están en el objetivo.
+- `KITS_SALES`: kits manuales (limpio/económico/finish). El finish NO debe incluir sulfatos de micros ni Epsom (arrastran Mn/Zn/Mg); el S sale de K₂SO₄+yeso.
+- Rangos `RANGOS_FLORA_COCO` son referencia de FLORA → solo se muestran en veg/flora (en finish se limpian para no confundir).
+
+## Lógica de N/K en kitParaPerfil (afinada con tests reales)
+- N amoniacal: si has('NO3')→nh4no3 (NH4+NO3 limpio); elif has('S')→amsulf; elif has('P')→map; else amsulf. (Casos: AN Grow A alto NH4 bajo S→nh4no3; Maikro NH4+S→amsulf.)
+- Potasio: kno3 SOLO si has('NO3') (no contaminar perfiles amoniacales como Makro); k2so4 si has('S'); khco3 SIEMPRE como K puro de respaldo (perfiles K alto como AN Bloom A que no llegan con kno3/k2so4/mkp).
+- Solver: toFixed(6) en gramosPorL y umbral nnls 1e-6 (micros traza como Mo, antes daban doble por redondeo a 4 dec).
+- DOSIS_REC: dosis recomendada por producto, autocompleta al clonar (Ryanodine 4ml/L, Athena 0.9g/L, AN 1g/L, etc).
+- Input de litros en la receta (gramosPorL × litros = total a pesar).
+- LÍMITE de química conocido: NO3 alto con Ca/K/NH4 limitados no se alcanza 100% (no existe nitrato puro salvo ácido nítrico); el solver da el óptimo (~80-92%). Es correcto, no bug.
+
+## Bidones mínimos + UI (afinado con uso real)
+- necesitaSepararAB(dosis): true solo si conviven Ca y (S o P). bidonDeSal(sal, separar): si !separar→todo 'A' (1 botella); si separar→ SP a 'B', Ca+neutras a 'A'. Usado en la Receta (CalcTab porBidon) Y en calcularConcentrados. Balance/Fade/Calcis = 1 botella ("Botella única · todo junto"); nutriente completo Ca+sulfatos = 2.
+- Concentrados A/B: botellas dibujadas (SVG BotellaSVG) por bidón con gramos + "agua hasta X L".
+- Input de litros en Receta (gramos totales = g/L × litros).
+- Rangos: clones y presets finish usan rangosDesdePerfil(perfil, 0.15) = banda ±15% del propio objetivo (el "EN RANGO" refleja fidelidad al producto clonado). Veg/flora usan RANGOS_FLORA_COCO (hortícola real). El estado solo se evalúa en elementos con objetivo>0 (no "bajo" falso en partes como Calcis).
+- Finis: la etiqueta dice "fosfato de calcio" pero NO reconcilia (S 12.54% no sale de K2SO4 sin pasarse de K; fosfato de Ca dispararía el P). El clon usa YESO (Ca+S) que sí cuadra con la composición garantizada. Correcto: la planta absorbe iones, no la sal. Yeso va en seco al tanque (poco soluble), no en concentrado.
+
+## Clon fiel por marca (opcionesDeMarca)
+`kitParaPerfil(perfil, opts)` acepta `{feChelate, microsQuelatados}`. `opcionesDeMarca(salId)` por prefijo: Athena→Fe-DTPA+micros EDTA; AN/Ryanodine→Fe-EDDHA+micros EDTA; Jacks/Canna/Plagron→sulfatos+EDDHA. La Clonar pasa el id del producto → usa el hierro/micros exactos de esa marca. Las 6 sales base son iguales en todas (cano3+mkp+kno3+k2so4+epsom+micros); la diferencia real es el quelato de hierro y si micros son EDTA vs sulfato. NH4+P → MAP cubre el amoniacal. Si→ksilic. Cl/Na no se sourcean (intencional, clon más limpio).
+
+## Cómo formula cada marca (para clonar fiel)
+- **Athena Pro Line**: Core (14-0-0, nitrato de Ca + micros EDTA, bidón A, SIEMPRE) + Grow (2-8-20) o Bloom (0-12-24) (MKP+K₂SO₄+Epsom+Fe-DTPA, bidón B). Fade = finish de Ca (CaCl₂+micros, sin N, mete Cl). Balance=silicato K. Cleanse=HOCl (sanitizante).
+- **Advanced Nutrients Sensi Pro** (polvo, discontinuado): A=base PK+micros (3 Fe quelatos)+urea; B=el CALCIO (nitrato Ca-amónico). Grow 9-10-28/15-0-0, Bloom ~3-16-30/17-0-6. Micros estimados.
+- **Ryanodine**: Calcis(C)=nitrato Ca+N nítrico (bidón A); Makro(A)=N amoniacal+P+K+S; Mikro(B)=Mg+micros; Maikro(AB)=A+B fusionado; Finis=0-15-25 polvo (PK+Ca+S, sin N). Radics=enraizante IBA (no nutriente).
+- **Jacks 321**: A 5-12-26 (compuesta) + nitrato de Ca + Epsom (3 sales).
+- **Plagron**: Terra (3-1-3/2-2-4), Coco/Hydro A+B, Alga orgánico, Green Sensation 0-8-9, boosters (Sugar Royal/Power Roots/Pure Zym = aditivos).
+- Patrón general para clonar: nitrato de Ca (A) + MKP + nitrato/sulfato K + Epsom (B) + micros (C). `kitParaPerfil` ya lo hace.
+
+## Estabilizantes (para concentrados que no decanten)
+`recomendarEstabilizantes(dosis, volumenL)` + `ADITIVOS_ESTAB`. Clave: separar A/B, pH ~5, exceso de quelante; benzoato de Na 150-250 mg/L (conservante); ác. cítrico (buffer+quelante+antiox); goma xántica (anti-sedimentante). Detalle en memoria `reference_estabilizantes_fertilizantes_liquidos`.
+
+## Flujo de cambios
+1. Editar lib/componente. 2. `cd app && npx tsc -b --pretty false && npx eslint <archivos> && npm run build` (todo en verde; NO tocar el `Fila=Record<string,any>` preexistente de demoStore). 3. Commit + push a main (auto-deploy Cloudflare ~50s). 4. Precios = SQL directo (no requiere deploy, runtime). 5. Verificar deploy con cloudflare-admin MCP si hace falta.
+
+## Memorias relacionadas
+`project_growflow_creador_nutrientes`, `reference_precios_sales_fertirriego_ar`, `reference_hidroponia_sales_calcio`, `reference_estabilizantes_fertilizantes_liquidos`.
+
+## Balance iónico (mEq/L) — agregado (feat 0d4f0a7)
+`calcularBalanceIonico(ppm)` en lib: cationes (Ca*2/40.08 + Mg*2/24.31 + K/39.10 + NH4/14.01 + Na/22.99) vs aniones (NO3/14.01 + S*2/32.06 [SO4] + P/30.97 [H2PO4 carga 1 a pH 5.5-6.5] + Cl/35.45), en mEq/L. desbalancePct=(cat-an)/prom*100 (verde<=5, amarillo<=12, rojo>12). nh4Pct=NH4/Ntotal*100 → tendenciaPh: <8 sube (nitrato, planta libera OH-), 8-15 estable, >=15 baja (amonio, libera H+). Panel full-width al final de RatiosTab con barras segmentadas por ion. Es la mejora "nivel pro" que faltaba (valida realismo físico + predice deriva de pH). Química verificada contra pesos atómicos reales.
+
+## Solucion stock micros impesables (feat 6e0e090)
+`calcularStocksMicros(dosis, resolucion)` en lib: minPesable = resolucion>0 ? resolucion*50 : 0.1 g (~50 divisiones, error <2%). Filtra sales no-liquidas con gramosPorL < minPesable. Arma stock: pesar = max(T*1000, minPesable) g, disolver en 1000 mL, dosis mL/L = T*1000/pesar, litrosSugeridos si dosis<0.3 mL/L, jeringa segun mlTotal. Panel amarillo en CalcTab (entre receta y tabla ppm) con pasos 1-2-3. Resuelve el problema de no poder pesar 0.0006 g de un micro: pesas grande 1 vez y dosificas por volumen con jeringa. Investigado: ninguna calc open source (HydroBuddy/hydrosolver/hydromisc) lo integra asi.
+
+## Receta imprimible (feat)
+imprimirReceta({nombre,perfil,res,porBidon,ec,litros,modoPrep,resolucion}) en CreadorNutrientes.tsx: genera HTML tema claro profesional (branding GrowFlow, chips EC/costo/NH4/pH, tabla sales por bidon, perfil ppm obj vs logrado, instrucciones mezcla A->B, solucion stock) y window.open+print. Boton Printer en el header de la Receta (CalcTab). Idea de BudLabs/GrowPro. Ademas: pestana Ayuda/Guia (GUIA_PASOS, GUIA_PESTANAS, GUIA_CONCEPTOS) y RATIO_INFO con ideal+desc por ratio.
+
+## Balance ionico v2 + tooltips + mobile (feat 7e4c730)
+calcularBalanceIonico(ppm, dosis?) ahora suma ANIONES INVISIBLES: por cada sal, max(0, catEq - aniEq) → cuenta bicarbonato/gluconato/silicato/EDTA que balancean la carga pero no son nutrientes. Elimina el falso "+15.8% desbalanceada" de recetas con khco3/gluconato. Panel: caja dinamica "como corregir" (sobran cationes/aniones). Componente <Info> reutilizable = circulito ? con tooltip hover (descripcion + ejemplo en verde) en TODOS los titulos de seccion y campos clave. Sub-tabs con overflow-x-auto scroll en mobile. Ayuda tab con GUIA_PASOS/PESTANAS/CONCEPTOS ampliados con ejemplos. Receta imprimible profesional (imprimirReceta).
+
+## AUDITORIA (feat c500d68) — BUG EC corregido
+BUG MAYOR encontrado y arreglado: ecAprox sumaba ppm ELEMENTALES / 640 → EC subestimada ~2x (el N/S/P pesan mucho menos como elemento que como ion NO3/SO4/H2PO4). AHORA: ecAprox = catEqDe(ppm) * 0.1 = mEq/L de cationes x0.1 (regla estandar EC(uS)=100*meq cationes). Verificado: preset flora da EC ~1.9 (coincide con el "EC ~2.0" documentado); antes daba ~1.1. Calcis clone ahora ~0.77 (real ~0.9) vs 0.4 antes. Resto del motor auditado OK: fracciones elementales vs peso molecular (todas bien), factores oxido (bien), NNLS, kitParaPerfil, bidones, calcularConcentrados/esPolvo, stock, costo, balance ionico, pH. Polish: contenido max-w-1200px mx-auto (centrado), overflow-x-hidden pagina + tooltip max-w viewport (sin defase mobile).
+
+## DECISION: MAXIMA CALIDAD por defecto (commit ed7ca4f)
+Decision del proyecto: CALIDAD sobre barato. kitParaPerfil default microsQuelatados=true (const useQuel = opts.microsQuelatados ?? true) -> Fe-EDDHA + Mn/Zn/Cu-EDTA en TODO: presets, perfiles manuales y clones. opcionesDeMarca ahora microsQuelatados:true en todas las marcas. Kit "limpio" usa mnedta/znedta/cuedta. Solo el kit "economico" mantiene sulfatos (es su proposito). Razon: EDTA es fiel a las premium + estable en concentrado liquido (no precipita con fosfato, aguanta pH alto) + sin azufre parasito. Agregados micromix Fetrilon Combi 2 (verificado, $4489/kg) y Afital (aprox). Zn-EDTA 15
+## DECISION: MAXIMA CALIDAD por defecto (commit ed7ca4f)
+Decision del proyecto: CALIDAD sobre barato. kitParaPerfil default microsQuelatados=true (useQuel = opts.microsQuelatados ?? true) -> Fe-EDDHA + Mn/Zn/Cu-EDTA en TODO: presets, perfiles manuales y clones. opcionesDeMarca ahora microsQuelatados:true en todas las marcas. Kit "limpio" usa mnedta/znedta/cuedta. Solo el kit "economico" mantiene sulfatos. Razon: EDTA fiel a premium + estable en concentrado liquido + sin azufre parasito. Agregados micromix Fetrilon Combi 2 (verificado, 4489/kg) y Afital (aprox). Zn-EDTA 15%, Cu-EDTA 14%.
+
+## Verificacion etiquetas Ryanodine (commit 6c98d64)
+Los 4 productos Ryanodine verificados contra etiquetas oficiales y EXACTOS:
+- Calcis (C): NO3 0.0248, NH4 0.0019, Ca 0.032 (N nitrico 2.48, amoniacal 0.19, Ca 3.20).
+- Makro (A): NH4 0.0098, P 0.0115, K 0.0473, S 0.0182 (K2O 5.70).
+- Mikro (B): Mg 0.01, S 0.0135, Fe 0.00109(EDDHA), Mn 0.0002, Zn 0.00005, B 0.00008, Cu 0.00003, Mo 0.000005 (todo EDTA).
+- Maikro (AB): tiene ETIQUETA PROPIA distinta de Makro+Mikro sumados: K2O 5.68 -> K 0.0472 (NO 0.0473), Zn 0.004 -> 0.00004 (NO 0.00005). S 3.17. CUIDADO: no asumir que Maikro = suma de partes, usar su etiqueta.
+Finis (finalizador polvo): P 0.0659 K 0.2058 Ca 0.1082 S 0.1254 (P2O5 15.10, K2O 24.79, Ca 10.82, S 12.54). La etiqueta dice "derivado de fosfato de calcio" pero los numeros SOLO cierran con YESO (calcium phosphate dispararia el P a ~16%; S solo de K2SO4 dispararia el K a ~30%). El clon usa yeso = fiel al analisis garantizado. Va en POLVO (yeso no se concentra, precipita).
+
+## Conversor (pestana, feat) — basado en Factores de Conversion IPNI (Garcia/Correndo)
+CONV_OXIDO (oxido->elemental: P2O5 0.4364, K2O 0.8301, CaO 0.7147, MgO 0.6030, SO3 0.4005, SO4 0.3338, Na2O 0.7419, NO3->N 0.2259, NH4->N 0.7765), PESO_EQ (Ca 20.04, Mg 12.15, K 39.1, Na 23, NH4 18.04, NO3 62, S 16.03, Cl 35.45, HCO3 61.01), ppmAmeq/meqAppm. ConversorTab: 4 bloques (oxido->elemental para leer etiquetas NPK; concentracion %<->g/L<->ppm [1%=10g/L=10000ppm]; ionico ppm<->meq para analisis de agua; unidades g<->oz, mL/gal<->mL/L). Del Excel IPNI se descarto lo agro de campo (kg/ha, lb/acre, psi) que no aplica a indoor.
