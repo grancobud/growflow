@@ -106,8 +106,10 @@ function BarraTabs({ sub, setSub }: { sub: SubTab; setSub: (s: SubTab) => void }
             fuera de la pantalla, sin forma de tocarlo. */}
         {/* El degradé a la izquierda funde la pestaña que pasa por debajo: sin
             él se veía cortada en seco («Su» de Sustancias) y parecía un choque
-            en vez de una barra que sigue scrolleando. */}
-        <div className="shrink-0 flex sticky right-0 z-10 bg-[#0a0a0f] pl-2 -ml-2 before:content-[''] before:absolute before:right-full before:inset-y-0 before:w-8 before:bg-gradient-to-l before:from-[#0a0a0f] before:to-transparent before:pointer-events-none" data-menu-tabs>
+            en vez de una barra que sigue scrolleando. -right-1 + pr-1: con right-0
+            quedaba a 4 px del borde (el padding de la barra) y por esa rendija
+            se asomaba el icono de «Ratios y costo». */}
+        <div className="shrink-0 flex sticky -right-1 pr-1 z-10 bg-[#0a0a0f] pl-2 -ml-2 before:content-[''] before:absolute before:right-full before:inset-y-0 before:w-8 before:bg-gradient-to-l before:from-[#0a0a0f] before:to-transparent before:pointer-events-none" data-menu-tabs>
           <button onClick={() => setAbierto(a => !a)} aria-expanded={abierto} aria-haspopup="true"
             aria-label={enMenu ? `${actual.label} — más herramientas` : 'Más herramientas'}
             className={btnCls(enMenu)}>

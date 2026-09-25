@@ -65,7 +65,7 @@ export function QueQuieroHacer(datos: {
 
   return (
     <section className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden">
-      <div className="px-3.5 py-3 border-b border-[#1f1f2b]">
+      <div className="px-3 sm:px-4 py-3 border-b border-[#1f1f2b]">
         <h2 className="font-display font-semibold text-[14px] text-[#ececf1]">¿Qué querés hacer?</h2>
         <p className="text-[11px] text-[#8a8a9c] mt-0.5 [text-wrap:pretty]">
           Cada una te abre la pantalla donde se hace. Si algo no se puede
@@ -80,7 +80,7 @@ export function QueQuieroHacer(datos: {
           Lo que se pierde es el detalle largo, que ayuda la primera semana y
           despues es texto que hay que saltear todos los dias; sigue estando en
           el resto de las acciones, que son las que no se conocen de memoria. */}
-      <div className="p-3 flex flex-col gap-1.5 sm:gap-3">
+      <div className="p-3 sm:p-4 flex flex-col gap-1.5 sm:gap-3">
         {ORDEN_RITMO.map(ritmo => {
           const delGrupo = frecuentes.filter(a => a.ritmo === ritmo)
           if (delGrupo.length === 0) return null
@@ -133,7 +133,7 @@ export function QueQuieroHacer(datos: {
                   entre los grupos institucionales, y el panel de la O.N.G.
                   terminaba ofreciendo regar una sala. */}
               {resto.some(a => GRUPOS_FUERA.includes(a.grupo)) && (
-                <div className="border-t-2 border-[#1f1f2b] px-3.5 pt-3">
+                <div className="border-t-2 border-[#1f1f2b] px-3 sm:px-4 pt-3">
                   <p className="text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium">
                     Fuera de la O.N.G.
                   </p>
@@ -158,10 +158,10 @@ function Grupo({ label, del }: { label: string; del: Accion[] }) {
   if (!del.length) return null
   return (
     <div className="border-t border-[#1f1f2b]">
-      <p className="px-3.5 pt-3 text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium">
+      <p className="px-3 sm:px-4 pt-3 text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium">
         {label}
       </p>
-      <div className="p-3 grid gap-1.5 sm:grid-cols-2 auto-rows-fr">
+      <div className="p-3 sm:p-4 grid gap-1.5 sm:grid-cols-2 auto-rows-fr">
         {del.map(a => <FilaAccion key={a.id} a={a} detalle />)}
       </div>
     </div>

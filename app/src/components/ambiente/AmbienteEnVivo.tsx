@@ -200,7 +200,10 @@ export default function AmbienteEnVivo() {
       if (!j.ok) throw new Error(j.error || 'Growcast no respondió')
       setData(j); setError(null); setUltima(new Date())
     } catch (err) {
-      setError((err as Error).message)
+      // El navegador dice «Failed to fetch» (en ingles) cuando no llega al
+      // worker: eso le llegaba tal cual a quien usa la app.
+      const msg = (err as Error).message
+      setError(/failed to fetch|networkerror|load failed/i.test(msg) ? 'No se pudo conectar' : msg)
     } finally {
       setCargando(false)
     }

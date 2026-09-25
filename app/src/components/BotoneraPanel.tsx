@@ -83,7 +83,7 @@ export function BotoneraPanel({ acciones }: { acciones: Accion[] }) {
       transition={{ duration: 0.2, ease: EASE }}
       className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden">
 
-      <div className="px-4 sm:px-5 py-3 border-b border-[#1f1f2b]">
+      <div className="px-3 sm:px-4 py-3 border-b border-[#1f1f2b]">
         <h2 className="font-display font-semibold text-[13px] text-[#ececf1]">¿Qué querés hacer?</h2>
         <p className="text-[11px] text-[#8a8a9c] mt-0.5">
           Lo de todos los días. Cada sección tiene el resto de lo suyo.
