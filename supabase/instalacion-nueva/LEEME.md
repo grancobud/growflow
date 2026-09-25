@@ -10,3 +10,9 @@ verificó cargándolo sobre una base vacía (PGlite): el resultado es idéntico.
 
 Si cambia el esquema de la base de Gastón, este archivo hay que regenerarlo; no se
 actualiza solo.
+
+**25/09/2026:** se sacaron las siete tablas de respaldo de julio y agosto
+(`_backup_*_20260725`, `pacientes_respaldo_20260825`, `respaldo_*_fantasma_20260826`)
+y las policies de `pacientes_clinica` / `evolucion_clinica` pasaron a
+`TO authenticated`, igual que en la base real (migraciones `20260925010000` y
+`20260925020000`). Verificado cargándolo en PGlite.
