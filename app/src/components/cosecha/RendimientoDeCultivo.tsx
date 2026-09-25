@@ -23,7 +23,7 @@ import {
   compararConAnterior, serieReciente, type Comparacion,
   type CosechaDetallada, type MetricasGenetica,
 } from '../../lib/estadisticas'
-import { cultivoService, type ResumenPlanta } from '../../lib/cultivo'
+import { cultivoService, type ResumenPlanta, etiquetaFase } from '../../lib/cultivo'
 import { stockService } from '../../lib/stock'
 import { econometriaService, resumenEconomico, configService, VIDA_UTIL_DEFECTO, type VidaUtil } from '../../lib/econometria'
 import { btnSutil, tarjeta } from '../../lib/ui'
@@ -651,9 +651,6 @@ function FilaCosecha({ c, max, conFechaCorta }: {
 // ---------------------------------------------------------------------------
 
 const ORDEN_FASE = ['Germinacion', 'Plantula', 'Vegetativo', 'Floracion'] as const
-const ETIQUETA: Record<string, string> = {
-  Germinacion: 'Germinación', Plantula: 'Plántula', Vegetativo: 'Vegetativo', Floracion: 'Floración',
-}
 
 function EstadoDelCultivo({ plantas }: { plantas: ResumenPlanta[] }) {
   if (!plantas.length) return null
@@ -673,14 +670,14 @@ function EstadoDelCultivo({ plantas }: { plantas: ResumenPlanta[] }) {
         <div className="flex h-2.5 rounded-full overflow-hidden bg-[#15151d] gap-[2px]">
           {conteo.map(c => (
             <div key={c.fase} style={{ width: `${(c.n / total) * 100}%`, background: c.color }}
-              title={`${ETIQUETA[c.fase]}: ${c.n}`} />
+              title={`${etiquetaFase(c.fase)}: ${c.n}`} />
           ))}
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
           {conteo.map(c => (
             <div key={c.fase} className="flex items-center gap-2 min-w-0">
               <span className="w-2 h-2 rounded-sm flex-shrink-0" style={{ background: c.color }} />
-              <span className="text-[11px] text-[#8a8a9a] truncate">{ETIQUETA[c.fase]}</span>
+              <span className="text-[11px] text-[#8a8a9a] truncate">{etiquetaFase(c.fase)}</span>
               <span className="ml-auto text-[12px] font-semibold text-[#ececf1] tabular-nums">{c.n}</span>
             </div>
           ))}

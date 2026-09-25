@@ -38,8 +38,20 @@ import { fechaLocal } from '../lib/fechaLocal'
 
 
 
+// La hora de Argentina, no la del dispositivo: la sede esta aca aunque quien
+// mire este de viaje.
+const horaArgentina = () =>
+  Number(new Intl.DateTimeFormat('es-AR', { hour: 'numeric', hour12: false, timeZone: 'America/Argentina/Buenos_Aires' }).format(new Date()))
+const saludo = () => {
+  const h = horaArgentina()
+  return h < 6 ? 'Buenas noches' : h < 13 ? 'Buen día' : h < 20 ? 'Buenas tardes' : 'Buenas noches'
+}
+const primerNombre = (n?: string | null) => (n ?? '').trim().split(/\s+/)[0] ?? ''
+const fechaLarga = () =>
+  new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Argentina/Buenos_Aires' })
+
 export default function PaginaPanel() {
-  const { tienePermiso } = useAuth()
+  const { tienePermiso, usuario } = useAuth()
   const [mantes, setMantes] = useState<Mantenimiento[]>([])
   // Vencimientos de la ONG: si el mandato o el REPROCANN se caen, no se puede
   // hacer ningun tramite. Tienen que verse apenas entras, no dentro de /ong.
@@ -238,11 +250,13 @@ export default function PaginaPanel() {
       <div className="sticky top-0 z-40 bg-[#0a0a0f] border-b border-[#1f1f2b]">
         <div className="flex items-center gap-2 sm:gap-4 px-3 sm:px-6 py-3">
           <div className="min-w-0">
-            <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">
-              Grow<span className="text-[#bef264]">Flow</span>
+            {/* Un saludo y la fecha, no la marca: la marca ya esta en el menu
+                (y vive en Marca.tsx, no escrita a mano aca). */}
+            <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1] truncate">
+              {saludo()}{primerNombre(usuario?.nombre_completo) ? `, ${primerNombre(usuario?.nombre_completo)}` : ''}
             </h1>
-            <div className="mt-0.5 text-[10px] sm:text-[11px] text-[#8a8a9c]">
-              Lo de todos los días, en orden
+            <div className="mt-0.5 text-[10px] sm:text-[11px] text-[#8a8a9c] first-letter:uppercase">
+              {fechaLarga()}<span className="hidden sm:inline"> · lo de todos los días, en orden</span>
             </div>
           </div>
           <div className="flex-1" />

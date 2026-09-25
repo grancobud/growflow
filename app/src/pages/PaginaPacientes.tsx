@@ -15,7 +15,7 @@ import {
   registroService, ESTADOS_REPROCANN, MODALIDADES, diasParaVencer, urlDeCredencial,
   type Paciente, type EstadoReprocann,
 } from '../lib/registro'
-import { cultivoService, type ResumenPlanta } from '../lib/cultivo'
+import { cultivoService, type ResumenPlanta, etiquetaFase } from '../lib/cultivo'
 import { MODO_DEMO } from '../lib/supabase'
 import { leerCredencial, OCR_DISPONIBLE } from '../lib/ocr'
 import { FotoPrivada } from '../components/FotoPrivada'
@@ -626,7 +626,7 @@ function ModalDetalle({ paciente: p, onCerrar, onEditar, onBorrar }: {
                   <span className="text-[12px] text-[#ececf1]">{pl.nombre}</span>
                   {pl.codigo && <span className="ml-2 font-mono text-[10px] text-[#8a8a9c]">{pl.codigo}</span>}
                 </div>
-                <span className="text-[10px] text-[#8a8a9c]">{pl.fase}</span>
+                <span className="text-[10px] text-[#8a8a9c]">{etiquetaFase(pl.fase)}</span>
                 {pl.codigo && <Link to={`/p/${pl.codigo}`}
                   /* El area tocable crece con un pseudo-elemento y no con padding:
                      esto vive en una fila `flex` de 34px y agrandarlo de verdad
