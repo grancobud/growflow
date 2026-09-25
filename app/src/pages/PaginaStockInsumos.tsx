@@ -35,6 +35,9 @@ const CAT: Record<CategoriaInsumo, Estilo> = {
   Herramienta:   { text: '#a6a6b5', bg: 'rgba(166,166,181,0.10)', border: '#2a2a3a', icono: Wrench },
   Otro:          { text: '#8f8f9f', bg: 'rgba(143,143,159,0.10)', border: '#2a2a3a', icono: Package },
 }
+// La categoria viene de la base: un valor que no este en CAT cae en «Otro» en
+// vez de tirar la pantalla al ErrorBoundary al leerle `.bg`.
+const estiloCat = (c: string): Estilo => CAT[c as CategoriaInsumo] ?? CAT.Otro
 
 const hoyISO = () => hoyLocal()
 const fmtFecha = (f: string | null) => f ? new Date(f + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: '2-digit' }) : '—'
@@ -228,7 +231,7 @@ export default function PaginaStockInsumos({ embebida = false, tabExterna, onAla
               fichas vacias median 548 px para mostrar cuarenta caracteres.
               Emparejar solo tiene sentido cuando hay mas de una por fila. */}
               {insumosFiltrados.map(i => {
-                const e = CAT[i.categoria]
+                const e = estiloCat(i.categoria)
                 const min = i.stock_minimo ?? 0
                 const bajo = min > 0 && i.cantidad <= min
                 const pct = min > 0 ? Math.max(6, Math.min(100, Math.round((i.cantidad / (min * 2)) * 100))) : 0
@@ -552,7 +555,7 @@ export function ModalVerInsumo({ insumo, onCerrar, onEditar }: {
 }) {
   const refDialogo3 = useDialogo(onCerrar)
   const i = insumo
-  const e = CAT[i.categoria]
+  const e = estiloCat(i.categoria)
   const min = i.stock_minimo ?? 0
   const bajo = min > 0 && i.cantidad <= min
   return (

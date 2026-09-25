@@ -15,14 +15,18 @@
  * al mismo tiempo —que es lo normal al subir varios archivos— arrancarian dos
  * importaciones y crearian DOS workers.
  */
-let pdfjsCargando: Promise<typeof import('pdfjs-dist')> | null = null
+// Build LEGACY de pdfjs, no el moderno. Desde la 5.6 el moderno usa
+// Map.getOrInsertComputed, que Chrome 141 y muchos telefonos todavia no traen:
+// leer una credencial en PDF tiraba «getOrInsertComputed is not a function».
+// El legacy trae los polyfills y la misma API.
+let pdfjsCargando: Promise<typeof import('pdfjs-dist/legacy/build/pdf.mjs')> | null = null
 
 function cargarPdfjs() {
   if (!pdfjsCargando) {
     pdfjsCargando = (async () => {
       const [lib, { default: PdfWorker }] = await Promise.all([
-        import('pdfjs-dist'),
-        import('pdfjs-dist/build/pdf.worker.min.mjs?worker'),
+        import('pdfjs-dist/legacy/build/pdf.mjs'),
+        import('pdfjs-dist/legacy/build/pdf.worker.min.mjs?worker'),
       ])
       lib.GlobalWorkerOptions.workerPort = new PdfWorker()
       return lib
