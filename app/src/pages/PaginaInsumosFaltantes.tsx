@@ -27,6 +27,9 @@ const COLOR_PRIORIDAD: Record<Prioridad, { label: string; text: string; bg: stri
   baja:  { label: 'BAJA',  text: '#8f8f9f', bg: 'rgba(180,180,200,0.06)', border: '#2a2a3a' },
 }
 const ORDEN_PRIORIDAD: Record<Prioridad, number> = { alta: 0, media: 1, baja: 2 }
+// Una prioridad que no este en el mapa va al final, en vez de dar NaN y
+// desordenar la lista entera.
+const ordenPrioridad = (p: string) => ORDEN_PRIORIDAD[p as Prioridad] ?? 9
 
 // Las mismas que usa la tabla de vida util de Econometria: de ahi sale en
 // cuantos meses se amortiza cada equipo.
@@ -179,7 +182,7 @@ export default function PaginaInsumosFaltantes() {
     if (!!a.comprado !== !!b.comprado) return a.comprado ? 1 : -1 // pendientes primero
     const s = subtotal(b) - subtotal(a)
     if (s !== 0) return s
-    const p = ORDEN_PRIORIDAD[a.prioridad] - ORDEN_PRIORIDAD[b.prioridad]
+    const p = ordenPrioridad(a.prioridad) - ordenPrioridad(b.prioridad)
     if (p !== 0) return p
     return (b.creado_en ?? '').localeCompare(a.creado_en ?? '')
   }), [faltantes])

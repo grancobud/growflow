@@ -8,7 +8,7 @@ const MAX_INTENTOS = 5
 
 export interface CacheEntry {
   key: string
-  data: any
+  data: unknown
   fecha: number
 }
 
@@ -16,8 +16,8 @@ export interface OperacionPendiente {
   id?: number
   tabla: string
   operacion: 'insert' | 'update' | 'delete'
-  payload: any
-  filtros?: any
+  payload: Record<string, unknown> | Record<string, unknown>[]
+  filtros?: Record<string, string | number | boolean | null>
   fecha: number
   intentos: number
   ultimo_error?: string
@@ -49,7 +49,7 @@ class BaseOffline extends Dexie {
 export const offlineDb = new BaseOffline()
 
 // Guardar lectura en cache
-export async function cacheGuardar(key: string, data: any) {
+export async function cacheGuardar(key: string, data: unknown) {
   try {
     await offlineDb.cache.put({ key, data, fecha: Date.now() })
   } catch (e) {
@@ -120,18 +120,18 @@ export async function colaSync(): Promise<ResultadoSync> {
       if (op.id === undefined) continue
       r.intentados++
       try {
-        let error: any = null
+        let error: { message?: string } | null = null
         if (op.operacion === 'insert') {
           const res = await supabase.from(op.tabla).insert(op.payload)
           error = res.error
         } else if (op.operacion === 'update') {
           let q = supabase.from(op.tabla).update(op.payload)
-          if (op.filtros) for (const [k, v] of Object.entries(op.filtros)) q = q.eq(k, v as any)
+          if (op.filtros) for (const [k, v] of Object.entries(op.filtros)) q = q.eq(k, v)
           const res = await q
           error = res.error
         } else if (op.operacion === 'delete') {
           let q = supabase.from(op.tabla).delete()
-          if (op.filtros) for (const [k, v] of Object.entries(op.filtros)) q = q.eq(k, v as any)
+          if (op.filtros) for (const [k, v] of Object.entries(op.filtros)) q = q.eq(k, v)
           const res = await q
           error = res.error
         } else {
@@ -149,12 +149,12 @@ export async function colaSync(): Promise<ResultadoSync> {
           r.exitosos++
           await offlineDb.pendientes.delete(op.id)
         }
-      } catch (e: any) {
+      } catch (e) {
         r.fallidos++
-        r.errores.push({ id: op.id, tabla: op.tabla, mensaje: e?.message || String(e) })
+        r.errores.push({ id: op.id, tabla: op.tabla, mensaje: e instanceof Error ? e.message : String(e) })
         await offlineDb.pendientes.update(op.id, {
           intentos: op.intentos + 1,
-          ultimo_error: e?.message || String(e),
+          ultimo_error: e instanceof Error ? e.message : String(e),
         })
       }
     }

@@ -672,6 +672,23 @@ const CON_PLANTA = new Set(['eventos', 'cosechas', 'riegos', 'aplicaciones'])
 const celdaCls = 'px-2.5 py-1.5 text-[12px] text-[#d4d4dd] border-b border-r border-[#1f1f2b] whitespace-nowrap'
 const inputCls = 'w-full bg-[#1c1c27] border border-[#a3e635]/50 rounded px-1.5 py-0.5 text-[16px] sm:text-[12px] text-[#ececf1] focus:outline-none focus:border-[#a3e635]/60'
 
+// Fila generica: el editor sirve a cualquier tabla, asi que las columnas se
+// conocen recien en tiempo de ejecucion (las define DefTabla).
+type FilaTabla = { id: string } & Record<string, unknown>
+
+// Tablas cuya pantalla filtra por la bandera: sin ella la fila agregada desde
+// aca no aparece nunca en su pantalla.
+const BANDERAS_ALTA: Record<string, Record<string, boolean>> = {
+  plantas: { activa: true },
+  ambiente_salas: { activa: true },
+  cultivo_areas: { activa: true },
+  cultivo_lotes: { activo: true },
+  ong_predios: { activo: true },
+  ong_lotes: { activo: true },
+  ong_asociados: { activo: true },
+  ong_autoridades: { activo: true },
+}
+
 export default function PaginaTablas() {
   // Las solapas scrollean sin barra: la franja gris del navegador quedaba
   // cruzando la pantalla aun cuando entraban todas. Dos degradados la reemplazan.
@@ -683,7 +700,7 @@ export default function PaginaTablas() {
     () => TABLAS.filter(t => !t.plata || tienePermiso('ver_plata')), [tienePermiso])
   const { refWrapper, refScroller } = useDesbordeHorizontal<HTMLDivElement, HTMLDivElement>(tablas.length)
   const [tabla, setTabla] = useState<DefTabla>(tablas[0])
-  const [filas, setFilas] = useState<any[]>([])
+  const [filas, setFilas] = useState<FilaTabla[]>([])
   const [plantas, setPlantas] = useState<Record<string, string>>({})
   const [geneticasMap, setGeneticasMap] = useState<Record<string, string>>({})
   const [cargando, setCargando] = useState(true)
@@ -701,7 +718,7 @@ export default function PaginaTablas() {
       const { data, error } = await supabase.from(tabla.id).select('*')
         .order(tabla.orden, { ascending: ascendente })
       if (error) throw new Error(error.message)
-      let filasOrdenadas = data ?? []
+      let filasOrdenadas = (data ?? []) as FilaTabla[]
       // Orden natural (#2 antes que #10) para la tabla Plantas
       if (tabla.id === 'plantas') {
         filasOrdenadas = [...filasOrdenadas].sort((a, b) =>
@@ -710,11 +727,11 @@ export default function PaginaTablas() {
       setFilas(filasOrdenadas)
       if (CON_PLANTA.has(tabla.id)) {
         const { data: pl } = await supabase.from('resumen_plantas').select('id,nombre,genetica')
-        setPlantas(Object.fromEntries((pl ?? []).map((p: any) => [p.id, p.genetica ? `${p.nombre} · ${p.genetica}` : p.nombre])))
+        setPlantas(Object.fromEntries(((pl ?? []) as { id: string; nombre: string; genetica: string | null }[]).map(p => [p.id, p.genetica ? `${p.nombre} · ${p.genetica}` : p.nombre])))
       }
       if (tabla.id === 'plantas') {
         const { data: gs } = await supabase.from('geneticas').select('id,nombre')
-        setGeneticasMap(Object.fromEntries((gs ?? []).map((g: any) => [g.id, g.nombre])))
+        setGeneticasMap(Object.fromEntries(((gs ?? []) as { id: string; nombre: string }[]).map(g => [g.id, g.nombre])))
       }
     } catch (err) {
       toast.error(`Error cargando ${tabla.nombre}: ${(err as Error).message}`)
@@ -725,9 +742,9 @@ export default function PaginaTablas() {
 
   useEffect(() => { cargar() }, [cargar])
 
-  const guardarCelda = async (fila: any, col: Col, nuevo: string) => {
+  const guardarCelda = async (fila: FilaTabla, col: Col, nuevo: string) => {
     setEditando(null)
-    let v: any = nuevo.trim() === '' ? null : nuevo.trim()
+    let v: string | number | null = nuevo.trim() === '' ? null : nuevo.trim()
     if (col.tipo === 'number' && v !== null) v = Number(v)
     if (v === fila[col.campo]) return
     try {
@@ -739,7 +756,7 @@ export default function PaginaTablas() {
     }
   }
 
-  const toggleBool = async (fila: any, col: Col) => {
+  const toggleBool = async (fila: FilaTabla, col: Col) => {
     const v = !fila[col.campo]
     try {
       const { error } = await supabase.from(tabla.id).update({ [col.campo]: v }).eq('id', fila.id)
@@ -752,20 +769,22 @@ export default function PaginaTablas() {
 
   const agregarFila = async () => {
     try {
-      const base: any = {}
+      // Las banderas van explicitas (pozo 2 de CLAUDE.md): en el modo demo no hay
+      // default de Postgres, y la fila nueva quedaba filtrada por activa = true.
+      const base: Record<string, unknown> = { ...(BANDERAS_ALTA[tabla.id] ?? {}) }
       if (tabla.id === 'geneticas') base.nombre = 'Nueva genética'
       if (tabla.id === 'insumos') base.nombre = 'Nuevo insumo'
       if (tabla.id === 'costos') base.nombre = 'Nuevo costo'
       const { data, error } = await supabase.from(tabla.id).insert(base).select().single()
       if (error) throw new Error(error.message)
-      setFilas(fs => [data, ...fs])
+      setFilas(fs => [data as FilaTabla, ...fs])
       toast.success('Fila agregada')
     } catch (err) {
       toast.error(`No se pudo agregar: ${(err as Error).message}`)
     }
   }
 
-  const borrarFila = async (fila: any) => {
+  const borrarFila = async (fila: FilaTabla) => {
     if (!(await confirmarBorrado('¿Borrar esta fila? No se puede deshacer.'))) return
     try {
       const { error } = await supabase.from(tabla.id).delete().eq('id', fila.id)
@@ -800,7 +819,7 @@ export default function PaginaTablas() {
     }
   }
 
-  const renderCelda = (fila: any, col: Col) => {
+  const renderCelda = (fila: FilaTabla, col: Col) => {
     const enEdicion = editando?.fila === fila.id && editando?.campo === col.campo
     const v = fila[col.campo]
 
@@ -843,7 +862,7 @@ export default function PaginaTablas() {
     return (
       <td key={col.campo}
         className={`${celdaCls} ${col.ancho ?? ''} cursor-text hover:bg-[#15151d] transition-colors`}
-        onClick={() => { setEditando({ fila: fila.id, campo: col.campo }); setValor(v ?? '') }}>
+        onClick={() => { setEditando({ fila: fila.id, campo: col.campo }); setValor(v == null ? '' : String(v)) }}>
         {v === null || v === undefined || v === '' ? <span className="text-[#8a8a9c]">—</span> : String(v)}
       </td>
     )
@@ -939,10 +958,10 @@ export default function PaginaTablas() {
               {filas.map(fila => (
                 <tr key={fila.id} className="group hover:bg-[#13131a]">
                   {CON_PLANTA.has(tabla.id) && (
-                    <td className={`${celdaCls} text-[#a6a6b5]`}>{plantas[fila.planta_id] ?? '—'}</td>
+                    <td className={`${celdaCls} text-[#a6a6b5]`}>{plantas[String(fila.planta_id)] ?? '—'}</td>
                   )}
                   {tabla.id === 'plantas' && (
-                    <td className={`${celdaCls} text-[#a6a6b5]`}>{geneticasMap[fila.genetica_id] ?? '—'}</td>
+                    <td className={`${celdaCls} text-[#a6a6b5]`}>{geneticasMap[String(fila.genetica_id)] ?? '—'}</td>
                   )}
                   {tabla.cols.map(c => renderCelda(fila, c))}
                   <td className="px-2 py-1.5 border-b border-[#1f1f2b]">
