@@ -94,6 +94,15 @@ const RUTAS_PROFUNDAS = [
   // 02/09/2026: siguen teniendo su URL, pero ya no son un ítem de menú.
   { ruta: '/cosecha', nombre: 'agronomico-cosecha' },
   { ruta: '/ambiente', nombre: 'agronomico-ambiente' },
+  // Lo propio de GrowFlow, que las instalaciones hermanas no tienen (ver
+  // CLAUDE.md). Hasta el 25/09/2026 la revision no las miraba: venia de Panacea.
+  { ruta: '/calendario', nombre: 'growflow-calendario' },
+  { ruta: '/nutrientes', nombre: 'growflow-nutrientes' },
+  { ruta: '/hardware-diy', nombre: 'instalacion-hardware' },
+  { ruta: '/riego', nombre: 'instalacion-riego' },
+  { ruta: '/tablero', nombre: 'instalacion-tablero' },
+  { ruta: '/insumos-faltantes', nombre: 'instalacion-faltantes' },
+  { ruta: '/stock', nombre: 'econometria-stock' },
   // O.N.G. · Panel
   { ruta: '/ong/coherencia', nombre: 'ong-coherencia' },
   { ruta: '/ong/usuarios', nombre: 'ong-usuarios' },

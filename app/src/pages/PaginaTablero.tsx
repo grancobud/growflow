@@ -97,10 +97,12 @@ export default function PaginaTablero() {
           <div className="flex-1" />
         </div>
         {/* Tabs */}
-        <div className="flex gap-1 px-3 sm:px-6 w-full">
+        {/* Una sola fila que scrollea: en 375px «Guía & compras» se partía en
+            dos renglones y quedaba separada de su ícono. */}
+        <div className="flex gap-1 px-3 sm:px-6 w-full overflow-x-auto ct-page-scroll [-webkit-overflow-scrolling:touch]">
           {([['doc', 'Documentación', FileText], ['unifilar', 'Unifilar', Cable], ['guia', 'Guía & compras', ShoppingCart]] as const).map(([id, label, Icon]) => (
             <button key={id} onClick={() => setTab(id)}
-              className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] sm:min-h-0 text-[12px] font-medium border-b-2 transition-colors ${tab === id ? 'border-[#a3e635] text-[#ececf1]' : 'border-transparent text-[#8a8a9c] hover:text-[#9a9aad]'}`}>
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-2 min-h-[44px] sm:min-h-0 text-[12px] font-medium border-b-2 transition-colors shrink-0 whitespace-nowrap ${tab === id ? 'border-[#a3e635] text-[#ececf1]' : 'border-transparent text-[#8a8a9c] hover:text-[#9a9aad]'}`}>
               <Icon className="w-3.5 h-3.5" strokeWidth={1.8} />{label}
             </button>
           ))}

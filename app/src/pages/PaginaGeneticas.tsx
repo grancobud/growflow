@@ -469,14 +469,16 @@ function ModalGeneticaFicha({ genetica, onCerrar, onGuardado }: {
             <AyudaCampo id="genetica" campo="Nombre" /></div>
           <div><label className={etiquetaCampo}>Banco</label><input className={inputFormulario} placeholder="GG Strains" value={form.banco} onChange={e => set('banco', e.target.value)} /></div>
         </div>
-        <div className="grid grid-cols-3 gap-3">
+        {/* En 375 px, tres o cuatro columnas partian los rotulos en dos renglones
+            y desalineaban los cuadros de la fila: en celular van de a dos. */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <div><label className={etiquetaCampo}>Tipo</label>
             <select className={inputFormulario} value={form.tipo} onChange={e => set('tipo', e.target.value)}>{TIPOS_GENETICA.map(t => <option key={t} value={t}>{t}</option>)}</select>
           </div>
           <div><label className={etiquetaCampo}>Genotipo</label>
             <select className={inputFormulario} value={form.genotipo} onChange={e => set('genotipo', e.target.value)}><option value="">—</option>{GENOTIPOS.map(t => <option key={t} value={t}>{t}</option>)}</select>
           </div>
-          <div><label className={etiquetaCampo}>Indica/Sativa %</label>
+          <div className="col-span-2 sm:col-span-1"><label className={etiquetaCampo}>Indica/Sativa %</label>
             <div className="flex gap-1">
               <input className={inputFormulario} type="number" placeholder="60" value={form.indica_pct} onChange={e => set('indica_pct', e.target.value)} title="% Indica" />
               <input className={inputFormulario} type="number" placeholder="40" value={form.sativa_pct} onChange={e => set('sativa_pct', e.target.value)} title="% Sativa" />
@@ -486,7 +488,7 @@ function ModalGeneticaFicha({ genetica, onCerrar, onGuardado }: {
         <div><label className={etiquetaCampo}>Linaje / Cruza</label><input className={inputFormulario} placeholder="Chem's Sister x Sour Dubb x Chocolate Diesel" value={form.linaje} onChange={e => set('linaje', e.target.value)} /></div>
 
         <div className="pt-2 border-t border-[#1f1f2b]"><div className="text-[10px] uppercase tracking-[0.14em] text-[#a78bfa] mb-2">Cannabinoides y tiempos</div></div>
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div><label className={etiquetaCampo}>THC %</label><input className={inputFormulario} type="number" step="0.1" placeholder="25" value={form.thc} onChange={e => set('thc', e.target.value)} /></div>
           <div><label className={etiquetaCampo}>CBD %</label><input className={inputFormulario} type="number" step="0.1" placeholder="0.1" value={form.cbd} onChange={e => set('cbd', e.target.value)} /></div>
           <div><label className={etiquetaCampo}>Vege (días)</label><input className={inputFormulario} type="number" placeholder="28" value={form.vege} onChange={e => set('vege', e.target.value)} /></div>
@@ -494,7 +496,7 @@ function ModalGeneticaFicha({ genetica, onCerrar, onGuardado }: {
         </div>
 
         <div className="pt-2 border-t border-[#1f1f2b]"><div className="text-[10px] uppercase tracking-[0.14em] text-[#a78bfa] mb-2">Cultivo</div></div>
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div><label className={etiquetaCampo}>Altura</label><select className={inputFormulario} value={form.altura} onChange={e => set('altura', e.target.value)}><option value="">—</option>{ALTURAS.map(a => <option key={a} value={a}>{a}</option>)}</select></div>
           <div><label className={etiquetaCampo}>Dificultad</label><select className={inputFormulario} value={form.dificultad} onChange={e => set('dificultad', e.target.value)}><option value="">—</option>{DIFICULTADES.map(a => <option key={a} value={a}>{a}</option>)}</select></div>
           <div><label className={etiquetaCampo}>Ambiente</label><select className={inputFormulario} value={form.ambiente} onChange={e => set('ambiente', e.target.value)}><option value="">—</option>{AMBIENTES.map(a => <option key={a} value={a}>{a}</option>)}</select></div>
@@ -503,7 +505,7 @@ function ModalGeneticaFicha({ genetica, onCerrar, onGuardado }: {
               automáticas es EL dato de tiempo, porque no publican cuánto dura la
               flora sola — y cargar el ciclo entero en «Flora» diría que la
               floración dura eso, que es falso. */}
-          <div><label className={etiquetaCampo}>Ciclo (semanas, desde semilla)</label><input className={inputFormulario} placeholder="8 a 10" value={form.ciclo} onChange={e => set('ciclo', e.target.value)} /></div>
+          <div className="col-span-2 sm:col-span-4"><label className={etiquetaCampo}>Ciclo (semanas, desde semilla)</label><input className={inputFormulario} placeholder="8 a 10" value={form.ciclo} onChange={e => set('ciclo', e.target.value)} /></div>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div><label className={etiquetaCampo}>Stretch (flora)</label><input className={inputFormulario} placeholder="x2 altura" value={form.stretch} onChange={e => set('stretch', e.target.value)} /></div>

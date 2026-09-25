@@ -19,7 +19,7 @@ import { parsearMarkdown, parsearInline, type Bloque, type Trozo } from '../lib/
 import { btnSutil, campoBase } from '../lib/ui'
 import { useDialogo } from '../lib/useDialogo'
 
-/** Alto del encabezado fijo, para que el titulo no quede debajo al saltar. */
+/** Alto del encabezado fijo si todavia no se pudo medir (desktop, un renglon). */
 const ALTO_HEADER = 76
 
 export default function PaginaManual() {
@@ -31,6 +31,10 @@ export default function PaginaManual() {
   const [indiceAbierto, setIndiceAbierto] = useState(false)
   const contenedor = useRef<HTMLDivElement>(null)
   const scroller = useRef<HTMLDivElement>(null)
+  // El alto del encabezado se MIDE: en el telefono ocupa dos renglones y con
+  // los 76 px fijos el titulo del capitulo quedaba tapado al saltar.
+  const refHeader = useRef<HTMLDivElement>(null)
+  const altoHeader = useCallback(() => refHeader.current?.offsetHeight ?? ALTO_HEADER, [])
 
   const secciones = useMemo(() => seccionesDe(bloques), [bloques])
   const grupos = useMemo(() => agruparCapitulos(secciones), [secciones])
@@ -103,10 +107,10 @@ export default function PaginaManual() {
         if (padre) { setActivo(padre); setActivoSub(id) }
         else { setActivo(id); setActivoSub('') }
       },
-      { root: scroller.current, rootMargin: `-${ALTO_HEADER + 8}px 0px -68% 0px`, threshold: 0 })
+      { root: scroller.current, rootMargin: `-${altoHeader() + 8}px 0px -68% 0px`, threshold: 0 })
     raiz.querySelectorAll('h2[id], h3[id]').forEach(h => obs.observe(h))
     return () => obs.disconnect()
-  }, [visibles, busca, capituloDeSub])
+  }, [visibles, busca, capituloDeSub, altoHeader])
 
   // CUÁNTO FALTA. Son 2.300 líneas: sin esto no hay forma de saber si lo que
   // estás leyendo es el principio o el final. Se calcula en un `rAF` para no
@@ -142,14 +146,16 @@ export default function PaginaManual() {
     if (!caja || !destino) return
     const y = destino.getBoundingClientRect().top - caja.getBoundingClientRect().top
     const sinAnimacion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    caja.scrollTo({ top: caja.scrollTop + y - ALTO_HEADER, behavior: sinAnimacion ? 'auto' : 'smooth' })
-  }, [])
+    caja.scrollTo({ top: caja.scrollTop + y - altoHeader(), behavior: sinAnimacion ? 'auto' : 'smooth' })
+  }, [altoHeader])
 
   return (
     <div ref={scroller} className="flex-1 min-h-0 overflow-y-auto bg-[#0a0a0f] text-[#d4d4dd] font-sans">
-      <div className="sticky top-0 z-40 bg-[#0a0a0f] border-b border-[#1f1f2b]">
+      <div ref={refHeader} className="sticky top-0 z-40 bg-[#0a0a0f] border-b border-[#1f1f2b]">
         <div className="flex items-center gap-3 flex-wrap px-3 sm:px-6 py-3">
-          <div className="min-w-0 flex-1">
+          {/* En el telefono el titulo va en su propio renglon: compartiendolo con
+              el buscador, el subtitulo quedaba en una columna de cuatro palabras. */}
+          <div className="min-w-0 basis-full sm:basis-auto sm:flex-1">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1] flex items-center gap-2">
               <BookOpen className="w-4 h-4 text-[#a3e635]" strokeWidth={1.8} /> Manual
             </h1>
@@ -182,7 +188,7 @@ export default function PaginaManual() {
             <List className="w-3.5 h-3.5" /> Contenido
           </button>
 
-          <button onClick={() => window.print()} className={`${btnSutil} hidden sm:inline-flex`}>
+          <button onClick={() => window.print()} className={`${btnSutil} max-sm:hidden`}>
             <Printer className="w-3.5 h-3.5" /> Imprimir
           </button>
         </div>

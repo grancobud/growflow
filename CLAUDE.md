@@ -85,7 +85,7 @@ asociación sino lo que le da rol de administrador a la sesión que el dev local
 auto-loguea. Sin él, `mi_rol()` devuelve `sin_perfil` y no se entra a ninguna
 pantalla.
 
-Consecuencia medida: en la revisión de diseño, **7 de 126 chequeos quedan
+Consecuencia medida: en la revisión de diseño, **6 de 133 chequeos quedan
 saltados** —con el motivo escrito— porque son formularios que solo se abren
 desde una fila que todavía no existe. No se borraron de la lista: el día que la
 instalación tenga datos, vuelven a medirse solos.

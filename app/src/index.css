@@ -425,3 +425,18 @@ label {
 @media (prefers-reduced-motion: reduce) {
   button:active, a[href]:active, [role='button']:active { transform: none !important }
 }
+
+/* LOS CAMPOS ENVUELTOS EN <label> VAN EN BLOQUE.
+ *
+ * Los formularios arman cada campo como <label><span rotulo/><input/></label>
+ * adentro de un `space-y-3`. Pero <label> es inline, y a un inline no se le
+ * aplica margen vertical: el espaciado no hacia nada y cada rotulo quedaba
+ * pegado al cuadro de arriba (Autoridad, Legajo, Libro, Predio... lo vio la
+ * revision de diseno el 25/09/2026). Solo las etiquetas que envuelven un campo
+ * de texto o un select: las de checkbox y radio siguen como estaban. En
+ * @layer base para que cualquier clase (flex, inline-flex) le gane. */
+@layer base {
+  label:has(> input:not([type='checkbox']):not([type='radio']), > select, > textarea) {
+    display: block;
+  }
+}
