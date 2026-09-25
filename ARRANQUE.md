@@ -151,154 +151,31 @@ echo "$sup" | grep -c "<TU_PROJECT_ID>"   # tiene que dar 1
 
 ## Paso 5 — El primer usuario
 
-⚠️ **La app no tiene auto-registro.** No hay «crear cuenta» en el login: nadie
-puede darse de alta solo. Las cuentas las crea un administrador desde el panel
-de Supabase, y la persona define su contraseña al entrar por el enlace.
+⚠️ **NO se crea desde el sitio. La app no tiene pantalla de registro.**
 
-### 5.1 · Antes que nada, la Site URL
+Lo único que hay es login. Si entrás al sitio publicado buscando un «crear
+cuenta», no lo vas a encontrar, y sin primer usuario la instalación queda
+trabada: quien no tiene perfil recibe `sin_perfil` de `mi_rol()`, todas las
+policies le niegan todo, y la app abre sin mostrar nada y sin decir por qué.
 
-**Hacelo ANTES de invitar a nadie**, o los enlaces van a llevar a `localhost`.
+La cuenta se crea desde el panel de Supabase de tu proyecto:
 
-En el panel de Supabase → **Authentication → URL Configuration**:
-
-| Campo | Valor |
-|---|---|
-| Site URL | `https://<tu-sitio>.pages.dev` |
-| Redirect URLs | agregar `https://<tu-sitio>.pages.dev/**` |
-
-Recién creado, Supabase deja `http://localhost:3000` por defecto. Si lo dejás
-así, quien reciba una invitacion va a caer en su propia maquina, con un error
-en la barra de direcciones y nada que hacer.
-
-### 5.2 · Tu cuenta
-
-**Authentication → Users → Add user → Create new user**
+    Authentication → Users → Add user → Create new user
 
 1. Tu mail y una contraseña que elegís vos.
-2. ⚠️ Tildá **«Auto Confirm User»**. Si no, queda esperando un mail de
-   confirmación y no podés entrar.
+2. ⚠️ **Tildá «Auto Confirm User».** Si no, la cuenta queda esperando un mail
+   de confirmación que no está configurado, y no podés entrar.
 3. Create user.
 
-Para vos conviene este camino y no la invitación: elegís la clave en el
-momento y no dependés de que llegue ningún mail.
+El trigger `al_crear_usuario` es `after insert on auth.users`, así que se
+dispara igual venga el alta del panel, de la API o de donde sea:
 
-⚠️ **Creá la tuya PRIMERO, antes que la de nadie.** El trigger
-`al_crear_usuario` es `after insert on auth.users`, así que se dispara venga
-el alta de donde venga: **la primera cuenta que exista se lleva el rol de
-administrador** y las demás nacen `auditor` inactivas. Si se lo lleva otro,
-hay que arreglarlo por SQL.
+- **el primero** nace `administrador` y activo
+- **del segundo en adelante**, `auditor` inactivo hasta que un admin lo habilite
 
-Ya con eso entrás por el login del sitio publicado.
-
-### Para sumar a alguien después
-
-Ahí sí conviene **invitar**, no crear la cuenta con una contraseña que tendrías
-que transmitirle:
-
-**Authentication → Users → Invite user** → su mail.
-
-Le llega un mail, entra por el enlace y **la app le pide que defina su
-contraseña** antes de dejarlo pasar (`PaginaClave`). Vos nunca ves ni manejás
-esa clave.
-
-⚠️ **El enlace vive UNA HORA** (`mailer_otp_exp`, 3600 s). Un mail que se abre a
-la tarde ya no sirve: la app lo detecta y avisa que hay que pedir otra
-invitación, pero avisale vos también para que la abra al toque. Se puede subir
-ese tiempo en Authentication → Providers → Email.
-
-Cuando entre, le asignás el rol desde la app o por SQL:
-
-```sql
-select
-  (select count(*) from pg_tables   where schemaname='public') as tablas,
-  (select count(*) from pg_policies where schemaname='public') as policies,
-  (select count(*) from pg_policies where schemaname='public' and qual='true') as permisivas;
-```
-
-**`permisivas` tiene que dar 0.** Si da otra cosa, hay una policy que deja
-entrar a cualquiera y hay que encontrarla antes de seguir.
-
----
-
-## Paso 4 — El sitio en Cloudflare Pages
-
-**4.1.** En el panel de Cloudflare: Workers & Pages → Create → Pages → Connect to
-Git, y elegí el repo.
-
-**4.2.** Configuración del build:
-
-| campo | valor |
-|---|---|
-| Root directory | `app` |
-| Build command | `npm run build` |
-| Build output directory | `dist` |
-| Production branch | `main` |
-
-**4.3.** Las variables de entorno — **este es el paso que más se olvida**. En
-Settings → Environment variables, cargalas en **production Y en preview**:
-
-| variable | de dónde sale |
-|---|---|
-| `VITE_SUPABASE_URL` | `https://<project_id>.supabase.co` |
-| `VITE_SUPABASE_ANON_KEY` | Supabase → Project Settings → API Keys → **publishable** |
-
-⚠️ La publishable key es pública por diseño: viaja embebida en el bundle y está
-protegida por RLS. **No uses la `service_role`** — esa saltea RLS y no va nunca
-en el frontend.
-
-⚠️ Si estas dos variables faltan, **el sitio compila igual y sale en modo demo**.
-Anda, guarda todo en el navegador, y nadie se entera hasta que alguien busca un
-dato que cargó la semana pasada y no está.
-
-**4.4.** Después del primer deploy, verificá que el bundle pega contra tu base:
-
-```bash
-idx=$(curl -s https://<tu-proyecto>.pages.dev/ | grep -oP '/assets/[A-Za-z0-9_.-]+\.js' | head -1)
-curl -s "https://<tu-proyecto>.pages.dev$idx" > /tmp/a.js
-sup=$(curl -s "https://<tu-proyecto>.pages.dev/assets/$(grep -oP 'supabase-[A-Za-z0-9_-]+\.js' /tmp/a.js | head -1)")
-echo "$sup" | grep -c "<TU_PROJECT_ID>"   # tiene que dar 1
-```
-
----
-
-## Paso 5 — El primer usuario
-
-⚠️ **La app no tiene auto-registro.** No hay «crear cuenta» en el login: nadie
-puede darse de alta solo. Las cuentas las crea un administrador desde el panel
-de Supabase, y la persona define su contraseña al entrar por el enlace.
-
-### 5.1 · Antes que nada, la Site URL
-
-**Hacelo ANTES de invitar a nadie**, o los enlaces van a llevar a `localhost`.
-
-En el panel de Supabase → **Authentication → URL Configuration**:
-
-| Campo | Valor |
-|---|---|
-| Site URL | `https://<tu-sitio>.pages.dev` |
-| Redirect URLs | agregar `https://<tu-sitio>.pages.dev/**` |
-
-Recién creado, Supabase deja `http://localhost:3000` por defecto. Si lo dejás
-así, quien reciba una invitacion va a caer en su propia maquina, con un error
-en la barra de direcciones y nada que hacer.
-
-### 5.2 · Tu cuenta
-
-**Authentication → Users → Add user → Create new user**
-
-1. Tu mail y una contraseña que elegís vos.
-2. ⚠️ Tildá **«Auto Confirm User»**. Si no, queda esperando un mail de
-   confirmación y no podés entrar.
-3. Create user.
-
-Para vos conviene este camino y no la invitación: elegís la clave en el
-momento y no dependés de que llegue ningún mail.
-
-⚠️ **Creá la tuya PRIMERO, antes que la de nadie.** El trigger
-`al_crear_usuario` es `after insert on auth.users`, así que se dispara venga
-el alta de donde venga: **la primera cuenta que exista se lleva el rol de
-administrador** y las demás nacen `auditor` inactivas. Si se lo lleva otro,
-hay que arreglarlo por SQL.
+**Creá la tuya PRIMERO, antes que la de nadie.** El lugar de administrador se
+lo lleva la primera cuenta que exista, y si se lo lleva otra persona vas a
+tener que arreglarlo por SQL.
 
 Ya con eso entrás por el login del sitio publicado.
 
@@ -319,6 +196,7 @@ Roles: `administrador`, `administrador_sistema`, `cultivador`,
 
 ⚠️ **No manejes contraseñas ajenas.** Creale la cuenta y que cada uno se ponga
 la suya con «recuperar contraseña» — o que la cambie apenas entre.
+
 ---
 
 # El logo
