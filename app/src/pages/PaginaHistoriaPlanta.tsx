@@ -10,8 +10,7 @@ import {
   Flower2, Repeat, AlertTriangle, RefreshCw, Image as ImageIcon, Scale, SprayCan, IdCard, Dna, X,
 } from 'lucide-react'
 import {
-  cultivoService, type Planta, type Genetica, type ItemHistoria,
-} from '../lib/cultivo'
+  cultivoService, type Planta, type Genetica, type ItemHistoria, etiquetaFase } from '../lib/cultivo'
 import { registroService, type Paciente } from '../lib/registro'
 import { FotoPrivada } from '../components/FotoPrivada'
 import QR from '../components/QR'
@@ -111,7 +110,7 @@ export default function PaginaHistoriaPlanta() {
             <div className="mt-1 inline-flex items-center gap-1.5 rounded-md bg-[#15151d] border border-[#2a2a3a] px-2 py-1 font-mono text-[12px] text-[#d9f99d]">{planta.codigo}</div>
             <div className="mt-3 grid grid-cols-2 gap-2">
               <Chip label="Genética" valor={g?.nombre ?? '—'} />
-              <Chip label="Fase" valor={planta.fase} />
+              <Chip label="Fase" valor={etiquetaFase(planta.fase)} />
               <Chip label="Sustrato" valor={planta.sustrato} />
               <Chip label="Maceta" valor={planta.maceta} />
               <Chip label="Germinación" valor={planta.fecha_germinacion ? fmt(planta.fecha_germinacion) : null} />

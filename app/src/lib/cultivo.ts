@@ -18,6 +18,16 @@ export const FASES: FasePlanta[] = [
   'Secado', 'Curado', 'Cosechada', 'Muerta',
 ]
 /**
+ * Como se MUESTRA cada fase. La base guarda los valores sin tilde
+ * («Floracion»), y hasta el 25/09/2026 cada pantalla los mostraba asi o tenia
+ * su propio mapa. Una fase nueva que no este aca se muestra tal cual viene.
+ */
+const ETIQUETA_FASE: Record<string, string> = {
+  Germinacion: 'Germinación', Plantula: 'Plántula', Floracion: 'Floración',
+}
+export const etiquetaFase = (f: string | null | undefined): string =>
+  f ? (ETIQUETA_FASE[f] ?? f) : ''
+/**
  * Fases a partir de las cuales una planta cuenta para la cosecha de ESTE ciclo.
  * Las que están en germinación, plántula o vegetativo son del ciclo siguiente:
  * incluirlas al proyectar el rinde lo infla (a Gastón le pasa con las

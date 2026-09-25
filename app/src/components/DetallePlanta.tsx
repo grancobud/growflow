@@ -10,7 +10,7 @@ import {
   Sprout, Flower2, Repeat, AlertTriangle, RefreshCw, Image as ImageIcon, Scale, SprayCan,
   QrCode, ExternalLink, IdCard, Pencil,
 } from 'lucide-react'
-import { cultivoService, faseFueDerivada, type ResumenPlanta, type Cosecha } from '../lib/cultivo'
+import { cultivoService, faseFueDerivada, type ResumenPlanta, type Cosecha, etiquetaFase } from '../lib/cultivo'
 import type { LucideIcon } from 'lucide-react'
 import { gruposService, type EventoConNivel, type NivelEvento } from '../lib/grupos'
 import { registroService, type Paciente } from '../lib/registro'
@@ -216,7 +216,7 @@ export default function DetallePlanta({ planta, onCerrar, onCambio }: {
           <div className="min-w-0 flex-1">
             <h2 className="font-display font-bold text-[16px] text-[#ececf1] truncate">{planta.nombre}</h2>
             <p className="text-[11px] text-[#8a8a9c] truncate">
-              {planta.genetica ?? 'Sin genética'}{planta.dias_de_vida != null ? ` · día ${planta.dias_de_vida}` : ''} · {planta.fase}
+              {planta.genetica ?? 'Sin genética'}{planta.dias_de_vida != null ? ` · día ${planta.dias_de_vida}` : ''} · {etiquetaFase(planta.fase)}
             </p>
             {/* La ficha es el unico lugar con espacio para explicar por que el
                 sistema cuenta una fase que nadie escribio. */}

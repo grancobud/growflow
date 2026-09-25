@@ -11,7 +11,7 @@ import {
   Scale, Scissors, Trophy, X, Loader2, Plus, Star, Layers, Sprout, RefreshCw, Pencil, Trash2, ChevronDown,
   ArrowRight,
 } from 'lucide-react'
-import { cultivoService, FASES_COSECHABLES, type ResumenPlanta, type Cosecha } from '../lib/cultivo'
+import { cultivoService, FASES_COSECHABLES, type ResumenPlanta, type Cosecha, etiquetaFase } from '../lib/cultivo'
 import { useDialogo } from '../lib/useDialogo'
 import { useAbrirAlLlegar } from '../lib/useAbrirAlLlegar'
 import { RendimientoDeCultivo } from '../components/cosecha/RendimientoDeCultivo'
@@ -817,7 +817,7 @@ function ModalCarga({ fila, onCerrar, onGuardado }: { fila: FilaVariedad; onCerr
                             YA COSECHADA
                           </span>
                         ) : (
-                          <span className="text-[#8a8a9c] font-normal flex-shrink-0">· {p.fase}</span>
+                          <span className="text-[#8a8a9c] font-normal flex-shrink-0">· {etiquetaFase(p.fase)}</span>
                         )}
                       </div>
                       <div className="grid grid-cols-2 gap-2 items-end">

@@ -10,7 +10,7 @@ import {
 import {
   cultivoService, generarCodigoPlanta, FASES, TIPOS_GENETICA, SUSTRATOS,
   type ResumenPlanta, type Genetica, type Evento, type FasePlanta, type TipoEvento, colorFase,
-  faseFueDerivada } from '../lib/cultivo'
+  faseFueDerivada, etiquetaFase } from '../lib/cultivo'
 import { registroService, type Paciente } from '../lib/registro'
 import DetallePlanta from '../components/DetallePlanta'
 import { btnPrimario, btnSutil, nombreTocable, selectFiltro, etiquetaCampo, inputFormulario } from '../lib/ui'
@@ -345,7 +345,7 @@ export default function PaginaPlantas() {
             </select>
             <select value={fFase} onChange={e => setFFase(e.target.value as FasePlanta | '')} className={filtroEnGrilla} title="Filtrar por fase">
               <option value="">Toda fase</option>
-              {fasesPresentes.map(f => <option key={f} value={f}>{f}</option>)}
+              {fasesPresentes.map(f => <option key={f} value={f}>{etiquetaFase(f)}</option>)}
             </select>
             {ubicacionesUnicas.length > 0 && (
               <select value={fUbicacion} onChange={e => setFUbicacion(e.target.value)} className={filtroEnGrilla} title="Filtrar por ubicación">
@@ -458,7 +458,7 @@ export default function PaginaPlantas() {
                         title={faseFueDerivada(p)
                           ? `Automatica de dia ${p.dias_de_vida}: se cuenta en floracion. En la ficha figura ${p.fase_guardada}.`
                           : undefined}>
-                        {p.fase}{faseFueDerivada(p) ? '*' : ''}
+                        {etiquetaFase(p.fase)}{faseFueDerivada(p) ? '*' : ''}
                       </span>
                       <button onClick={() => eliminarPlanta(p)}
                         className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1 -mr-1 text-[#8a8a9c] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded transition-colors flex-shrink-0"
@@ -487,11 +487,13 @@ export default function PaginaPlantas() {
                         tarjeta y todo arranca en la misma grilla. En `sm:` vuelve
                         a la fila, donde los botones muestran su texto y cada uno
                         mide lo que su contenido pide. */}
-                    {/* `mt-auto`: la barra baja al pie de la tarjeta. Como todas
-                        las tarjetas de la fila miden lo mismo, las barras quedan
-                        a la misma altura aunque una cabecera tenga un dato mas
-                        que otra. Era lo que se veia «chocado». */}
-                    <div className="mt-auto pt-3 grid grid-cols-4 gap-1.5 @md:flex @md:flex-wrap">
+                    {/* La barra va PEGADA a los datos, no al pie (`mt-auto`). Al
+                        pie quedaba a distinta altura segun la planta tuviera o no
+                        el renglon «Historial» abajo: 28 px de diferencia entre
+                        tarjetas vecinas. Pegada a los datos, que miden lo mismo
+                        en todas, las barras se alinean; el aire sobrante queda
+                        abajo y el historial, al pie de la tarjeta. */}
+                    <div className="pt-3 grid grid-cols-4 gap-1.5 @md:flex @md:flex-wrap">
                       <button onClick={() => registrarEvento(p.id, 'Riego')} className={btnSutil} title="Registrar riego" aria-label="Registrar riego">
                         <Droplets aria-hidden className="w-3.5 h-3.5 text-[#38bdf8]" /> <span className="hidden @md:inline">Riego</span>
                       </button>
@@ -511,7 +513,7 @@ export default function PaginaPlantas() {
                         onChange={e => cambiarFase(p.id, e.target.value as FasePlanta)}
                         className="col-span-3 w-full @md:w-auto px-2 py-1.5 rounded-lg bg-[#15151d] border border-[#2a2a3a] text-[16px] sm:text-[11px] text-[#a6a6b5] focus:outline-none focus:border-[#a3e635]/60 cursor-pointer min-h-[44px] sm:min-h-0 sm:max-w-none"
                         title="Cambiar fase" aria-label="Cambiar fase">
-                        {FASES.map(f => <option key={f} value={f}>{f}</option>)}
+                        {FASES.map(f => <option key={f} value={f}>{etiquetaFase(f)}</option>)}
                       </select>
                     </div>
                   </div>
@@ -800,7 +802,7 @@ function ModalPlanta({ geneticas, pacientes, onCerrar, onCreada, onNuevaGenetica
           <div>
             <label className={etiquetaCampo}>Fase</label>
             <select className={inputFormulario} value={form.fase} onChange={e => setForm(f => ({ ...f, fase: e.target.value }))}>
-              {FASES.map(f => <option key={f} value={f}>{f}</option>)}
+              {FASES.map(f => <option key={f} value={f}>{etiquetaFase(f)}</option>)}
             </select>
             <AyudaCampo id="plantas" campo="Fase" />
           </div>
