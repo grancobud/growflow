@@ -58,6 +58,8 @@ import { pedirTexto } from '../../lib/pedirDatos'
 const PESO: Record<EstadoSolicitud, number> = {
   pendiente: 0, en_revision: 1, aceptada: 2, rechazada: 3,
 }
+// Un estado nuevo en la base va al final en vez de dar NaN en el sort.
+const pesoDe = (e: string) => PESO[e as EstadoSolicitud] ?? 9
 
 export function Solicitudes({ onAlta, padron = [], padronListo = true, topeVinculados = 150, onCambio }: {
   /** Abre el alta de paciente con los datos de la solicitud ya cargados. */
@@ -223,7 +225,7 @@ export function Solicitudes({ onAlta, padron = [], padronListo = true, topeVincu
         : filtro === 'abiertas' ? (s.estado === 'pendiente' || s.estado === 'en_revision')
         : s.estado === filtro)
       .filter(s => !q || s.nombre.toLowerCase().includes(q) || s.dni.includes(q))
-      .sort((a, b) => PESO[a.estado] - PESO[b.estado] || b.creada_en.localeCompare(a.creada_en))
+      .sort((a, b) => pesoDe(a.estado) - pesoDe(b.estado) || b.creada_en.localeCompare(a.creada_en))
   }, [filas, filtro, busca])
 
   const sinRevisar = filas.filter(s => s.estado === 'pendiente').length

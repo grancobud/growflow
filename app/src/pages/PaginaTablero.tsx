@@ -17,6 +17,8 @@ const COLOR_TIPO: Record<TipoCircuito, string> = {
   luz: '#a3e635', ac: '#38bdf8', deshumi: '#22d3ee', ventilacion: '#818cf8',
   extraccion: '#c084fc', bomba: '#f59e0b', co2: '#f472b6', osmosis: '#2dd4bf', otro: '#94a3b8',
 }
+// El tipo viene de la base: uno desconocido se dibuja como «otro».
+const colorTipo = (t: string) => COLOR_TIPO[t as TipoCircuito] ?? COLOR_TIPO.otro
 const fmt = (n: number | null | undefined, d = 1) =>
   n == null ? '—' : Number(n).toLocaleString('es-AR', { maximumFractionDigits: d })
 
@@ -230,7 +232,7 @@ function DocTab(p: DocTabProps) {
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: COLOR_TIPO[c.tipo] }} />
+                          <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: colorTipo(c.tipo) }} />
                           <span className="text-[13px] font-medium text-[#ececf1] truncate">{c.nombre}</span>
                           <span className="text-[10px] text-[#8a8a9c] px-1.5 py-0.5 bg-[#181820] rounded">{info?.label}</span>
                           {c.sala && <span className="text-[10px] text-[#8a8a9c]">· {c.sala}</span>}
@@ -300,7 +302,7 @@ function UnifilarTab({ sel, circuitos, resumen }: { sel: Tablero | null; circuit
           const term = c.proteccion || (termicaSugerida(inom) ? `${termicaSugerida(inom)}A` : '—')
           const cab = c.seccion_cable_mm2 ? `${c.seccion_cable_mm2}mm²` : (cableSugerido(inom) ? `${cableSugerido(inom)}mm²` : '')
           const contactor = necesitaContactor({ tipo: c.tipo, contactor: c.contactor, inom })
-          const col = COLOR_TIPO[c.tipo]
+          const col = colorTipo(c.tipo)
           return (
             <g key={c.id}>
               <line x1={busX} y1={y} x2={busX + 40} y2={y} stroke="#3a3a48" strokeWidth="1.5" />

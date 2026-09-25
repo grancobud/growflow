@@ -11,6 +11,9 @@ const PREFIJO = 'growflow_demo:'
 // los datos nuevos. v23-vacio saca el seed de ejemplo: la app arranca sin nada.
 const VERSION_SEED = 'v23-vacio'
 
+// Una fila de cualquier tabla del modo demo: las columnas las decide cada
+// pantalla, igual que con la base real.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Fila = Record<string, any>
 
 export function uuid(): string {

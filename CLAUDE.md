@@ -44,7 +44,7 @@ al pushear a `main`.
 npm --prefix app install     # una vez
 npm --prefix app run dev     # desarrollo (puerto 5199)
 npm --prefix app test        # 1000 tests, ~8 s
-npm --prefix app run lint    # linea base: 0 errores + 58 warnings
+npm --prefix app run lint    # 0 errores y 0 warnings: --max-warnings 0 hace fallar el CI con uno nuevo
 npm --prefix app run build
 ```
 

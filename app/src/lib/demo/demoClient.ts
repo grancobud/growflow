@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any --
+ * Este archivo imita al cliente de Supabase para el modo demo. Su API es tan
+ * dinamica como la real (cualquier tabla, cualquier columna, cualquier valor en
+ * .eq/.gt/.in), y el resto de la app lo usa detras del tipo de createClient.
+ * Tiparlo mas fino no protege nada y obliga a castear en cada filtro. */
 // ============================================================================
 // Modo DEMO - cliente que imita la interfaz de @supabase/supabase-js
 // respaldado por localStorage (ver demoStore.ts). Cubre el query-builder
