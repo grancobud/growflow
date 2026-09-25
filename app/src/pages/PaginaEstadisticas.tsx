@@ -109,18 +109,20 @@ export default function PaginaEstadisticas() {
   return (
     <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden ct-page-scroll bg-[#0a0a0f] text-[#d4d4dd] font-sans">
       <div className="sticky top-0 z-40 bg-[#0a0a0f] border-b border-[#1f1f2b]">
-        <div className="flex items-center gap-2 sm:gap-4 px-3 sm:px-6 py-3">
-          <div className="min-w-0">
+        {/* En el telefono el titulo va en su renglon y el selector abajo, a lo
+            ancho: compartiendo fila, el subtitulo quedaba en «La asociación: la …». */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 px-3 sm:px-6 py-3">
+          <div className="min-w-0 basis-full sm:basis-auto">
             <h1 className="font-display font-bold tracking-tight text-[15px] sm:text-[17px] text-[#ececf1]">Estadísticas</h1>
             <div className="mt-0.5 text-[10px] sm:text-[11px] text-[#8a8a9c] truncate">
               La asociación: la gente, la plata y las entregas
             </div>
           </div>
-          <div className="flex-1" />
-          <div className="flex items-center gap-1 rounded-lg border border-[#2a2a3a] bg-[#15151d] p-0.5">
+          <div className="hidden sm:block flex-1" />
+          <div className="flex flex-1 sm:flex-none items-center gap-1 rounded-lg border border-[#2a2a3a] bg-[#15151d] p-0.5">
             {VENTANAS.map(v => (
               <button key={v.id} onClick={() => setVentana(v.id)}
-                className={`px-2.5 py-1.5 min-h-[44px] sm:min-h-0 rounded-md text-[11px] transition-colors whitespace-nowrap ${
+                className={`flex-1 sm:flex-none px-2.5 py-1.5 min-h-[44px] sm:min-h-0 rounded-md text-[11px] transition-colors whitespace-nowrap ${
                   ventana === v.id ? 'bg-[#a3e635]/15 text-[#d9f99d]' : 'text-[#8a8a9c] hover:text-[#d4d4dd]'}`}>
                 {v.label}
               </button>

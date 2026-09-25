@@ -920,7 +920,7 @@ export default function PaginaSala() {
               <input key={k} type="number" inputMode="decimal" value={receta[k]}
                 onChange={e => setReceta(r => ({ ...r, [k]: e.target.value }))}
                 placeholder={`${ph} (ej ${eg})`}
-                className={`${inputReceta} w-full sm:w-[120px]`} />
+                className={`${inputReceta} w-full ${k === 'volumen' ? 'sm:w-[160px]' : 'sm:w-[120px]'}`} />
             ))}
             {/* EC y PPM son la misma lectura en dos unidades. Se escribe la que
                 mide tu instrumento y la otra se completa sola, con el factor a
@@ -1012,7 +1012,9 @@ export default function PaginaSala() {
       <div className="px-3 sm:px-6 py-5 pb-20">
         {/* Sin areas todavia: no dibujamos un tablero inventado. */}
         {!cargando && areas.length === 0 ? (
-          <div className="max-w-md mx-auto text-center rounded-xl bg-[#101016] border border-dashed border-[#2a2a3a] px-6 py-10">
+          // Mismo ancho que la bandeja «Sin ubicar» de abajo (max-w-2xl): con
+          // anchos distintos, las dos cajas centradas no compartian ningun borde.
+          <div className="max-w-2xl mx-auto text-center rounded-xl bg-[#101016] border border-dashed border-[#2a2a3a] px-6 py-10">
             <LayoutGrid className="w-7 h-7 mx-auto mb-3 text-[#8a8a9c]" />
             <h2 className="font-display font-semibold text-[15px] text-[#ececf1] mb-1.5">Todavía no hay áreas</h2>
             <p className="text-[12px] text-[#8f8f9f] leading-relaxed mb-5">

@@ -29,7 +29,7 @@ export function BotoneraCultivo() {
     <section className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden">
       <button onClick={() => setAbierta(v => !v)}
         aria-expanded={abierta}
-        className="w-full flex items-center gap-2 px-3.5 py-2.5 min-h-[44px] text-left hover:bg-[#15151d] transition-colors">
+        className="w-full flex items-center gap-2 px-3 sm:px-4 py-2.5 min-h-[44px] text-left hover:bg-[#15151d] transition-colors">
         <Wrench aria-hidden className="w-3.5 h-3.5 text-[#a3e635] flex-shrink-0" strokeWidth={2} />
         <span className="font-display font-semibold text-[13px] text-[#ececf1]">
           ¿Qué querés hacer?
@@ -40,7 +40,7 @@ export function BotoneraCultivo() {
       </button>
 
       {abierta && (
-        <div className="px-3 pb-3 border-t border-[#1f1f2b] pt-3 grid gap-1.5 sm:grid-cols-2 auto-rows-fr">
+        <div className="px-3 sm:px-4 pb-3 sm:pb-4 border-t border-[#1f1f2b] pt-3 grid gap-1.5 sm:grid-cols-2 auto-rows-fr">
           {ACCIONES_CULTIVO.map(a => (
             <FilaAccion key={a.id} a={a} detalle sale={saleDeCultivo(a)} />
           ))}

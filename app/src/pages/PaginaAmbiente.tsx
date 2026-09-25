@@ -261,7 +261,7 @@ export default function PaginaAmbiente() {
 
       <div className="flex-1 overflow-auto">
         {tab === 'envivo' ? (
-          <AmbienteEnVivo />
+          <div className="max-w-3xl mx-auto w-full"><AmbienteEnVivo /></div>
         ) : cargando ? (
           <div className="p-6 space-y-2">
             {Array.from({ length: 3 }).map((_, i) => (

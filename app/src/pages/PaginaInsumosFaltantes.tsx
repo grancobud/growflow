@@ -220,7 +220,7 @@ export default function PaginaInsumosFaltantes() {
 
       <div className="px-3 sm:px-6 py-4 sm:py-5 pb-20 space-y-4">
         {/* Form de alta — arriba de todo */}
-        <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-4 sm:p-5">
+        <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] p-3 sm:p-4">
           <div className="flex items-center gap-2 mb-3">
             {editId ? <Pencil className="w-3.5 h-3.5 text-[#bef264]" /> : <ShoppingCart className="w-3.5 h-3.5 text-[#bef264]" />}
             <h3 className="font-display font-semibold text-[13px] text-[#ececf1]">{editId ? 'Editar insumo' : 'Agregar insumo faltante'}</h3>
