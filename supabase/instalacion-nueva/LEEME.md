@@ -16,3 +16,6 @@ actualiza solo.
 y las policies de `pacientes_clinica` / `evolucion_clinica` pasaron a
 `TO authenticated`, igual que en la base real (migraciones `20260925010000` y
 `20260925020000`). Verificado cargándolo en PGlite.
+Ese mismo día se sumó `perfiles_usuario.email` y `crear_perfil_al_alta()` la
+completa al dar de alta una cuenta (migración `20260925030000`): la pantalla de
+Usuarios y `usuarios-invitar` la usaban y la base no la tenía.

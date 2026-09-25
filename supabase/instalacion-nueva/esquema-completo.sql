@@ -140,14 +140,15 @@ declare
 begin
   select not exists (select 1 from public.perfiles_usuario) into es_el_primero;
 
-  insert into public.perfiles_usuario (id, nombre_completo, rol, activo)
+  insert into public.perfiles_usuario (id, nombre_completo, rol, activo, email)
   values (
     new.id,
     coalesce(new.raw_user_meta_data ->> 'nombre_completo', split_part(new.email, '@', 1)),
     case when es_el_primero then 'administrador' else 'auditor' end,
-    es_el_primero
+    es_el_primero,
+    lower(new.email)
   )
-  on conflict (id) do nothing;
+  on conflict (id) do update set email = coalesce(public.perfiles_usuario.email, excluded.email);
 
   return new;
 end $$;
@@ -2174,6 +2175,7 @@ CREATE TABLE public.perfiles_usuario (
     rol text DEFAULT 'administrador'::text NOT NULL,
     activo boolean DEFAULT true NOT NULL,
     ultimo_acceso timestamp with time zone,
+    email text,
     CONSTRAINT perfiles_usuario_rol_check CHECK ((rol = ANY (ARRAY['administrador'::text, 'administrador_sistema'::text, 'administrativo'::text, 'mostrador'::text, 'cultivador'::text, 'director_cultivo'::text, 'director_medico'::text, 'auditor'::text, 'demo'::text])))
 );
 
