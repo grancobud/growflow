@@ -49,6 +49,7 @@ create table if not exists public.evolucion_clinica (
 );
 
 -- ═══ RLS: igual que ong_feedback_clinico, cerradas con puede_ver_clinico() ═══
+-- Solo authenticated: la base las tenia para public (ver 20260925010000).
 alter table public.pacientes_clinica enable row level security;
 alter table public.evolucion_clinica enable row level security;
 
@@ -56,21 +57,21 @@ drop policy if exists clinica_ver on public.pacientes_clinica;
 drop policy if exists clinica_escribir on public.pacientes_clinica;
 drop policy if exists clinica_actualizar on public.pacientes_clinica;
 drop policy if exists clinica_borrar on public.pacientes_clinica;
-create policy clinica_ver on public.pacientes_clinica for select using (public.puede_ver_clinico());
-create policy clinica_escribir on public.pacientes_clinica for insert with check (public.puede_ver_clinico());
-create policy clinica_actualizar on public.pacientes_clinica for update
+create policy clinica_ver on public.pacientes_clinica for select to authenticated using (public.puede_ver_clinico());
+create policy clinica_escribir on public.pacientes_clinica for insert to authenticated with check (public.puede_ver_clinico());
+create policy clinica_actualizar on public.pacientes_clinica for update to authenticated
   using (public.puede_ver_clinico()) with check (public.puede_ver_clinico());
-create policy clinica_borrar on public.pacientes_clinica for delete using (public.es_admin());
+create policy clinica_borrar on public.pacientes_clinica for delete to authenticated using (public.es_admin());
 
 drop policy if exists evolucion_ver on public.evolucion_clinica;
 drop policy if exists evolucion_escribir on public.evolucion_clinica;
 drop policy if exists evolucion_actualizar on public.evolucion_clinica;
 drop policy if exists evolucion_borrar on public.evolucion_clinica;
-create policy evolucion_ver on public.evolucion_clinica for select using (public.puede_ver_clinico());
-create policy evolucion_escribir on public.evolucion_clinica for insert with check (public.puede_ver_clinico());
-create policy evolucion_actualizar on public.evolucion_clinica for update
+create policy evolucion_ver on public.evolucion_clinica for select to authenticated using (public.puede_ver_clinico());
+create policy evolucion_escribir on public.evolucion_clinica for insert to authenticated with check (public.puede_ver_clinico());
+create policy evolucion_actualizar on public.evolucion_clinica for update to authenticated
   using (public.puede_ver_clinico()) with check (public.puede_ver_clinico());
-create policy evolucion_borrar on public.evolucion_clinica for delete using (public.es_admin());
+create policy evolucion_borrar on public.evolucion_clinica for delete to authenticated using (public.es_admin());
 
 -- ═══ Director medico de la entidad (firma los informes de la Res. 1780/2025) ═══
 alter table public.ong_entidad add column if not exists director_medico text;

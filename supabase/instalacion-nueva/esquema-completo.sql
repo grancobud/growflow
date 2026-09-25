@@ -542,46 +542,6 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- Name: _backup_instalaciones_20260725; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public._backup_instalaciones_20260725 (
-    id uuid,
-    user_id uuid,
-    nombre text,
-    sistema text,
-    marca text,
-    modelo text,
-    proveedor_id uuid,
-    precio numeric,
-    unidad text,
-    specs text,
-    url text,
-    notas text,
-    creado_en timestamp with time zone,
-    actualizado_en timestamp with time zone,
-    favorito boolean
-);
-
-
---
--- Name: _backup_ofertas_20260725; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public._backup_ofertas_20260725 (
-    id uuid,
-    item_id uuid,
-    proveedor_id uuid,
-    precio numeric,
-    presentacion text,
-    imagen text,
-    nota text,
-    elegido boolean,
-    creado_en timestamp with time zone
-);
-
-
---
 -- Name: actividades; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2126,44 +2086,6 @@ CREATE VIEW public.pacientes_min AS
 
 
 --
--- Name: pacientes_respaldo_20260825; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.pacientes_respaldo_20260825 (
-    id uuid,
-    nombre_completo text,
-    dni text,
-    fecha_nacimiento date,
-    telefono text,
-    email text,
-    localidad text,
-    provincia text,
-    domicilio text,
-    foto_url text,
-    reprocann_nro text,
-    reprocann_estado text,
-    reprocann_emision date,
-    reprocann_vencimiento date,
-    modalidad text,
-    credencial_url text,
-    patologia text,
-    medico_tratante text,
-    matricula_medico text,
-    socio boolean,
-    fecha_alta date,
-    activo boolean,
-    notas text,
-    creado_en timestamp with time zone,
-    plantas_habilitadas integer,
-    m2_habilitados numeric(6,2),
-    tope_mensual_g numeric,
-    nivel_tarifa text,
-    codigo text,
-    respaldado_en timestamp with time zone
-);
-
-
---
 -- Name: pacientes_segun_rol; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -2416,87 +2338,6 @@ CREATE TABLE public.recordatorios (
     creado_en timestamp with time zone DEFAULT now() NOT NULL,
     CONSTRAINT recordatorios_repeticion_check CHECK ((repeticion = ANY (ARRAY['ninguna'::text, 'diaria'::text, 'cada_n_dias'::text, 'semanal'::text, 'mensual'::text]))),
     CONSTRAINT recordatorios_tipo_check CHECK ((tipo = ANY (ARRAY['Riego'::text, 'Fertilizacion'::text, 'Poda'::text, 'Trasplante'::text, 'Fumigacion'::text, 'Cosecha'::text, 'Mantenimiento'::text, 'Recordatorio'::text, 'Otro'::text])))
-);
-
-
---
--- Name: respaldo_aplicaciones_fantasma_20260826; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.respaldo_aplicaciones_fantasma_20260826 (
-    id uuid,
-    planta_id uuid,
-    fecha date,
-    categoria text,
-    producto text,
-    dosis text,
-    metodo text,
-    notas text,
-    creado_en timestamp with time zone,
-    respaldado_en timestamp with time zone
-);
-
-
---
--- Name: respaldo_eventos_fantasma_20260826; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.respaldo_eventos_fantasma_20260826 (
-    id uuid,
-    planta_id uuid,
-    tipo text,
-    fecha date,
-    detalle text,
-    foto_url text,
-    mensaje_original text,
-    creado_en timestamp with time zone,
-    respaldado_en timestamp with time zone
-);
-
-
---
--- Name: respaldo_plantas_fantasma_20260826; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.respaldo_plantas_fantasma_20260826 (
-    id uuid,
-    genetica_id uuid,
-    madre_id uuid,
-    apodo text,
-    fecha_germinacion date,
-    fase text,
-    sustrato text,
-    maceta text,
-    ubicacion text,
-    activa boolean,
-    notas text,
-    creado_en timestamp with time zone,
-    actualizado_en timestamp with time zone,
-    slot text,
-    codigo text,
-    paciente_id uuid,
-    fecha_cosecha date,
-    fecha_envasado date,
-    respaldado_en timestamp with time zone
-);
-
-
---
--- Name: respaldo_riegos_fantasma_20260826; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.respaldo_riegos_fantasma_20260826 (
-    id uuid,
-    planta_id uuid,
-    fecha date,
-    volumen_ml numeric,
-    ppm numeric,
-    ph numeric(3,1),
-    escurrio boolean,
-    escurrido_ml numeric,
-    notas text,
-    creado_en timestamp with time zone,
-    respaldado_en timestamp with time zone
 );
 
 
@@ -4023,32 +3864,6 @@ ALTER TABLE ONLY public.tableros_circuitos
 
 
 --
--- Name: _backup_instalaciones_20260725; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public._backup_instalaciones_20260725 ENABLE ROW LEVEL SECURITY;
-
---
--- Name: _backup_instalaciones_20260725 _backup_instalaciones_20260725_admin; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY _backup_instalaciones_20260725_admin ON public._backup_instalaciones_20260725 TO authenticated USING (public.es_admin()) WITH CHECK (public.es_admin());
-
-
---
--- Name: _backup_ofertas_20260725; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public._backup_ofertas_20260725 ENABLE ROW LEVEL SECURITY;
-
---
--- Name: _backup_ofertas_20260725 _backup_ofertas_20260725_admin; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY _backup_ofertas_20260725_admin ON public._backup_ofertas_20260725 TO authenticated USING (public.es_admin()) WITH CHECK (public.es_admin());
-
-
---
 -- Name: actividades; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -4169,45 +3984,31 @@ CREATE POLICY asistencias_ver ON public.asistencias FOR SELECT TO authenticated 
 
 
 --
--- Name: _backup_instalaciones_20260725 backup_instalaciones_solo_admin; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY backup_instalaciones_solo_admin ON public._backup_instalaciones_20260725 TO authenticated USING (public.es_admin()) WITH CHECK (public.es_admin());
-
-
---
--- Name: _backup_ofertas_20260725 backup_ofertas_solo_admin; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY backup_ofertas_solo_admin ON public._backup_ofertas_20260725 TO authenticated USING (public.es_admin()) WITH CHECK (public.es_admin());
-
-
---
 -- Name: pacientes_clinica clinica_actualizar; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY clinica_actualizar ON public.pacientes_clinica FOR UPDATE USING (public.puede_ver_clinico()) WITH CHECK (public.puede_ver_clinico());
+CREATE POLICY clinica_actualizar ON public.pacientes_clinica FOR UPDATE TO authenticated USING (public.puede_ver_clinico()) WITH CHECK (public.puede_ver_clinico());
 
 
 --
 -- Name: pacientes_clinica clinica_borrar; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY clinica_borrar ON public.pacientes_clinica FOR DELETE USING (public.es_admin());
+CREATE POLICY clinica_borrar ON public.pacientes_clinica FOR DELETE TO authenticated USING (public.es_admin());
 
 
 --
 -- Name: pacientes_clinica clinica_escribir; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY clinica_escribir ON public.pacientes_clinica FOR INSERT WITH CHECK (public.puede_ver_clinico());
+CREATE POLICY clinica_escribir ON public.pacientes_clinica FOR INSERT TO authenticated WITH CHECK (public.puede_ver_clinico());
 
 
 --
 -- Name: pacientes_clinica clinica_ver; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY clinica_ver ON public.pacientes_clinica FOR SELECT USING (public.puede_ver_clinico());
+CREATE POLICY clinica_ver ON public.pacientes_clinica FOR SELECT TO authenticated USING (public.puede_ver_clinico());
 
 
 --
@@ -4394,14 +4195,14 @@ CREATE POLICY eventos_ver ON public.eventos FOR SELECT TO authenticated USING ((
 -- Name: evolucion_clinica evolucion_actualizar; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY evolucion_actualizar ON public.evolucion_clinica FOR UPDATE USING (public.puede_ver_clinico()) WITH CHECK (public.puede_ver_clinico());
+CREATE POLICY evolucion_actualizar ON public.evolucion_clinica FOR UPDATE TO authenticated USING (public.puede_ver_clinico()) WITH CHECK (public.puede_ver_clinico());
 
 
 --
 -- Name: evolucion_clinica evolucion_borrar; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY evolucion_borrar ON public.evolucion_clinica FOR DELETE USING (public.es_admin());
+CREATE POLICY evolucion_borrar ON public.evolucion_clinica FOR DELETE TO authenticated USING (public.es_admin());
 
 
 --
@@ -4414,14 +4215,14 @@ ALTER TABLE public.evolucion_clinica ENABLE ROW LEVEL SECURITY;
 -- Name: evolucion_clinica evolucion_escribir; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY evolucion_escribir ON public.evolucion_clinica FOR INSERT WITH CHECK (public.puede_ver_clinico());
+CREATE POLICY evolucion_escribir ON public.evolucion_clinica FOR INSERT TO authenticated WITH CHECK (public.puede_ver_clinico());
 
 
 --
 -- Name: evolucion_clinica evolucion_ver; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY evolucion_ver ON public.evolucion_clinica FOR SELECT USING (public.puede_ver_clinico());
+CREATE POLICY evolucion_ver ON public.evolucion_clinica FOR SELECT TO authenticated USING (public.puede_ver_clinico());
 
 
 --
@@ -5098,12 +4899,6 @@ CREATE POLICY pacientes_escribir ON public.pacientes FOR INSERT TO authenticated
 
 
 --
--- Name: pacientes_respaldo_20260825; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.pacientes_respaldo_20260825 ENABLE ROW LEVEL SECURITY;
-
---
 -- Name: pacientes pacientes_ver_ficha; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -5291,30 +5086,6 @@ CREATE POLICY recordatorios_ver ON public.recordatorios FOR SELECT TO authentica
 
 
 --
--- Name: respaldo_aplicaciones_fantasma_20260826; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.respaldo_aplicaciones_fantasma_20260826 ENABLE ROW LEVEL SECURITY;
-
---
--- Name: respaldo_eventos_fantasma_20260826; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.respaldo_eventos_fantasma_20260826 ENABLE ROW LEVEL SECURITY;
-
---
--- Name: respaldo_plantas_fantasma_20260826; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.respaldo_plantas_fantasma_20260826 ENABLE ROW LEVEL SECURITY;
-
---
--- Name: respaldo_riegos_fantasma_20260826; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.respaldo_riegos_fantasma_20260826 ENABLE ROW LEVEL SECURITY;
-
---
 -- Name: riegos; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -5431,7 +5202,6 @@ do $g$ begin execute 'grant select on public.v_saldo_ordenes     to authenticate
 do $g$ begin execute 'grant select on public.v_saldo_proveedores to authenticated'; exception when undefined_function or undefined_table or undefined_object then null; end $g$;
 do $g$ begin execute 'revoke all on public.pacientes_min from anon'; exception when undefined_function or undefined_table or undefined_object then null; end $g$;
 do $g$ begin execute 'grant select on public.pacientes_min to authenticated'; exception when undefined_function or undefined_table or undefined_object then null; end $g$;
-do $g$ begin execute 'revoke all on public.pacientes_respaldo_20260825 from anon, authenticated'; exception when undefined_function or undefined_table or undefined_object then null; end $g$;
 do $g$ begin execute 'revoke all on function public.solicitud_crear(text, text, text, text, text, boolean, text) from public'; exception when undefined_function or undefined_table or undefined_object then null; end $g$;
 do $g$ begin execute 'grant execute on function public.solicitud_crear(text, text, text, text, text, boolean, text) to anon, authenticated'; exception when undefined_function or undefined_table or undefined_object then null; end $g$;
 do $g$ begin execute 'revoke all on function public.solicitud_estado(text) from public'; exception when undefined_function or undefined_table or undefined_object then null; end $g$;
