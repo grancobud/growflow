@@ -1,0 +1,45 @@
+# CI de GrowFlow: en cada push y pull request a main corre lo mismo que se
+# exige antes de dar algo por terminado (CLAUDE.md): tests, lint y build
+# (el build incluye `tsc -b`, que es el que caza imports sin usar).
+#
+# No deploya: el deploy lo hace Cloudflare Pages solo al pushear a main.
+# Esto avisa si lo que se pusheo esta roto, antes de descubrirlo en el sitio.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Tests (vitest)
+        run: npm test
+
+      - name: Lint (0 errores; los warnings son la linea base)
+        run: npm run lint
+
+      - name: Build (tsc -b + vite)
+        run: npm run build
