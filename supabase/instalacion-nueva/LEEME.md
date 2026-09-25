@@ -19,3 +19,5 @@ y las policies de `pacientes_clinica` / `evolucion_clinica` pasaron a
 Ese mismo día se sumó `perfiles_usuario.email` y `crear_perfil_al_alta()` la
 completa al dar de alta una cuenta (migración `20260925030000`): la pantalla de
 Usuarios y `usuarios-invitar` la usaban y la base no la tenía.
+Y los índices de las 30 claves foráneas que no tenían uno (migración
+`20260925040000`), al final del archivo.

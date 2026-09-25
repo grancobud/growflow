@@ -17,6 +17,7 @@ import {
   type EventoCal, type TipoCal, type Recordatorio, type Repeticion, iconoCal } from '../lib/calendario'
 import { btnPrimario, btnSutil } from '../lib/ui'
 import { hoyLocal } from '../lib/fechaLocal'
+import { useAnchoDesde, SM } from '../lib/useAnchoDesde'
 
 // text-[16px] en celular: iOS Safari hace zoom sobre cualquier campo con letra
 // menor y deja el formulario descuadrado. En desktop vuelve al tamaño real.
@@ -47,7 +48,27 @@ function renderEvento(arg: EventContentArg) {
   )
 }
 
+/**
+ * En el TELEFONO, solo el icono. Una celda mide ~48 px: el titulo se cortaba en
+ * «C.» o «P.» y no decia nada. El icono del tipo se reconoce solo, y tocando el
+ * dia se abre la lista con los titulos completos.
+ */
+function renderEventoIcono(arg: EventContentArg) {
+  const ev = arg.event.extendedProps.ev as EventoCal | undefined
+  const Ic = ev ? iconoCal(ev.tipo) : null
+  return (
+    <span className="flex items-center justify-center w-[18px] h-[18px]" title={arg.event.title}>
+      {Ic && <Ic className="w-3 h-3" strokeWidth={2.2} />}
+    </span>
+  )
+}
+
 const CAL_CSS = `
+/* Telefono: los eventos de un dia van en fila (iconos), no apilados. */
+.gf-cal-angosto .fc-daygrid-day-events { display:flex; flex-wrap:wrap; gap:2px; padding:0 3px 3px; min-height:0 !important; }
+.gf-cal-angosto .fc-daygrid-event-harness { margin-top:0 !important; }
+.gf-cal-angosto .fc-daygrid-event { margin:0 !important; padding:0 !important; border-radius:5px; }
+.gf-cal-angosto .fc-daygrid-day-bottom { flex-basis:100%; font-size:10px; }
 .gf-cal { --fc-border-color:#191921; --fc-page-bg-color:#0a0a0f; --fc-neutral-bg-color:#0e0e14; --fc-today-bg-color:rgba(167,139,250,0.07); overflow-x:hidden; }
 /* Forzar 7 columnas que ocupen 100% exacto (mata la columna fantasma / desborde a la derecha) */
 .gf-cal .fc-scrollgrid { table-layout:fixed !important; }
@@ -87,6 +108,10 @@ const CAL_CSS = `
 export default function PaginaCalendarioCultivo() {
   const [eventos, setEventos] = useState<EventoCal[]>([])
   const [cargando, setCargando] = useState(true)
+  const anchoPC = useAnchoDesde(SM)
+  // El dia abierto en el telefono: la lista de sus eventos con el titulo entero.
+  const [dia, setDia] = useState<string | null>(null)
+  const refDia = useDialogo(() => setDia(null), !!dia)
   const [rango, setRango] = useState<{ desde: string; hasta: string }>({ desde: hoyISO(), hasta: hoyISO() })
   const [ocultos, setOcultos] = useState<Set<TipoCal>>(new Set())
   const [modal, setModal] = useState(false)
@@ -130,6 +155,9 @@ export default function PaginaCalendarioCultivo() {
   })
 
   const onEventClick = (arg: EventClickArg) => {
+    // En el telefono el icono mide 18 px: tocarlo abre el dia entero, que es
+    // un blanco que se puede acertar con el dedo.
+    if (!anchoPC) { setDia(arg.event.startStr.slice(0, 10)); return }
     setDetalle(arg.event.extendedProps.ev as EventoCal)
   }
 
@@ -150,7 +178,12 @@ export default function PaginaCalendarioCultivo() {
     if (rec) { setDetalle(null); setEditRec(rec); setFechaPre(null); setModal(true) }
   }
 
-  const onDateClick = (arg: DateClickArg) => { setEditRec(null); setFechaPre(arg.dateStr.slice(0, 10)); setModal(true) }
+  const onDateClick = (arg: DateClickArg) => {
+    const fecha = arg.dateStr.slice(0, 10)
+    if (!anchoPC) { setDia(fecha); return }
+    setEditRec(null); setFechaPre(fecha); setModal(true)
+  }
+  const eventosDelDia = dia ? eventos.filter(e => e.fecha === dia && !ocultos.has(e.tipo)) : []
 
   const recargar = () => cargar(rango.desde, rango.hasta)
   const conteo = (t: TipoCal) => eventos.filter(e => e.tipo === t).length
@@ -192,7 +225,7 @@ export default function PaginaCalendarioCultivo() {
         </div>
       </div>
 
-      <div className="px-3 sm:px-6 py-4 pb-24 gf-cal relative">
+      <div className={`px-3 sm:px-6 py-4 pb-24 gf-cal relative ${anchoPC ? '' : 'gf-cal-angosto'}`}>
         {cargando && <div className="absolute right-8 top-6 z-10"><Loader2 className="w-4 h-4 animate-spin text-[#bef264]" /></div>}
         <FullCalendar
           plugins={[dayGridPlugin, interactionPlugin]}
@@ -205,14 +238,58 @@ export default function PaginaCalendarioCultivo() {
           datesSet={onDatesSet}
           eventClick={onEventClick}
           dateClick={onDateClick}
-          dayMaxEvents={3}
+          dayMaxEvents={anchoPC ? 3 : 6}
           fixedWeekCount={false}
-          eventContent={renderEvento}
+          eventContent={anchoPC ? renderEvento : renderEventoIcono}
         />
-        <p className="mt-3 text-[10.5px] text-[#8a8a9c]">Tocá un día para agregar un recordatorio. Los riegos, podas, cosechas y mantenimientos aparecen solos desde lo que cargás en la app.</p>
+        <p className="mt-3 text-[10.5px] text-[#8a8a9c]">{anchoPC ? 'Tocá un día para agregar un recordatorio.' : 'Tocá un día para ver sus eventos o agregar un recordatorio.'} Los riegos, podas, cosechas y mantenimientos aparecen solos desde lo que cargás en la app.</p>
       </div>
 
       {modal && <ModalRecordatorio rec={editRec} fechaPre={fechaPre} onCerrar={() => setModal(false)} onGuardado={() => { setModal(false); recargar() }} />}
+
+      {dia && (
+        <div ref={refDia} className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60" onClick={() => setDia(null)}>
+          <div className="bg-[#0d0d12] border border-[#1f1f2b] w-full rounded-t-2xl max-h-[80dvh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="px-4 py-3 border-b border-[#1f1f2b] flex items-center gap-2">
+              <h2 className="font-display font-semibold text-[14px] text-[#ececf1] flex-1 first-letter:uppercase">
+                {new Date(dia + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
+              </h2>
+              <button onClick={() => setDia(null)} aria-label="Cerrar" className="min-h-[44px] min-w-[44px] flex items-center justify-center text-[#8a8a9c] hover:text-[#ececf1]"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="overflow-y-auto overscroll-contain">
+              {eventosDelDia.length === 0
+                ? <p className="px-4 py-6 text-center text-[12px] text-[#8a8a9c]">No hay nada cargado este día.</p>
+                : <ul className="divide-y divide-[#1f1f2b]">
+                    {eventosDelDia.map(e => {
+                      const Ic = iconoCal(e.tipo)
+                      return (
+                        <li key={e.id}>
+                          <button onClick={() => { setDia(null); setDetalle(e) }}
+                            className="w-full flex items-center gap-3 px-4 py-2.5 min-h-[52px] text-left hover:bg-[#15151d] transition-colors">
+                            <span className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 border"
+                              style={{ background: e.color + '1a', borderColor: e.color + '40' }}>
+                              <Ic className="w-4 h-4" style={{ color: e.color }} strokeWidth={2} />
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block text-[13px] text-[#ececf1] truncate">{e.titulo}</span>
+                              <span className="block text-[11px] text-[#8a8a9c]">{LABEL_CAL[e.tipo] ?? e.tipo}</span>
+                            </span>
+                          </button>
+                        </li>
+                      )
+                    })}
+                  </ul>}
+            </div>
+            <div className="px-4 py-3 border-t border-[#1f1f2b] pb-[calc(0.75rem+env(safe-area-inset-bottom))] flex gap-2">
+              <button onClick={() => setDia(null)} className={`${btnSutil} min-h-[44px] px-4`}>Cerrar</button>
+              <button onClick={() => { const f = dia; setDia(null); setEditRec(null); setFechaPre(f); setModal(true) }}
+                className={`${btnPrimario} flex-1 justify-center min-h-[44px]`}>
+                <Plus className="w-4 h-4" /> Agregar recordatorio
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {detalle && (
         <div ref={refDetalle} className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={() => setDetalle(null)}>
