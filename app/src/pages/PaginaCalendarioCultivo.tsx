@@ -55,7 +55,9 @@ const CAL_CSS = `
 .gf-cal .fc-daygrid-day-frame { overflow:hidden; }
 .gf-cal .fc { color:#cfcfda; font-family:inherit; }
 .gf-cal .fc .fc-toolbar.fc-header-toolbar { margin-bottom:12px; }
-.gf-cal .fc .fc-toolbar-title { font-size:15px; font-weight:500; color:#ececf1; text-transform:capitalize; letter-spacing:0.2px; }
+.gf-cal .fc .fc-toolbar-title { font-size:15px; font-weight:500; color:#ececf1; letter-spacing:0.2px; }
+/* Solo la primera letra: capitalize entero daba «Septiembre De 2026». */
+.gf-cal .fc .fc-toolbar-title::first-letter { text-transform:uppercase; }
 .gf-cal .fc .fc-col-header-cell-cushion { color:#8a8a9c; font-size:10.5px; font-weight:500; text-transform:uppercase; letter-spacing:0.7px; text-decoration:none; padding:6px 4px; }
 .gf-cal .fc .fc-daygrid-day-number { color:#c4c4d0; font-size:11.5px; text-decoration:none; padding:5px 7px; }
 .gf-cal .fc .fc-day-today .fc-daygrid-day-number { color:#c9b8e8; font-weight:600; }

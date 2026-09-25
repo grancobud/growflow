@@ -10,7 +10,7 @@
 //    propio header sticky con sus controles y no hay dos barras peleando por
 //    el top.
 
-import { Suspense, type ComponentType } from 'react'
+import { Suspense, useEffect, useRef, type ComponentType } from 'react'
 import { NavLink, useLocation, Navigate } from 'react-router-dom'
 import { Loader2, type LucideIcon } from 'lucide-react'
 import { useDesbordeHorizontal } from '../../lib/useDesbordeHorizontal'
@@ -31,6 +31,17 @@ export function PestanasSeccion({ secciones, etiqueta }: {
   // Antes del return condicional de abajo: un hook no puede quedar detrás de un
   // early return.
   const { refWrapper, refScroller } = useDesbordeHorizontal<HTMLDivElement, HTMLElement>(secciones.length)
+  const primerRender = useRef(true)
+  // La solapa activa se trae a la vista, igual que en `BarraPestanas`. Entrando
+  // por URL a la ultima (/insumos-faltantes) quedaba fuera de cuadro en 375 px:
+  // la barra se veia sin ninguna seleccionada y con una pestaña cortada al borde.
+  useEffect(() => {
+    const link = refScroller.current?.querySelector<HTMLElement>('[aria-current="page"]')
+    if (!link) return
+    link.scrollIntoView({ block: 'nearest', inline: 'nearest',
+      behavior: primerRender.current ? 'instant' : 'smooth' })
+    primerRender.current = false
+  }, [pathname, refScroller])
   // POR SEGMENTO, NO POR PREFIJO DE STRING.
   //
   // Con `startsWith` a secas, `/plantas` empieza con `/plan` — asi que al sumar

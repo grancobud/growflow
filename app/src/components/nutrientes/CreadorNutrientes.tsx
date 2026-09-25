@@ -104,7 +104,10 @@ function BarraTabs({ sub, setSub }: { sub: SubTab; setSub: (s: SubTab) => void }
 
         {/* sticky right-0: la barra scrollea en celular y este botón quedaba
             fuera de la pantalla, sin forma de tocarlo. */}
-        <div className="shrink-0 flex sticky right-0 z-10 bg-[#0a0a0f] pl-2 -ml-2" data-menu-tabs>
+        {/* El degradé a la izquierda funde la pestaña que pasa por debajo: sin
+            él se veía cortada en seco («Su» de Sustancias) y parecía un choque
+            en vez de una barra que sigue scrolleando. */}
+        <div className="shrink-0 flex sticky right-0 z-10 bg-[#0a0a0f] pl-2 -ml-2 before:content-[''] before:absolute before:right-full before:inset-y-0 before:w-8 before:bg-gradient-to-l before:from-[#0a0a0f] before:to-transparent before:pointer-events-none" data-menu-tabs>
           <button onClick={() => setAbierto(a => !a)} aria-expanded={abierto} aria-haspopup="true"
             aria-label={enMenu ? `${actual.label} — más herramientas` : 'Más herramientas'}
             className={btnCls(enMenu)}>

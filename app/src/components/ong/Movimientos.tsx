@@ -129,13 +129,15 @@ export function Movimientos({ caja, dispensas, documentos = [] }: {
               `ml-auto` sobrevive sólo de `sm:` para arriba, que es donde
               entran todos en una línea y tiene sentido empujarlos a la
               derecha. */}
+          {/* min-w-0: un item flex no se achica por debajo del ancho nativo del
+              input de fecha, y en 375 px «Hasta» se salia de la tarjeta. */}
           <div className="flex gap-2 w-full sm:w-auto sm:ml-auto">
-            <label className="flex-1 sm:flex-none">
+            <label className="flex-1 min-w-0 sm:flex-none">
               <span className="block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1">Desde</span>
               <input type="date" value={desde} onChange={e => setDesde(e.target.value)}
                 className={`${inputCls} w-full`} />
             </label>
-            <label className="flex-1 sm:flex-none">
+            <label className="flex-1 min-w-0 sm:flex-none">
               <span className="block text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-1">Hasta</span>
               <input type="date" value={hasta} onChange={e => setHasta(e.target.value)}
                 className={`${inputCls} w-full`} />
