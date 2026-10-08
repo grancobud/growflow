@@ -15,6 +15,12 @@ import { queryClient } from './lib/queryClient'
 import { setupPWA } from './lib/pwa'
 import './index.css'
 import App from './App.tsx'
+import PuertaPrueba from './components/PuertaPrueba'
+
+// GrowFlow Demo (proyecto growflow-demo de Pages): la app pasa por la puerta de
+// la prueba de 15 dias. En la instalacion real la variable no existe y se
+// renderiza directo. Ver components/PuertaPrueba.tsx.
+const ES_PRUEBA = Boolean(import.meta.env.VITE_PRUEBA_URL)
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -35,7 +41,7 @@ createRoot(document.getElementById('root')!).render(
         tenga que acordarse.
       */}
       <MotionConfig reducedMotion="user">
-        <App />
+        {ES_PRUEBA ? <PuertaPrueba><App /></PuertaPrueba> : <App />}
       </MotionConfig>
     </QueryClientProvider>
   </StrictMode>,
