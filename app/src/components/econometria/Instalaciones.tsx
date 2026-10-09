@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import {
   instalacionesService, SISTEMAS, UNIDADES_INST, porSistema, totalLinea,
-  totalPresupuesto, totalesPorSistema,
+  totalPresupuesto, totalesPorSistema, esSocio,
   type ItemInstalacion, type ProveedorInstalacion, type Presupuesto, type PresupuestoItem,
   type OfertaInstalacion,
 } from '../../lib/instalaciones'
@@ -253,9 +253,19 @@ export default function Instalaciones() {
         proveedores.length === 0 ? (
           <Vacio icono={Truck} titulo="Sin proveedores" texto="Cargá los proveedores de tu instalación (casa de riego, electricidad, etc.). Después los asignás a cada ítem del catálogo." accion="Agregar proveedor" onAccion={() => setModalProv('nuevo')} />
         ) : (
+          <div className="space-y-4">
+          {([
+            ['Proveedores', 'Dónde se compra: locales, casas de riego, electricistas.', proveedores.filter(p => !esSocio(p))],
+            ['Socios', 'Quién compró o puso la plata. No aparecen como lugar de compra.', proveedores.filter(esSocio)],
+          ] as const).filter(([, , lista]) => lista.length > 0).map(([titulo, ayuda, lista]) => (
+          <div key={titulo}>
+            <div className="mb-1.5 flex items-baseline gap-2">
+              <span className="font-display font-semibold text-[13px] text-[#ececf1]">{titulo}</span>
+              <span className="text-[10px] text-[#8a8a9c]">{lista.length} · {ayuda}</span>
+            </div>
           <div className="rounded-xl bg-[#101016] border border-[#1f1f2b] overflow-hidden">
             <ul className="divide-y divide-[#1f1f2b]/60">
-              {proveedores.map(p => {
+              {lista.map(p => {
                 const nItems = items.filter(i => i.proveedor_id === p.id).length
                 return (
                   <li key={p.id} className="flex items-center gap-3 px-4 py-3">
@@ -279,6 +289,9 @@ export default function Instalaciones() {
                 )
               })}
             </ul>
+          </div>
+          </div>
+          ))}
           </div>
         )
       ) : (
@@ -821,7 +834,7 @@ function ModalItem({ item, proveedores, onCerrar, onGuardado }: { item: ItemInst
 }
 
 function ModalProveedor({ prov, onCerrar, onGuardado }: { prov: ProveedorInstalacion | null; onCerrar: () => void; onGuardado: () => void }) {
-  const [f, setF] = useState<Partial<ProveedorInstalacion>>(prov ?? {})
+  const [f, setF] = useState<Partial<ProveedorInstalacion>>(prov ?? { tipo: 'proveedor' })
   const [guardando, setGuardando] = useState(false)
   const set = (k: keyof ProveedorInstalacion, v: unknown) => setF(prev => ({ ...prev, [k]: v }))
 
@@ -830,7 +843,7 @@ function ModalProveedor({ prov, onCerrar, onGuardado }: { prov: ProveedorInstala
     setGuardando(true)
     try {
       const payload: Partial<ProveedorInstalacion> = {
-        nombre: f.nombre!.trim(), contacto: f.contacto || null, url: f.url || null, zona: f.zona || null, notas: f.notas || null,
+        nombre: f.nombre!.trim(), tipo: esSocio(f) ? 'socio' : 'proveedor', contacto: f.contacto || null, url: f.url || null, zona: f.zona || null, notas: f.notas || null,
       }
       if (prov) await instalacionesService.actualizarProveedor(prov.id, payload)
       else await instalacionesService.crearProveedor(payload)
@@ -842,6 +855,18 @@ function ModalProveedor({ prov, onCerrar, onGuardado }: { prov: ProveedorInstala
   return (
     <ModalShell titulo={prov ? 'Editar proveedor' : 'Nuevo proveedor'} onCerrar={onCerrar} onGuardar={guardar} guardando={guardando}>
       <div><label className={etiquetaCampo}>Nombre *</label><input className={inputFormulario} value={f.nombre ?? ''} onChange={e => set('nombre', e.target.value)} placeholder="Ej: Casa de Riego Corrientes" /></div>
+      <div>
+        <label className={etiquetaCampo}>Tipo</label>
+        <div className="grid grid-cols-2 gap-2">
+          {([['proveedor', 'Proveedor', 'vende o hace trabajos'], ['socio', 'Socio', 'compró o puso la plata']] as const).map(([v, lbl, sub]) => (
+            <button key={v} type="button" onClick={() => set('tipo', v)} aria-pressed={(esSocio(f) ? 'socio' : 'proveedor') === v}
+              className={`min-h-[44px] sm:min-h-0 rounded-lg border px-3 py-2 text-left transition-colors ${(esSocio(f) ? 'socio' : 'proveedor') === v ? 'border-[#a3e635] bg-[#1a2010] text-[#ececf1]' : 'border-[#2a2a3a] bg-[#15151d] text-[#a6a6b5] hover:border-[#404d20]'}`}>
+              <div className="text-[12px] font-medium">{lbl}</div>
+              <div className="text-[10px] text-[#8a8a9c]">{sub}</div>
+            </button>
+          ))}
+        </div>
+      </div>
       <div className="grid grid-cols-2 gap-3">
         <div><label className={etiquetaCampo}>Contacto</label><input className={inputFormulario} value={f.contacto ?? ''} onChange={e => set('contacto', e.target.value)} placeholder="Tel / email / WhatsApp" /></div>
         <div><label className={etiquetaCampo}>Zona</label><input className={inputFormulario} value={f.zona ?? ''} onChange={e => set('zona', e.target.value)} placeholder="Ciudad / provincia" /></div>

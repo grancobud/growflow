@@ -15,9 +15,16 @@ export type Sistema = typeof SISTEMAS[number]
 
 export const UNIDADES_INST = ['u', 'hora', 'm', 'kg', 'L', 'rollo', 'caja', 'par', 'kit'] as const
 
+// 'socio' = quien compró o puso la plata (no vende nada). Se separan para que el
+// directorio de proveedores y el chat no los ofrezcan como lugar de compra.
+export const TIPOS_PROVEEDOR = ['proveedor', 'socio'] as const
+export type TipoProveedor = typeof TIPOS_PROVEEDOR[number]
+export const esSocio = (p: { tipo?: string | null } | null | undefined) => p?.tipo === 'socio'
+
 export interface ProveedorInstalacion {
   id: string
   nombre: string
+  tipo: TipoProveedor
   contacto: string | null
   url: string | null
   zona: string | null

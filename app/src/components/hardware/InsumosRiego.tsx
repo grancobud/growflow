@@ -245,7 +245,7 @@ function FormOferta({ itemId, provs, oferta, onListo, onCancelar }: {
       const nombre = f.proveedor.trim()
       if (nombre) {
         const existente = provs.find(p => p.nombre.toLowerCase() === nombre.toLowerCase())
-        proveedorId = existente ? existente.id : (await instalacionesService.crearProveedor({ nombre })).id
+        proveedorId = existente ? existente.id : (await instalacionesService.crearProveedor({ nombre, tipo: 'proveedor' })).id
       }
       const datos = {
         proveedor_id: proveedorId, precio: f.precio ? Number(f.precio) : null,
