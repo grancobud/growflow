@@ -1,0 +1,47 @@
+schema: spec-driven
+
+context: |
+  Language: es
+  All artifacts must be written in es (castellano rioplatense, términos técnicos en inglés).
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  Proyecto: GrowFlow — trazabilidad de cannabis medicinal (Ley 27.350) y gestión de la
+  asociación civil. React 19 + Vite + TypeScript + Tailwind 4, Supabase (Postgres + RLS),
+  deploy en Cloudflare Pages con auto-deploy al pushear a main.
+  Las reglas del proyecto (los "pozos") están en CLAUDE.md: leerlo antes de planificar.
+  Las más relevantes al diseñar: el dev local corre en modo DEMO contra localStorage
+  (una tabla nueva va en la migración + demoStore.ts + PaginaTablas.tsx); banderas
+  explícitas en los insert; fechas de "hoy" con hoyLocal()/fechaLocal(); todo Record
+  indexado por un valor de la base va detrás de un accesor con ??; RLS con
+  mi_rol() <> all (array['sin_perfil','demo']).
+  Tests: vitest en app/src/**/__tests__ (environment node). Verificación obligatoria:
+  npm --prefix app test, npm --prefix app run lint (0 warnings), npm --prefix app run build.
+
+rules:
+  proposal:
+    - Decir siempre qué queda fuera del alcance.
+  tasks:
+    - Cada tarea de código lleva su test (primero el test que falla, después el cambio).
+    - La última tarea es correr test + lint + build y mostrar el resultado.
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always state what is out of scope
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing

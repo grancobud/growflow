@@ -2,7 +2,7 @@
 // Cards con estado de credencial + alerta de vencimiento, detalle con visor de PDF,
 // alta/edicion con carga de credencial (PDF) y foto.
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -17,7 +17,8 @@ import {
 } from '../lib/registro'
 import { cultivoService, type ResumenPlanta, etiquetaFase } from '../lib/cultivo'
 import { MODO_DEMO } from '../lib/supabase'
-import { leerCredencial, OCR_DISPONIBLE } from '../lib/ocr'
+import { leerCredencial, OCR_DISPONIBLE, ErrorLectorCredencial } from '../lib/ocr'
+import { fusionarCredencial } from '../lib/fusionCredencial'
 import { FotoPrivada } from '../components/FotoPrivada'
 import { btnPrimario, btnSutil, nombreTocable, etiquetaCampo, inputFormulario, sinAutocorreccion } from '../lib/ui'
 import { HistoriaClinica } from '../components/ong/HistoriaClinica'
@@ -686,6 +687,11 @@ function ModalPaciente({ paciente, prefill = null, padron = [], onCerrar, onGuar
   const [fotoUrl, setFotoUrl] = useState<string | null>(paciente?.foto_url ?? null)
   const [subiendo, setSubiendo] = useState<'pdf' | 'foto' | null>(null)
   const [leyendo, setLeyendo] = useState(false)
+  // La lectura puede tardar hasta un minuto y los campos siguen editables: al
+  // volver, hay que fusionar contra lo que hay AHORA, no contra lo que había al
+  // subir el PDF, o se pisa lo que se escribió mientras tanto.
+  const formActual = useRef(form)
+  useEffect(() => { formActual.current = form }, [form])
   const [guardando, setGuardando] = useState(false)
   /** Lo que se encontró al revisar la ficha contra el padrón. Vacío = todo bien. */
   const [avisos, setAvisos] = useState<string[]>([])
@@ -708,32 +714,24 @@ function ModalPaciente({ paciente, prefill = null, padron = [], onCerrar, onGuar
         leerCredencial(file),
         registroService.subirCredencial(file).then(setCredencialUrl).catch(() => {}),
       ])
-      const ESTADOS = ESTADOS_REPROCANN as readonly string[]
-      const MODS = MODALIDADES as readonly string[]
-      setForm(f => ({
-        ...f,
-        nombre_completo: d.nombre_completo || f.nombre_completo,
-        dni: d.dni || f.dni,
-        fecha_nacimiento: /^\d{4}-\d{2}-\d{2}$/.test(d.fecha_nacimiento || '') ? d.fecha_nacimiento! : f.fecha_nacimiento,
-        telefono: d.telefono || f.telefono,
-        email: d.email || f.email,
-        localidad: d.localidad || f.localidad,
-        provincia: d.provincia || f.provincia,
-        domicilio: d.domicilio || f.domicilio,
-        reprocann_nro: d.reprocann_nro || f.reprocann_nro,
-        reprocann_estado: (ESTADOS.includes(d.reprocann_estado || '') ? d.reprocann_estado : f.reprocann_estado) as EstadoReprocann,
-        reprocann_emision: /^\d{4}-\d{2}-\d{2}$/.test(d.reprocann_emision || '') ? d.reprocann_emision! : f.reprocann_emision,
-        reprocann_vencimiento: /^\d{4}-\d{2}-\d{2}$/.test(d.reprocann_vencimiento || '') ? d.reprocann_vencimiento! : f.reprocann_vencimiento,
-        modalidad: MODS.includes(d.modalidad || '') ? d.modalidad! : f.modalidad,
-        plantas_habilitadas: d.plantas_habilitadas != null && d.plantas_habilitadas !== '' ? String(d.plantas_habilitadas) : f.plantas_habilitadas,
-        m2_habilitados: d.m2_habilitados != null && d.m2_habilitados !== '' ? String(d.m2_habilitados) : f.m2_habilitados,
-        patologia: d.patologia || f.patologia,
-        medico_tratante: d.medico_tratante || f.medico_tratante,
-        matricula_medico: d.matricula_medico || f.matricula_medico,
-      }))
-      toast.success('Datos leídos de la credencial. Revisalos y guardá.')
+      // Solo llena lo vacío: lo que la persona ya escribió no se pisa.
+      // Regla y casos en lib/fusionCredencial.ts.
+      const r = fusionarCredencial(formActual.current, d)
+      setForm(r.form)
+      if (r.completados === 0) {
+        toast.info(r.conservados
+          ? 'La credencial no trajo nada nuevo: los campos ya tenían datos y no se tocaron.'
+          : 'No se completó ningún campo con la credencial. Cargá a mano.')
+      } else {
+        const resto = r.conservados === 1 ? ' Un campo ya tenía datos y no se tocó.'
+          : r.conservados > 1 ? ` ${r.conservados} campos ya tenían datos y no se tocaron.` : ''
+        toast.success(`Se completaron ${r.completados} campo${r.completados === 1 ? '' : 's'} desde la credencial.${resto} Revisalos y guardá.`)
+      }
     } catch (err) {
-      toast.error(`No se pudo leer la credencial: ${(err as Error).message}`)
+      // ErrorLectorCredencial ya trae el texto para el usuario (no disponible /
+      // no reconocido); lo técnico —el 502, el timeout— queda en la consola.
+      if (err instanceof ErrorLectorCredencial) console.warn('[lector de credenciales]', err.tipo, err.detalle)
+      toast.error((err as Error).message)
     } finally {
       setLeyendo(false)
     }

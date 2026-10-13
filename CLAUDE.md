@@ -13,7 +13,7 @@ hechas en las instalaciones hermanas (Aguara, Chaco, Panacea) hasta el 24/09/202
 | | |
 |---|---|
 | Sitio | `https://growflow-5vs.pages.dev` (Cloudflare Pages, proyecto `growflow`) |
-| Repo | `grancobud/growflow` (privado), branch `main` |
+| Repo | `grancobud/growflow` (**público**: nada de claves ni datos de pacientes en el repo), branch `main` |
 | Supabase | project id `rtnidtpalynprizpbnuz` (sa-east-1) |
 | URL de la base | `https://rtnidtpalynprizpbnuz.supabase.co` |
 | Sensores | Worker `growcast-bridge` → `VITE_GROWCAST_WEBHOOK_URL` |
@@ -47,6 +47,20 @@ npm --prefix app test        # 1000 tests, ~8 s
 npm --prefix app run lint    # 0 errores y 0 warnings: --max-warnings 0 hace fallar el CI con uno nuevo
 npm --prefix app run build
 ```
+
+## Cambios con spec (OpenSpec)
+
+Los cambios de comportamiento se planifican con [OpenSpec](https://github.com/Fission-AI/OpenSpec)
+(`npm i -g @fission-ai/openspec`). La spec vigente de cada capacidad vive en
+`openspec/specs/`; cada cambio en curso, en `openspec/changes/<nombre>/` con
+`proposal.md`, `design.md`, `tasks.md` y el delta de la spec. El contexto del
+proyecto que lee la herramienta está en `openspec/config.yaml`.
+
+- `/opsx:propose <idea>` → arma la propuesta. `/opsx:apply` → implementa tarea por
+  tarea (primero el test que falla). `/opsx:archive` → **después de mergear**, pasa
+  el delta a `openspec/specs/`.
+- `openspec validate <cambio> --strict` antes de commitear.
+- Arreglos chicos sin cambio de comportamiento (un typo, un estilo) no necesitan spec.
 
 ## Idioma y estilo
 

@@ -75,15 +75,99 @@ async function pdfAImagen(file: File, escala = 2.5): Promise<string> {
   return canvas.toDataURL('image/png').replace(/^data:image\/png;base64,/, '')
 }
 
+/**
+ * LAS DOS FALLAS QUE VE EL USUARIO.
+ *
+ * El lector vive en la PC de casa (túnel → n8n → Ollama) y se cae seguido.
+ * Antes cualquier falla terminaba en «OCR HTTP 502», que no le dice a quien
+ * carga qué hacer. Ahora hay dos: «no disponible» (el lector no se pudo usar:
+ * cargá a mano) y «no reconocido» (contestó, pero no sacó nada del PDF:
+ * revisá el archivo). El mensaje va en el error, así la pantalla no decide
+ * textos. Spec: openspec/changes/ocr-errores-claros.
+ */
+export const MENSAJE_NO_DISPONIBLE = 'El lector de credenciales no está disponible, cargá a mano'
+export const MENSAJE_NO_RECONOCIDO = 'No se reconocieron datos en el PDF. Revisá que sea la credencial REPROCANN o cargá a mano.'
+
+export type TipoFallaLector = 'no_disponible' | 'no_reconocido'
+
+export class ErrorLectorCredencial extends Error {
+  readonly tipo: TipoFallaLector
+  /** Lo técnico (status, mensaje de fetch), para la consola: el usuario ve `message`. */
+  readonly detalle?: string
+  constructor(tipo: TipoFallaLector, detalle?: string) {
+    super(tipo === 'no_disponible' ? MENSAJE_NO_DISPONIBLE : MENSAJE_NO_RECONOCIDO)
+    this.name = 'ErrorLectorCredencial'
+    this.tipo = tipo
+    this.detalle = detalle
+  }
+}
+
+/** Ollama con un modelo de visión puede tardar, pero no un minuto. */
+export const TIMEOUT_LECTOR_MS = 60_000
+
+/**
+ * 404: el webhook no existe (workflow apagado). 408/429: el servidor pide que
+ * vuelvas después. Ninguno es culpa del PDF. El resto de los 4xx sí: el lector
+ * contestó y rechazó lo que le mandaron.
+ */
+const STATUS_NO_DISPONIBLE = new Set([404, 408, 429])
+
+const CAMPOS_CREDENCIAL: (keyof DatosCredencial)[] = [
+  'nombre_completo', 'dni', 'fecha_nacimiento', 'telefono', 'email', 'localidad', 'provincia',
+  'domicilio', 'reprocann_nro', 'reprocann_estado', 'reprocann_emision', 'reprocann_vencimiento',
+  'modalidad', 'plantas_habilitadas', 'm2_habilitados', 'patologia', 'medico_tratante', 'matricula_medico',
+]
+
+const tieneValor = (v: unknown) => v != null && String(v).trim() !== ''
+
+/**
+ * La llamada al lector, separada del render del PDF para poder testearla sin
+ * navegador: recibe la imagen ya en base64, y el fetch es inyectable.
+ */
+export async function enviarAlLector(
+  imagen: string,
+  { url = OCR_URL, fetch: hacerFetch = fetch, timeoutMs = TIMEOUT_LECTOR_MS }:
+    { url?: string; fetch?: typeof fetch; timeoutMs?: number } = {},
+): Promise<DatosCredencial> {
+  if (!url) throw new ErrorLectorCredencial('no_disponible', 'VITE_OCR_WEBHOOK_URL sin configurar')
+  const corte = new AbortController()
+  const reloj = setTimeout(() => corte.abort(), timeoutMs)
+  let res: Response
+  try {
+    res = await hacerFetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: imagen }),
+      signal: corte.signal,
+    })
+  } catch (err) {
+    // Sin red, CORS, DNS o el timeout de arriba: en todos, el lector no se pudo usar.
+    throw new ErrorLectorCredencial('no_disponible', (err as Error)?.message)
+  } finally {
+    clearTimeout(reloj)
+  }
+  if (!res.ok) {
+    const tipo = res.status >= 500 || STATUS_NO_DISPONIBLE.has(res.status) ? 'no_disponible' : 'no_reconocido'
+    throw new ErrorLectorCredencial(tipo, `HTTP ${res.status}`)
+  }
+  let json: unknown
+  try { json = await res.json() } catch {
+    throw new ErrorLectorCredencial('no_reconocido', 'respuesta no JSON')
+  }
+  const crudo = (json as { datos?: unknown })?.datos ?? json
+  const datos = (crudo && typeof crudo === 'object' ? crudo : {}) as DatosCredencial
+  if (!CAMPOS_CREDENCIAL.some(c => tieneValor(datos[c]))) {
+    throw new ErrorLectorCredencial('no_reconocido', 'ningún campo reconocido')
+  }
+  return datos
+}
+
 export async function leerCredencial(file: File): Promise<DatosCredencial> {
-  if (!OCR_URL) throw new Error('OCR no configurado (VITE_OCR_WEBHOOK_URL)')
-  const image = await pdfAImagen(file)
-  const res = await fetch(OCR_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ image }),
-  })
-  if (!res.ok) throw new Error(`OCR HTTP ${res.status}`)
-  const json = await res.json()
-  return (json.datos ?? json) as DatosCredencial
+  if (!OCR_URL) throw new ErrorLectorCredencial('no_disponible', 'VITE_OCR_WEBHOOK_URL sin configurar')
+  let imagen: string
+  try { imagen = await pdfAImagen(file) } catch (err) {
+    // pdf.js no pudo abrirlo: PDF roto, con contraseña, o no es un PDF de verdad.
+    throw new ErrorLectorCredencial('no_reconocido', (err as Error)?.message)
+  }
+  return enviarAlLector(imagen)
 }
