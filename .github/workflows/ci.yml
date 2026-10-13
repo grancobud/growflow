@@ -43,3 +43,23 @@ jobs:
 
       - name: Build (tsc -b + vite)
         run: npm run build
+
+  # Las specs de OpenSpec (openspec/specs y openspec/changes) son el contrato de
+  # cada cambio de comportamiento: una spec mal formada —un requisito sin
+  # escenario, un delta que no aplica— tiene que frenar el PR igual que un test
+  # rojo. Job aparte: no necesita node_modules de la app y corre en paralelo.
+  # La version va fijada para que una release nueva no cambie las reglas sola.
+  specs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      OPENSPEC_TELEMETRY: '0'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validar specs (openspec validate --strict)
+        run: npx --yes @fission-ai/openspec@1.14.1 validate --all --strict --no-interactive
