@@ -53,9 +53,13 @@ describe('qué pestañas ve cada rol', () => {
 
   // Antes del 31/08/2026 el auditor veía Pacientes y Seguimiento, y la base le
   // devolvía cero filas: una pantalla vacía se lee como rota, no como
-  // prohibida. No pierde ningún dato — no tenía ninguno.
-  it('el auditor ya no ve Pacientes ni Seguimiento vacías', () => {
-    expect(veCon('auditor')).not.toContain('pacientes')
+  // prohibida. Se le sacaron las dos.
+  //
+  // El 12/10/2026 Gastón decidió que el auditor SÍ ve el padrón. Pacientes
+  // vuelve, ahora CON filas: la base se las da por la vista, sin las columnas de
+  // salud (spec acceso/permisos-por-rol). Seguimiento es clínico y sigue afuera.
+  it('el auditor ve Pacientes con datos, pero no Seguimiento', () => {
+    expect(veCon('auditor')).toContain('pacientes')
     expect(veCon('auditor')).not.toContain('seguimiento')
     expect(veCon('auditor')).toContain('movimientos')
   })

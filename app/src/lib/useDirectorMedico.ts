@@ -17,9 +17,20 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
+import { PERMISOS_ROL } from '../hooks/useAuth'
+import type { RolUsuario } from '../types'
 
-/** Los roles que pasan puede_ver_clinico() en la base. Si cambia allá, cambia acá. */
-const ROLES_CLINICOS = ['administrador', 'director_medico']
+/**
+ * Si el rol ve lo clínico. SALE DEL MAPA CENTRAL, no de una lista propia.
+ *
+ * Acá había una lista escrita a mano —`['administrador', 'director_medico']`—
+ * con el comentario «si cambia allá, cambia acá». No cambió: al administrador
+ * del sistema y al administrativo la base y las pestañas les daban lo clínico,
+ * y esta lista les escondía la historia de la ficha. La prueba
+ * `permisosPorRol` ata `PERMISOS_ROL` a `puede_ver_clinico()` de la base.
+ */
+export const puedeVerClinicoRol = (rol: string | undefined): boolean =>
+  !!rol && (PERMISOS_ROL[rol as RolUsuario]?.includes('ver_clinico') ?? false)
 
 export interface DatosDirectorMedico {
   nombre: string | null
@@ -52,7 +63,7 @@ export function useDirectorMedico(): DatosDirectorMedico {
         if (vigente) setD({
           nombre: entidad.data?.director_medico ?? null,
           matricula: entidad.data?.director_medico_matricula ?? null,
-          puedeVerClinico: !!rol && activo && ROLES_CLINICOS.includes(rol),
+          puedeVerClinico: activo && puedeVerClinicoRol(rol),
           cargando: false,
         })
       } catch {
