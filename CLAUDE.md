@@ -59,7 +59,8 @@ proyecto que lee la herramienta está en `openspec/config.yaml`.
 - `/opsx:propose <idea>` → arma la propuesta. `/opsx:apply` → implementa tarea por
   tarea (primero el test que falla). `/opsx:archive` → **después de mergear**, pasa
   el delta a `openspec/specs/`.
-- `openspec validate <cambio> --strict` antes de commitear.
+- `openspec validate <cambio> --strict` antes de commitear. El CI corre
+  `openspec validate --all --strict` en el job `specs`: una spec mal formada pone el PR en rojo.
 - Arreglos chicos sin cambio de comportamiento (un typo, un estilo) no necesitan spec.
 
 ## Idioma y estilo
