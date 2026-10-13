@@ -143,7 +143,9 @@ export const PERMISO_DE_TAB: Record<Tab, string> = {
   // lista de motivos no nombra ninguna patologia: eso vive en la ficha.
   visitas: 'ver_mostrador',
   asociados: 'ver_institucional',
-  pacientes: 'ver_clinico',
+  // Ver NOMBRES no es ver DIAGNOSTICOS: el padron tiene su propio permiso desde
+  // el 12/10/2026, para que el auditor lo lea sin la ficha clinica.
+  pacientes: 'ver_padron',
   seguimiento: 'ver_clinico',
   cupo: 'ver_cumplimiento',
 
@@ -169,7 +171,7 @@ export const PERMISO_DE_TAB: Record<Tab, string> = {
   //
   // El cumplimiento no es una categoria de permiso: lo que manda es QUE DATO se
   // muestra.
-  nomina: 'ver_clinico',
+  nomina: 'ver_padron',
 
   movimientos: 'ver_plata',
   economia: 'ver_plata',

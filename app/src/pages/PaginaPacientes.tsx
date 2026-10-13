@@ -25,6 +25,7 @@ import { HistoriaClinica } from '../components/ong/HistoriaClinica'
 import { useDirectorMedico } from '../lib/useDirectorMedico'
 import { GuiaDelFormulario, AyudaCampo, OjoDelFormulario } from '../components/ong/GuiaDelFormulario'
 import { useAbrirAlLlegar } from '../lib/useAbrirAlLlegar'
+import { useAuth } from '../hooks/useAuth'
 import { useAvanzarFlujo } from '../lib/useAvanzarFlujo'
 import { idDeLaUrl } from '../lib/contextoDeFlujo'
 import { avisosDeFichaNueva } from '../lib/altaAutomatica'
@@ -117,9 +118,20 @@ export default function PaginaPacientes({ embebida = false, prefill = null, onPr
   const [modalForm, setModalForm] = useState(false)
   const [editar, setEditar] = useState<Paciente | null>(null)
 
+  // Los botones siguen a lo que la BASE acepta (spec acceso/permisos-por-rol):
+  // escribir el padrón lo pueden los roles que editan lo clínico, y borrar solo
+  // los administradores (`es_admin()`). El auditor entra a mirar: ninguno de
+  // los tres. Un botón que la base rechaza es peor que no tenerlo.
+  const { tienePermiso } = useAuth()
+  const puedeEditar = tienePermiso('editar_clinico')
+  const puedeBorrar = tienePermiso('gestionar_usuarios')
+
   // Lo mismo que hace el boton de arriba, para que la accion «Sumar a alguien»
   // abra este formulario y no deje en la lista.
-  const nuevoPaciente = useCallback(() => { setEditar(null); setModalForm(true) }, [])
+  const nuevoPaciente = useCallback(() => {
+    if (!puedeEditar) return
+    setEditar(null); setModalForm(true)
+  }, [puedeEditar])
   useAbrirAlLlegar(nuevoPaciente, '1', modalForm)
   const avanzar = useAvanzarFlujo()
 
@@ -269,9 +281,11 @@ export default function PaginaPacientes({ embebida = false, prefill = null, onPr
             </select>
             {/* El texto deja de esconderse en mobile: el boton ahora ocupa una
                 fila entera, y una fila entera con un «+» solo no dice que hace. */}
-            <button onClick={nuevoPaciente} className={`${btnPrimario} w-full sm:w-auto justify-center`}>
-              <Plus className="w-3.5 h-3.5" /> Paciente
-            </button>
+            {puedeEditar && (
+              <button onClick={nuevoPaciente} className={`${btnPrimario} w-full sm:w-auto justify-center`}>
+                <Plus className="w-3.5 h-3.5" /> Paciente
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -354,10 +368,12 @@ export default function PaginaPacientes({ embebida = false, prefill = null, onPr
                       <button onClick={() => setDetalle(p)} className={btnSutil}><User className="w-3.5 h-3.5" /> Ver ficha</button>
                       <button onClick={() => setCarnet(p)} className={btnSutil}
                         title="El carnet que la persona muestra en la sede"><IdCard className="w-3.5 h-3.5" /> Carnet</button>
-                      <button onClick={() => { setEditar(p); setModalForm(true) }} className={btnSutil}><Pencil className="w-3.5 h-3.5" /> Editar</button>
-                      <button onClick={() => borrar(p)} className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#8a8a9c] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors ml-auto" title="Borrar ficha">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      {puedeEditar && <button onClick={() => { setEditar(p); setModalForm(true) }} className={btnSutil}><Pencil className="w-3.5 h-3.5" /> Editar</button>}
+                      {puedeBorrar && (
+                        <button onClick={() => borrar(p)} className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-[#8a8a9c] hover:text-[#ff8a7a] hover:bg-[#15151d] rounded-lg transition-colors ml-auto" title="Borrar ficha">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -380,8 +396,8 @@ export default function PaginaPacientes({ embebida = false, prefill = null, onPr
       )}
       {detalle && (
         <ModalDetalle paciente={detalle} onCerrar={() => setDetalle(null)}
-          onEditar={() => { setEditar(detalle); setDetalle(null); setModalForm(true) }}
-          onBorrar={() => borrar(detalle)} />
+          onEditar={puedeEditar ? () => { setEditar(detalle); setDetalle(null); setModalForm(true) } : undefined}
+          onBorrar={puedeBorrar ? () => borrar(detalle) : undefined} />
       )}
 
       {/* La entidad se pide sólo cuando se abre un carnet: es una fila y no
@@ -537,7 +553,9 @@ function Dato({ icono: Icono, label, valor }: { icono?: LucideIcon; label: strin
 }
 
 function ModalDetalle({ paciente: p, onCerrar, onEditar, onBorrar }: {
-  paciente: Paciente; onCerrar: () => void; onEditar: () => void; onBorrar: () => void
+  paciente: Paciente; onCerrar: () => void
+  /** Sin la función, el botón no se muestra: el rol no puede hacerlo. */
+  onEditar?: () => void; onBorrar?: () => void
 }) {
   const ce = colorDe(p.reprocann_estado)
   // Quien firma la evolucion y si este usuario puede ver lo clinico.
@@ -579,8 +597,12 @@ function ModalDetalle({ paciente: p, onCerrar, onEditar, onBorrar }: {
         <Dato icono={Mail} label="Email" valor={p.email} />
         <Dato icono={MapPin} label="Localidad" valor={[p.localidad, p.provincia].filter(Boolean).join(', ')} />
         <Dato icono={MapPin} label="Domicilio" valor={p.domicilio} />
-        <Dato icono={Stethoscope} label="Patología / Indicación" valor={p.patologia} />
-        <Dato icono={Stethoscope} label="Médico tratante" valor={[p.medico_tratante, p.matricula_medico && `Mat. ${p.matricula_medico}`].filter(Boolean).join(' · ')} />
+        {/* Quien no ve lo clínico recibe estos campos vacíos desde la base:
+            mostrarlos como «—» parece un dato faltante, no uno reservado. */}
+        {dm.puedeVerClinico && <>
+          <Dato icono={Stethoscope} label="Patología / Indicación" valor={p.patologia} />
+          <Dato icono={Stethoscope} label="Médico tratante" valor={[p.medico_tratante, p.matricula_medico && `Mat. ${p.matricula_medico}`].filter(Boolean).join(' · ')} />
+        </>}
         <Dato label="Alta en asociación" valor={fmtFecha(p.fecha_alta)} />
         <Dato icono={Sprout} label="Plantas habilitadas" valor={p.plantas_habilitadas != null ? `${usoPlantas} / ${p.plantas_habilitadas} en uso` : null} />
         <Dato icono={Ruler} label="m² habilitados" valor={p.m2_habilitados != null ? `${p.m2_habilitados} m²` : null} />
@@ -590,8 +612,9 @@ function ModalDetalle({ paciente: p, onCerrar, onEditar, onBorrar }: {
       <HistoriaClinica pacienteId={p.id} pacienteNombre={p.nombre_completo}
         firmante={dm.nombre} matricula={dm.matricula} puedeVer={dm.puedeVerClinico} />
 
-      {/* Credencial PDF */}
-      <div className="mt-4 pt-4 border-t border-[#1f1f2b]">
+      {/* Credencial PDF. La URL llega vacía a quien no ve lo clínico, y el
+          «Sin credencial cargada» le diría algo falso: la sección no se muestra. */}
+      {dm.puedeVerClinico && <div className="mt-4 pt-4 border-t border-[#1f1f2b]">
         <div className="text-[10px] uppercase tracking-[0.14em] text-[#8a8a9c] font-medium mb-2">Credencial REPROCANN</div>
         {p.credencial_url ? (
           cred === 'error' ? (
@@ -611,7 +634,7 @@ function ModalDetalle({ paciente: p, onCerrar, onEditar, onBorrar }: {
         ) : (
           <p className="text-[11px] text-[#8a8a9c]">Sin credencial cargada. Editá la ficha para subir el PDF.</p>
         )}
-      </div>
+      </div>}
 
       {/* Plantas asignadas */}
       <div className="mt-4 pt-4 border-t border-[#1f1f2b]">
@@ -640,8 +663,8 @@ function ModalDetalle({ paciente: p, onCerrar, onEditar, onBorrar }: {
       </div>
 
       <div className="mt-5 flex gap-2">
-        <button onClick={onEditar} className={`${btnPrimario} flex-1 justify-center`}><Pencil className="w-3.5 h-3.5" /> Editar</button>
-        <button onClick={onBorrar} aria-label="Borrar el paciente" title="Borrar el paciente" className="px-3 py-2 min-w-[44px] rounded-lg border border-[#7a2820] bg-[#7a2820]/15 hover:bg-[#7a2820]/25 text-[12px] text-[#ff8a7a] transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+        {onEditar && <button onClick={onEditar} className={`${btnPrimario} flex-1 justify-center`}><Pencil className="w-3.5 h-3.5" /> Editar</button>}
+        {onBorrar && <button onClick={onBorrar} aria-label="Borrar el paciente" title="Borrar el paciente" className="px-3 py-2 min-w-[44px] rounded-lg border border-[#7a2820] bg-[#7a2820]/15 hover:bg-[#7a2820]/25 text-[12px] text-[#ff8a7a] transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>}
       </div>
     </Modal>
   )

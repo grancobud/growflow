@@ -20,7 +20,7 @@ export const PERMISOS_ROL: Record<RolUsuario, string[]> = {
     'ver_panel', 'ver_cultivo', 'editar_cultivo', 'ver_ambiente',
     'ver_cosecha', 'ver_estadisticas',
     'ver_ong', 'ver_institucional', 'ver_mostrador', 'ver_cumplimiento',
-    'ver_clinico', 'editar_clinico',
+    'ver_clinico', 'editar_clinico', 'ver_padron',
     'ver_plata', 'ver_econometria', 'editar_plata', 'editar_cuotas',
     'ver_tablas', 'gestionar_usuarios',
   ],
@@ -43,7 +43,7 @@ export const PERMISOS_ROL: Record<RolUsuario, string[]> = {
     'ver_panel', 'ver_cultivo', 'editar_cultivo', 'ver_ambiente',
     'ver_cosecha', 'ver_estadisticas',
     'ver_ong', 'ver_institucional', 'ver_mostrador', 'ver_cumplimiento',
-    'ver_clinico', 'editar_clinico',
+    'ver_clinico', 'editar_clinico', 'ver_padron',
     'ver_plata', 'ver_econometria', 'editar_plata', 'editar_cuotas',
     'ver_tablas', 'gestionar_usuarios',
   ],
@@ -108,7 +108,7 @@ export const PERMISOS_ROL: Record<RolUsuario, string[]> = {
   director_medico: [
     'ver_panel', 'ver_cultivo', 'ver_ambiente', 'ver_cosecha', 'ver_estadisticas',
     'ver_ong', 'ver_institucional', 'ver_mostrador', 'ver_cumplimiento',
-    'ver_clinico', 'editar_clinico',
+    'ver_clinico', 'editar_clinico', 'ver_padron',
   ],
   // Cuotas, caja, documentos y costos, y el PADRON COMPLETO.
   //
@@ -120,19 +120,29 @@ export const PERMISOS_ROL: Record<RolUsuario, string[]> = {
   // decir de quien era ninguna de las 1.248 entregas.
   //
   // Gaston decidio darle el padron entero. En la base es `puede_ver_padron()`,
-  // que es `puede_ver_clinico()` MAS este rol. La funcion es nueva y separada a
-  // proposito: `puede_ver_clinico()` tambien gobierna `ong_feedback_clinico`
-  // —el seguimiento medico— y ahi este rol NO entra.
+  // que es `puede_ver_clinico()` MAS este rol.
+  //
+  // Y DESDE EL 12/10/2026 TAMBIEN LO CLINICO. La pantalla ya le daba ver y
+  // editar la historia clinica, pero `puede_ver_clinico()` no lo incluia: le
+  // devolvia cero filas de historia y de seguimiento medico, que se ve roto, no
+  // prohibido. Gaston decidio que si lo ve, y la base se alineo (migracion
+  // 20261012230000). La prueba `permisosPorRol` compara las dos listas.
   administrativo: [
     'ver_panel', 'ver_cultivo', 'ver_ambiente', 'ver_cosecha', 'ver_estadisticas',
     'ver_ong', 'ver_institucional', 'ver_mostrador', 'ver_cumplimiento',
-    'ver_clinico', 'editar_clinico',
+    'ver_clinico', 'editar_clinico', 'ver_padron',
     'ver_plata', 'ver_econometria', 'editar_plata', 'editar_cuotas',
   ],
   // Entra a mirar: ve todo lo que no es dato de salud, y no modifica nada.
+  //
+  // EL PADRON SI, LA FICHA CLINICA NO (decision del 12/10/2026). `ver_padron`
+  // le abre Pacientes y la nomina en solo lectura. En la base lo lee por la
+  // vista `pacientes_segun_rol` (`puede_leer_padron()`), que le anula patologia,
+  // medico, matricula y credencial. La TABLA no se le abre: por la API leeria
+  // esas columnas.
   auditor: [
     'ver_panel', 'ver_cultivo', 'ver_ambiente', 'ver_cosecha', 'ver_estadisticas',
-    'ver_ong', 'ver_institucional', 'ver_mostrador', 'ver_cumplimiento',
+    'ver_ong', 'ver_institucional', 'ver_mostrador', 'ver_cumplimiento', 'ver_padron',
     'ver_plata', 'ver_econometria',
   ],
 
